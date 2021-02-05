@@ -77,7 +77,7 @@ export class _ApiService {
         }
         else {
             $.get({
-                url: environment.backend_url+'/packages/'+package_name+'/views/'+class_name.replace('\\', '/')+'.'+view_id+'.json',
+                url: environment.backend_url+'/index.php?get=model_view&entity='+entity+'&view_id='+view_id,
                 dataType: 'json',
                 contentType: 'application/html; charset=utf-8'
             })
@@ -106,7 +106,7 @@ export class _ApiService {
         else {
             $.get({
                 //url: 'index.php?get=core_i18n_lang&package='+package_name+'&lang='+lang,
-                url: environment.backend_url+'/packages/'+package_name+'/i18n/'+lang+'/'+class_name.replace('\\', '/')+'.json',
+                url: environment.backend_url+'/index.php?get=config_i18n&entity='+entity+'&lang='+lang,
                 dataType: 'json',
                 contentType: 'application/json; charset=utf-8'
             })
@@ -137,7 +137,7 @@ export class _ApiService {
 
 	public async getView(entity:string, view_id:string) {
         const view = await this.loadView(entity, view_id);
-        return schema;        
+        return view;        
     }
     
     

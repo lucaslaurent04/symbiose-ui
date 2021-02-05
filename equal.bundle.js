@@ -116,7 +116,7 @@ var _ApiService = /*#__PURE__*/function () {
         promise.resolve(this.views[package_name][class_name][view_id]);
       } else {
         $.get({
-          url: _environment.environment.backend_url + '/packages/' + package_name + '/views/' + class_name.replace('\\', '/') + '.' + view_id + '.json',
+          url: _environment.environment.backend_url + '/index.php?get=model_view&entity=' + entity + '&view_id=' + view_id,
           dataType: 'json',
           contentType: 'application/html; charset=utf-8'
         }).then(function (json_data) {
@@ -149,7 +149,7 @@ var _ApiService = /*#__PURE__*/function () {
       } else {
         $.get({
           //url: 'index.php?get=core_i18n_lang&package='+package_name+'&lang='+lang,
-          url: _environment.environment.backend_url + '/packages/' + package_name + '/i18n/' + lang + '/' + class_name.replace('\\', '/') + '.json',
+          url: _environment.environment.backend_url + '/index.php?get=config_i18n&entity=' + entity + '&lang=' + lang,
           dataType: 'json',
           contentType: 'application/json; charset=utf-8'
         }).then(function (json_data) {
@@ -242,7 +242,7 @@ var _ApiService = /*#__PURE__*/function () {
 
               case 2:
                 view = _context3.sent;
-                return _context3.abrupt("return", schema);
+                return _context3.abrupt("return", view);
 
               case 4:
               case "end":
@@ -390,7 +390,7 @@ var Model = /*#__PURE__*/function () {
     key: "search",
     value: function () {
       var _search = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(domain, params, lang) {
-        var schema, view, transaltion;
+        var schema, view, translation;
         return _regenerator.default.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
@@ -406,10 +406,10 @@ var Model = /*#__PURE__*/function () {
               case 5:
                 view = _context.sent;
                 _context.next = 8;
-                return _equalServices.ApiService.getTranslation('qinoa\\User');
+                return _equalServices.ApiService.getTranslation('qinoa\\User', 'en');
 
               case 8:
-                transaltion = _context.sent;
+                translation = _context.sent;
                 console.log(schema);
                 console.log(view);
                 console.log(translation);

@@ -43,7 +43,7 @@ delete: remove an object by its ID
 
         const schema = await ApiService.getSchema('core\\User');
         const view = await ApiService.getView('symbiose\\inventory\\asset\\Product', 'create');
-        const transaltion = await ApiService.getTranslation('qinoa\\User');
+        const translation = await ApiService.getTranslation('qinoa\\User', 'en');
         
         
         console.log(schema);
