@@ -34,6 +34,12 @@ var $ = _interopRequireWildcard(__webpack_require__(/*! jquery */ "./node_module
 
 var _environment = __webpack_require__(/*! environment */ "./build/environment.js");
 
+function _createForOfIteratorHelper(o, allowArrayLike) { var it; if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
 /**
  * This service acts as an interface between client and server and caches view objects to lower the traffic
  * Contents that can be cached are : 
@@ -47,20 +53,48 @@ var _ApiService = /*#__PURE__*/function () {
    * Internal objects for cache management
    */
   function _ApiService() {
+    var _this = this;
+
     (0, _classCallCheck2.default)(this, _ApiService);
     (0, _defineProperty2.default)(this, "views", void 0);
     (0, _defineProperty2.default)(this, "translations", void 0);
     (0, _defineProperty2.default)(this, "schemas", void 0);
+    (0, _defineProperty2.default)(this, "fields", void 0);
+    $.ajaxSetup({
+      cache: false,
+      beforeSend: function beforeSend(xhr) {
+        var access_token = _this.getCookie('access_token');
+
+        if (access_token) {
+          xhr.setRequestHeader('Authorization', "Basic " + access_token);
+        }
+      }
+    });
     this.views = {};
     this.translations = {};
     this.schemas = {};
+    this.fields = {};
   }
-  /**
-   * ObjectManager methods
-   */
-
 
   (0, _createClass2.default)(_ApiService, [{
+    key: "setCookie",
+    value: function setCookie(key, value) {
+      var expires = new Date();
+      expires.setTime(expires.getTime() + 31536000000); //1 year  
+
+      document.cookie = key + '=' + value + ';expires=' + expires.toUTCString();
+    }
+  }, {
+    key: "getCookie",
+    value: function getCookie(key) {
+      var keyValue = document.cookie.match('(^|;) ?' + key + '=([^;]*)(;|$)');
+      return keyValue ? keyValue[2] : null;
+    }
+    /**
+     * ObjectManager methods
+     */
+
+  }, {
     key: "getPackageName",
     value: function getPackageName(entity) {
       return entity.substr(0, entity.indexOf('\\'));
@@ -77,7 +111,7 @@ var _ApiService = /*#__PURE__*/function () {
   }, {
     key: "loadSchema",
     value: function loadSchema(entity) {
-      var _this = this;
+      var _this2 = this;
 
       var promise = $.Deferred();
       var package_name = this.getPackageName(entity);
@@ -87,16 +121,16 @@ var _ApiService = /*#__PURE__*/function () {
         promise.resolve(this.schemas[package_name][class_name]);
       } else {
         $.get({
-          url: _environment.environment.backend_url + '/index.php?get=model_schema&entity=' + entity,
-          dataType: 'json',
-          contentType: 'application/json; charset=utf-8'
+          url: _environment.environment.backend_url + '/index.php?get=model_schema&entity=' + entity
         }).then(function (json_data) {
-          if (typeof _this.schemas[package_name] == 'undefined') {
-            _this.schemas[package_name] = {};
+          if (typeof _this2.schemas[package_name] == 'undefined') {
+            _this2.schemas[package_name] = {};
           }
 
-          _this.schemas[package_name][class_name] = json_data;
-          promise.resolve(_this.schemas[package_name][class_name]);
+          _this2.schemas[package_name][class_name] = json_data;
+          promise.resolve(_this2.schemas[package_name][class_name]);
+        }).catch(function (response) {
+          promise.reject(response.responseJSON);
         });
       }
 
@@ -106,7 +140,7 @@ var _ApiService = /*#__PURE__*/function () {
   }, {
     key: "loadView",
     value: function loadView(entity, view_id) {
-      var _this2 = this;
+      var _this3 = this;
 
       var promise = $.Deferred();
       var package_name = this.getPackageName(entity);
@@ -116,20 +150,20 @@ var _ApiService = /*#__PURE__*/function () {
         promise.resolve(this.views[package_name][class_name][view_id]);
       } else {
         $.get({
-          url: _environment.environment.backend_url + '/index.php?get=model_view&entity=' + entity + '&view_id=' + view_id,
-          dataType: 'json',
-          contentType: 'application/html; charset=utf-8'
+          url: _environment.environment.backend_url + '/index.php?get=model_view&entity=' + entity + '&view_id=' + view_id
         }).then(function (json_data) {
-          if (typeof _this2.views[package_name] == 'undefined') {
-            _this2.views[package_name] = {};
+          if (typeof _this3.views[package_name] == 'undefined') {
+            _this3.views[package_name] = {};
           }
 
-          if (typeof _this2.views[package_name][class_name] == 'undefined') {
-            _this2.views[package_name][class_name] = {};
+          if (typeof _this3.views[package_name][class_name] == 'undefined') {
+            _this3.views[package_name][class_name] = {};
           }
 
-          _this2.views[package_name][class_name][view_id] = json_data;
-          promise.resolve(_this2.views[package_name][class_name][view_id]);
+          _this3.views[package_name][class_name][view_id] = json_data;
+          promise.resolve(_this3.views[package_name][class_name][view_id]);
+        }).catch(function (response) {
+          promise.reject(response.responseJSON);
         });
       }
 
@@ -138,7 +172,7 @@ var _ApiService = /*#__PURE__*/function () {
   }, {
     key: "loadTranslation",
     value: function loadTranslation(entity, lang) {
-      var _this3 = this;
+      var _this4 = this;
 
       var promise = $.Deferred();
       var package_name = this.getPackageName(entity);
@@ -148,21 +182,110 @@ var _ApiService = /*#__PURE__*/function () {
         promise.resolve(this.translations[package_name][class_name][lang]);
       } else {
         $.get({
-          //url: 'index.php?get=core_i18n_lang&package='+package_name+'&lang='+lang,
-          url: _environment.environment.backend_url + '/index.php?get=config_i18n&entity=' + entity + '&lang=' + lang,
-          dataType: 'json',
-          contentType: 'application/json; charset=utf-8'
+          url: _environment.environment.backend_url + '/index.php?get=config_i18n&entity=' + entity + '&lang=' + lang
         }).then(function (json_data) {
-          if (typeof _this3.translations[package_name] == 'undefined') {
-            _this3.translations[package_name] = {};
+          if (typeof _this4.translations[package_name] == 'undefined') {
+            _this4.translations[package_name] = {};
           }
 
-          if (typeof _this3.translations[package_name][class_name] == 'undefined') {
-            _this3.translations[package_name][class_name] = {};
+          if (typeof _this4.translations[package_name][class_name] == 'undefined') {
+            _this4.translations[package_name][class_name] = {};
           }
 
-          _this3.translations[package_name][class_name][lang] = json_data;
-          promise.resolve(_this3.translations[package_name][class_name][lang]);
+          _this4.translations[package_name][class_name][lang] = json_data;
+          promise.resolve(_this4.translations[package_name][class_name][lang]);
+        }).catch(function (response) {
+          promise.reject(response.responseJSON);
+        });
+      }
+
+      return promise;
+    }
+  }, {
+    key: "loadFields",
+    value: function loadFields(entity, view_id) {
+      var _this5 = this;
+
+      var promise = $.Deferred();
+      var package_name = this.getPackageName(entity);
+      var class_name = this.getClassName(entity);
+
+      if (typeof this.fields[package_name] != 'undefined' && typeof this.fields[package_name][class_name] != 'undefined' && typeof this.fields[package_name][class_name][view_id] != 'undefined') {
+        promise.resolve(this.fields[package_name][class_name][view_id]);
+      } else {
+        this.loadView(entity, view_id).then(function (view) {
+          var result = [];
+          var stack = []; // view is valid
+
+          if (view.hasOwnProperty('layout')) {
+            stack.push(view['layout']);
+            var path = ['containers', 'sections', 'rows', 'columns'];
+
+            while (stack.length) {
+              var elem = stack.pop();
+
+              if (elem.hasOwnProperty('items')) {
+                var _iterator = _createForOfIteratorHelper(elem['items']),
+                    _step;
+
+                try {
+                  for (_iterator.s(); !(_step = _iterator.n()).done;) {
+                    var item = _step.value;
+
+                    if (item.type == 'field' && item.hasOwnProperty('id')) {
+                      result.push(item);
+                    }
+                  }
+                } catch (err) {
+                  _iterator.e(err);
+                } finally {
+                  _iterator.f();
+                }
+              } else {
+                var _iterator2 = _createForOfIteratorHelper(path),
+                    _step2;
+
+                try {
+                  for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+                    var step = _step2.value;
+
+                    if (elem.hasOwnProperty(step)) {
+                      var _iterator3 = _createForOfIteratorHelper(elem[step]),
+                          _step3;
+
+                      try {
+                        for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+                          var obj = _step3.value;
+                          stack.push(obj);
+                        }
+                      } catch (err) {
+                        _iterator3.e(err);
+                      } finally {
+                        _iterator3.f();
+                      }
+                    }
+                  }
+                } catch (err) {
+                  _iterator2.e(err);
+                } finally {
+                  _iterator2.f();
+                }
+              }
+            }
+          }
+
+          if (typeof _this5.fields[package_name] == 'undefined') {
+            _this5.fields[package_name] = {};
+          }
+
+          if (typeof _this5.fields[package_name][class_name] == 'undefined') {
+            _this5.fields[package_name][class_name] = {};
+          }
+
+          _this5.fields[package_name][class_name][view_id] = result;
+          promise.resolve(_this5.fields[package_name][class_name][view_id]);
+        }).catch(function (err) {
+          promise.reject(err);
         });
       }
 
@@ -258,6 +381,204 @@ var _ApiService = /*#__PURE__*/function () {
 
       return getView;
     }()
+    /**
+     * Returns a list holding all fields that are present in a given view (as items objects)
+     */
+
+  }, {
+    key: "getFields",
+    value: function () {
+      var _getFields = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4(entity, view_id) {
+        var view;
+        return _regenerator.default.wrap(function _callee4$(_context4) {
+          while (1) {
+            switch (_context4.prev = _context4.next) {
+              case 0:
+                _context4.next = 2;
+                return this.loadFields(entity, view_id);
+
+              case 2:
+                view = _context4.sent;
+                return _context4.abrupt("return", view);
+
+              case 4:
+              case "end":
+                return _context4.stop();
+            }
+          }
+        }, _callee4, this);
+      }));
+
+      function getFields(_x6, _x7) {
+        return _getFields.apply(this, arguments);
+      }
+
+      return getFields;
+    }()
+  }, {
+    key: "read",
+    value: function () {
+      var _read = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5(entity, ids, fields, lang) {
+        var params, response;
+        return _regenerator.default.wrap(function _callee5$(_context5) {
+          while (1) {
+            switch (_context5.prev = _context5.next) {
+              case 0:
+                _context5.prev = 0;
+                params = {
+                  entity: entity,
+                  ids: ids,
+                  fields: fields,
+                  lang: lang
+                };
+                _context5.next = 4;
+                return $.get({
+                  url: _environment.environment.backend_url + '/index.php?get=model_read',
+                  dataType: 'json',
+                  data: params,
+                  contentType: 'application/x-www-form-urlencoded; charset=utf-8'
+                });
+
+              case 4:
+                response = _context5.sent;
+                result = response;
+                _context5.next = 11;
+                break;
+
+              case 8:
+                _context5.prev = 8;
+                _context5.t0 = _context5["catch"](0);
+                console.log('Error ApiService::read', _context5.t0);
+
+              case 11:
+                return _context5.abrupt("return", result);
+
+              case 12:
+              case "end":
+                return _context5.stop();
+            }
+          }
+        }, _callee5, null, [[0, 8]]);
+      }));
+
+      function read(_x8, _x9, _x10, _x11) {
+        return _read.apply(this, arguments);
+      }
+
+      return read;
+    }()
+  }, {
+    key: "collect",
+    value: function () {
+      var _collect = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6(entity, domain, fields, lang, order, sort, start, limit) {
+        var result, params, response;
+        return _regenerator.default.wrap(function _callee6$(_context6) {
+          while (1) {
+            switch (_context6.prev = _context6.next) {
+              case 0:
+                result = [];
+                _context6.prev = 1;
+                params = {
+                  entity: entity,
+                  domain: domain,
+                  fields: fields,
+                  lang: lang,
+                  order: order,
+                  sort: sort,
+                  start: start,
+                  limit: limit
+                };
+                _context6.next = 5;
+                return $.get({
+                  url: _environment.environment.backend_url + '/index.php?get=model_collect',
+                  dataType: 'json',
+                  data: params,
+                  contentType: 'application/x-www-form-urlencoded; charset=utf-8'
+                });
+
+              case 5:
+                response = _context6.sent;
+                result = response;
+                _context6.next = 12;
+                break;
+
+              case 9:
+                _context6.prev = 9;
+                _context6.t0 = _context6["catch"](1);
+                console.log('Error ApiService::collect', _context6.t0);
+
+              case 12:
+                return _context6.abrupt("return", result);
+
+              case 13:
+              case "end":
+                return _context6.stop();
+            }
+          }
+        }, _callee6, null, [[1, 9]]);
+      }));
+
+      function collect(_x12, _x13, _x14, _x15, _x16, _x17, _x18, _x19) {
+        return _collect.apply(this, arguments);
+      }
+
+      return collect;
+    }()
+  }, {
+    key: "search",
+    value: function () {
+      var _search = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7(entity, domain, order, sort, start, limit) {
+        var ids, params, response;
+        return _regenerator.default.wrap(function _callee7$(_context7) {
+          while (1) {
+            switch (_context7.prev = _context7.next) {
+              case 0:
+                ids = [];
+                _context7.prev = 1;
+                params = {
+                  entity: entity,
+                  domain: domain,
+                  order: order,
+                  sort: sort,
+                  start: start,
+                  limit: limit
+                };
+                _context7.next = 5;
+                return $.get({
+                  url: _environment.environment.backend_url + '/index.php?get=model_search',
+                  dataType: 'json',
+                  data: params,
+                  contentType: 'application/x-www-form-urlencoded; charset=utf-8'
+                });
+
+              case 5:
+                response = _context7.sent;
+                ids = response;
+                _context7.next = 12;
+                break;
+
+              case 9:
+                _context7.prev = 9;
+                _context7.t0 = _context7["catch"](1);
+                console.log('Error ApiService::search', _context7.t0);
+
+              case 12:
+                return _context7.abrupt("return", ids);
+
+              case 13:
+              case "end":
+                return _context7.stop();
+            }
+          }
+        }, _callee7, null, [[1, 9]]);
+      }));
+
+      function search(_x20, _x21, _x22, _x23, _x24, _x25) {
+        return _search.apply(this, arguments);
+      }
+
+      return search;
+    }()
   }]);
   return _ApiService;
 }();
@@ -310,11 +631,85 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.Layout = void 0;
 
+var _regenerator = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/regenerator */ "./node_modules/@babel/runtime/regenerator/index.js"));
+
+var _asyncToGenerator2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/asyncToGenerator */ "./node_modules/@babel/runtime/helpers/asyncToGenerator.js"));
+
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/classCallCheck */ "./node_modules/@babel/runtime/helpers/classCallCheck.js"));
 
-var Layout = function Layout(entity) {
-  (0, _classCallCheck2.default)(this, Layout);
-};
+var _createClass2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/createClass */ "./node_modules/@babel/runtime/helpers/createClass.js"));
+
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/defineProperty */ "./node_modules/@babel/runtime/helpers/defineProperty.js"));
+
+var _equalServices = __webpack_require__(/*! equal-services */ "./build/equal-services.js");
+
+var _Model = _interopRequireDefault(__webpack_require__(/*! Model */ "./build/Model-exposed.js"));
+
+var Layout = /*#__PURE__*/function () {
+  // the list of the fields involved in the layout
+  // parent view the layout belongs to
+  // collection of objects involved in the layout
+  function Layout(view) {
+    (0, _classCallCheck2.default)(this, Layout);
+    (0, _defineProperty2.default)(this, "domain", void 0);
+    (0, _defineProperty2.default)(this, "layout", void 0);
+    (0, _defineProperty2.default)(this, "fields", void 0);
+    (0, _defineProperty2.default)(this, "view", void 0);
+    (0, _defineProperty2.default)(this, "model", void 0);
+    this.view = view;
+    this.model = new _Model.default(this.view.entity); // this.domain = domain;
+  }
+
+  (0, _createClass2.default)(Layout, [{
+    key: "load",
+    value: function () {
+      var _load = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
+        return _regenerator.default.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                _context.prev = 0;
+                _context.next = 3;
+                return _equalServices.ApiService.getView(this.view.entity, this.view.type + this.view.name);
+
+              case 3:
+                this.layout = _context.sent;
+                _context.next = 6;
+                return _equalServices.ApiService.getFields(this.view.entity, this.view.type + this.view.name);
+
+              case 6:
+                this.fields = _context.sent;
+                _context.next = 12;
+                break;
+
+              case 9:
+                _context.prev = 9;
+                _context.t0 = _context["catch"](0);
+                console.log('something went wrong ', _context.t0);
+
+              case 12:
+                return _context.abrupt("return", layout);
+
+              case 13:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this, [[0, 9]]);
+      }));
+
+      function load() {
+        return _load.apply(this, arguments);
+      }
+
+      return load;
+    }()
+  }, {
+    key: "layout",
+    value: function layout() {}
+  }]);
+  return Layout;
+}();
 
 exports.Layout = Layout;
 module.exports = Layout;
@@ -349,17 +744,34 @@ var _defineProperty2 = _interopRequireDefault(__webpack_require__(/*! @babel/run
 
 var _equalServices = __webpack_require__(/*! equal-services */ "./build/equal-services.js");
 
-var _environment = __webpack_require__(/*! environment */ "./build/environment.js");
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2.default)(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
+/**
+ * Class for Model intercations
+ * Acts like server-side Collection.class.php
+ */
 var Model = /*#__PURE__*/function () {
   function Model(entity) {
     (0, _classCallCheck2.default)(this, Model);
     (0, _defineProperty2.default)(this, "objects", void 0);
     (0, _defineProperty2.default)(this, "entity", void 0);
+    (0, _defineProperty2.default)(this, "domain", void 0);
+    (0, _defineProperty2.default)(this, "order", void 0);
+    (0, _defineProperty2.default)(this, "sort", void 0);
+    (0, _defineProperty2.default)(this, "start", void 0);
+    (0, _defineProperty2.default)(this, "limit", void 0);
+    (0, _defineProperty2.default)(this, "lang", void 0);
     this.entity = entity;
     this.objects = {};
-    console.log(_environment.environment);
-    console.log(_equalServices.ApiService);
+    this.domain = [];
+    this.order = 'id';
+    this.sort = 'asc';
+    this.start = 0;
+    this.limit = 25;
+    this.lang = 'fr';
+    this.load();
   }
 
   (0, _createClass2.default)(Model, [{
@@ -376,45 +788,14 @@ var Model = /*#__PURE__*/function () {
         return Object.keys(this.objects);
       }
     }
-    /*
-    search: get a collection matching given criteria
-    create: 
-    read: get one object
-    update: 
-    delete: remove an object by its ID
-    
-    
-    */
-
   }, {
-    key: "search",
+    key: "read",
     value: function () {
-      var _search = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(domain, params, lang) {
-        var schema, view, translation;
+      var _read = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(fields, lang) {
         return _regenerator.default.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                _context.next = 2;
-                return _equalServices.ApiService.getSchema('core\\User');
-
-              case 2:
-                schema = _context.sent;
-                _context.next = 5;
-                return _equalServices.ApiService.getView('symbiose\\inventory\\asset\\Product', 'create');
-
-              case 5:
-                view = _context.sent;
-                _context.next = 8;
-                return _equalServices.ApiService.getTranslation('qinoa\\User', 'en');
-
-              case 8:
-                translation = _context.sent;
-                console.log(schema);
-                console.log(view);
-                console.log(translation);
-
-              case 12:
               case "end":
                 return _context.stop();
             }
@@ -422,11 +803,50 @@ var Model = /*#__PURE__*/function () {
         }, _callee);
       }));
 
-      function search(_x, _x2, _x3) {
-        return _search.apply(this, arguments);
+      function read(_x, _x2) {
+        return _read.apply(this, arguments);
       }
 
-      return search;
+      return read;
+    }()
+  }, {
+    key: "load",
+    value: function () {
+      var _load = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
+        var values;
+        return _regenerator.default.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                _context2.prev = 0;
+                _context2.next = 3;
+                return _equalServices.ApiService.collect(this.entity, this.domain, this.fields, this.lang, this.order, this.sort, this.start, this.limit);
+
+              case 3:
+                values = _context2.sent;
+                this.objects = _objectSpread({}, values);
+                console.log(this.objects);
+                _context2.next = 11;
+                break;
+
+              case 8:
+                _context2.prev = 8;
+                _context2.t0 = _context2["catch"](0);
+                console.log('something went wrong ', _context2.t0);
+
+              case 11:
+              case "end":
+                return _context2.stop();
+            }
+          }
+        }, _callee2, this, [[0, 8]]);
+      }));
+
+      function load() {
+        return _load.apply(this, arguments);
+      }
+
+      return load;
     }()
   }]);
   return Model;
@@ -455,8 +875,18 @@ exports.View = void 0;
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/classCallCheck */ "./node_modules/@babel/runtime/helpers/classCallCheck.js"));
 
-var View = function View() {
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/defineProperty */ "./node_modules/@babel/runtime/helpers/defineProperty.js"));
+
+var View = function View(entity, type, name, domain) {
   (0, _classCallCheck2.default)(this, View);
+  (0, _defineProperty2.default)(this, "entity", void 0);
+  (0, _defineProperty2.default)(this, "type", void 0);
+  (0, _defineProperty2.default)(this, "name", void 0);
+  (0, _defineProperty2.default)(this, "domain", void 0);
+  this.domain = domain;
+  this.entity = entity;
+  this.type = type;
+  this.name = name;
 };
 
 exports.View = View;
@@ -599,6 +1029,8 @@ var _classCallCheck2 = _interopRequireDefault(__webpack_require__(/*! @babel/run
 
 var _createClass2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/createClass */ "./node_modules/@babel/runtime/helpers/createClass.js"));
 
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/defineProperty */ "./node_modules/@babel/runtime/helpers/defineProperty.js"));
+
 var _jqueryLib = __webpack_require__(/*! jquery-lib */ "./build/jquery-lib.js");
 
 var _equalLib = __webpack_require__(/*! equal-lib */ "./build/equal-lib.js");
@@ -606,13 +1038,26 @@ var _equalLib = __webpack_require__(/*! equal-lib */ "./build/equal-lib.js");
 var _equalWidgets = __webpack_require__(/*! equal-widgets */ "./build/equal-widgets.js");
 
 var eQ = /*#__PURE__*/function () {
+  // jquery object for components communication
   function eQ(entity) {
     (0, _classCallCheck2.default)(this, eQ);
+    (0, _defineProperty2.default)(this, "$sbEvents", void 0);
     // we need to actually use the dependencies in this file in order to have them loaded in webpack
-    new _equalLib.Model(entity);
+    this.$sbEvents = (0, _jqueryLib.$)();
   }
 
   (0, _createClass2.default)(eQ, null, [{
+    key: "init",
+    value: function init() {
+      // this allows an both internal services and external lib to connect with eQ-UI
+      // $('#sb-events').trigger(event, data);
+      this.$sbEvents = (0, _jqueryLib.$)('<div/>').attr('id', 'sb-events').css('display', 'none');
+      (0, _jqueryLib.$)('body').append(this.$sbEvents);
+      this.$sbEvents.on('_newContext', function (event, data) {
+        console.log('eQ: received _newContext', data);
+      });
+    }
+  }, {
     key: "test",
     value: function test() {
       console.log((0, _jqueryLib.$)());
@@ -620,11 +1065,8 @@ var eQ = /*#__PURE__*/function () {
       (0, _jqueryLib.$)("#datepicker").datepicker();
       console.log("static method test");
       console.log(new _equalWidgets.WidgetInput());
-    }
-  }, {
-    key: "Collection",
-    value: function Collection(entity) {
-      return new _equalLib.Model(entity);
+      var view = new _equalLib.View('core\\User', 'form', 'default', []);
+      var layout = new _equalLib.Layout(view);
     }
   }]);
   return eQ;

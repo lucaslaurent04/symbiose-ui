@@ -1,17 +1,38 @@
-import * as $ from "jquery";
+import { $ } from "jquery-lib";
 import { ApiService } from "equal-services";
-import { environment } from "environment";
 
+import Layout from "Layout";
+
+/**
+ * Class for Model intercations
+ * Acts like server-side Collection.class.php
+ */
 export class Model {
     
-    private objects:any;
-    private entity:string;
+    private objects: any;
+    private entity: string;
     
-    constructor(private entity:string) {
+    private domain: array;   
+    private order: string;
+    private sort: string;    
+    private start: interger;
+    private limit: interger;
+    
+    private lang: string;
+    
+    constructor(entity:string) {        
         this.entity = entity;
+
         this.objects = {};
-        console.log(environment);
-            console.log(ApiService);
+        
+        this.domain = [];
+        this.order = 'id';
+        this.sort = 'asc';    
+        this.start = 0;
+        this.limit = 25;
+        this.lang = 'fr';
+        
+        this.load();
     }
 
 
@@ -28,28 +49,19 @@ export class Model {
         }
     }
 
-
-/*
-search: get a collection matching given criteria
-create: 
-read: get one object
-update: 
-delete: remove an object by its ID
-
-
-*/
-
-    public async search(domain:[], params:any, lang:string) {
-
-        const schema = await ApiService.getSchema('core\\User');
-        const view = await ApiService.getView('symbiose\\inventory\\asset\\Product', 'create');
-        const translation = await ApiService.getTranslation('qinoa\\User', 'en');
+    public async read(fields:[], lang:string) {
         
-        
-        console.log(schema);
-        console.log(view);
-        console.log(translation);
-        
+    }
+       
+    private async load() {            
+        try {            
+            const values = await ApiService.collect(this.entity, this.domain, this.fields, this.lang, this.order, this.sort, this.start, this.limit);
+            this.objects = { ...values };
+            console.log(this.objects);
+        }
+        catch(err) {
+            console.log('something went wrong ', err);
+        }        
     }
     
 }

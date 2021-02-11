@@ -26,16 +26,10 @@
 
 $(document).ready( function() {
 
-    eQ.test();
-    
-    var a = eQ.Collection('test');
-    console.log(a);
-    
-    var list = new Model('core\\User');
 
-    var res = list.ids([1,2,3]).search();
-
-    console.log(res);
+    eQ.init();
+    eQ.test();    
+    
 
 });
 </script>
