@@ -1,40 +1,48 @@
-import * as $ from "jquery";
+import { $ } from "jquery-lib";
 import { ApiService } from "equal-services";
 
 import View from "View";
 import Model from "Model";
 
+/*
+    There are two main braches of Layouts depending on what is to be displayed:
+        - 1 single object : Form 
+        - several objects : List (grid, kanban, graph)
+        
+    Forms can be displayed in two modes : 'view' or 'edit'
+    Lists can be editable on a Cell basis (using Widgets)
+*/
 
 export class Layout {
 
-    private domain: array;
-    private layout: string;
-
-    private fields: array;          // the list of the fields involved in the layout
+    private schema: object;
 
     private view: View;             // parent view the layout belongs to
-    private model: Model;           // collection of objects involved in the layout
     
-    constructor(view:View) {
+    constructor(view:View, schema: object) {
         this.view = view;
-        this.model = new Model(this.view.entity);
-        // this.domain = domain;
+        this.schema = schema;
+
     }
 
-    private async load() {
+    public async init() {
         try {
-            this.layout = await ApiService.getView(this.view.entity, this.view.type + this.view.name);
-            // load the list of fields that must be requested for the layout
-            this.fields = await ApiService.getFields(this.view.entity, this.view.type + this.view.name);            
+            this.refresh();    
         }
         catch(err) {
             console.log('something went wrong ', err);
-        }
-        return layout;
+        }        
+    }
+
+    // refresh layout
+    public refresh() {
+        console.log('Layout::refresh');
+        var html = '';
+        html = JSON.stringify(this.view.model.get());
+
+        this.view.$layoutContainer.empty().append($('<div />').html(html));
     }
     
-    private layout() {
-    }
 }
 
 module.exports = Layout;

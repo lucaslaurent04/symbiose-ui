@@ -17,7 +17,7 @@ export class _ApiService {
     private views: object;
     private translations: object;
     private schemas: object;
-    private fields: object;
+
     
     constructor() {
                 
@@ -121,17 +121,17 @@ export class _ApiService {
         return promise;
     }
 
-    private loadTranslation(entity:string, lang:string) {
+    private loadTranslation(entity:string) {
         var promise = $.Deferred();
         var package_name = this.getPackageName(entity);
         var class_name = this.getClassName(entity);
 
-        if(typeof(this.translations[package_name]) != 'undefined' && typeof(this.translations[package_name][class_name]) != 'undefined' && typeof(this.translations[package_name][class_name][lang]) != 'undefined') {
-            promise.resolve(this.translations[package_name][class_name][lang]);
+        if(typeof(this.translations[package_name]) != 'undefined' && typeof(this.translations[package_name][class_name]) != 'undefined' && typeof(this.translations[package_name][class_name][environment.lang]) != 'undefined') {
+            promise.resolve(this.translations[package_name][class_name][environment.lang]);
         }
         else {
             $.get({
-                url: environment.backend_url+'/index.php?get=config_i18n&entity='+entity+'&lang='+lang
+                url: environment.backend_url+'/index.php?get=config_i18n&entity='+entity+'&lang='+environment.lang
             })
             .then( (json_data) => {
                 if(typeof(this.translations[package_name]) == 'undefined') {
@@ -140,8 +140,8 @@ export class _ApiService {
                 if(typeof(this.translations[package_name][class_name]) == 'undefined') {
                     this.translations[package_name][class_name] = {};
                 }
-                this.translations[package_name][class_name][lang] = json_data;                
-                promise.resolve(this.translations[package_name][class_name][lang]);
+                this.translations[package_name][class_name][environment.lang] = json_data;                
+                promise.resolve(this.translations[package_name][class_name][environment.lang]);
             })
             .catch( (response) => {
                 promise.reject(response.responseJSON);
@@ -151,64 +151,9 @@ export class _ApiService {
     }
         
         
-    private loadFields(entity:string, view_id:string) {
-        var promise = $.Deferred();
-        var package_name = this.getPackageName(entity);
-        var class_name = this.getClassName(entity);
-
-        if(typeof(this.fields[package_name]) != 'undefined' && typeof(this.fields[package_name][class_name]) != 'undefined' && typeof(this.fields[package_name][class_name][view_id]) != 'undefined') {
-            promise.resolve(this.fields[package_name][class_name][view_id]);
-        }
-        else {
-            this.loadView(entity, view_id)
-            .then( (view) => {
-                var result = [];
-                var stack = [];
-                // view is valid
-                if(view.hasOwnProperty('layout')) {    
-                    stack.push(view['layout']);
-                    var path = ['containers', 'sections', 'rows', 'columns'];
-                    
-                    while(stack.length) {
-                        var elem = stack.pop();
-                        
-                        if(elem.hasOwnProperty('items')) {
-                            for (let item of elem['items']) { 
-                                if(item.type == 'field' && item.hasOwnProperty('id')){
-                                    result.push(item);
-                                }
-                            }
-                        }
-                        else {
-                            for (let step of path) { 
-                                if(elem.hasOwnProperty(step)) {
-                                    for (let obj of elem[step]) { 
-                                        stack.push(obj);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-                if(typeof(this.fields[package_name]) == 'undefined') {
-                    this.fields[package_name] = {};
-                }
-                if(typeof(this.fields[package_name][class_name]) == 'undefined') {
-                    this.fields[package_name][class_name] = {};
-                }                
-                this.fields[package_name][class_name][view_id] = result;
-                promise.resolve(this.fields[package_name][class_name][view_id]);                
-            })
-            .catch( (err) => {
-                promise.reject(err);
-            });
-        }
-                    
-        return promise;
-    }
     
-    public async getTranslation(entity, lang) {
-        const translation = await this.loadTranslation(entity, lang);
+    public async getTranslation(entity) {
+        const translation = await this.loadTranslation(entity);
         return translation;
     }
         
@@ -223,21 +168,14 @@ export class _ApiService {
         return view;        
     }
 
-    /**
-     * Returns a list holding all fields that are present in a given view (as items objects)
-     */
-	public async getFields(entity:string, view_id:string) {
-        const view = await this.loadFields(entity, view_id);
-        return view;        
-    }
     
-    public async read(entity:string, ids:array, fields:array, lang:string) {
+    public async read(entity:string, ids:array, fields:array) {
         try {
             let params = {
                 entity: entity,
                 ids: ids,
                 fields: fields,
-                lang: lang
+                lang: environment.lang
             };
             const response = await $.get({
                 url: environment.backend_url+'/index.php?get=model_read',
@@ -253,14 +191,14 @@ export class _ApiService {
         return result;         
     }
     
-    public async collect(entity:string, domain:array, fields:array, lang:string, order:string, sort:string, start:integer, limit:integer) {
+    public async collect(entity:string, domain:array, fields:array, order:string, sort:string, start:integer, limit:integer) {
         var result = [];
         try {
             let params = {
                 entity: entity,
                 domain: domain,
                 fields: fields,
-                lang: lang,
+                lang: environment.lang,
                 order: order,
                 sort: sort,
                 start: start,
