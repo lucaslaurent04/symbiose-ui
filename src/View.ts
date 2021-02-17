@@ -34,12 +34,13 @@ export class View {
         console.log('View::init');
         this.$headerContainer = $('<div />');
         this.$layoutContainer = $('<div />');
+        // inject View in parent Context object
         this.context.$container.append(this.$headerContainer).append(this.$layoutContainer);
 
         try {
             var view_schema = await ApiService.getView(this.entity, this.type + '.' + this.name);
             var model_schema = await ApiService.getSchema(this.entity);
-            var model_fields = this.getFields(view_schema);
+            var model_fields = await this.getFields(view_schema);
             this.layout = new Layout(this, view_schema);
             this.model = new Model(this, model_schema, model_fields);
         }
@@ -61,6 +62,7 @@ export class View {
      * @return array    List of fields names (related to entity of the view)
      */
 	private async getFields(view_schema: object) {
+        console.log('View::getFields', view_schema);
         var result = [];
         var stack = [];
         // view is valid
@@ -73,8 +75,8 @@ export class View {
                 
                 if(elem.hasOwnProperty('items')) {
                     for (let item of elem['items']) { 
-                        if(item.type == 'field' && item.hasOwnProperty('id')){
-                            result.push(item);
+                        if(item.type == 'field' && item.hasOwnProperty('value')){
+                            result.push(item.value);
                         }
                     }
                 }
@@ -89,6 +91,7 @@ export class View {
                 }
             }
         }
+        console.log(result);
         return result;        
     }
 

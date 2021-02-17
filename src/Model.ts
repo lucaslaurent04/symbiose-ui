@@ -84,7 +84,7 @@ export class Model {
         console.log('Model::refresh');
         let domain = this.mergeDomains(this.view.domain, this.domain);
         try {
-            this.objects = await ApiService.collect(this.view.entity, domain, this.fields, this.order, this.sort, this.start, this.limit);
+            this.objects = await ApiService.collect(this.view.entity, this.omain, this.fields, this.order, this.sort, this.start, this.limit);
 
             console.log(this.objects);
             // trigger model change handler in the parent View (in order to update the layout)

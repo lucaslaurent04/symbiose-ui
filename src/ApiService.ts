@@ -192,6 +192,7 @@ export class _ApiService {
     }
     
     public async collect(entity:string, domain:array, fields:array, order:string, sort:string, start:integer, limit:integer) {
+        console.log('ApiService::collect', entity, domain, fields, order, sort, start, limit);
         var result = [];
         try {
             let params = {

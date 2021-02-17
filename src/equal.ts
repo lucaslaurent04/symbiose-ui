@@ -3,6 +3,7 @@ import { Context, Model, View, Layout } from "equal-lib";
 import { WidgetInput } from "equal-widgets";
 
 
+
 class eQ {
     
     // jquery object for components communication
@@ -21,7 +22,8 @@ class eQ {
         // we need to actually use the dependencies in this file in order to have them loaded in webpack
         this.$sbEvents = $();
         
-        this.$container = $('#eq-container');
+        // `#sb-container` is a convention and must be present in the DOM
+        this.$container = $('#sb-container');
         this.stack = [];
         this.context = null;
         this.init();
@@ -29,7 +31,7 @@ class eQ {
     
     
     private init() {
-        // this allows an both internal services and external lib to connect with eQ-UI
+        // $sbEvents is a jQuery object used to communicate: it allows an both internal services and external lib to connect with eQ-UI
         // $('#sb-events').trigger(event, data);
         this.$sbEvents = $('<div/>').attr('id', 'sb-events').css('display','none').appendTo('body');
 
@@ -69,11 +71,12 @@ class eQ {
     public test() {
         console.log("eQ::test");
         $("#test").dialog();
-        $( "#datepicker" ).datepicker();
+        $( "#datepicker" ).daterangepicker();
 
         console.log(new WidgetInput());
         
-        this.$sbEvents.trigger('_openContext', new Context('core\\User', 'form', 'default', []));               
+        this.$sbEvents.trigger('_openContext', new Context('core\\User', 'list', 'default', []));               
+        /*
         setTimeout( () => {
             console.log('timeout1');
             this.$sbEvents.trigger('_openContext', new Context('core\\Group', 'list', 'default', []));
@@ -83,7 +86,7 @@ class eQ {
             }, 2000);
             
         }, 2000);
-
+*/
 
 
     }

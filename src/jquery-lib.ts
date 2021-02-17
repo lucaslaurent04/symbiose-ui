@@ -13,6 +13,7 @@ import "jquery-ui/ui/widgets/selectable";
 import "jquery-ui/ui/widgets/dialog";
 import "jquery-ui/ui/widgets/datepicker";
 
+import 'daterangepicker/daterangepicker.js';
 
 
 export { $ }
