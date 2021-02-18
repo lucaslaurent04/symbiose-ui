@@ -536,7 +536,7 @@ var _defineProperty2 = _interopRequireDefault(__webpack_require__(/*! @babel/run
 var _jqueryLib = __webpack_require__(/*! jquery-lib */ "./build/jquery-lib.js");
 
 /*
-    There are two main braches of Layouts depending on what is to be displayed:
+    There are two main branches of Layouts depending on what is to be displayed:
         - 1 single object : Form 
         - several objects : List (grid, kanban, graph)
         
@@ -551,14 +551,17 @@ var Layout = /*#__PURE__*/function () {
    * @param view  View    Parent View object
    * @param shema object  The view schema (obtained by parent View object)
    */
-  function Layout(view, schema) {
+  function Layout(view, schema, fields) {
     (0, _classCallCheck2.default)(this, Layout);
     (0, _defineProperty2.default)(this, "schema", void 0);
     (0, _defineProperty2.default)(this, "view", void 0);
     (0, _defineProperty2.default)(this, "$layout", void 0);
+    (0, _defineProperty2.default)(this, "fields", void 0);
     this.view = view;
     this.schema = schema;
-    this.$layout = (0, _jqueryLib.$)('<div />');
+    this.fields = fields;
+    this.$layout = (0, _jqueryLib.$)('<div />').addClass('sb-layout');
+    this.view.$layoutContainer.append(this.$layout);
     this.init();
   }
 
@@ -573,8 +576,9 @@ var Layout = /*#__PURE__*/function () {
                 console.log('Layout::init');
 
                 try {
-                  // display the layout
+                  // initialize the layout
                   this.layout();
+                  this.decorate();
                 } catch (err) {
                   console.log('something went wrong ', err);
                 }
@@ -597,123 +601,228 @@ var Layout = /*#__PURE__*/function () {
 
   }, {
     key: "refresh",
-    value: function refresh() {
-      console.log('Layout::refresh'); // feed layout with updated Model
+    value: function refresh(full) {
+      console.log('Layout::refresh');
 
-      this.$layout.detach();
-      this.feed(this.view.getModel().get());
-      this.view.$layoutContainer.append(this.$layout); // request a refresh from material-design-lite
+      if (full) {
+        this.$layout.empty();
+        this.layout();
+      } else {
+        this.undecorate();
+      } // feed layout with updated Model
 
-      componentHandler.upgradeDom();
-      /*        
-              switch(this.view.type) {
-                  case 'form':
-                      break;
-                  case 'list':
-                      break;
-              }
-              // liste associative des objets
-              this.view.model.get()
-      */
-      // this.view.$layoutContainer.empty().append($('<div />').html(html));
+
+      this.feed(this.view.getModel().get()); // request a refresh from UI library (material-design-lite)
+
+      this.decorate();
+    }
+  }, {
+    key: "undecorate",
+    value: function undecorate() {
+      console.log('Layout::undecorate');
+
+      switch (this.view.type) {
+        case 'form':
+          break;
+
+        case 'list':
+          // downgrade the table element (upgrade is mad on the whole table and cannot be limited to tbody)
+          var $table = this.$layout.find("table").removeAttr('data-upgraded').removeClass('is-upgraded'); // remove first colum header (selection)
+
+          $table.find('th').first().remove();
+          break;
+      }
+    }
+  }, {
+    key: "decorate",
+    value: function decorate() {
+      console.log('Layout::decorate');
+
+      switch (this.view.type) {
+        case 'form':
+          break;
+
+        case 'list':
+          // componentHandler.upgradeElement(this.$layout.find("table")[0]);
+          componentHandler.upgradeDom();
+          break;
+      }
     }
   }, {
     key: "layout",
     value: function layout() {
-      console.log('Layout::layout'); // create table
+      console.log('Layout::layout');
 
+      switch (this.view.type) {
+        case 'form':
+          this.layoutForm();
+          break;
+
+        case 'list':
+          this.layoutList();
+          break;
+      }
+    }
+  }, {
+    key: "layoutForm",
+    value: function layoutForm() {}
+  }, {
+    key: "layoutList",
+    value: function layoutList() {
+      var _this = this;
+
+      // create table
       var $table = (0, _jqueryLib.$)('<table/>').css({
         "width": "100%"
-      }).addClass('mdl-data-table mdl-js-data-table mdl-data-table--selectable mdl-shadow');
-      var $thead = (0, _jqueryLib.$)('<thead/>'); // instanciate header row and the first column which contains the 'select-all' checkbox
+      }).addClass('mdl-data-table mdl-js-data-table mdl-data-table--selectable');
+      var $thead = (0, _jqueryLib.$)('<thead/>');
+      var $button = (0, _jqueryLib.$)('<button/>').attr('id', 'menu1').addClass('sb-fields-toggle').addClass('mdl-button mdl-js-button mdl-button--icon').append((0, _jqueryLib.$)('<i/>').addClass('material-icons').text('more_vert'));
+      var $menu = (0, _jqueryLib.$)('<ul/>').attr('for', 'menu1').addClass('mdl-menu mdl-menu--bottom-right mdl-js-menu mdl-js-ripple-effect'); // instanciate header row and the first column which contains the 'select-all' checkbox
 
       var $hrow = (0, _jqueryLib.$)('<tr/>'); // create other columns, based on the col_model given in the configuration
 
       _jqueryLib.$.each(this.schema.layout.items, function (i, item) {
         var align = item.hasOwnProperty('align') ? item.align : 'left';
         var label = item.hasOwnProperty('label') ? item.label : item.value.charAt(0).toUpperCase() + item.value.slice(1);
-        var $cell = (0, _jqueryLib.$)('<th/>').attr('name', item.value).append(label).hover( // The div style attr 'asc' or 'desc' is for the display of the arrow
-        // the th style attr 'asc' or 'desc' is to memorize the current order
-        // so, when present, both attributes should always be inverted                       
-        function () {
-          // set hover and sort order indicator
-          var $this = (0, _jqueryLib.$)(this);
-          var $div = (0, _jqueryLib.$)('div', $this);
-          var $sorted = $thead.find('.sorted');
-          $this.addClass('thOver');
+        var sortable = item.hasOwnProperty('sortable') && item.sortable;
+        var width = item.hasOwnProperty('width') ? parseInt(item.width, 10) : -1;
+        var $menu_item = (0, _jqueryLib.$)('<li/>').addClass('mdl-menu__item');
+        var $checkbox = (0, _jqueryLib.$)('<input type="checkbox"/>').attr('id', 'sb-fields-toggle-checkbox-' + item.value).addClass('mdl-checkbox__input');
+        $menu_item.append((0, _jqueryLib.$)('<label/>').attr('for', 'sb-fields-toggle-checkbox-' + item.value).addClass('mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect').append($checkbox).append((0, _jqueryLib.$)('<span/>').addClass('mdl-checkbox__label').text(label)));
+        $checkbox.on('change', function (event) {
+          var $this = (0, _jqueryLib.$)(event.currentTarget);
+          $this.a;
 
-          if ($sorted.attr('name') == $this.attr('name') && $div.hasClass('asc')) {
-            $div.removeClass('asc').addClass('desc');
+          var def = _this.fields.get(item.value);
+
+          if ($this.is(":checked")) {
+            def.width = "10%";
           } else {
-            $div.removeClass('desc').addClass('asc');
+            def.width = "0%";
           }
-        }, function () {
-          // unset hover and sort order indicator
-          var $this = (0, _jqueryLib.$)(this);
-          var $div = (0, _jqueryLib.$)('div', $this);
-          var $sorted = $thead.find('.sorted');
-          $this.removeClass('thOver');
-          $div.removeClass('asc').removeClass('desc');
 
-          if ($sorted.attr('name') == $this.attr('name')) {
-            if ($this.hasClass('asc')) $div.addClass('asc');else $div.addClass('desc');
-          }
+          _this.fields.set(item.value, def);
+
+          _this.view.onchangeModel(true);
         });
-        /**
-            .click(
-                function() {
-                    // change sortname and/or sortorder
-                    $this = $(this);
-                    $sorted = $thead.find('.sorted');
-                    $div = $('div', $this);
-                    if($sorted.attr('name') == $this.attr('name')) {
-                        if($div.hasClass('asc')) {
-                            $div.removeClass('asc').addClass('desc');
-                            $this.removeClass('desc').addClass('asc');
-                            conf.sortorder = 'asc';
-                        }								
-                        else {
-                            $div.removeClass('desc').addClass('asc');
-                            $this.removeClass('asc').addClass('desc');
-                            conf.sortorder = 'desc';									
-                        }
-                    }
-                    else {
-                        $this.addClass('sorted').addClass('asc');
-                        $div.removeClass('asc').addClass('desc');
-                        $sorted.removeClass('sorted').removeClass('asc').removeClass('desc');
-                        $('div', $sorted).removeClass('asc').removeClass('desc');
-                        conf.sortorder = 'asc';
-                    }
-                    conf.sortname = $this.attr('name');
-                    // uncheck selection box
-                    if(conf.selectable)
-                        $("input:checkbox", $thead)[0].checked = false;
-                    self.feed($grid, conf);
-                }
-            );
-        if(col.name == conf.sortname) {
-            $cell.addClass('sorted').addClass(conf.sortorder);
-            $('div', $cell).addClass(conf.sortorder);
-        }
-        */
 
-        $hrow.append($cell);
+        if (width != 0) {
+          $checkbox.attr('checked', 'checked');
+          var $cell = (0, _jqueryLib.$)('<th/>').attr('name', item.value).append(label).hover(function () {
+            // set hover and sort order indicator
+            var $this = (0, _jqueryLib.$)(this);
+            $this.addClass('hover');
+
+            if ($this.hasClass('sortable')) {
+              if ($this.hasClass('sorted')) {
+                if ($this.hasClass('asc')) {
+                  $this.removeClass('asc').addClass('desc');
+                } else {
+                  $this.removeClass('desc').addClass('asc');
+                }
+              } else {
+                $this.addClass('asc');
+              }
+            }
+          }, function () {
+            // unset hover and sort order indicator
+            var $this = (0, _jqueryLib.$)(this);
+            $this.removeClass('hover');
+
+            if ($this.hasClass('sortable')) {
+              if ($this.hasClass('sorted')) {
+                if ($this.hasClass('asc')) {
+                  $this.removeClass('asc').addClass('desc');
+                } else {
+                  $this.removeClass('desc').addClass('asc');
+                }
+              } else {
+                $this.removeClass('asc');
+              }
+            }
+          }).click(function (event) {
+            var $this = (0, _jqueryLib.$)(event.currentTarget); // change sortname and/or sortorder
+
+            if ($this.hasClass('sortable')) {
+              // set order according to column field
+              if (!$this.hasClass('sorted')) {
+                $thead.find('.sorted').removeClass('sorted').removeClass('asc').removeClass('desc');
+                $this.addClass('sorted');
+                _this.view.order = $this.attr('name');
+
+                _this.view.onchangeView();
+              } // toggle sorting order
+              else {
+                  var sort = $this.attr('data-sort');
+
+                  if (sort == 'asc') {
+                    $this.removeClass('asc').addClass('desc');
+                    sort = 'desc';
+                  } else {
+                    $this.removeClass('desc').addClass('asc');
+                    sort = 'asc';
+                  }
+
+                  $this.attr('data-sort', sort);
+                  _this.view.sort = sort;
+
+                  _this.view.onchangeView();
+                }
+            }
+          });
+
+          if (sortable) {
+            $cell.addClass('sortable').attr('data-sort', 'asc');
+          }
+
+          $hrow.append($cell);
+        }
+
+        $menu.append($menu_item);
       });
+
+      this.$layout.append($button);
+      this.$layout.append($menu); // componentHandler.upgradeElement($button[0]);            
+      // componentHandler.upgradeElement($menu[0]);
 
       this.$layout.append($table.append($thead.append($hrow)));
     }
   }, {
     key: "feed",
     value: function feed(objects) {
-      var $tbody = (0, _jqueryLib.$)('<tbody/>');
+      // flush 
+      switch (this.view.type) {
+        case 'form':
+          this.feedForm(objects);
+          break;
+
+        case 'list':
+          this.$layout.find("tbody").remove();
+          this.feedList(objects);
+          break;
+      }
+    }
+  }, {
+    key: "feedList",
+    value: function feedList(objects) {
+      var _this2 = this;
+
       console.log('Layout::feed', objects);
+      var $tbody = (0, _jqueryLib.$)('<tbody/>');
 
       _jqueryLib.$.each(objects, function (i, object) {
         var $row = (0, _jqueryLib.$)('<tr/>');
 
         for (var _i = 0, _Object$keys = Object.keys(object); _i < _Object$keys.length; _i++) {
           var field = _Object$keys[_i];
+
+          var def = _this2.fields.get(field); // field is not part of the view, skip it
+
+
+          if (def == undefined) continue;
+          var width = def.hasOwnProperty('width') ? parseInt(def.width, 10) : -1; // do not show fields with no width
+
+          if (width == 0) continue;
           var $cell = (0, _jqueryLib.$)('<td/>').text(object[field]);
           $row.append($cell);
         }
@@ -723,6 +832,9 @@ var Layout = /*#__PURE__*/function () {
 
       this.$layout.find("table").append($tbody);
     }
+  }, {
+    key: "feedForm",
+    value: function feedForm(objects) {}
   }]);
   return Layout;
 }();
@@ -747,6 +859,8 @@ Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
 exports.Model = void 0;
+
+var _toConsumableArray2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/toConsumableArray */ "./node_modules/@babel/runtime/helpers/toConsumableArray.js"));
 
 var _regenerator = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/regenerator */ "./node_modules/@babel/runtime/regenerator/index.js"));
 
@@ -774,8 +888,6 @@ var Model = /*#__PURE__*/function () {
   // Collection (map) of objects: objects ids mapping related objects
   // entity (package\Class) to be loaded: should be set only once (depend on the related view)
   // fields to be loaded: should be set only once (depend on the related view)
-  // Collection domain: may vary, is empty by default, and is always merged with the one of the parent View
-  // Collection holds its own default values for search requests
   // Collecitons do not deal with lang: it is used in ApiService set in the environment var
   function Model(view, schema, fields) {
     (0, _classCallCheck2.default)(this, Model);
@@ -784,28 +896,13 @@ var Model = /*#__PURE__*/function () {
     (0, _defineProperty2.default)(this, "entity", void 0);
     (0, _defineProperty2.default)(this, "fields", void 0);
     (0, _defineProperty2.default)(this, "schema", void 0);
-    (0, _defineProperty2.default)(this, "domain", void 0);
-    (0, _defineProperty2.default)(this, "order", void 0);
-    (0, _defineProperty2.default)(this, "sort", void 0);
-    (0, _defineProperty2.default)(this, "start", void 0);
-    (0, _defineProperty2.default)(this, "limit", void 0);
     this.view = view; // schema holds additional info (type, contrainsts, ...)
 
     this.schema = schema;
     this.fields = fields;
-    this.objects = {}; // start with an empty domain
-
-    this.domain = [];
-    this.order = 'id';
-    this.sort = 'asc';
-    this.start = 0;
-    this.limit = 25;
+    this.objects = {};
     this.init();
-  } // in 
-  // change of the domain or params (order, sort, start, limit)
-  // out
-  // provide view with Collection
-
+  }
 
   (0, _createClass2.default)(Model, [{
     key: "init",
@@ -836,27 +933,19 @@ var Model = /*#__PURE__*/function () {
       return init;
     }()
   }, {
-    key: "mergeDomains",
-    value: function mergeDomains(domainA, domainB) {
-      // domains are disjunctions of conjunctions
-      //
-      var result;
-      return result;
-    }
-  }, {
     key: "refresh",
     value: function () {
       var _refresh = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
-        var domain;
+        var fields;
         return _regenerator.default.wrap(function _callee2$(_context2) {
           while (1) {
             switch (_context2.prev = _context2.next) {
               case 0:
                 console.log('Model::refresh');
-                domain = this.mergeDomains(this.view.domain, this.domain);
+                fields = (0, _toConsumableArray2.default)(this.fields.keys());
                 _context2.prev = 2;
                 _context2.next = 5;
-                return _equalServices.ApiService.collect(this.view.entity, this.omain, this.fields, this.order, this.sort, this.start, this.limit);
+                return _equalServices.ApiService.collect(this.view.entity, this.view.domain, fields, this.view.order, this.view.sort, this.view.start, this.view.limit);
 
               case 5:
                 this.objects = _context2.sent;
@@ -978,6 +1067,7 @@ function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o =
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
 var View = /*#__PURE__*/function () {
+  // View holds the params for search requests performed by Model
   function View(context, entity, type, name, domain) {
     (0, _classCallCheck2.default)(this, View);
     (0, _defineProperty2.default)(this, "context", void 0);
@@ -985,6 +1075,10 @@ var View = /*#__PURE__*/function () {
     (0, _defineProperty2.default)(this, "type", void 0);
     (0, _defineProperty2.default)(this, "name", void 0);
     (0, _defineProperty2.default)(this, "domain", void 0);
+    (0, _defineProperty2.default)(this, "order", void 0);
+    (0, _defineProperty2.default)(this, "sort", void 0);
+    (0, _defineProperty2.default)(this, "start", void 0);
+    (0, _defineProperty2.default)(this, "limit", void 0);
     (0, _defineProperty2.default)(this, "layout", void 0);
     (0, _defineProperty2.default)(this, "model", void 0);
     (0, _defineProperty2.default)(this, "$headerContainer", void 0);
@@ -994,6 +1088,10 @@ var View = /*#__PURE__*/function () {
     this.type = type;
     this.name = name;
     this.domain = domain;
+    this.order = 'id';
+    this.sort = 'asc';
+    this.start = 0;
+    this.limit = 25;
     this.init();
   }
 
@@ -1027,7 +1125,7 @@ var View = /*#__PURE__*/function () {
 
               case 13:
                 model_fields = _context.sent;
-                this.layout = new _Layout.default(this, view_schema);
+                this.layout = new _Layout.default(this, view_schema, model_fields);
                 this.model = new _Model.default(this, model_schema, model_fields);
                 _context.next = 21;
                 break;
@@ -1063,7 +1161,7 @@ var View = /*#__PURE__*/function () {
     }
     /**
      * Returns a list holding all fields that are present in a given view (as items objects)
-     * @return array    List of fields names (related to entity of the view)
+     * @return Map    List of fields names (related to entity of the view)
      */
 
   }, {
@@ -1077,7 +1175,7 @@ var View = /*#__PURE__*/function () {
             switch (_context2.prev = _context2.next) {
               case 0:
                 console.log('View::getFields', view_schema);
-                result = [];
+                result = new Map();
                 stack = []; // view is valid
 
                 if (view_schema.hasOwnProperty('layout')) {
@@ -1095,7 +1193,7 @@ var View = /*#__PURE__*/function () {
                           item = _step.value;
 
                           if (item.type == 'field' && item.hasOwnProperty('value')) {
-                            result.push(item.value);
+                            result.set(item.value, item);
                           }
                         }
                       } catch (err) {
@@ -1182,14 +1280,14 @@ var View = /*#__PURE__*/function () {
 
   }, {
     key: "onchangeModel",
-    value: function onchangeModel() {
-      this.layout.refresh();
+    value: function onchangeModel(full) {
+      this.layout.refresh(full);
     }
     /**
      *
      *
      * Requested either from view: domain has been updated
-     * or from layout: conttext has been updated (sort column, sorting order, limit, page, ...)
+     * or from layout: context has been updated (sort column, sorting order, limit, page, ...)
      */
 
   }, {
@@ -1302,31 +1400,6 @@ exports.ApiService = exports.ApiService = ApiService;
 
 /***/ }),
 
-/***/ "./build/equal-widgets.js":
-/*!********************************!*\
-  !*** ./build/equal-widgets.js ***!
-  \********************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-var _interopRequireDefault = __webpack_require__(/*! @babel/runtime/helpers/interopRequireDefault */ "./node_modules/@babel/runtime/helpers/interopRequireDefault.js");
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-Object.defineProperty(exports, "WidgetInput", ({
-  enumerable: true,
-  get: function get() {
-    return _WidgetInput.default;
-  }
-}));
-
-var _WidgetInput = _interopRequireDefault(__webpack_require__(/*! widgets/WidgetInput */ "./build/widgets/WidgetInput.js"));
-
-/***/ }),
-
 /***/ "./build/equal.js":
 /*!************************!*\
   !*** ./build/equal.js ***!
@@ -1347,8 +1420,6 @@ var _defineProperty2 = _interopRequireDefault(__webpack_require__(/*! @babel/run
 var _jqueryLib = __webpack_require__(/*! jquery-lib */ "./build/jquery-lib.js");
 
 var _equalLib = __webpack_require__(/*! equal-lib */ "./build/equal-lib.js");
-
-var _equalWidgets = __webpack_require__(/*! equal-widgets */ "./build/equal-widgets.js");
 
 var eQ = /*#__PURE__*/function () {
   // jquery object for components communication
@@ -1417,10 +1488,10 @@ var eQ = /*#__PURE__*/function () {
   }, {
     key: "test",
     value: function test() {
-      console.log("eQ::test");
-      (0, _jqueryLib.$)("#test").dialog();
-      (0, _jqueryLib.$)("#datepicker").daterangepicker();
-      console.log(new _equalWidgets.WidgetInput());
+      console.log("eQ::test"); // $("#test").dialog();
+
+      (0, _jqueryLib.$)("#datepicker").daterangepicker(); // console.log(new WidgetInput());
+
       this.$sbEvents.trigger('_openContext', new _equalLib.Context('core\\User', 'list', 'default', []));
       /*
       setTimeout( () => {
@@ -1485,100 +1556,39 @@ __webpack_require__(/*! daterangepicker/daterangepicker.js */ "./node_modules/da
 
 /***/ }),
 
-/***/ "./build/widgets/Widget.js":
-/*!*********************************!*\
-  !*** ./build/widgets/Widget.js ***!
-  \*********************************/
-/***/ ((module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-var _interopRequireDefault = __webpack_require__(/*! @babel/runtime/helpers/interopRequireDefault */ "./node_modules/@babel/runtime/helpers/interopRequireDefault.js");
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.Widget = void 0;
-
-var _classCallCheck2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/classCallCheck */ "./node_modules/@babel/runtime/helpers/classCallCheck.js"));
-
-var _defineProperty2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/defineProperty */ "./node_modules/@babel/runtime/helpers/defineProperty.js"));
-
-var Widget = function Widget() {
-  (0, _classCallCheck2.default)(this, Widget);
-  (0, _defineProperty2.default)(this, "value", void 0);
-  this.value = 'widget interface';
-};
-
-exports.Widget = Widget;
-module.exports = Widget;
-
-/***/ }),
-
-/***/ "./build/widgets/WidgetInput.js":
-/*!**************************************!*\
-  !*** ./build/widgets/WidgetInput.js ***!
-  \**************************************/
-/***/ ((module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-var _interopRequireDefault = __webpack_require__(/*! @babel/runtime/helpers/interopRequireDefault */ "./node_modules/@babel/runtime/helpers/interopRequireDefault.js");
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.WidgetInput = void 0;
-
-var _classCallCheck2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/classCallCheck */ "./node_modules/@babel/runtime/helpers/classCallCheck.js"));
-
-var _inherits2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/inherits */ "./node_modules/@babel/runtime/helpers/inherits.js"));
-
-var _possibleConstructorReturn2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/possibleConstructorReturn */ "./node_modules/@babel/runtime/helpers/possibleConstructorReturn.js"));
-
-var _getPrototypeOf2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/getPrototypeOf */ "./node_modules/@babel/runtime/helpers/getPrototypeOf.js"));
-
-var _Widget2 = _interopRequireDefault(__webpack_require__(/*! ./Widget */ "./build/widgets/Widget.js"));
-
-function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
-
-function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
-
-var WidgetInput = /*#__PURE__*/function (_Widget) {
-  (0, _inherits2.default)(WidgetInput, _Widget);
-
-  var _super = _createSuper(WidgetInput);
-
-  function WidgetInput() {
-    (0, _classCallCheck2.default)(this, WidgetInput);
-    return _super.call(this);
-  }
-
-  return WidgetInput;
-}(_Widget2.default);
-
-exports.WidgetInput = WidgetInput;
-module.exports = _Widget2.default;
-
-/***/ }),
-
-/***/ "./node_modules/@babel/runtime/helpers/assertThisInitialized.js":
-/*!**********************************************************************!*\
-  !*** ./node_modules/@babel/runtime/helpers/assertThisInitialized.js ***!
-  \**********************************************************************/
+/***/ "./node_modules/@babel/runtime/helpers/arrayLikeToArray.js":
+/*!*****************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/arrayLikeToArray.js ***!
+  \*****************************************************************/
 /***/ ((module) => {
 
-function _assertThisInitialized(self) {
-  if (self === void 0) {
-    throw new ReferenceError("this hasn't been initialised - super() hasn't been called");
+function _arrayLikeToArray(arr, len) {
+  if (len == null || len > arr.length) len = arr.length;
+
+  for (var i = 0, arr2 = new Array(len); i < len; i++) {
+    arr2[i] = arr[i];
   }
 
-  return self;
+  return arr2;
 }
 
-module.exports = _assertThisInitialized;
+module.exports = _arrayLikeToArray;
+
+/***/ }),
+
+/***/ "./node_modules/@babel/runtime/helpers/arrayWithoutHoles.js":
+/*!******************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/arrayWithoutHoles.js ***!
+  \******************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var arrayLikeToArray = __webpack_require__(/*! ./arrayLikeToArray */ "./node_modules/@babel/runtime/helpers/arrayLikeToArray.js");
+
+function _arrayWithoutHoles(arr) {
+  if (Array.isArray(arr)) return arrayLikeToArray(arr);
+}
+
+module.exports = _arrayWithoutHoles;
 
 /***/ }),
 
@@ -1695,50 +1705,6 @@ module.exports = _defineProperty;
 
 /***/ }),
 
-/***/ "./node_modules/@babel/runtime/helpers/getPrototypeOf.js":
-/*!***************************************************************!*\
-  !*** ./node_modules/@babel/runtime/helpers/getPrototypeOf.js ***!
-  \***************************************************************/
-/***/ ((module) => {
-
-function _getPrototypeOf(o) {
-  module.exports = _getPrototypeOf = Object.setPrototypeOf ? Object.getPrototypeOf : function _getPrototypeOf(o) {
-    return o.__proto__ || Object.getPrototypeOf(o);
-  };
-  return _getPrototypeOf(o);
-}
-
-module.exports = _getPrototypeOf;
-
-/***/ }),
-
-/***/ "./node_modules/@babel/runtime/helpers/inherits.js":
-/*!*********************************************************!*\
-  !*** ./node_modules/@babel/runtime/helpers/inherits.js ***!
-  \*********************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var setPrototypeOf = __webpack_require__(/*! ./setPrototypeOf */ "./node_modules/@babel/runtime/helpers/setPrototypeOf.js");
-
-function _inherits(subClass, superClass) {
-  if (typeof superClass !== "function" && superClass !== null) {
-    throw new TypeError("Super expression must either be null or a function");
-  }
-
-  subClass.prototype = Object.create(superClass && superClass.prototype, {
-    constructor: {
-      value: subClass,
-      writable: true,
-      configurable: true
-    }
-  });
-  if (superClass) setPrototypeOf(subClass, superClass);
-}
-
-module.exports = _inherits;
-
-/***/ }),
-
 /***/ "./node_modules/@babel/runtime/helpers/interopRequireDefault.js":
 /*!**********************************************************************!*\
   !*** ./node_modules/@babel/runtime/helpers/interopRequireDefault.js ***!
@@ -1819,44 +1785,53 @@ module.exports = _interopRequireWildcard;
 
 /***/ }),
 
-/***/ "./node_modules/@babel/runtime/helpers/possibleConstructorReturn.js":
-/*!**************************************************************************!*\
-  !*** ./node_modules/@babel/runtime/helpers/possibleConstructorReturn.js ***!
-  \**************************************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+/***/ "./node_modules/@babel/runtime/helpers/iterableToArray.js":
+/*!****************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/iterableToArray.js ***!
+  \****************************************************************/
+/***/ ((module) => {
 
-var _typeof = __webpack_require__(/*! @babel/runtime/helpers/typeof */ "./node_modules/@babel/runtime/helpers/typeof.js");
-
-var assertThisInitialized = __webpack_require__(/*! ./assertThisInitialized */ "./node_modules/@babel/runtime/helpers/assertThisInitialized.js");
-
-function _possibleConstructorReturn(self, call) {
-  if (call && (_typeof(call) === "object" || typeof call === "function")) {
-    return call;
-  }
-
-  return assertThisInitialized(self);
+function _iterableToArray(iter) {
+  if (typeof Symbol !== "undefined" && Symbol.iterator in Object(iter)) return Array.from(iter);
 }
 
-module.exports = _possibleConstructorReturn;
+module.exports = _iterableToArray;
 
 /***/ }),
 
-/***/ "./node_modules/@babel/runtime/helpers/setPrototypeOf.js":
-/*!***************************************************************!*\
-  !*** ./node_modules/@babel/runtime/helpers/setPrototypeOf.js ***!
-  \***************************************************************/
+/***/ "./node_modules/@babel/runtime/helpers/nonIterableSpread.js":
+/*!******************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/nonIterableSpread.js ***!
+  \******************************************************************/
 /***/ ((module) => {
 
-function _setPrototypeOf(o, p) {
-  module.exports = _setPrototypeOf = Object.setPrototypeOf || function _setPrototypeOf(o, p) {
-    o.__proto__ = p;
-    return o;
-  };
-
-  return _setPrototypeOf(o, p);
+function _nonIterableSpread() {
+  throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
 }
 
-module.exports = _setPrototypeOf;
+module.exports = _nonIterableSpread;
+
+/***/ }),
+
+/***/ "./node_modules/@babel/runtime/helpers/toConsumableArray.js":
+/*!******************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/toConsumableArray.js ***!
+  \******************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var arrayWithoutHoles = __webpack_require__(/*! ./arrayWithoutHoles */ "./node_modules/@babel/runtime/helpers/arrayWithoutHoles.js");
+
+var iterableToArray = __webpack_require__(/*! ./iterableToArray */ "./node_modules/@babel/runtime/helpers/iterableToArray.js");
+
+var unsupportedIterableToArray = __webpack_require__(/*! ./unsupportedIterableToArray */ "./node_modules/@babel/runtime/helpers/unsupportedIterableToArray.js");
+
+var nonIterableSpread = __webpack_require__(/*! ./nonIterableSpread */ "./node_modules/@babel/runtime/helpers/nonIterableSpread.js");
+
+function _toConsumableArray(arr) {
+  return arrayWithoutHoles(arr) || iterableToArray(arr) || unsupportedIterableToArray(arr) || nonIterableSpread();
+}
+
+module.exports = _toConsumableArray;
 
 /***/ }),
 
@@ -1883,6 +1858,27 @@ function _typeof(obj) {
 }
 
 module.exports = _typeof;
+
+/***/ }),
+
+/***/ "./node_modules/@babel/runtime/helpers/unsupportedIterableToArray.js":
+/*!***************************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/unsupportedIterableToArray.js ***!
+  \***************************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var arrayLikeToArray = __webpack_require__(/*! ./arrayLikeToArray */ "./node_modules/@babel/runtime/helpers/arrayLikeToArray.js");
+
+function _unsupportedIterableToArray(o, minLen) {
+  if (!o) return;
+  if (typeof o === "string") return arrayLikeToArray(o, minLen);
+  var n = Object.prototype.toString.call(o).slice(8, -1);
+  if (n === "Object" && o.constructor) n = o.constructor.name;
+  if (n === "Map" || n === "Set") return Array.from(o);
+  if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return arrayLikeToArray(o, minLen);
+}
+
+module.exports = _unsupportedIterableToArray;
 
 /***/ }),
 

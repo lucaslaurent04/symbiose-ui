@@ -18,23 +18,15 @@ export class Model {
     // entity (package\Class) to be loaded: should be set only once (depend on the related view)
     private entity: string;
     // fields to be loaded: should be set only once (depend on the related view)
-    private fields: array;
+    private fields: Map;
     
     private schema: object;
     
-    
-    // Collection domain: may vary, is empty by default, and is always merged with the one of the parent View
-    private domain: array;
-    
-    // Collection holds its own default values for search requests
-    private order: string;
-    private sort: string;    
-    private start: interger;
-    private limit: interger;
+
     
     // Collecitons do not deal with lang: it is used in ApiService set in the environment var
     
-    constructor(view:View, schema: object, fields: array) {
+    constructor(view:View, schema: object, fields: Map) {
         this.view = view;
 
         // schema holds additional info (type, contrainsts, ...)
@@ -43,23 +35,9 @@ export class Model {
         
         this.objects = {};
         
-        // start with an empty domain
-        this.domain = [];
-        
-        this.order = 'id';
-        this.sort = 'asc';
-        this.start = 0;
-        this.limit = 25;
         
         this.init();    
     }
-
-
-    // in 
-    // change of the domain or params (order, sort, start, limit)
-    
-    // out
-    // provide view with Collection
     
 
     private async init() {
@@ -72,19 +50,13 @@ export class Model {
         }        
         
     }
-    
-    private mergeDomains(domainA: array, domainB: array) {
-        // domains are disjunctions of conjunctions
-        //
-        var result;
-        return result;
-    }
-    
+        
     public async refresh() {
         console.log('Model::refresh');
-        let domain = this.mergeDomains(this.view.domain, this.domain);
+        let fields = [...this.fields.keys()];
+
         try {
-            this.objects = await ApiService.collect(this.view.entity, this.omain, this.fields, this.order, this.sort, this.start, this.limit);
+            this.objects = await ApiService.collect(this.view.entity, this.view.domain, fields, this.view.order, this.view.sort, this.view.start, this.view.limit);
 
             console.log(this.objects);
             // trigger model change handler in the parent View (in order to update the layout)

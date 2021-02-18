@@ -70,10 +70,10 @@ class eQ {
     
     public test() {
         console.log("eQ::test");
-        $("#test").dialog();
+        // $("#test").dialog();
         $( "#datepicker" ).daterangepicker();
 
-        console.log(new WidgetInput());
+        // console.log(new WidgetInput());
         
         this.$sbEvents.trigger('_openContext', new Context('core\\User', 'list', 'default', []));               
         /*

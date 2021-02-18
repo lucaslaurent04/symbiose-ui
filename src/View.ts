@@ -11,8 +11,14 @@ export class View {
     public entity: string;
     public type: string; 
     public name: string;
-    public domain: array;
 
+
+    // View holds the params for search requests performed by Model
+    public domain: array;
+    private order: string;
+    private sort: string;    
+    private start: interger;
+    private limit: interger;
 
     private layout: Layout;
     private model: Model;
@@ -25,7 +31,12 @@ export class View {
         this.entity = entity;
         this.type = type; 
         this.name = name;
-        this.domain = domain;
+
+        this.domain = domain;        
+        this.order = 'id';
+        this.sort = 'asc';
+        this.start = 0;
+        this.limit = 25;
         
         this.init();
     }
@@ -41,7 +52,7 @@ export class View {
             var view_schema = await ApiService.getView(this.entity, this.type + '.' + this.name);
             var model_schema = await ApiService.getSchema(this.entity);
             var model_fields = await this.getFields(view_schema);
-            this.layout = new Layout(this, view_schema);
+            this.layout = new Layout(this, view_schema, model_fields);
             this.model = new Model(this, model_schema, model_fields);
         }
         catch(err) {
@@ -59,11 +70,11 @@ export class View {
 
     /**
      * Returns a list holding all fields that are present in a given view (as items objects)
-     * @return array    List of fields names (related to entity of the view)
+     * @return Map    List of fields names (related to entity of the view)
      */
 	private async getFields(view_schema: object) {
         console.log('View::getFields', view_schema);
-        var result = [];
+        let result = new Map();
         var stack = [];
         // view is valid
         if(view_schema.hasOwnProperty('layout')) {    
@@ -76,7 +87,7 @@ export class View {
                 if(elem.hasOwnProperty('items')) {
                     for (let item of elem['items']) { 
                         if(item.type == 'field' && item.hasOwnProperty('value')){
-                            result.push(item.value);
+                            result.set(item.value, item);
                         }
                     }
                 }
@@ -124,15 +135,15 @@ modifications des champs (a rpriori un par un) : relayer les changementrs depuis
      * Callback for requesting a Layout update
      * Requested from Model when a change occured in the Collection (as consequence of domain or params update)
      */
-    public onchangeModel() {
-        this.layout.refresh();
+    public onchangeModel(full: boolean) {
+        this.layout.refresh(full);
     }
     
     /**
      *
      *
      * Requested either from view: domain has been updated
-     * or from layout: conttext has been updated (sort column, sorting order, limit, page, ...)
+     * or from layout: context has been updated (sort column, sorting order, limit, page, ...)
      */
     public onchangeView() {
         this.model.refresh();

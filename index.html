@@ -11,6 +11,8 @@
         <!-- webapp description -->
         <meta name="description" content="">        
 
+        <link rel="stylesheet" href="css/font-awesome.min.css">
+        
         <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
         <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
 
@@ -69,13 +71,48 @@ body, html {
     height: 45px;
     color: #555;
     padding: 9px 4px;
+    cursor: pointer;
+    user-select: none; 
 }
-.mdl-data-table th.thOver {
+.mdl-data-table th.sorted {
+    color: black;
+}
+.mdl-data-table th.hover {
     background-color: #e0e0e0;
 }
 .mdl-data-table tbody tr {
     height: 33px;
 }
+.mdl-data-table th.asc::after, .mdl-data-table th.desc::after {
+    position: absolute;
+    margin-left: 6px;
+    font-family: FontAwesome;
+    opacity: 0.3;
+}
+.mdl-data-table th.asc::after {
+    content: "\f0d7";
+}
+.mdl-data-table th.desc::after {
+    content: "\f0d8";
+}
+.mdl-menu__item {
+    height: 25px;
+    line-height: 25px;
+}
+.mdl-checkbox__label {
+    font-size: 13px;
+}
+.sb-layout {
+    position: relative;
+}
+
+.sb-layout button.sb-fields-toggle {
+    position: absolute;
+    right: 10px;
+    z-index: 1;
+    top: 7px;
+}
+
 </style>
 </head>
 <body>
