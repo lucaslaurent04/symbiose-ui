@@ -6,7 +6,7 @@ var eQ;eQ =
 /*!*****************************!*\
   !*** ./build/ApiService.js ***!
   \*****************************/
-/***/ ((module, exports, __webpack_require__) => {
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
@@ -18,7 +18,7 @@ var _interopRequireDefault = __webpack_require__(/*! @babel/runtime/helpers/inte
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports._ApiService = void 0;
+exports.default = exports._ApiService = void 0;
 
 var _regenerator = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/regenerator */ "./node_modules/@babel/runtime/regenerator/index.js"));
 
@@ -32,7 +32,7 @@ var _defineProperty2 = _interopRequireDefault(__webpack_require__(/*! @babel/run
 
 var $ = _interopRequireWildcard(__webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery-exposed.js"));
 
-var _environment = __webpack_require__(/*! environment */ "./build/environment.js");
+var _environment = __webpack_require__(/*! ./environment */ "./build/environment.js");
 
 /**
  * This service acts as an interface between client and server and caches view objects to lower the traffic
@@ -66,7 +66,6 @@ var _ApiService = /*#__PURE__*/function () {
     this.views = {};
     this.translations = {};
     this.schemas = {};
-    this.fields = {};
   }
 
   (0, _createClass2.default)(_ApiService, [{
@@ -288,7 +287,7 @@ var _ApiService = /*#__PURE__*/function () {
     key: "read",
     value: function () {
       var _read = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4(entity, ids, fields) {
-        var params, response;
+        var result, params, response;
         return _regenerator.default.wrap(function _callee4$(_context4) {
           while (1) {
             switch (_context4.prev = _context4.next) {
@@ -339,20 +338,20 @@ var _ApiService = /*#__PURE__*/function () {
   }, {
     key: "collect",
     value: function () {
-      var _collect = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5(entity, domain, fields, order, sort, start, limit) {
+      var _collect = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5(entity, domain, fields, order, sort, start, limit, lang) {
         var result, params, response;
         return _regenerator.default.wrap(function _callee5$(_context5) {
           while (1) {
             switch (_context5.prev = _context5.next) {
               case 0:
-                console.log('ApiService::collect', entity, domain, fields, order, sort, start, limit);
+                console.log('ApiService::collect', entity, domain, fields, order, sort, start, limit, lang);
                 result = [];
                 _context5.prev = 2;
                 params = {
                   entity: entity,
                   domain: domain,
                   fields: fields,
-                  lang: _environment.environment.lang,
+                  lang: lang,
                   order: order,
                   sort: sort,
                   start: start,
@@ -388,7 +387,7 @@ var _ApiService = /*#__PURE__*/function () {
         }, _callee5, null, [[2, 10]]);
       }));
 
-      function collect(_x8, _x9, _x10, _x11, _x12, _x13, _x14) {
+      function collect(_x8, _x9, _x10, _x11, _x12, _x13, _x14, _x15) {
         return _collect.apply(this, arguments);
       }
 
@@ -443,7 +442,7 @@ var _ApiService = /*#__PURE__*/function () {
         }, _callee6, null, [[1, 9]]);
       }));
 
-      function search(_x15, _x16, _x17, _x18, _x19, _x20) {
+      function search(_x16, _x17, _x18, _x19, _x20, _x21) {
         return _search.apply(this, arguments);
       }
 
@@ -454,7 +453,8 @@ var _ApiService = /*#__PURE__*/function () {
 }();
 
 exports._ApiService = _ApiService;
-module.exports = _ApiService;
+var _default = _ApiService;
+exports.default = _default;
 
 /***/ }),
 
@@ -462,7 +462,7 @@ module.exports = _ApiService;
 /*!**************************!*\
   !*** ./build/Context.js ***!
   \**************************/
-/***/ ((module, exports, __webpack_require__) => {
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
@@ -472,7 +472,7 @@ var _interopRequireDefault = __webpack_require__(/*! @babel/runtime/helpers/inte
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.Context = void 0;
+exports.default = exports.Context = void 0;
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/classCallCheck */ "./node_modules/@babel/runtime/helpers/classCallCheck.js"));
 
@@ -480,17 +480,20 @@ var _createClass2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtim
 
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/defineProperty */ "./node_modules/@babel/runtime/helpers/defineProperty.js"));
 
-var _jqueryLib = __webpack_require__(/*! jquery-lib */ "./build/jquery-lib.js");
+var _jqueryLib = __webpack_require__(/*! ./jquery-lib */ "./build/jquery-lib.js");
 
-var _View = _interopRequireDefault(__webpack_require__(/*! View */ "./build/View.js"));
+var _View = _interopRequireDefault(__webpack_require__(/*! ./View */ "./build/View.js"));
+
+var _environment = __webpack_require__(/*! ./environment */ "./build/environment.js");
 
 var Context = /*#__PURE__*/function () {
   function Context(entity, type, name, domain) {
+    var lang = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : _environment.environment.lang;
     (0, _classCallCheck2.default)(this, Context);
     (0, _defineProperty2.default)(this, "$container", void 0);
     (0, _defineProperty2.default)(this, "view", void 0);
     this.$container = (0, _jqueryLib.$)('<div />');
-    this.view = new _View.default(this, entity, type, name, domain);
+    this.view = new _View.default(this, entity, type, name, domain, lang);
   }
 
   (0, _createClass2.default)(Context, [{
@@ -503,7 +506,8 @@ var Context = /*#__PURE__*/function () {
 }();
 
 exports.Context = Context;
-module.exports = Context;
+var _default = Context;
+exports.default = _default;
 
 /***/ }),
 
@@ -511,7 +515,7 @@ module.exports = Context;
 /*!*************************!*\
   !*** ./build/Layout.js ***!
   \*************************/
-/***/ ((module, exports, __webpack_require__) => {
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
@@ -521,7 +525,7 @@ var _interopRequireDefault = __webpack_require__(/*! @babel/runtime/helpers/inte
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.Layout = void 0;
+exports.default = exports.Layout = void 0;
 
 var _regenerator = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/regenerator */ "./node_modules/@babel/runtime/regenerator/index.js"));
 
@@ -533,7 +537,7 @@ var _createClass2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtim
 
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/defineProperty */ "./node_modules/@babel/runtime/helpers/defineProperty.js"));
 
-var _jqueryLib = __webpack_require__(/*! jquery-lib */ "./build/jquery-lib.js");
+var _jqueryLib = __webpack_require__(/*! ./jquery-lib */ "./build/jquery-lib.js");
 
 /*
     There are two main branches of Layouts depending on what is to be displayed:
@@ -549,20 +553,14 @@ var Layout = /*#__PURE__*/function () {
   /**
    *
    * @param view  View    Parent View object
-   * @param shema object  The view schema (obtained by parent View object)
    */
-  function Layout(view, schema, fields) {
+  function Layout(view) {
     (0, _classCallCheck2.default)(this, Layout);
-    (0, _defineProperty2.default)(this, "schema", void 0);
     (0, _defineProperty2.default)(this, "view", void 0);
     (0, _defineProperty2.default)(this, "$layout", void 0);
-    (0, _defineProperty2.default)(this, "fields", void 0);
     this.view = view;
-    this.schema = schema;
-    this.fields = fields;
     this.$layout = (0, _jqueryLib.$)('<div />').addClass('sb-layout');
     this.view.$layoutContainer.append(this.$layout);
-    this.init();
   }
 
   (0, _createClass2.default)(Layout, [{
@@ -649,6 +647,16 @@ var Layout = /*#__PURE__*/function () {
       }
     }
   }, {
+    key: "getSelected",
+    value: function getSelected() {
+      var selection = [];
+      var $tbody = this.$layout.find("tbody");
+      $tbody.find("tr.is-selected").each(function (i, elem) {
+        selection.push((0, _jqueryLib.$)(elem).attr('id'));
+      });
+      console.log('selection', selection);
+    }
+  }, {
     key: "layout",
     value: function layout() {
       console.log('Layout::layout');
@@ -681,7 +689,9 @@ var Layout = /*#__PURE__*/function () {
 
       var $hrow = (0, _jqueryLib.$)('<tr/>'); // create other columns, based on the col_model given in the configuration
 
-      _jqueryLib.$.each(this.schema.layout.items, function (i, item) {
+      var schema = this.view.getViewSchema();
+
+      _jqueryLib.$.each(schema.layout.items, function (i, item) {
         var align = item.hasOwnProperty('align') ? item.align : 'left';
         var label = item.hasOwnProperty('label') ? item.label : item.value.charAt(0).toUpperCase() + item.value.slice(1);
         var sortable = item.hasOwnProperty('sortable') && item.sortable;
@@ -691,9 +701,8 @@ var Layout = /*#__PURE__*/function () {
         $menu_item.append((0, _jqueryLib.$)('<label/>').attr('for', 'sb-fields-toggle-checkbox-' + item.value).addClass('mdl-checkbox mdl-js-checkbox mdl-js-ripple-effect').append($checkbox).append((0, _jqueryLib.$)('<span/>').addClass('mdl-checkbox__label').text(label)));
         $checkbox.on('change', function (event) {
           var $this = (0, _jqueryLib.$)(event.currentTarget);
-          $this.a;
 
-          var def = _this.fields.get(item.value);
+          var def = _this.view.getField(item.value);
 
           if ($this.is(":checked")) {
             def.width = "10%";
@@ -701,16 +710,16 @@ var Layout = /*#__PURE__*/function () {
             def.width = "0%";
           }
 
-          _this.fields.set(item.value, def);
+          _this.view.setField(item.value, def);
 
           _this.view.onchangeModel(true);
         });
 
         if (width != 0) {
           $checkbox.attr('checked', 'checked');
-          var $cell = (0, _jqueryLib.$)('<th/>').attr('name', item.value).append(label).hover(function () {
+          var $cell = (0, _jqueryLib.$)('<th/>').attr('name', item.value).append(label).hover(function (event) {
             // set hover and sort order indicator
-            var $this = (0, _jqueryLib.$)(this);
+            var $this = (0, _jqueryLib.$)(event.currentTarget);
             $this.addClass('hover');
 
             if ($this.hasClass('sortable')) {
@@ -724,9 +733,9 @@ var Layout = /*#__PURE__*/function () {
                 $this.addClass('asc');
               }
             }
-          }, function () {
+          }, function (event) {
             // unset hover and sort order indicator
-            var $this = (0, _jqueryLib.$)(this);
+            var $this = (0, _jqueryLib.$)(event.currentTarget);
             $this.removeClass('hover');
 
             if ($this.hasClass('sortable')) {
@@ -740,7 +749,7 @@ var Layout = /*#__PURE__*/function () {
                 $this.removeClass('asc');
               }
             }
-          }).click(function (event) {
+          }).on('click', function (event) {
             var $this = (0, _jqueryLib.$)(event.currentTarget); // change sortname and/or sortorder
 
             if ($this.hasClass('sortable')) {
@@ -748,7 +757,8 @@ var Layout = /*#__PURE__*/function () {
               if (!$this.hasClass('sorted')) {
                 $thead.find('.sorted').removeClass('sorted').removeClass('asc').removeClass('desc');
                 $this.addClass('sorted');
-                _this.view.order = $this.attr('name');
+
+                _this.view.setOrder($this.attr('name'));
 
                 _this.view.onchangeView();
               } // toggle sorting order
@@ -764,7 +774,8 @@ var Layout = /*#__PURE__*/function () {
                   }
 
                   $this.attr('data-sort', sort);
-                  _this.view.sort = sort;
+
+                  _this.view.setSort(sort);
 
                   _this.view.onchangeView();
                 }
@@ -813,10 +824,14 @@ var Layout = /*#__PURE__*/function () {
       _jqueryLib.$.each(objects, function (i, object) {
         var $row = (0, _jqueryLib.$)('<tr/>');
 
+        if (object.hasOwnProperty('id')) {
+          $row.attr('id', object.id);
+        }
+
         for (var _i = 0, _Object$keys = Object.keys(object); _i < _Object$keys.length; _i++) {
           var field = _Object$keys[_i];
 
-          var def = _this2.fields.get(field); // field is not part of the view, skip it
+          var def = _this2.view.getField(field); // field is not part of the view, skip it
 
 
           if (def == undefined) continue;
@@ -840,7 +855,8 @@ var Layout = /*#__PURE__*/function () {
 }();
 
 exports.Layout = Layout;
-module.exports = Layout;
+var _default = Layout;
+exports.default = _default;
 
 /***/ }),
 
@@ -848,7 +864,7 @@ module.exports = Layout;
 /*!************************!*\
   !*** ./build/Model.js ***!
   \************************/
-/***/ ((module, exports, __webpack_require__) => {
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
@@ -858,9 +874,7 @@ var _interopRequireDefault = __webpack_require__(/*! @babel/runtime/helpers/inte
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.Model = void 0;
-
-var _toConsumableArray2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/toConsumableArray */ "./node_modules/@babel/runtime/helpers/toConsumableArray.js"));
+exports.default = exports.Model = void 0;
 
 var _regenerator = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/regenerator */ "./node_modules/@babel/runtime/regenerator/index.js"));
 
@@ -872,7 +886,7 @@ var _createClass2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtim
 
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/defineProperty */ "./node_modules/@babel/runtime/helpers/defineProperty.js"));
 
-var _equalServices = __webpack_require__(/*! equal-services */ "./build/equal-services.js");
+var _equalServices = __webpack_require__(/*! ./equal-services */ "./build/equal-services.js");
 
 function _createForOfIteratorHelper(o, allowArrayLike) { var it; if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
 
@@ -886,22 +900,13 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
  */
 var Model = /*#__PURE__*/function () {
   // Collection (map) of objects: objects ids mapping related objects
-  // entity (package\Class) to be loaded: should be set only once (depend on the related view)
-  // fields to be loaded: should be set only once (depend on the related view)
   // Collecitons do not deal with lang: it is used in ApiService set in the environment var
-  function Model(view, schema, fields) {
+  function Model(view) {
     (0, _classCallCheck2.default)(this, Model);
     (0, _defineProperty2.default)(this, "view", void 0);
     (0, _defineProperty2.default)(this, "objects", void 0);
-    (0, _defineProperty2.default)(this, "entity", void 0);
-    (0, _defineProperty2.default)(this, "fields", void 0);
-    (0, _defineProperty2.default)(this, "schema", void 0);
-    this.view = view; // schema holds additional info (type, contrainsts, ...)
-
-    this.schema = schema;
-    this.fields = fields;
+    this.view = view;
     this.objects = {};
-    this.init();
   }
 
   (0, _createClass2.default)(Model, [{
@@ -942,10 +947,10 @@ var Model = /*#__PURE__*/function () {
             switch (_context2.prev = _context2.next) {
               case 0:
                 console.log('Model::refresh');
-                fields = (0, _toConsumableArray2.default)(this.fields.keys());
+                fields = Object.keys(this.view.getFields());
                 _context2.prev = 2;
                 _context2.next = 5;
-                return _equalServices.ApiService.collect(this.view.entity, this.view.domain, fields, this.view.order, this.view.sort, this.view.start, this.view.limit);
+                return _equalServices.ApiService.collect(this.view.getEntity(), this.view.getDomain(), fields, this.view.getOrder(), this.view.getSort(), this.view.getStart(), this.view.getLimit(), this.view.getLang());
 
               case 5:
                 this.objects = _context2.sent;
@@ -1022,7 +1027,8 @@ var Model = /*#__PURE__*/function () {
 }();
 
 exports.Model = Model;
-module.exports = Model;
+var _default = Model;
+exports.default = _default;
 
 /***/ }),
 
@@ -1030,7 +1036,7 @@ module.exports = Model;
 /*!***********************!*\
   !*** ./build/View.js ***!
   \***********************/
-/***/ ((module, exports, __webpack_require__) => {
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
 
@@ -1040,7 +1046,7 @@ var _interopRequireDefault = __webpack_require__(/*! @babel/runtime/helpers/inte
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.View = void 0;
+exports.default = exports.View = void 0;
 
 var _regenerator = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/regenerator */ "./node_modules/@babel/runtime/regenerator/index.js"));
 
@@ -1052,13 +1058,13 @@ var _createClass2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtim
 
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/defineProperty */ "./node_modules/@babel/runtime/helpers/defineProperty.js"));
 
-var _jqueryLib = __webpack_require__(/*! jquery-lib */ "./build/jquery-lib.js");
+var _jqueryLib = __webpack_require__(/*! ./jquery-lib */ "./build/jquery-lib.js");
 
-var _equalServices = __webpack_require__(/*! equal-services */ "./build/equal-services.js");
+var _equalServices = __webpack_require__(/*! ./equal-services */ "./build/equal-services.js");
 
-var _Layout = _interopRequireDefault(__webpack_require__(/*! Layout */ "./build/Layout.js"));
+var _Layout = _interopRequireDefault(__webpack_require__(/*! ./Layout */ "./build/Layout.js"));
 
-var _Model = _interopRequireDefault(__webpack_require__(/*! Model */ "./build/Model-exposed.js"));
+var _Model = _interopRequireDefault(__webpack_require__(/*! ./Model */ "./build/Model-exposed.js"));
 
 function _createForOfIteratorHelper(o, allowArrayLike) { var it; if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
 
@@ -1068,7 +1074,17 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
 
 var View = /*#__PURE__*/function () {
   // View holds the params for search requests performed by Model
-  function View(context, entity, type, name, domain) {
+  // Map of fields mapping View definitions
+
+  /**
+   * 
+   * @param context 
+   * @param entity    entity (package\Class) to be loaded: should be set only once (depend on the related view)
+   * @param type 
+   * @param name 
+   * @param domain 
+   */
+  function View(context, entity, type, name, domain, lang) {
     (0, _classCallCheck2.default)(this, View);
     (0, _defineProperty2.default)(this, "context", void 0);
     (0, _defineProperty2.default)(this, "entity", void 0);
@@ -1079,8 +1095,12 @@ var View = /*#__PURE__*/function () {
     (0, _defineProperty2.default)(this, "sort", void 0);
     (0, _defineProperty2.default)(this, "start", void 0);
     (0, _defineProperty2.default)(this, "limit", void 0);
+    (0, _defineProperty2.default)(this, "lang", void 0);
     (0, _defineProperty2.default)(this, "layout", void 0);
     (0, _defineProperty2.default)(this, "model", void 0);
+    (0, _defineProperty2.default)(this, "view_schema", void 0);
+    (0, _defineProperty2.default)(this, "model_schema", void 0);
+    (0, _defineProperty2.default)(this, "fields", void 0);
     (0, _defineProperty2.default)(this, "$headerContainer", void 0);
     (0, _defineProperty2.default)(this, "$layoutContainer", void 0);
     this.context = context;
@@ -1092,6 +1112,11 @@ var View = /*#__PURE__*/function () {
     this.sort = 'asc';
     this.start = 0;
     this.limit = 25;
+    this.lang = lang;
+    this.$headerContainer = (0, _jqueryLib.$)('<div />');
+    this.$layoutContainer = (0, _jqueryLib.$)('<div />');
+    this.layout = new _Layout.default(this);
+    this.model = new _Model.default(this);
     this.init();
   }
 
@@ -1099,40 +1124,53 @@ var View = /*#__PURE__*/function () {
     key: "init",
     value: function () {
       var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
-        var view_schema, model_schema, model_fields;
+        var _this = this;
+
+        var $form;
         return _regenerator.default.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                console.log('View::init');
-                this.$headerContainer = (0, _jqueryLib.$)('<div />');
-                this.$layoutContainer = (0, _jqueryLib.$)('<div />'); // inject View in parent Context object
+                console.log('View::init'); // inject View in parent Context object
 
                 this.context.$container.append(this.$headerContainer).append(this.$layoutContainer);
-                _context.prev = 4;
-                _context.next = 7;
+                _context.prev = 2;
+                _context.next = 5;
                 return _equalServices.ApiService.getView(this.entity, this.type + '.' + this.name);
 
-              case 7:
-                view_schema = _context.sent;
-                _context.next = 10;
+              case 5:
+                this.view_schema = _context.sent;
+                _context.next = 8;
                 return _equalServices.ApiService.getSchema(this.entity);
 
-              case 10:
-                model_schema = _context.sent;
-                _context.next = 13;
-                return this.getFields(view_schema);
+              case 8:
+                this.model_schema = _context.sent;
+                this.loadFields(this.view_schema);
+                _context.next = 12;
+                return this.layout.init();
 
-              case 13:
-                model_fields = _context.sent;
-                this.layout = new _Layout.default(this, view_schema, model_fields);
-                this.model = new _Model.default(this, model_schema, model_fields);
+              case 12:
+                _context.next = 14;
+                return this.model.init();
+
+              case 14:
+                $form = (0, _jqueryLib.$)('<div/>').append((0, _jqueryLib.$)('<form/>').append((0, _jqueryLib.$)('<div/>').addClass('mdl-textfield mdl-js-textfield').append((0, _jqueryLib.$)('<input type="text" />').attr('id', 'input1').addClass('mdl-textfield__input')).append((0, _jqueryLib.$)('<label/>').attr('id', 'input1').addClass('mdl-textfield__label').text('Filtre')))).append((0, _jqueryLib.$)('<button/>').addClass("mdl-button mdl-js-button").text('ok').on('click', function (event) {
+                  var $this = (0, _jqueryLib.$)(event.currentTarget);
+                  var filter = (0, _jqueryLib.$)('#input1').val();
+
+                  _this.domain.push(['login', 'ilike', '%' + filter + '%']);
+
+                  _this.onchangeView();
+
+                  _this.layout.getSelected();
+                }));
+                this.$headerContainer.append($form);
                 _context.next = 21;
                 break;
 
               case 18:
                 _context.prev = 18;
-                _context.t0 = _context["catch"](4);
+                _context.t0 = _context["catch"](2);
                 console.log('Unable to init view (' + this.entity + '.' + this.type + '.' + this.name + ')', _context.t0);
 
               case 21:
@@ -1140,7 +1178,7 @@ var View = /*#__PURE__*/function () {
                 return _context.stop();
             }
           }
-        }, _callee, this, [[4, 18]]);
+        }, _callee, this, [[2, 18]]);
       }));
 
       function init() {
@@ -1149,6 +1187,82 @@ var View = /*#__PURE__*/function () {
 
       return init;
     }()
+  }, {
+    key: "setField",
+    value: function setField(field, value) {
+      this.fields[field] = value;
+    }
+  }, {
+    key: "getField",
+    value: function getField(field) {
+      return this.fields[field];
+    }
+  }, {
+    key: "setSort",
+    value: function setSort(sort) {
+      this.sort = sort;
+    }
+  }, {
+    key: "setOrder",
+    value: function setOrder(order) {
+      this.order = order;
+    }
+  }, {
+    key: "setStart",
+    value: function setStart(start) {
+      this.start = start;
+      ;
+    }
+  }, {
+    key: "setLimit",
+    value: function setLimit(limit) {
+      this.limit = limit;
+    }
+  }, {
+    key: "getEntity",
+    value: function getEntity() {
+      return this.entity;
+    }
+  }, {
+    key: "getViewSchema",
+    value: function getViewSchema() {
+      return this.view_schema;
+    }
+  }, {
+    key: "getModelSchema",
+    value: function getModelSchema() {
+      return this.model_schema;
+    }
+  }, {
+    key: "getDomain",
+    value: function getDomain() {
+      return this.domain;
+    }
+  }, {
+    key: "getSort",
+    value: function getSort() {
+      return this.sort;
+    }
+  }, {
+    key: "getOrder",
+    value: function getOrder() {
+      return this.order;
+    }
+  }, {
+    key: "getStart",
+    value: function getStart() {
+      return this.start;
+    }
+  }, {
+    key: "getLimit",
+    value: function getLimit() {
+      return this.limit;
+    }
+  }, {
+    key: "getLang",
+    value: function getLang() {
+      return this.lang;
+    }
   }, {
     key: "getModel",
     value: function getModel() {
@@ -1159,96 +1273,82 @@ var View = /*#__PURE__*/function () {
     value: function getLayout() {
       return this.layout;
     }
+  }, {
+    key: "getFields",
+    value: function getFields() {
+      return this.fields;
+    }
     /**
-     * Returns a list holding all fields that are present in a given view (as items objects)
-     * @return Map    List of fields names (related to entity of the view)
+     * Generates a list holding all fields that are present in a given view (as items objects)
+     * and stores it in the `fields` member
      */
 
   }, {
-    key: "getFields",
-    value: function () {
-      var _getFields = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2(view_schema) {
-        var result, stack, path, elem, _iterator, _step, item, _iterator2, _step2, step, _iterator3, _step3, obj;
+    key: "loadFields",
+    value: function loadFields(view_schema) {
+      console.log('View::loadFields', view_schema);
+      this.fields = {};
+      var stack = []; // view is valid
 
-        return _regenerator.default.wrap(function _callee2$(_context2) {
-          while (1) {
-            switch (_context2.prev = _context2.next) {
-              case 0:
-                console.log('View::getFields', view_schema);
-                result = new Map();
-                stack = []; // view is valid
+      if (view_schema.hasOwnProperty('layout')) {
+        stack.push(view_schema['layout']);
+        var path = ['groups', 'sections', 'rows', 'columns'];
 
-                if (view_schema.hasOwnProperty('layout')) {
-                  stack.push(view_schema['layout']);
-                  path = ['containers', 'sections', 'rows', 'columns'];
+        while (stack.length) {
+          var elem = stack.pop();
 
-                  while (stack.length) {
-                    elem = stack.pop();
+          if (elem.hasOwnProperty('items')) {
+            var _iterator = _createForOfIteratorHelper(elem['items']),
+                _step;
 
-                    if (elem.hasOwnProperty('items')) {
-                      _iterator = _createForOfIteratorHelper(elem['items']);
+            try {
+              for (_iterator.s(); !(_step = _iterator.n()).done;) {
+                var item = _step.value;
 
-                      try {
-                        for (_iterator.s(); !(_step = _iterator.n()).done;) {
-                          item = _step.value;
+                if (item.type == 'field' && item.hasOwnProperty('value')) {
+                  this.fields[item.value] = item;
+                }
+              }
+            } catch (err) {
+              _iterator.e(err);
+            } finally {
+              _iterator.f();
+            }
+          } else {
+            var _iterator2 = _createForOfIteratorHelper(path),
+                _step2;
 
-                          if (item.type == 'field' && item.hasOwnProperty('value')) {
-                            result.set(item.value, item);
-                          }
-                        }
-                      } catch (err) {
-                        _iterator.e(err);
-                      } finally {
-                        _iterator.f();
-                      }
-                    } else {
-                      _iterator2 = _createForOfIteratorHelper(path);
+            try {
+              for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+                var step = _step2.value;
 
-                      try {
-                        for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
-                          step = _step2.value;
+                if (elem.hasOwnProperty(step)) {
+                  var _iterator3 = _createForOfIteratorHelper(elem[step]),
+                      _step3;
 
-                          if (elem.hasOwnProperty(step)) {
-                            _iterator3 = _createForOfIteratorHelper(elem[step]);
-
-                            try {
-                              for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
-                                obj = _step3.value;
-                                stack.push(obj);
-                              }
-                            } catch (err) {
-                              _iterator3.e(err);
-                            } finally {
-                              _iterator3.f();
-                            }
-                          }
-                        }
-                      } catch (err) {
-                        _iterator2.e(err);
-                      } finally {
-                        _iterator2.f();
-                      }
+                  try {
+                    for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+                      var obj = _step3.value;
+                      stack.push(obj);
                     }
+                  } catch (err) {
+                    _iterator3.e(err);
+                  } finally {
+                    _iterator3.f();
                   }
                 }
-
-                console.log(result);
-                return _context2.abrupt("return", result);
-
-              case 6:
-              case "end":
-                return _context2.stop();
+              }
+            } catch (err) {
+              _iterator2.e(err);
+            } finally {
+              _iterator2.f();
             }
           }
-        }, _callee2);
-      }));
-
-      function getFields(_x) {
-        return _getFields.apply(this, arguments);
+        }
       }
 
-      return getFields;
-    }() // handle actions
+      console.log(this.fields);
+    } // handle actions
 
     /*    
     //1) mode edit
@@ -1271,7 +1371,7 @@ var View = /*#__PURE__*/function () {
   }, {
     key: "onchangeViewModel",
     value: function onchangeViewModel(ids, values) {
-      this.model.update(ids, value);
+      this.model.update(ids, values);
     }
     /**
      * Callback for requesting a Layout update
@@ -1280,12 +1380,12 @@ var View = /*#__PURE__*/function () {
 
   }, {
     key: "onchangeModel",
-    value: function onchangeModel(full) {
+    value: function onchangeModel() {
+      var full = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
       this.layout.refresh(full);
     }
     /**
-     *
-     *
+     * Callback for requesting a Model update
      * Requested either from view: domain has been updated
      * or from layout: context has been updated (sort column, sorting order, limit, page, ...)
      */
@@ -1300,7 +1400,8 @@ var View = /*#__PURE__*/function () {
 }();
 
 exports.View = View;
-module.exports = View;
+var _default = View;
+exports.default = _default;
 
 /***/ }),
 
@@ -1316,12 +1417,14 @@ module.exports = View;
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.environment = exports.environment = void 0;
+exports.default = exports.environment = void 0;
 var environment = {
   backend_url: 'http://equal.local',
   lang: 'fr'
 };
-exports.environment = exports.environment = environment;
+exports.environment = environment;
+var _default = environment;
+exports.default = _default;
 
 /***/ }),
 
@@ -1364,13 +1467,13 @@ Object.defineProperty(exports, "View", ({
   }
 }));
 
-var _Context = _interopRequireDefault(__webpack_require__(/*! Context */ "./build/Context.js"));
+var _Context = _interopRequireDefault(__webpack_require__(/*! ./Context */ "./build/Context.js"));
 
-var _Layout = _interopRequireDefault(__webpack_require__(/*! Layout */ "./build/Layout.js"));
+var _Layout = _interopRequireDefault(__webpack_require__(/*! ./Layout */ "./build/Layout.js"));
 
-var _Model = _interopRequireDefault(__webpack_require__(/*! Model */ "./build/Model-exposed.js"));
+var _Model = _interopRequireDefault(__webpack_require__(/*! ./Model */ "./build/Model-exposed.js"));
 
-var _View = _interopRequireDefault(__webpack_require__(/*! View */ "./build/View.js"));
+var _View = _interopRequireDefault(__webpack_require__(/*! ./View */ "./build/View.js"));
 
 /***/ }),
 
@@ -1388,15 +1491,17 @@ var _interopRequireDefault = __webpack_require__(/*! @babel/runtime/helpers/inte
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.ApiService = exports.ApiService = void 0;
+exports.default = exports.ApiService = void 0;
 
-var _ApiService2 = _interopRequireDefault(__webpack_require__(/*! ApiService */ "./build/ApiService.js"));
+var _ApiService2 = _interopRequireDefault(__webpack_require__(/*! ./ApiService */ "./build/ApiService.js"));
 
 /**
  * Singleton instances
  */
 var ApiService = new _ApiService2.default();
-exports.ApiService = exports.ApiService = ApiService;
+exports.ApiService = ApiService;
+var _default = ApiService;
+exports.default = _default;
 
 /***/ }),
 
@@ -1417,9 +1522,9 @@ var _createClass2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtim
 
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/defineProperty */ "./node_modules/@babel/runtime/helpers/defineProperty.js"));
 
-var _jqueryLib = __webpack_require__(/*! jquery-lib */ "./build/jquery-lib.js");
+var _jqueryLib = __webpack_require__(/*! ./jquery-lib */ "./build/jquery-lib.js");
 
-var _equalLib = __webpack_require__(/*! equal-lib */ "./build/equal-lib.js");
+var _equalLib = __webpack_require__(/*! ./equal-lib */ "./build/equal-lib.js");
 
 var eQ = /*#__PURE__*/function () {
   // jquery object for components communication
@@ -1436,8 +1541,8 @@ var eQ = /*#__PURE__*/function () {
     this.$sbEvents = (0, _jqueryLib.$)(); // `#sb-container` is a convention and must be present in the DOM
 
     this.$container = (0, _jqueryLib.$)('#sb-container');
+    this.context = {};
     this.stack = [];
-    this.context = null;
     this.init();
   }
 
@@ -1489,8 +1594,8 @@ var eQ = /*#__PURE__*/function () {
     key: "test",
     value: function test() {
       console.log("eQ::test"); // $("#test").dialog();
-
-      (0, _jqueryLib.$)("#datepicker").daterangepicker(); // console.log(new WidgetInput());
+      // $( "#datepicker" ).daterangepicker();
+      // console.log(new WidgetInput());
 
       this.$sbEvents.trigger('_openContext', new _equalLib.Context('core\\User', 'list', 'default', []));
       /*
@@ -1553,42 +1658,6 @@ __webpack_require__(/*! jquery-ui/ui/widgets/dialog */ "./node_modules/jquery-ui
 __webpack_require__(/*! jquery-ui/ui/widgets/datepicker */ "./node_modules/jquery-ui/ui/widgets/datepicker.js");
 
 __webpack_require__(/*! daterangepicker/daterangepicker.js */ "./node_modules/daterangepicker/daterangepicker.js");
-
-/***/ }),
-
-/***/ "./node_modules/@babel/runtime/helpers/arrayLikeToArray.js":
-/*!*****************************************************************!*\
-  !*** ./node_modules/@babel/runtime/helpers/arrayLikeToArray.js ***!
-  \*****************************************************************/
-/***/ ((module) => {
-
-function _arrayLikeToArray(arr, len) {
-  if (len == null || len > arr.length) len = arr.length;
-
-  for (var i = 0, arr2 = new Array(len); i < len; i++) {
-    arr2[i] = arr[i];
-  }
-
-  return arr2;
-}
-
-module.exports = _arrayLikeToArray;
-
-/***/ }),
-
-/***/ "./node_modules/@babel/runtime/helpers/arrayWithoutHoles.js":
-/*!******************************************************************!*\
-  !*** ./node_modules/@babel/runtime/helpers/arrayWithoutHoles.js ***!
-  \******************************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var arrayLikeToArray = __webpack_require__(/*! ./arrayLikeToArray */ "./node_modules/@babel/runtime/helpers/arrayLikeToArray.js");
-
-function _arrayWithoutHoles(arr) {
-  if (Array.isArray(arr)) return arrayLikeToArray(arr);
-}
-
-module.exports = _arrayWithoutHoles;
 
 /***/ }),
 
@@ -1785,56 +1854,6 @@ module.exports = _interopRequireWildcard;
 
 /***/ }),
 
-/***/ "./node_modules/@babel/runtime/helpers/iterableToArray.js":
-/*!****************************************************************!*\
-  !*** ./node_modules/@babel/runtime/helpers/iterableToArray.js ***!
-  \****************************************************************/
-/***/ ((module) => {
-
-function _iterableToArray(iter) {
-  if (typeof Symbol !== "undefined" && Symbol.iterator in Object(iter)) return Array.from(iter);
-}
-
-module.exports = _iterableToArray;
-
-/***/ }),
-
-/***/ "./node_modules/@babel/runtime/helpers/nonIterableSpread.js":
-/*!******************************************************************!*\
-  !*** ./node_modules/@babel/runtime/helpers/nonIterableSpread.js ***!
-  \******************************************************************/
-/***/ ((module) => {
-
-function _nonIterableSpread() {
-  throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
-}
-
-module.exports = _nonIterableSpread;
-
-/***/ }),
-
-/***/ "./node_modules/@babel/runtime/helpers/toConsumableArray.js":
-/*!******************************************************************!*\
-  !*** ./node_modules/@babel/runtime/helpers/toConsumableArray.js ***!
-  \******************************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var arrayWithoutHoles = __webpack_require__(/*! ./arrayWithoutHoles */ "./node_modules/@babel/runtime/helpers/arrayWithoutHoles.js");
-
-var iterableToArray = __webpack_require__(/*! ./iterableToArray */ "./node_modules/@babel/runtime/helpers/iterableToArray.js");
-
-var unsupportedIterableToArray = __webpack_require__(/*! ./unsupportedIterableToArray */ "./node_modules/@babel/runtime/helpers/unsupportedIterableToArray.js");
-
-var nonIterableSpread = __webpack_require__(/*! ./nonIterableSpread */ "./node_modules/@babel/runtime/helpers/nonIterableSpread.js");
-
-function _toConsumableArray(arr) {
-  return arrayWithoutHoles(arr) || iterableToArray(arr) || unsupportedIterableToArray(arr) || nonIterableSpread();
-}
-
-module.exports = _toConsumableArray;
-
-/***/ }),
-
 /***/ "./node_modules/@babel/runtime/helpers/typeof.js":
 /*!*******************************************************!*\
   !*** ./node_modules/@babel/runtime/helpers/typeof.js ***!
@@ -1858,27 +1877,6 @@ function _typeof(obj) {
 }
 
 module.exports = _typeof;
-
-/***/ }),
-
-/***/ "./node_modules/@babel/runtime/helpers/unsupportedIterableToArray.js":
-/*!***************************************************************************!*\
-  !*** ./node_modules/@babel/runtime/helpers/unsupportedIterableToArray.js ***!
-  \***************************************************************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var arrayLikeToArray = __webpack_require__(/*! ./arrayLikeToArray */ "./node_modules/@babel/runtime/helpers/arrayLikeToArray.js");
-
-function _unsupportedIterableToArray(o, minLen) {
-  if (!o) return;
-  if (typeof o === "string") return arrayLikeToArray(o, minLen);
-  var n = Object.prototype.toString.call(o).slice(8, -1);
-  if (n === "Object" && o.constructor) n = o.constructor.name;
-  if (n === "Map" || n === "Set") return Array.from(o);
-  if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return arrayLikeToArray(o, minLen);
-}
-
-module.exports = _unsupportedIterableToArray;
 
 /***/ }),
 

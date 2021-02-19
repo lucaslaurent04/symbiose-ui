@@ -9,4 +9,4 @@ export class Widget {
     
 }
 
-module.exports = Widget;
+export default Widget;

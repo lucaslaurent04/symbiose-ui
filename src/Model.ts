@@ -1,8 +1,8 @@
-import { $ } from "jquery-lib";
-import { ApiService } from "equal-services";
+import { $ } from "./jquery-lib";
+import { ApiService } from "./equal-services";
 
-import View from "View";
-import Layout from "Layout";
+import View from "./View";
+import Layout from "./Layout";
 
 /**
  * Class for Model intercations
@@ -15,32 +15,23 @@ export class Model {
     // Collection (map) of objects: objects ids mapping related objects
     private objects: any;
 
-    // entity (package\Class) to be loaded: should be set only once (depend on the related view)
-    private entity: string;
-    // fields to be loaded: should be set only once (depend on the related view)
-    private fields: Map;
-    
-    private schema: object;
-    
 
+
+
+    
     
     // Collecitons do not deal with lang: it is used in ApiService set in the environment var
     
-    constructor(view:View, schema: object, fields: Map) {
+    constructor(view:View) {
         this.view = view;
 
-        // schema holds additional info (type, contrainsts, ...)
-        this.schema = schema;
-        this.fields = fields;
         
         this.objects = {};
         
-        
-        this.init();    
     }
     
 
-    private async init() {
+    public async init() {
         
         try {            
             this.refresh();
@@ -53,10 +44,11 @@ export class Model {
         
     public async refresh() {
         console.log('Model::refresh');
-        let fields = [...this.fields.keys()];
+
+        let fields: [] = <[]>Object.keys(this.view.getFields());
 
         try {
-            this.objects = await ApiService.collect(this.view.entity, this.view.domain, fields, this.view.order, this.view.sort, this.view.start, this.view.limit);
+            this.objects = await ApiService.collect(this.view.getEntity(), this.view.getDomain(), fields, this.view.getOrder(), this.view.getSort(), this.view.getStart(), this.view.getLimit(), this.view.getLang());
 
             console.log(this.objects);
             // trigger model change handler in the parent View (in order to update the layout)
@@ -71,12 +63,12 @@ export class Model {
     /**
      * React to external request of Model change (one ore more objects in the collection have been updated through the Layout)
      */
-    public update(ids: array, values: object) {
+    public update(ids: [], values: any) {
         for (let id of ids) {
             if(this.objects.hasOwnProperty(id)) {
                 for (let field in values) {                    
                     if(this.objects[id].hasOwnProperty(field)) {
-                        this.objects[id].[field] = values[field];
+                        this.objects[id][field] = values[field];
                     }
                 }
             }
@@ -97,4 +89,4 @@ export class Model {
     
 }
 
-module.exports = Model;
+export default Model;

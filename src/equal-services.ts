@@ -1,4 +1,4 @@
-import _ApiService from "ApiService";
+import  _ApiService from "./ApiService";
 
 
 /**
@@ -8,4 +8,4 @@ export var ApiService = new _ApiService();
 
 
 
-export { ApiService };
+export default ApiService;

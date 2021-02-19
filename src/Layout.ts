@@ -1,8 +1,8 @@
-import { $ } from "jquery-lib";
-import { ApiService } from "equal-services";
+import { $ } from "./jquery-lib";
+import { ApiService } from "./equal-services";
 
-import View from "View";
-import Model from "Model";
+import View from "./View";
+import Model from "./Model";
 
 /*
     There are two main branches of Layouts depending on what is to be displayed:
@@ -15,27 +15,18 @@ import Model from "Model";
 
 export class Layout {
 
-    private schema: object;
-
     private view: View;             // parent view the layout belongs to
     
-    private $layout: object;
-    
-    // reference to the parent View fields Map
-    private fields: Map;
-    
+    private $layout: any;
+        
     /**
      *
      * @param view  View    Parent View object
-     * @param shema object  The view schema (obtained by parent View object)
      */
-    constructor(view:View, schema: object, fields: Map) {
+    constructor(view:View) {
         this.view = view;
-        this.schema = schema;
-        this.fields = fields;
         this.$layout = $('<div />').addClass('sb-layout');
         this.view.$layoutContainer.append(this.$layout);
-        this.init();
     }
 
     public async init() {
@@ -100,6 +91,18 @@ export class Layout {
                 break;
         }         
     }
+
+    
+    public getSelected() {
+        var selection = <any>[];
+        let $tbody = this.$layout.find("tbody");
+        $tbody.find("tr.is-selected").each( (i:number, elem:any) => {
+            selection.push($(elem).attr('id'));
+        });
+        console.log('selection', selection);
+    }
+
+
     
     private layout() {
         console.log('Layout::layout');
@@ -137,7 +140,8 @@ export class Layout {
 
 
         // create other columns, based on the col_model given in the configuration
-        $.each(this.schema.layout.items, (i, item) => {
+        let schema = this.view.getViewSchema();
+        $.each(schema.layout.items, (i, item) => {
             
             let align = (item.hasOwnProperty('align'))?item.align:'left';
             let label = (item.hasOwnProperty('label'))?item.label:item.value.charAt(0).toUpperCase() + item.value.slice(1);
@@ -151,14 +155,14 @@ export class Layout {
             
             $checkbox.on('change', (event) => {
                 let $this = $(event.currentTarget);
-                let def = this.fields.get(item.value);
+                let def = this.view.getField(item.value);
                 if($this.is(":checked")) {
                     def.width = "10%";
                 }
                 else {
                     def.width = "0%";
                 }                
-                this.fields.set(item.value, def);
+                this.view.setField(item.value, def);
                 this.view.onchangeModel(true);
             });
             
@@ -168,9 +172,9 @@ export class Layout {
                 
                 let $cell = $('<th/>').attr('name', item.value).append(label)
                 .hover(
-                    function() {
+                    (event:any) => {
                         // set hover and sort order indicator
-                        let $this = $(this);
+                        let $this = $(event.currentTarget);
                         $this.addClass('hover');
                         if($this.hasClass('sortable')) {
                             if($this.hasClass('sorted')) {
@@ -186,9 +190,9 @@ export class Layout {
                             }
                         }
                     }, 
-                    function() {
+                    (event:any) => {
                         // unset hover and sort order indicator
-                        let $this = $(this);
+                        let $this = $(event.currentTarget);
                         $this.removeClass('hover');
                         if($this.hasClass('sortable')) {
                             if($this.hasClass('sorted')) {
@@ -205,8 +209,8 @@ export class Layout {
                         }
                     }
                 )
-                .click(
-                    (event) => {
+                .on('click',
+                    (event:any) => {
                         let $this = $(event.currentTarget);
                         // change sortname and/or sortorder
                         if($this.hasClass('sortable')) {
@@ -214,12 +218,12 @@ export class Layout {
                             if(!$this.hasClass('sorted')) {
                                 $thead.find('.sorted').removeClass('sorted').removeClass('asc').removeClass('desc');
                                 $this.addClass('sorted');
-                                this.view.order = $this.attr('name');
+                                this.view.setOrder(<string>$this.attr('name'));
                                 this.view.onchangeView();
                             }
                             // toggle sorting order
                             else {
-                                let sort = $this.attr('data-sort');
+                                let sort:string = <string>$this.attr('data-sort');
                                 if(sort == 'asc') {
                                     $this.removeClass('asc').addClass('desc');
                                     sort = 'desc';
@@ -229,7 +233,7 @@ export class Layout {
                                     sort = 'asc';
                                 }
                                 $this.attr('data-sort', sort);
-                                this.view.sort = sort;
+                                this.view.setSort(sort);
                                 this.view.onchangeView();
                             }
                         }
@@ -252,7 +256,7 @@ export class Layout {
         this.$layout.append($table.append($thead.append($hrow)));        
     }
     
-    private feed(objects: array) {
+    private feed(objects: []) {
         // flush 
         
         
@@ -267,15 +271,18 @@ export class Layout {
         }
     }
     
-    private feedList(objects: array) {
+    private feedList(objects: []) {
         console.log('Layout::feed', objects);
         
         let $tbody = $('<tbody/>');       
 
-        $.each(objects, (i, object) => {
+        $.each(objects, (i, object:any) => {
             let $row = $('<tr/>');
+            if(object.hasOwnProperty('id')) {
+                $row.attr('id', object.id);
+            }
             for(let field of Object.keys(object)) {
-                let def = this.fields.get(field);
+                let def = this.view.getField(field);
                 // field is not part of the view, skip it
                 if(def == undefined) continue;
                 let width = (def.hasOwnProperty('width'))?parseInt(def.width, 10):-1;
@@ -290,9 +297,9 @@ export class Layout {
         this.$layout.find("table").append($tbody);        
     }
     
-    private feedForm(objects: array) {
+    private feedForm(objects: []) {
     }
     
 }
 
-module.exports = Layout;
+export default Layout;

@@ -1,5 +1,5 @@
 import * as $ from "jquery";
-import { environment } from "environment";
+import { environment } from "./environment";
 
 /**
  * This service acts as an interface between client and server and caches view objects to lower the traffic
@@ -14,9 +14,9 @@ export class _ApiService {
     /**
      * Internal objects for cache management
      */
-    private views: object;
-    private translations: object;
-    private schemas: object;
+    private views: any;
+    private translations: any;
+    private schemas: any;
 
     
     constructor() {
@@ -34,16 +34,16 @@ export class _ApiService {
         this.views = {};
         this.translations = {};
         this.schemas = {};
-        this.fields = {};
+
     }
 
-    private setCookie(key, value) {
+    private setCookie(key: string, value: any) {
         var expires = new Date();
         expires.setTime(expires.getTime() + 31536000000); //1 year  
         document.cookie = key + '=' + value + ';expires=' + expires.toUTCString();
     }
 
-    private getCookie(key) {
+    private getCookie(key: string) {
         var keyValue = document.cookie.match('(^|;) ?' + key + '=([^;]*)(;|$)');
         return keyValue ? keyValue[2] : null;
     }
@@ -82,7 +82,7 @@ export class _ApiService {
                 this.schemas[package_name][class_name] = json_data;
                 promise.resolve(this.schemas[package_name][class_name]);
             })
-            .catch( (response) => {
+            .catch( (response:any) => {
                 promise.reject(response.responseJSON);
             });            
         }
@@ -114,7 +114,7 @@ export class _ApiService {
                 this.views[package_name][class_name][view_id] = json_data;                
                 promise.resolve(this.views[package_name][class_name][view_id]);
             })
-            .catch( (response) => {
+            .catch( (response:any) => {
                 promise.reject(response.responseJSON);
             });
         }
@@ -143,7 +143,7 @@ export class _ApiService {
                 this.translations[package_name][class_name][environment.lang] = json_data;                
                 promise.resolve(this.translations[package_name][class_name][environment.lang]);
             })
-            .catch( (response) => {
+            .catch( (response:any) => {
                 promise.reject(response.responseJSON);
             });            
         }
@@ -152,7 +152,7 @@ export class _ApiService {
         
         
     
-    public async getTranslation(entity) {
+    public async getTranslation(entity:string) {
         const translation = await this.loadTranslation(entity);
         return translation;
     }
@@ -169,7 +169,8 @@ export class _ApiService {
     }
 
     
-    public async read(entity:string, ids:array, fields:array) {
+    public async read(entity:string, ids:[], fields:[]) {
+        let result: any;
         try {
             let params = {
                 entity: entity,
@@ -191,15 +192,15 @@ export class _ApiService {
         return result;         
     }
     
-    public async collect(entity:string, domain:array, fields:array, order:string, sort:string, start:integer, limit:integer) {
-        console.log('ApiService::collect', entity, domain, fields, order, sort, start, limit);
+    public async collect(entity:string, domain:any[], fields:[], order:string, sort:string, start:number, limit:number, lang:string) {
+        console.log('ApiService::collect', entity, domain, fields, order, sort, start, limit, lang);
         var result = [];
         try {
             let params = {
                 entity: entity,
                 domain: domain,
                 fields: fields,
-                lang: environment.lang,
+                lang: lang,
                 order: order,
                 sort: sort,
                 start: start,
@@ -219,7 +220,7 @@ export class _ApiService {
         return result;
     }
 
-    public async search(entity:string, domain:array, order:string, sort:string, start:integer, limit:integer) {
+    public async search(entity:string, domain:[], order:string, sort:string, start:number, limit:number) {
         var ids = [];
         try {
             let params = {
@@ -248,4 +249,4 @@ export class _ApiService {
 
 
 
-module.exports = _ApiService;
+export default _ApiService;

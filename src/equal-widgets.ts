@@ -1,3 +1,3 @@
-import WidgetInput from "widgets/WidgetInput";
+import WidgetInput from "./widgets/WidgetInput";
 
 export { WidgetInput }

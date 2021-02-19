@@ -1,22 +1,22 @@
-import { $ } from "jquery-lib";
-import { Context, Model, View, Layout } from "equal-lib";
-import { WidgetInput } from "equal-widgets";
+import { $ } from "./jquery-lib";
+import { Context, Model, View, Layout } from "./equal-lib";
+import { WidgetInput } from "./equal-widgets";
 
 
 
 class eQ {
     
     // jquery object for components communication
-    private $sbEvents:object;
+    private $sbEvents:any;
     
     // the main container in which the Context views are injected
-    private $container: object;
+    private $container: any;
     
     // stack of Context (only current context is visible)
     private stack: Array<Context>;
 
     // current context
-    private context;
+    private context:Context;
     
     constructor(entity:string) {
         // we need to actually use the dependencies in this file in order to have them loaded in webpack
@@ -24,8 +24,8 @@ class eQ {
         
         // `#sb-container` is a convention and must be present in the DOM
         this.$container = $('#sb-container');
+        this.context = <Context>{};
         this.stack = [];
-        this.context = null;
         this.init();
     }
     
@@ -38,12 +38,12 @@ class eQ {
         /*
             A new contexte can be requested by ngx (menu or app) or by opening a sub-objet
         */        
-        this.$sbEvents.on('_openContext', (event, context) => {
+        this.$sbEvents.on('_openContext', (event:any, context:Context) => {
             console.log('eQ: received _openContext', context);
             this.openContext(context);
         });
 
-        this.$sbEvents.on('_closeContext', (event) => {
+        this.$sbEvents.on('_closeContext', (event:any) => {
             console.log('eQ: received _closeContext');
             this.closeContext();
         });
@@ -62,7 +62,7 @@ class eQ {
     
     private closeContext() {
         if(this.stack.length) {
-            this.context = this.stack.pop();
+            this.context = <Context>this.stack.pop();
             this.$container.empty();
             this.$container.append(this.context.getContainer());
         }        
@@ -71,7 +71,7 @@ class eQ {
     public test() {
         console.log("eQ::test");
         // $("#test").dialog();
-        $( "#datepicker" ).daterangepicker();
+        // $( "#datepicker" ).daterangepicker();
 
         // console.log(new WidgetInput());
         

@@ -1,18 +1,17 @@
-import { $ } from "jquery-lib";
+import { $ } from "./jquery-lib";
 
-import View from "View";
-
+import View from "./View";
+import { environment } from "./environment";
 export class Context {
     
-    private $container: object;
+    public $container: any;
     
     private view: View;
     
-    constructor(entity: string, type: string, name: string, domain: array) {
+    constructor(entity: string, type: string, name: string, domain: any[], lang: string = environment.lang) {
         this.$container = $('<div />');
-        this.view = new View(this, entity, type, name, domain);
-    }
-    
+        this.view = new View(this, entity, type, name, domain, lang);
+    }    
     
     public getContainer() {
         return this.$container;
@@ -21,4 +20,4 @@ export class Context {
     
 }
 
-module.exports = Context;
+export default Context;

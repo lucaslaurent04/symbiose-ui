@@ -10,4 +10,4 @@ export class WidgetInput extends Widget {
     
 }
 
-module.exports = Widget;
+export default Widget;

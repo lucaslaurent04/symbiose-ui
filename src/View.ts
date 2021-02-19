@@ -1,32 +1,50 @@
-import { $ } from "jquery-lib";
-import { ApiService } from "equal-services";
+import { $ } from "./jquery-lib";
+import { ApiService } from "./equal-services"; /// <reference path="equal-services.ts" />
 
-import Layout from "Layout";
-import Model from "Model";
+import Context from "./Context";
+import Layout from "./Layout";
+import Model from "./Model";
+
 
 
 export class View {
 
-    public context: object;
+    public context: any;
     public entity: string;
     public type: string; 
     public name: string;
 
 
     // View holds the params for search requests performed by Model
-    public domain: array;
+    public domain: any[];
     private order: string;
     private sort: string;    
-    private start: interger;
-    private limit: interger;
+    private start: number;
+    private limit: number;
+    private lang: string;
 
     private layout: Layout;
     private model: Model;
 
-    public $headerContainer;    
-    public $layoutContainer;
+    private view_schema: any;
+    private model_schema: any;
+
+    // Map of fields mapping View definitions
+    private fields: any;
+
+    public $headerContainer: any;
+    public $layoutContainer: any;
+
+    /**
+     * 
+     * @param context 
+     * @param entity    entity (package\Class) to be loaded: should be set only once (depend on the related view)
+     * @param type 
+     * @param name 
+     * @param domain 
+     */
     
-    constructor(context: object, entity: string, type: string, name: string, domain: array) {
+    constructor(context: Context, entity: string, type: string, name: string, domain: any[], lang: string) {
         this.context = context;
         this.entity = entity;
         this.type = type; 
@@ -37,29 +55,105 @@ export class View {
         this.sort = 'asc';
         this.start = 0;
         this.limit = 25;
-        
+        this.lang = lang;
+
+        this.$headerContainer = $('<div />');
+        this.$layoutContainer = $('<div />');
+
+        this.layout = new Layout(this);
+        this.model = new Model(this);
+
         this.init();
     }
     
     public async init() {
         console.log('View::init');
-        this.$headerContainer = $('<div />');
-        this.$layoutContainer = $('<div />');
         // inject View in parent Context object
         this.context.$container.append(this.$headerContainer).append(this.$layoutContainer);
 
         try {
-            var view_schema = await ApiService.getView(this.entity, this.type + '.' + this.name);
-            var model_schema = await ApiService.getSchema(this.entity);
-            var model_fields = await this.getFields(view_schema);
-            this.layout = new Layout(this, view_schema, model_fields);
-            this.model = new Model(this, model_schema, model_fields);
+            this.view_schema = await ApiService.getView(this.entity, this.type + '.' + this.name);
+            this.model_schema = await ApiService.getSchema(this.entity);
+            this.loadFields(this.view_schema);
+            await this.layout.init();
+            await this.model.init();
+
+
+            let $form = $('<div/>')
+            .append($('<form/>').append(
+            $('<div/>').addClass('mdl-textfield mdl-js-textfield')
+            .append($('<input type="text" />').attr('id', 'input1').addClass('mdl-textfield__input'))
+            .append($('<label/>').attr('id', 'input1').addClass('mdl-textfield__label').text('Filtre'))
+            ))
+            .append(
+                $('<button/>').addClass("mdl-button mdl-js-button").text('ok')
+                .on('click', (event) => {
+                    let $this = $(event.currentTarget);
+                    let filter = $('#input1').val();
+                    this.domain.push(['login', 'ilike', '%'+filter+'%']);
+                    this.onchangeView();
+                    this.layout.getSelected();
+                })
+            );
+
+
+            this.$headerContainer.append( $form );
         }
         catch(err) {
             console.log('Unable to init view ('+this.entity+'.'+this.type+'.'+this.name+')', err);
         }
     }
-    
+
+
+    public setField(field: string, value: any) {
+        this.fields[field] = value;
+    }
+    public getField(field: string) {
+        return this.fields[field];
+    }
+
+    public setSort(sort: string) {
+        this.sort = sort;
+    }
+    public setOrder(order: string) {
+        this.order = order;
+    }
+    public setStart(start: number) {
+        this.start = start;;
+    }
+    public setLimit(limit: number) {
+        this.limit = limit;
+    }
+
+    public getEntity() {
+        return this.entity;
+    }
+    public getViewSchema() {
+        return this.view_schema;
+    }
+    public getModelSchema() {
+        return this.model_schema;
+    }
+
+    public getDomain() {
+        return this.domain;
+    }
+    public getSort() {
+        return this.sort;
+    }
+    public getOrder() {
+        return this.order;
+    }
+    public getStart() {
+        return this.start;
+    }
+    public getLimit() {
+        return this.limit;
+    }
+    public getLang() {
+        return this.lang;
+    }
+
     public getModel() {
         return this.model;
     }
@@ -68,18 +162,24 @@ export class View {
         return this.layout;
     }
 
+    public getFields() {
+        return this.fields;
+    }
+
+
+
     /**
-     * Returns a list holding all fields that are present in a given view (as items objects)
-     * @return Map    List of fields names (related to entity of the view)
+     * Generates a list holding all fields that are present in a given view (as items objects)
+     * and stores it in the `fields` member
      */
-	private async getFields(view_schema: object) {
-        console.log('View::getFields', view_schema);
-        let result = new Map();
+	private loadFields(view_schema: any) {
+        console.log('View::loadFields', view_schema);
+        this.fields = {};
         var stack = [];
         // view is valid
         if(view_schema.hasOwnProperty('layout')) {    
             stack.push(view_schema['layout']);
-            var path = ['containers', 'sections', 'rows', 'columns'];
+            var path = ['groups', 'sections', 'rows', 'columns'];
             
             while(stack.length) {
                 var elem = stack.pop();
@@ -87,7 +187,7 @@ export class View {
                 if(elem.hasOwnProperty('items')) {
                     for (let item of elem['items']) { 
                         if(item.type == 'field' && item.hasOwnProperty('value')){
-                            result.set(item.value, item);
+                            this.fields[item.value] = item;
                         }
                     }
                 }
@@ -102,8 +202,7 @@ export class View {
                 }
             }
         }
-        console.log(result);
-        return result;        
+        console.log(this.fields);
     }
 
 
@@ -127,21 +226,20 @@ modifications des champs (a rpriori un par un) : relayer les changementrs depuis
      * @param ids       array   one or more objecft identifiers
      * @param values    object   map of fields names and their related values
      */
-    public onchangeViewModel(ids: array, values: object) {
-        this.model.update(ids, value);
+    public onchangeViewModel(ids: [], values: object) {
+        this.model.update(ids, values);
     }
     
     /**
      * Callback for requesting a Layout update
      * Requested from Model when a change occured in the Collection (as consequence of domain or params update)
      */
-    public onchangeModel(full: boolean) {
+    public onchangeModel(full: boolean = false) {
         this.layout.refresh(full);
     }
     
     /**
-     *
-     *
+     * Callback for requesting a Model update
      * Requested either from view: domain has been updated
      * or from layout: context has been updated (sort column, sorting order, limit, page, ...)
      */
@@ -150,4 +248,4 @@ modifications des champs (a rpriori un par un) : relayer les changementrs depuis
     }
 }
 
-module.exports = View;
+export default View;
