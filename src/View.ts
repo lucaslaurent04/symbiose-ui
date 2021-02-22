@@ -1,5 +1,7 @@
 import { $ } from "./jquery-lib";
-import { ApiService } from "./equal-services"; /// <reference path="equal-services.ts" />
+import { UIHelper, MDCMenu } from './material-lib';
+
+import { ApiService } from "./equal-services";
 
 import Context from "./Context";
 import Layout from "./Layout";
@@ -29,8 +31,17 @@ export class View {
     private view_schema: any;
     private model_schema: any;
 
-    // Map of fields mapping View definitions
-    private fields: any;
+    // Map of fields mapping their View definitions
+    private view_fields: any;
+    // Map of fields mapping their Model definitions
+    private model_fields: any;
+
+    // Arrray of available filters from View definition
+    private filters: any;
+
+
+    // List of currently selected filters from View definition (for filterable types)    
+    private applied_filters_ids: any[];
 
     public $headerContainer: any;
     public $layoutContainer: any;
@@ -57,14 +68,18 @@ export class View {
         this.limit = 25;
         this.lang = lang;
 
-        this.$headerContainer = $('<div />');
+        this.$headerContainer = $('<div />').addClass('sb-view-header');
         this.$layoutContainer = $('<div />');
+
+        this.filters = {};
+        this.applied_filters_ids = [];
 
         this.layout = new Layout(this);
         this.model = new Model(this);
 
         this.init();
     }
+
     
     public async init() {
         console.log('View::init');
@@ -74,30 +89,19 @@ export class View {
         try {
             this.view_schema = await ApiService.getView(this.entity, this.type + '.' + this.name);
             this.model_schema = await ApiService.getSchema(this.entity);
-            this.loadFields(this.view_schema);
+            this.loadViewFields(this.view_schema);
+            this.loadModelFields(this.model_schema);            
+            if(this.view_schema.hasOwnProperty("filters")) {
+                for(let filter of this.view_schema.filters) {
+                    this.filters[filter.id] = filter;
+                }
+            }
             await this.layout.init();
             await this.model.init();
 
-
-            let $form = $('<div/>')
-            .append($('<form/>').append(
-            $('<div/>').addClass('mdl-textfield mdl-js-textfield')
-            .append($('<input type="text" />').attr('id', 'input1').addClass('mdl-textfield__input'))
-            .append($('<label/>').attr('id', 'input1').addClass('mdl-textfield__label').text('Filtre'))
-            ))
-            .append(
-                $('<button/>').addClass("mdl-button mdl-js-button").text('ok')
-                .on('click', (event) => {
-                    let $this = $(event.currentTarget);
-                    let filter = $('#input1').val();
-                    this.domain.push(['login', 'ilike', '%'+filter+'%']);
-                    this.onchangeView();
-                    this.layout.getSelected();
-                })
-            );
-
-
-            this.$headerContainer.append( $form );
+            if(['list', 'kanban'].indexOf(this.type) >= 0) {
+                this.layoutListHeader();
+            }
         }
         catch(err) {
             console.log('Unable to init view ('+this.entity+'.'+this.type+'.'+this.name+')', err);
@@ -106,10 +110,10 @@ export class View {
 
 
     public setField(field: string, value: any) {
-        this.fields[field] = value;
+        this.view_fields[field] = value;
     }
     public getField(field: string) {
-        return this.fields[field];
+        return this.view_fields[field];
     }
 
     public setSort(sort: string) {
@@ -135,8 +139,18 @@ export class View {
         return this.model_schema;
     }
 
+    /**
+     * Applicable domain for the View corresponds to the parent Context domain with additional filters currently applied on the View
+     */
     public getDomain() {
-        return this.domain;
+        console.log('View::getDomain', this.domain, this.applied_filters_ids);
+        let domain = [...this.domain];
+        
+        for(let filter_id of this.applied_filters_ids) {
+            domain.push(this.filters[filter_id].clause);
+        } 
+        console.log('result', domain);
+        return domain;
     }
     public getSort() {
         return this.sort;
@@ -162,19 +176,22 @@ export class View {
         return this.layout;
     }
 
-    public getFields() {
-        return this.fields;
+    public getViewFields() {
+        return this.view_fields;
     }
 
+    public getModelFields() {
+        return this.model_fields;
+    }
 
 
     /**
      * Generates a list holding all fields that are present in a given view (as items objects)
      * and stores it in the `fields` member
      */
-	private loadFields(view_schema: any) {
+	private loadViewFields(view_schema: any) {
         console.log('View::loadFields', view_schema);
-        this.fields = {};
+        this.view_fields = {};
         var stack = [];
         // view is valid
         if(view_schema.hasOwnProperty('layout')) {    
@@ -187,7 +204,7 @@ export class View {
                 if(elem.hasOwnProperty('items')) {
                     for (let item of elem['items']) { 
                         if(item.type == 'field' && item.hasOwnProperty('value')){
-                            this.fields[item.value] = item;
+                            this.view_fields[item.value] = item;
                         }
                     }
                 }
@@ -202,9 +219,95 @@ export class View {
                 }
             }
         }
-        console.log(this.fields);
     }
 
+
+	private loadModelFields(model_schema: any) {
+        console.log('View::loadVModelFields', model_schema);
+        this.model_fields = model_schema.fields;
+    }
+
+
+
+    private layoutListHeader() {
+        // container for holding chips of currently applied filters
+        let $filters_set = $('<div />').addClass('sb-view-header-filters-set mdc-chip-set').attr('role', 'grid');
+
+        // floating menu for filters selection
+        let $filters_menu = $('<ul/>').attr('role', 'menu').addClass('mdc-list');
+        // button for displaying the filters menu
+        let $filters_button = $('<div/>').addClass('sb-view-header-filters mdc-menu-surface--anchor')
+        .append( UIHelper.createUIButton('view-filters', 'filtres', 'mini-fab', 'filter_list') )
+        .append( $('<div/>').addClass('sb-view-header-filters-menu mdc-menu mdc-menu-surface').css({"margin-top": '48px'}).append($filters_menu) );
+        
+        for(let filter_id in this.filters) {
+            let filter = this.filters[filter_id];
+
+            UIHelper.createUIListItem(filter.description)
+            .appendTo($filters_menu)
+            .attr('id', filter_id)
+            .on('click', (event) => {
+                let $this = $(event.currentTarget);                
+                $filters_set.append(
+                    UIHelper.createUIChip(filter.description)
+                    .attr('id', filter_id)
+                    .on('click', (event) => {
+                        let $this = $(event.currentTarget)
+                        let index = this.applied_filters_ids.indexOf($this.attr('id'));
+                        if (index > -1) {
+                            this.applied_filters_ids.splice(index, 1);
+                        }        
+                        $this.remove();
+                        this.onchangeView();
+                    })
+                );
+                this.applied_filters_ids.push($this.attr('id'));
+                this.onchangeView();
+            });
+        }
+        let filters_menu = new MDCMenu($filters_button.find('.mdc-menu')[0]);        
+        $filters_button.find('button').on('click', () => {
+            filters_menu.open = !$filters_button.find('.mdc-menu').hasClass('mdc-menu-surface--open');
+        });    
+
+
+
+        // floating menu for fields selection
+        let $fields_toggle_menu = $('<ul/>').attr('role', 'menu').addClass('mdc-list');
+        // button for displaying the fields menu
+        let $fields_toggle_button = $('<div/>').addClass('sb-view-header-fields_toggle mdc-menu-surface--anchor')        
+        .append( UIHelper.createUIButton('view-filters', 'fields', 'mini-fab', 'more_vert') )
+        .append( $('<div/>').addClass('sb-view-header-fields_toggle-menu mdc-menu mdc-menu-surface').append($fields_toggle_menu) );
+
+        $.each(this.getViewSchema().layout.items, (i, item) => {            
+            let label = (item.hasOwnProperty('label'))?item.label:item.value.charAt(0).toUpperCase() + item.value.slice(1);
+            let visible = (item.hasOwnProperty('visible'))?item.visible:true;
+
+            UIHelper.createUIListItemCheckbox('sb-fields-toggle-checkbox-'+item.value, label)
+            .appendTo($fields_toggle_menu)
+            .find('input')
+            .on('change', (event) => {
+                let $this = $(event.currentTarget);
+                let def = this.getField(item.value);
+                def.visible = $this.prop('checked');
+                console.log(def);
+                this.setField(item.value, def);
+                this.onchangeModel(true);
+            })
+            .prop('checked', visible);
+
+        });
+        let fields_toggle_menu = new MDCMenu($fields_toggle_button.find('.mdc-menu')[0]);        
+        $fields_toggle_button.find('button').on('click', () => {
+            fields_toggle_menu.open = !$fields_toggle_button.find('.mdc-menu').hasClass('mdc-menu-surface--open');
+        });    
+
+
+        // attach elements to header toolbar
+        this.$headerContainer.append( $filters_button );
+        this.$headerContainer.append( $filters_set );        
+        this.$headerContainer.append( $fields_toggle_button );
+    }
 
     
     // handle actions

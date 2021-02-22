@@ -45,9 +45,11 @@ export class Model {
     public async refresh() {
         console.log('Model::refresh');
 
-        let fields: [] = <[]>Object.keys(this.view.getFields());
+        // fetch fields that are present in the parent View 
+        let fields: [] = <[]>Object.keys(this.view.getViewFields());
 
         try {
+            console.log(this.view.getDomain());
             this.objects = await ApiService.collect(this.view.getEntity(), this.view.getDomain(), fields, this.view.getOrder(), this.view.getSort(), this.view.getStart(), this.view.getLimit(), this.view.getLang());
 
             console.log(this.objects);

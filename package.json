@@ -23,7 +23,14 @@
         "webpack-cli": "^4.4.0"
     },
     "dependencies": {
+        "@angular/material": "^11.2.1",
         "@babel/runtime": "^7.12.5",
+        "@material/button": "^10.0.0",
+        "@material/checkbox": "^10.0.0",
+        "@material/data-table": "^10.0.0",
+        "@material/fab": "^10.0.0",
+        "@material/form-field": "^10.0.0",
+        "@material/menu": "^10.0.0",
         "daterangepicker": "^3.1.0",
         "jquery": "^3.5.1",
         "jquery-ui": "^1.12.1"

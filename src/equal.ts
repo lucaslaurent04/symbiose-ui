@@ -2,7 +2,8 @@ import { $ } from "./jquery-lib";
 import { Context, Model, View, Layout } from "./equal-lib";
 import { WidgetInput } from "./equal-widgets";
 
-
+// todo: use MDC instead of MDL 
+// @see https://github.com/material-components/material-components-web/blob/master/docs/getting-started.md
 
 class eQ {
     

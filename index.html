@@ -14,16 +14,17 @@
         <link rel="stylesheet" href="css/font-awesome.min.css">
         
         <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-        <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css">
+        <!-- <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css"> -->
 
-
+        <link href="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css" rel="stylesheet">
+        <link href="node_modules/@angular/material/prebuilt-themes/deeppurple-amber.css" rel="stylesheet">
 
         <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.0/themes/smoothness/jquery-ui.css">
         <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
         <!-- scripts -->
   
         <!-- @see https://getmdl.io/components/index.html -->
-        <script type="text/javascript" src="material.min.js"></script>
+        <!-- <script type="text/javascript" src="material.min.js"></script> -->
         
         <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
         
@@ -39,6 +40,12 @@ $(document).ready( function() {
 </script>
 
 <style>
+:root {
+    --mdc-theme-primary: #3f51b5;
+    --mdc-theme-secondary: #3f51b5;
+    --mdc-typography-subtitle2-font-weight: 600;
+}
+    
 body, html {
     margin: 0;
     padding: 0;
@@ -58,7 +65,7 @@ body, html {
     flex: 1 1 100%;
     box-sizing: border-box;
 }
-
+/*
 .mdl-data-table td {
     height: 33px;
     padding: 6px 4px;
@@ -74,43 +81,107 @@ body, html {
     cursor: pointer;
     user-select: none; 
 }
-.mdl-data-table th.sorted {
+*/
+.mdc-data-table th.sorted {
     color: black;
 }
-.mdl-data-table th.hover {
+.mdc-data-table th.hover {
     background-color: #e0e0e0;
 }
-.mdl-data-table tbody tr {
-    height: 33px;
-}
-.mdl-data-table th.asc::after, .mdl-data-table th.desc::after {
+.mdc-data-table th.asc::after, .mdc-data-table th.desc::after {
     position: absolute;
     margin-left: 6px;
     font-family: FontAwesome;
     opacity: 0.3;
 }
-.mdl-data-table th.asc::after {
+.mdc-data-table th.asc::after {
     content: "\f0d7";
 }
-.mdl-data-table th.desc::after {
+.mdc-data-table th.desc::after {
     content: "\f0d8";
 }
-.mdl-menu__item {
-    height: 25px;
-    line-height: 25px;
-}
-.mdl-checkbox__label {
-    font-size: 13px;
-}
+
 .sb-layout {
     position: relative;
 }
 
 .sb-layout button.sb-fields-toggle {
+    /*
     position: absolute;
     right: 10px;
     z-index: 1;
     top: 7px;
+    */
+
+}
+.sb-view-header {
+    position: relative;
+    height: 56px;
+    line-height: 56px;
+    display: flex;
+}
+
+.sb-view-header-filters {
+    margin-top: 4px;
+}
+
+.sb-view-header-filters .sb-view-header-filters-menu {
+    min-width: 250px;
+    left: 10px !important;
+}
+
+.sb-view-header-filters-set {
+    margin-top: 4px;
+}
+
+.sb-view-header-filters button {
+    background-color: white;
+    color: black;
+    box-shadow: none !important;
+}
+
+.sb-view-header-fields_toggle {
+    flex-grow: 1;
+    margin-top: 4px;
+    margin-right: 10px;
+    text-align: right;
+}
+
+
+.sb-view-header-fields_toggle button {
+    background-color: white;
+    color: black;
+    box-shadow: none !important;
+}
+
+.sb-view-header-fields_toggle .sb-view-header-fields_toggle-menu {
+    min-width: 250px;
+    max-width: 250px;
+    right: 0 !important;
+    left: unset !important;
+    margin-top: 44px;
+}
+
+
+.mdc-data-table__header-cell--checkbox {
+    width: 44px;
+}
+
+.mdc-list-item .mdc-checkbox {
+    margin-left: -11px;
+}
+
+.mdc-chip .mdc-chip__icon {
+    font-size: 22px;
+    height: 22px;
+}
+
+.mdc-list-item {
+    height: 44px;
+}
+
+.mdc-data-table__cell {
+    height: 44px;
 }
 
 </style>
