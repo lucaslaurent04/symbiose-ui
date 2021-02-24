@@ -9,7 +9,7 @@ export class Context {
     private view: View;
     
     constructor(entity: string, type: string, name: string, domain: any[], lang: string = environment.lang) {
-        this.$container = $('<div />');
+        this.$container = $('<div />').addClass('sb-view');
         this.view = new View(this, entity, type, name, domain, lang);
     }    
     

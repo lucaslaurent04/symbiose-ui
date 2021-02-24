@@ -16,6 +16,8 @@ export class Model {
     private objects: any;
 
 
+    // total objects matching the current domain on the back-end
+    private total: number;
 
 
     
@@ -27,7 +29,7 @@ export class Model {
 
         
         this.objects = {};
-        
+        this.total = 0;
     }
     
 
@@ -51,6 +53,8 @@ export class Model {
         try {
             console.log(this.view.getDomain());
             this.objects = await ApiService.collect(this.view.getEntity(), this.view.getDomain(), fields, this.view.getOrder(), this.view.getSort(), this.view.getStart(), this.view.getLimit(), this.view.getLang());
+
+            this.total = ApiService.getLastCount();
 
             console.log(this.objects);
             // trigger model change handler in the parent View (in order to update the layout)
@@ -82,13 +86,16 @@ export class Model {
     }
 
     /**
-     * >Return the entire Collectiono
+     * Return the entire Collection
      *
      */
     public get() {
         return this.objects;
     }
     
+    public getTotal() {
+        return this.total;
+    }
 }
 
 export default Model;

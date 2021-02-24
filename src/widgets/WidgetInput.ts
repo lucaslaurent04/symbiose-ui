@@ -1,13 +1,16 @@
 import Widget from "./Widget";
+import { UIHelper } from '../material-lib';
 
-export class WidgetInput extends Widget {
+export default class WidgetInput extends Widget {
     
     
-    constructor() {
-        super();
+    constructor(value: any) {
+        super(value);
     }
 
+    public render() :JQuery {
+        let $elem = UIHelper.createUIInput('', this.getValue());
+        return $elem;
+    }
     
 }
-
-export default Widget;

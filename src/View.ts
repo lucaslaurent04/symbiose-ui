@@ -45,6 +45,7 @@ export class View {
 
     public $headerContainer: any;
     public $layoutContainer: any;
+    public $footerContainer: any;
 
     /**
      * 
@@ -68,8 +69,9 @@ export class View {
         this.limit = 25;
         this.lang = lang;
 
-        this.$headerContainer = $('<div />').addClass('sb-view-header');
-        this.$layoutContainer = $('<div />');
+        this.$headerContainer = $('<div />').addClass('sb-view-list-header');
+        this.$layoutContainer = $('<div />').addClass('sb-view-list-layout');
+        this.$footerContainer = $('<div />').addClass('sb-view-list-footer');
 
         this.filters = {};
         this.applied_filters_ids = [];
@@ -84,7 +86,7 @@ export class View {
     public async init() {
         console.log('View::init');
         // inject View in parent Context object
-        this.context.$container.append(this.$headerContainer).append(this.$layoutContainer);
+        this.context.$container.append(this.$headerContainer).append(this.$layoutContainer).append(this.$footerContainer);
 
         try {
             this.view_schema = await ApiService.getView(this.entity, this.type + '.' + this.name);
@@ -101,6 +103,7 @@ export class View {
 
             if(['list', 'kanban'].indexOf(this.type) >= 0) {
                 this.layoutListHeader();
+                this.layoutListFooter();
             }
         }
         catch(err) {
@@ -159,13 +162,16 @@ export class View {
         return this.order;
     }
     public getStart() {
-        return this.start;
+        return +this.start;
     }
     public getLimit() {
-        return this.limit;
+        return +this.limit;
     }
     public getLang() {
         return this.lang;
+    }
+    public getTotal() {
+        return +this.getModel().getTotal();
     }
 
     public getModel() {
@@ -186,8 +192,8 @@ export class View {
 
 
     /**
-     * Generates a list holding all fields that are present in a given view (as items objects)
-     * and stores it in the `fields` member
+     * Generates a map holding all fields that are present in a given view (as items objects)
+     * and stores it in the `view_fields` member
      */
 	private loadViewFields(view_schema: any) {
         console.log('View::loadFields', view_schema);
@@ -221,24 +227,83 @@ export class View {
         }
     }
 
-
+    /**
+     * Generates a map holding all fields in the current model schema
+     * and stores it in the `model_fields` member
+     */
 	private loadModelFields(model_schema: any) {
         console.log('View::loadVModelFields', model_schema);
         this.model_fields = model_schema.fields;
     }
 
 
+    private layoutListFooter() {
+        let $footer = UIHelper.createUITableFooter();
+
+        $footer.find('.pagination-total')
+        .append( $('<span class="sb-view-list-footer-start"></span>') ).append( $('<span />').text('-') )
+        .append( $('<span class="sb-view-list-footer-end"></span>') ).append( $('<span />').text(' / ') )
+        .append( $('<span class="sb-view-list-footer-total"></span>') );
+
+        $footer.find('.pagination-navigation')
+        .append(
+            UIHelper.createUIButton('', '', 'icon', 'first_page').addClass('sb-view-list-footer-first_page') 
+            .on('click', (event: any) => {
+                this.setStart(0);
+                this.onchangeView();
+            })
+        )
+        .append(
+            UIHelper.createUIButton('', '', 'icon', 'chevron_left').addClass('sb-view-list-footer-prev_page')
+            .on('click', (event: any) => {
+                this.setStart( Math.max(0, this.getStart() - this.getLimit()) );
+                this.onchangeView();
+            })
+        )
+        .append(
+            UIHelper.createUIButton('', '', 'icon', 'chevron_right').addClass('sb-view-list-footer-next_page')
+            .on('click', (event: any) => {
+                let new_start:number = Math.min( this.getTotal()-1, this.getStart() + this.getLimit() );
+                console.log('new start', new_start, this.getStart(), this.getLimit());
+                this.setStart(new_start);
+                this.onchangeView();
+            })
+        )
+        .append(
+            UIHelper.createUIButton('', '', 'icon', 'last_page').addClass('sb-view-list-footer-last_page')
+            .on('click', (event: any) => {
+                let new_start:number = this.getTotal()-1;
+                this.setStart(new_start);
+                this.onchangeView();
+            })
+        );
+
+        let $select = UIHelper.createUISelect([1, 2, 5, 10, 20, 100], 10).addClass('sb-view-list-footer-limit_select');
+        
+        $footer.find('.pagination-rows-per-page')
+        .append(UIHelper.createUIIcon('list'))
+        .append($select);
+
+        $select.find('input').on('change', (event: any) => {
+            let $this = $(event.currentTarget);
+            this.setLimit(<number>$this.val());
+            this.setStart(0);
+            this.onchangeView();
+        });
+
+        this.$footerContainer.append( $footer );
+    }
 
     private layoutListHeader() {
         // container for holding chips of currently applied filters
-        let $filters_set = $('<div />').addClass('sb-view-header-filters-set mdc-chip-set').attr('role', 'grid');
+        let $filters_set = $('<div />').addClass('sb-view-list-header-filters-set mdc-chip-set').attr('role', 'grid');
 
         // floating menu for filters selection
         let $filters_menu = $('<ul/>').attr('role', 'menu').addClass('mdc-list');
         // button for displaying the filters menu
-        let $filters_button = $('<div/>').addClass('sb-view-header-filters mdc-menu-surface--anchor')
+        let $filters_button = $('<div/>').addClass('sb-view-list-header-filters mdc-menu-surface--anchor')
         .append( UIHelper.createUIButton('view-filters', 'filtres', 'mini-fab', 'filter_list') )
-        .append( $('<div/>').addClass('sb-view-header-filters-menu mdc-menu mdc-menu-surface').css({"margin-top": '48px'}).append($filters_menu) );
+        .append( $('<div/>').addClass('sb-view-list-header-filters-menu mdc-menu mdc-menu-surface').css({"margin-top": '48px'}).append($filters_menu) );
         
         for(let filter_id in this.filters) {
             let filter = this.filters[filter_id];
@@ -256,28 +321,28 @@ export class View {
                         let index = this.applied_filters_ids.indexOf($this.attr('id'));
                         if (index > -1) {
                             this.applied_filters_ids.splice(index, 1);
+                            this.setStart(0);
+                            this.onchangeView();    
                         }        
                         $this.remove();
-                        this.onchangeView();
                     })
                 );
                 this.applied_filters_ids.push($this.attr('id'));
+                this.setStart(0);
                 this.onchangeView();
             });
         }
         let filters_menu = new MDCMenu($filters_button.find('.mdc-menu')[0]);        
         $filters_button.find('button').on('click', () => {
             filters_menu.open = !$filters_button.find('.mdc-menu').hasClass('mdc-menu-surface--open');
-        });    
-
-
+        });
 
         // floating menu for fields selection
         let $fields_toggle_menu = $('<ul/>').attr('role', 'menu').addClass('mdc-list');
         // button for displaying the fields menu
-        let $fields_toggle_button = $('<div/>').addClass('sb-view-header-fields_toggle mdc-menu-surface--anchor')        
+        let $fields_toggle_button = $('<div/>').addClass('sb-view-list-header-fields_toggle mdc-menu-surface--anchor')        
         .append( UIHelper.createUIButton('view-filters', 'fields', 'mini-fab', 'more_vert') )
-        .append( $('<div/>').addClass('sb-view-header-fields_toggle-menu mdc-menu mdc-menu-surface').append($fields_toggle_menu) );
+        .append( $('<div/>').addClass('sb-view-list-header-fields_toggle-menu mdc-menu mdc-menu-surface').append($fields_toggle_menu) );
 
         $.each(this.getViewSchema().layout.items, (i, item) => {            
             let label = (item.hasOwnProperty('label'))?item.label:item.value.charAt(0).toUpperCase() + item.value.slice(1);
@@ -309,6 +374,30 @@ export class View {
         this.$headerContainer.append( $fields_toggle_button );
     }
 
+    private layoutListRefresh(full: boolean = false) {
+        // update footer indicators (total count)        
+        let limit: number = this.getLimit();
+        let total: number = this.getTotal();
+        let start: number = this.getStart() + 1;
+        let end: number = start + limit - 1;
+        end = Math.min(end, start + this.model.get().length - 1);
+        console.log('res', total, start, end, limit);
+        this.$footerContainer.find('.sb-view-list-footer-total').html(total);
+        this.$footerContainer.find('.sb-view-list-footer-start').html(start);
+        this.$footerContainer.find('.sb-view-list-footer-end').html(end);
+
+        this.$footerContainer.find('.sb-view-list-footer-first_page').prop('disabled', !(start > limit));
+        this.$footerContainer.find('.sb-view-list-footer-prev_page').prop('disabled', !(start > limit));
+        this.$footerContainer.find('.sb-view-list-footer-next_page').prop('disabled', !(start <= total-limit));
+        this.$footerContainer.find('.sb-view-list-footer-last_page').prop('disabled', !(start <= total-limit));        
+    }
+
+    private layoutRefresh(full: boolean = false) {
+        this.layout.refresh(full);
+        if(['list', 'kanban'].indexOf(this.type) >= 0) {
+            this.layoutListRefresh();
+        }
+    }
     
     // handle actions
     
@@ -338,7 +427,7 @@ modifications des champs (a rpriori un par un) : relayer les changementrs depuis
      * Requested from Model when a change occured in the Collection (as consequence of domain or params update)
      */
     public onchangeModel(full: boolean = false) {
-        this.layout.refresh(full);
+        this.layoutRefresh(full);
     }
     
     /**

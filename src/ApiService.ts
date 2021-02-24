@@ -1,4 +1,4 @@
-import * as $ from "jquery";
+import { $ } from "./jquery-lib";
 import { environment } from "./environment";
 
 /**
@@ -18,9 +18,10 @@ export class _ApiService {
     private translations: any;
     private schemas: any;
 
-    
+    private last_count: number; 
+
     constructor() {
-                
+
         $.ajaxSetup({
             cache:false,
             beforeSend: (xhr) => { 
@@ -35,6 +36,7 @@ export class _ApiService {
         this.translations = {};
         this.schemas = {};
 
+        this.last_count = 0;
     }
 
     private setCookie(key: string, value: any) {
@@ -151,6 +153,9 @@ export class _ApiService {
     }
         
         
+    public getLastCount() {
+        return this.last_count;
+    }
     
     public async getTranslation(entity:string) {
         const translation = await this.loadTranslation(entity);
@@ -211,7 +216,9 @@ export class _ApiService {
                 dataType: 'json',
                 data: params,
                 contentType: 'application/x-www-form-urlencoded; charset=utf-8'
-            });
+            }).done((event, textStatus, jqXHR) => {
+                this.last_count = parseInt( <any>jqXHR.getResponseHeader('X-Total-Count') );
+            } );
             result = response;
         }
         catch(err) {

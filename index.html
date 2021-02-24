@@ -17,7 +17,6 @@
         <!-- <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css"> -->
 
         <link href="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css" rel="stylesheet">
-        <link href="node_modules/@angular/material/prebuilt-themes/deeppurple-amber.css" rel="stylesheet">
 
         <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.0/themes/smoothness/jquery-ui.css">
         <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
@@ -41,8 +40,13 @@ $(document).ready( function() {
 
 <style>
 :root {
+    /* colored buttons */
     --mdc-theme-primary: #3f51b5;
+    /* checkbox background */
     --mdc-theme-secondary: #3f51b5;
+    /* menus */
+    --mdc-typography-subtitle1-font-size: 14px;
+    /* table headers */
     --mdc-typography-subtitle2-font-weight: 600;
 }
     
@@ -51,6 +55,7 @@ body, html {
     padding: 0;
     height:100%;
 }
+
 #sb-root {
     display: flex;
     height: 100%;
@@ -65,96 +70,86 @@ body, html {
     flex: 1 1 100%;
     box-sizing: border-box;
 }
-/*
-.mdl-data-table td {
-    height: 33px;
-    padding: 6px 4px;
-}
-.mdl-data-table td, .mdl-data-table th {
-    text-align: left;
-}
-.mdl-data-table th {
-    font-size: 13px;
-    height: 45px;
-    color: #555;
-    padding: 9px 4px;
-    cursor: pointer;
-    user-select: none; 
-}
-*/
-.mdc-data-table th.sorted {
-    color: black;
-}
-.mdc-data-table th.hover {
-    background-color: #e0e0e0;
-}
-.mdc-data-table th.asc::after, .mdc-data-table th.desc::after {
-    position: absolute;
-    margin-left: 6px;
-    font-family: FontAwesome;
-    opacity: 0.3;
-}
-.mdc-data-table th.asc::after {
-    content: "\f0d7";
-}
-.mdc-data-table th.desc::after {
-    content: "\f0d8";
+
+
+
+
+.sb-view { 
+    position: relative;
 }
 
 .sb-layout {
     position: relative;
 }
 
-.sb-layout button.sb-fields-toggle {
-    /*
-    position: absolute;
-    right: 10px;
-    z-index: 1;
-    top: 7px;
-    */
-
+.sb-view-list-layout table th {
+    cursor: pointer;
+    user-select: none; 
 }
-.sb-view-header {
+
+.sb-view-list-layout table th.sortable.hover {
+    background-color: #f0f0f0;
+}
+
+.sb-view-list-layout table th.sorted {
+    color: black;
+}
+
+.sb-view-list-layout table th.asc::after, .sb-view-list-layout table th.desc::after {
+    position: absolute;
+    margin-left: 6px;
+    font-family: FontAwesome;
+    opacity: 0.3;
+}
+
+.sb-view-list-layout table th.asc::after {
+    content: "\f0d7";
+}
+
+.sb-view-list-layout table th.desc::after {
+    content: "\f0d8";
+}
+
+.sb-view-list-header {
     position: relative;
     height: 56px;
     line-height: 56px;
     display: flex;
 }
 
-.sb-view-header-filters {
+.sb-view-list-header-filters {
     margin-top: 4px;
 }
 
-.sb-view-header-filters .sb-view-header-filters-menu {
+.sb-view-list-header-filters .sb-view-list-header-filters-menu {
     min-width: 250px;
     left: 10px !important;
 }
 
-.sb-view-header-filters-set {
+.sb-view-list-header-filters-set {
     margin-top: 4px;
 }
 
-.sb-view-header-filters button {
+.sb-view-list-header-filters button {
     background-color: white;
     color: black;
     box-shadow: none !important;
 }
 
-.sb-view-header-fields_toggle {
+.sb-view-list-header-fields_toggle {
     flex-grow: 1;
     margin-top: 4px;
     margin-right: 10px;
     text-align: right;
 }
 
-
-.sb-view-header-fields_toggle button {
+.sb-view-list-header-fields_toggle button {
     background-color: white;
     color: black;
     box-shadow: none !important;
 }
 
-.sb-view-header-fields_toggle .sb-view-header-fields_toggle-menu {
+.sb-view-list-header-fields_toggle .sb-view-list-header-fields_toggle-menu {
     min-width: 250px;
     max-width: 250px;
     right: 0 !important;
@@ -162,6 +157,15 @@ body, html {
     margin-top: 44px;
 }
 
+.sb-view-list-footer-limit_select {
+    margin-left: 12px;
+}
+
+.sb-view-list-footer .pagination-navigation {
+    user-select: none; 
+}
+
+/* Material Components customizations */
 
 .mdc-data-table__header-cell--checkbox {
     width: 44px;
@@ -182,6 +186,10 @@ body, html {
 
 .mdc-data-table__cell {
     height: 44px;
+}
+
+.mdc-data-table__pagination {
+    border-top: 0;
 }
 
 </style>
