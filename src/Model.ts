@@ -44,6 +44,9 @@ export class Model {
         
     }
         
+    /** 
+     * Update model by requesting data from server using parent View parameters
+    */
     public async refresh() {
         console.log('Model::refresh');
 
@@ -69,7 +72,7 @@ export class Model {
     /**
      * React to external request of Model change (one ore more objects in the collection have been updated through the Layout)
      */
-    public update(ids: [], values: any) {
+    public change(ids: Array<any>, values: any) {
         for (let id of ids) {
             if(this.objects.hasOwnProperty(id)) {
                 for (let field in values) {                    
@@ -89,8 +92,17 @@ export class Model {
      * Return the entire Collection
      *
      */
-    public get() {
-        return this.objects;
+    public get(as_array: boolean = false) {
+        let objects:any = [];
+        if(!as_array) {
+            return this.objects;
+        }
+        else {
+            for (let id of Object.keys(this.objects)) {
+                objects.push(this.objects[id]);
+            }
+        }
+        return objects;
     }
     
     public getTotal() {

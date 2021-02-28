@@ -24,10 +24,13 @@ export class _ApiService {
 
         $.ajaxSetup({
             cache:false,
-            beforeSend: (xhr) => { 
+            beforeSend: (xhr) => {
                 let access_token = this.getCookie('access_token');
                 if(access_token) {
                     xhr.setRequestHeader('Authorization', "Basic " + access_token); 
+                }
+                else {
+                    console.log('_ApiService: no access token found')
                 }
             }
         });
@@ -90,8 +93,6 @@ export class _ApiService {
         }
        return promise;
     }
-
-
 
     // the view_id matches the following convention : view_type.view_name
     private loadView(entity:string, view_id:string) {
@@ -173,6 +174,26 @@ export class _ApiService {
         return view;        
     }
 
+    public async create(entity:string) {
+        let result: any;
+        try {
+            let params = {
+                entity: entity,
+                lang: environment.lang
+            };
+            const response = await $.get({
+                url: environment.backend_url+'/?do=model_create',
+                dataType: 'json',
+                data: params,
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8'
+            });
+            result = response;
+        }
+        catch(err) {
+            console.log('Error ApiService::create', err);
+        }
+        return result;
+    }
     
     public async read(entity:string, ids:[], fields:[]) {
         let result: any;
@@ -184,7 +205,7 @@ export class _ApiService {
                 lang: environment.lang
             };
             const response = await $.get({
-                url: environment.backend_url+'/index.php?get=model_read',
+                url: environment.backend_url+'/?get=model_read',
                 dataType: 'json',
                 data: params,
                 contentType: 'application/x-www-form-urlencoded; charset=utf-8'
@@ -194,9 +215,33 @@ export class _ApiService {
         catch(err) {
             console.log('Error ApiService::read', err);
         }
-        return result;         
+        return result;
     }
-    
+
+    public async update(entity:string, ids:Array<number>, fields:Array<any>) {
+        console.log('ApiService::update', entity, ids, fields);
+        let result: any;
+        try {
+            let params = {
+                entity: entity,
+                ids: ids,
+                fields: fields,
+                lang: environment.lang
+            };
+            const response = await $.post({
+                url: environment.backend_url+'/?do=model_update',
+                dataType: 'json',
+                data: params,
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8'
+            });
+            result = response;
+        }
+        catch(err) {
+            console.log('Error ApiService::update', err);
+        }
+        return result;
+    }
+
     public async collect(entity:string, domain:any[], fields:[], order:string, sort:string, start:number, limit:number, lang:string) {
         console.log('ApiService::collect', entity, domain, fields, order, sort, start, limit, lang);
         var result = [];
@@ -212,7 +257,7 @@ export class _ApiService {
                 limit: limit
             };
             const response = await $.get({
-                url: environment.backend_url+'/index.php?get=model_collect',
+                url: environment.backend_url+'/?get=model_collect',
                 dataType: 'json',
                 data: params,
                 contentType: 'application/x-www-form-urlencoded; charset=utf-8'
@@ -239,7 +284,7 @@ export class _ApiService {
                 limit: limit
             };
             const response = await $.get({
-                url: environment.backend_url+'/index.php?get=model_search',
+                url: environment.backend_url+'/?get=model_search',
                 dataType: 'json',
                 data: params,
                 contentType: 'application/x-www-form-urlencoded; charset=utf-8'

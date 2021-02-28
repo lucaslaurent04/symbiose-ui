@@ -6,13 +6,14 @@ import {MDCDataTable} from '@material/data-table';
 import {MDCSelect} from '@material/select';
 import {MDCMenu} from '@material/menu';
 
+import { $ } from "./jquery-lib";
 
 class UIHelper {
 
 /*
  Helpers for element creation
 */
-    public static createUIButton(id:string, label:string, type:string = '', icon:string = '')  {        
+    public static createButton(id:string, label:string, type:string = '', icon:string = '')  {        
         let $button = $('<button/>').attr('id', id);
 
         if(['outlined', 'raised', 'text'].indexOf(type) >= 0) {
@@ -54,24 +55,40 @@ class UIHelper {
         return $button;
     }
 
-    public static createUIIcon(icon: string) {
+    public static createIcon(icon: string) {
         let $elem = $('<span class="material-icons">'+icon+'</span>');
         return $elem;
     }
 
-    public static createUIInput(id:string, label:string) {
+    public static createInput(id:string, label:string, value:string, disabled: boolean = false) {
         let $elem = $('\
         <label class="mdc-text-field mdc-text-field--filled"> \
             <span class="mdc-text-field__ripple"></span> \
-            <span class="mdc-floating-label" id="my-label-id">Hint text</span> \
-            <input class="mdc-text-field__input" type="text" aria-labelledby="my-label-id"> \
+            <span class="mdc-floating-label" id="my-label-id">'+label+'</span> \
+            <input '+( (disabled)?'disabled':'' )+' class="mdc-text-field__input" type="text" aria-labelledby="my-label-id" value="'+value+'"> \
             <span class="mdc-line-ripple"></span>\
         </label>');
         new MDCTextField($elem[0]);
         return $elem
     }
 
-    public static createUICheckbox(id:string, label:string) {
+    public static createInputView(id:string, label:string, value:string) {
+        let $elem = $('\
+        <label class="sb-view-form-field-mode-view mdc-text-field mdc-text-field--filled"> \
+            <span class="sb-view-form-field-label mdc-floating-label" id="my-label-id">'+label+'</span> \
+            <input disabled class="mdc-text-field__input" type="text" aria-labelledby="my-label-id" value="'+value+'"> \
+            <span class="mdc-line-ripple"></span>\
+        </label>');
+        new MDCTextField($elem[0]);
+        return $elem
+    }
+
+    public static createDatePicker() {
+        let $elem = $('<div />').datepicker();
+        return $elem;
+    }
+
+    public static createCheckbox(id:string, label:string) {
         let $elem = $('\
         <div class="mdc-form-field"> \
             <div class="mdc-checkbox"> \
@@ -90,7 +107,7 @@ class UIHelper {
         return $elem;
     }
 
-    public static createUIListItem(label: string) {
+    public static createListItem(label: string) {
         let $elem = $('\
         <li class="mdc-list-item"> \
             <span class="mdc-list-item__ripple"></span> \
@@ -101,7 +118,7 @@ class UIHelper {
         return $elem;
     }
 
-    public static createUIListItemCheckbox(id: string, label: string) {
+    public static createListItemCheckbox(id: string, label: string) {
         let $elem = $('\
         <li class="mdc-list-item"> \
             <div class="mdc-touch-target-wrapper"> \
@@ -124,7 +141,7 @@ class UIHelper {
         return $elem;
     }    
 
-    public static createUITableCellCheckbox(is_header:boolean = false) {
+    public static createTableCellCheckbox(is_header:boolean = false) {
         let elem = (is_header)?'th':'td';
         let suffix = (is_header)?'header-':'';
         let $elem = $('\
@@ -143,7 +160,7 @@ class UIHelper {
         return $elem;
     }    
 
-    public static createUIChip(label: string) {
+    public static createChip(label: string) {
         let $elem = $(' \
         <div class="mdc-chip" role="row"> \
             <div class="mdc-chip__ripple"></div> \
@@ -159,12 +176,14 @@ class UIHelper {
         return $elem;        
     }
 
-    public static createUISelect(values: any, selected: any='') {
+    public static createSelect(id: string, label: string, values: any, selected: any='') {
         let $elem = $('\
-        <div class="mdc-select mdc-select--outlined mdc-select--no-label mdc-data-table__pagination-rows-per-page-select"> \
-            <div class="mdc-select__anchor" role="button" aria-haspopup="listbox" aria-labelledby="demo-pagination-select" tabindex="0"> \
+        <div class="mdc-select mdc-select--filled '+( (label.length)?'':'mdc-select--no-label' )+' "> \
+            <div class="mdc-select__anchor" role="button" tabindex="0"> \
+                <span class="mdc-select__ripple"></span> \
+                '+ ( (label.length)?'<span class="mdc-floating-label">'+label+'</span>':'' ) +'\
                 <span class="mdc-select__selected-text-container"> \
-                    <span id="demo-pagination-select" class="mdc-select__selected-text">10</span> \
+                    <span class="mdc-select__selected-text">'+selected+'</span> \
                 </span> \
                 <span class="mdc-select__dropdown-icon"> \
                     <svg class="mdc-select__dropdown-icon-graphic" viewBox="7 10 10 5"> \
@@ -172,10 +191,7 @@ class UIHelper {
                         <polygon class="mdc-select__dropdown-icon-active" stroke="none" fill-rule="evenodd" points="7 15 12 10 17 15"></polygon> \
                     </svg> \
                 </span> \
-                <span class="mdc-notched-outline mdc-notched-outline--notched"> \
-                    <span class="mdc-notched-outline__leading"></span> \
-                    <span class="mdc-notched-outline__trailing"></span> \
-                </span> \
+                <span class="mdc-line-ripple"></span> \
             </div> \
             <div class="mdc-select__menu mdc-menu mdc-menu-surface mdc-menu-surface--fullwidth" role="listbox"> \
                 <input type="text" style="display: none" /> \
@@ -189,7 +205,8 @@ class UIHelper {
         if( (!!values) && (values.constructor === Object)) {
             for(let key in values) {
                 let $line = $(' \
-                <li class="mdc-list-item " role="option" data-value="'+key+'"> \
+                <li class="mdc-list-item" role="option" data-value="'+key+'"> \
+                    <span class="mdc-list-item__ripple"></span> \
                     <span class="mdc-list-item__text">'+values[key]+'</span> \
                 </li>');
                 if(key == selected) {
@@ -203,6 +220,7 @@ class UIHelper {
             for(let value of values) {
                 let $line = $(' \
                 <li class="mdc-list-item" role="option" data-value="'+value+'"> \
+                    <span class="mdc-list-item__ripple"></span> \
                     <span class="mdc-list-item__text">'+value+'</span> \
                 </li>');
                 if(value == selected) {
@@ -214,6 +232,7 @@ class UIHelper {
 
         const select = new MDCSelect($elem[0]);
 
+        // make the element behave like an `input` element
         select.listen('MDCSelect:change', () => {
             $elem.find('input').val(select.value).trigger('change');
         });
@@ -222,7 +241,7 @@ class UIHelper {
     }
 
 
-    public static createUITableFooter() {
+    public static createPagination() {
         let $elem = $(' \
         <div class="mdc-data-table__pagination"> \
             <div class="mdc-data-table__pagination-trailing"> \
@@ -232,6 +251,13 @@ class UIHelper {
                 </div> \
             </div> \
         </div>');
+        return $elem;
+    }
+
+
+    public static createPaginationSelect(id: string, label: string, values: any, selected: any='') {
+        let $elem  = UIHelper.createSelect(id, label, values, selected);
+        $elem.addClass('mdc-data-table__pagination-rows-per-page-select');
         return $elem;
     }
  /*

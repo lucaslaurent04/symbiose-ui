@@ -1,7 +1,7 @@
 import { $ } from "./jquery-lib";
 import { Context, Model, View, Layout } from "./equal-lib";
 
-// todo: use MDC instead of MDL 
+// We use MDC (material design components)
 // @see https://github.com/material-components/material-components-web/blob/master/docs/getting-started.md
 
 class eQ {
@@ -50,28 +50,34 @@ class eQ {
         
     }
     
-    private openContext(context: Context) {
+    private async openContext(context: Context) {
         // stack received context
         if(this.context) {
             this.stack.push(this.context);
+            if(this.context.hasOwnProperty('$container')) {
+                // conainers are hidden and not detached in order to maintain the listeners
+                this.context.$container.hide();
+            }            
         }
         this.context = context;
-        this.$container.empty();
         this.$container.append(this.context.getContainer());
     }
     
-    private closeContext() {
+    private async closeContext() {
         if(this.stack.length) {
+            // destroy current context
+            this.context.$container.remove();
+            // restore previous context
             this.context = <Context>this.stack.pop();
-            this.$container.empty();
-            this.$container.append(this.context.getContainer());
+            await this.context.refresh();
+            this.context.$container.show();
         }        
     }
     
     public test() {
         console.log("eQ::test");
-        // $("#test").dialog();
-        // $( "#datepicker" ).daterangepicker();
+        $("#test").dialog();
+        $( "#datepicker" ).daterangepicker();
 
         // console.log(new WidgetInput());
         

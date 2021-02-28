@@ -3,6 +3,8 @@ import { ApiService } from "./equal-services";
 import { Widget, WidgetFactory } from "./equal-widgets";
 import { UIHelper } from './material-lib';
 
+import Domain from "./Domain";
+
 import View from "./View";
 import Model from "./Model";
 
@@ -21,7 +23,9 @@ export class Layout {
     
     private $layout: any;
 
-        
+    private model_widgets: any;
+
+
     /**
      *
      * @param view  View    Parent View object
@@ -29,6 +33,7 @@ export class Layout {
     constructor(view:View) {
         this.view = view;
         this.$layout = $('<div />').addClass('sb-layout');
+        this.model_widgets = {};
         this.view.$layoutContainer.append(this.$layout);
     }
 
@@ -43,18 +48,19 @@ export class Layout {
         }        
     }
 
+
     // refresh layout
     // this method is called in response to parent View `onchangeModel` method 
     public refresh(full: boolean) {
         console.log('Layout::refresh');
                      
-                     
+        // also re-generate the layout                     
         if(full) {
             this.$layout.empty();
             this.layout();
         }
 
-        // feed layout with updated Model
+        // feed layout with current Model
         this.feed(this.view.getModel().get());
     }       
 
@@ -82,28 +88,67 @@ export class Layout {
         }        
               
     }
-    
+// todo : garder la liste des widgets instanciés pour permettre de passer en mode d'édition (pour un formulaire ou une celulle)    
     private layoutForm() {
         console.log('Layout::layoutForm');
         let $elem = $('<div/>').css({"width": "100%"});
 
         let view_schema = this.view.getViewSchema();
-        console.log(view_schema);
+        let model_fields = this.view.getModelFields();
 
-        view_schema.layout
         $.each(view_schema.layout.groups, (i, group) => {
             let $group = $('<div />').addClass('').appendTo($elem);
             $.each(group.sections, (i, section) => {
-                let $section = $('<div />').addClass('').appendTo($group);
+                let $section = $('<div />').addClass('mdc-layout-grid').appendTo($group);
                 $.each(section.rows, (i, row) => {
-                    let $row = $('<div />').addClass('mdc-layout-grid').appendTo($section);
+                    let $row = $('<div />').addClass('mdc-layout-grid__inner').appendTo($section);
                     $.each(row.columns, (i, column) => {
-                        let $column = $('<div />').addClass('mdc-layout-grid__inner').appendTo($row);
+                        let $column = $('<div />').addClass('mdc-layout-grid__cell').appendTo($row);
+
+                        if(column.hasOwnProperty('width')) {
+                            $column.addClass('mdc-layout-grid__cell--span-' + Math.round((parseInt(column.width, 10) / 100) * 12));
+                        }
+
+                        let $inner_cell = $('<div />').addClass('mdc-layout-grid__cell').appendTo($column);
+                        $column = $('<div />').addClass('mdc-layout-grid__inner').appendTo($inner_cell);
+
                         $.each(column.items, (i, item) => {
                             let $cell = $('<div />').addClass('mdc-layout-grid__cell').appendTo($column);
+
+                            if(item.hasOwnProperty('width')) {
+                                $cell.addClass('mdc-layout-grid__cell--span-' + Math.round((parseInt(item.width, 10) / 100) * 12));
+                            }
+
                             if(item.type == 'field') {
-                                let widget:Widget = WidgetFactory.getWidget('input', 'ok');
-                                $cell.append(widget.render());                
+                                console.log(item);
+                                let config:any = {};
+                                let field_name = item.value;
+                                let def = model_fields[field_name];
+                                let type = def.type;
+                                let label = (item.hasOwnProperty('label'))?item.label:field_name.charAt(0).toUpperCase() + field_name.slice(1);
+                                let readonly = (item.hasOwnProperty('readonly'))?item.readonly:false;
+
+                                if(item.hasOwnProperty('visible')) {
+                                    let visible_domain = item.visible;
+                                    if(!Array.isArray(visible_domain)) {
+                                        visible_domain = eval(visible_domain);
+                                    }
+                                    config['visible'] = visible_domain;
+                                }                                
+
+                                if(item.hasOwnProperty('widget')) {
+                                    config = {...config, ...item.widget};
+                                    console.log(item.widget, config);
+                                    type = item.widget.type;
+                                }
+                                
+                                let widget:Widget = WidgetFactory.getWidget(type, label, '', config);
+                                widget.setReadonly(readonly);
+                                this.model_widgets[field_name] = widget;
+                                $cell.append(widget.attach());                
+                            }
+                            else if(item.type == 'label') {
+
                             }
                         });
                     });
@@ -125,7 +170,7 @@ export class Layout {
         let $tbody = $('<tbody/>').appendTo($table);
             
         // instanciate header row and the first column which contains the 'select-all' checkbox
-        let $hrow = $('<tr/>').append( UIHelper.createUITableCellCheckbox(true) );
+        let $hrow = $('<tr/>').append( UIHelper.createTableCellCheckbox(true) );
 
         // create other columns, based on the col_model given in the configuration
         let schema = this.view.getViewSchema();
@@ -171,7 +216,7 @@ export class Layout {
     }
     
     private feed(objects: []) {
-
+        console.log('Layout::feed');
         
         switch(this.view.type) {
             case 'form':
@@ -184,7 +229,7 @@ export class Layout {
         }
     }
     
-    private feedList(objects: []) {
+    private feedList(objects: any) {
         console.log('Layout::feed', objects);
 
         let $elem = this.$layout.children().first();
@@ -192,10 +237,11 @@ export class Layout {
 
         let $tbody = $('<tbody/>');       
 
-        $.each(objects, (i, object:any) => {
+        for (let id of Object.keys(objects)) {
+            let object = objects[id];
             let $row = $('<tr/>');
 
-            UIHelper.createUITableCellCheckbox().appendTo($row).find('input').attr('data-id', object.id);
+            UIHelper.createTableCellCheckbox().appendTo($row).find('input').attr('data-id', object.id);
            
             for(let field of Object.keys(object)) {
                 let view_def = this.view.getField(field);
@@ -216,13 +262,13 @@ export class Layout {
                     type = view_def.widget.type;
                 }
 
-                let widget:Widget = WidgetFactory.getWidget(type, object[field]);
+                let widget:Widget = WidgetFactory.getWidget(type, '', object[field]);
 
                 let $cell = $('<td/>').append(widget.render());
                 $row.append($cell);
             }
             $tbody.append($row);
-        });
+        }
         
         
         $elem.find('table').append($tbody);
@@ -231,8 +277,48 @@ export class Layout {
 
     }
     
-    private feedForm(objects: []) {
+    private feedForm(objects: any) {
+        console.log('Layout::feedForm');
+        // display the first object from the collection
+        let ids = Object.keys(objects);
+        if(ids.length > 0) {
+            let object_id = ids[0];
+            let object:any = objects[object_id];
+            for(let field of Object.keys(object)) {
+                let widget = this.model_widgets[field];
+                let $parent = this.$layout.find('#'+widget.getId()).parent().empty();
 
+                widget.setMode(this.view.getMode()).setValue(object[field]);
+
+                let $widget = widget.render();
+
+                $widget.on('_updatedWidget', (event:any, new_value: any) => {
+                    console.log('Layout : received widget change event for field '+field, new_value);
+                    object[field] = new_value;
+// todo : use fields only (not full object)                    
+                    this.view.onchangeViewModel([object_id], object);
+                                        
+                    console.log(this.view.getModel().get())
+                });
+                console.log('config', widget.getConfig());
+                let config = widget.getConfig();
+// todo handle visibility tests (domain)                
+                if(config.hasOwnProperty('visible')) {
+
+                    let domain = new Domain(config.visible);
+                    if( domain.evaluate(object) ) {
+                        $parent.append($widget);    
+                    }
+                    else {
+                        $parent.append(widget.attach());
+                    }                    
+                }
+                else {
+                    $parent.append($widget);
+                }
+                
+            }    
+        }
     }
     
 }

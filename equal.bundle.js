@@ -60,6 +60,8 @@ var _ApiService = /*#__PURE__*/function () {
 
         if (access_token) {
           xhr.setRequestHeader('Authorization', "Basic " + access_token);
+        } else {
+          console.log('_ApiService: no access token found');
         }
       }
     });
@@ -294,9 +296,9 @@ var _ApiService = /*#__PURE__*/function () {
       return getView;
     }()
   }, {
-    key: "read",
+    key: "create",
     value: function () {
-      var _read = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4(entity, ids, fields) {
+      var _create = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4(entity) {
         var result, params, response;
         return _regenerator.default.wrap(function _callee4$(_context4) {
           while (1) {
@@ -305,13 +307,11 @@ var _ApiService = /*#__PURE__*/function () {
                 _context4.prev = 0;
                 params = {
                   entity: entity,
-                  ids: ids,
-                  fields: fields,
                   lang: _environment.environment.lang
                 };
                 _context4.next = 4;
                 return _jqueryLib.$.get({
-                  url: _environment.environment.backend_url + '/index.php?get=model_read',
+                  url: _environment.environment.backend_url + '/?do=model_create',
                   dataType: 'json',
                   data: params,
                   contentType: 'application/x-www-form-urlencoded; charset=utf-8'
@@ -326,7 +326,7 @@ var _ApiService = /*#__PURE__*/function () {
               case 8:
                 _context4.prev = 8;
                 _context4.t0 = _context4["catch"](0);
-                console.log('Error ApiService::read', _context4.t0);
+                console.log('Error ApiService::create', _context4.t0);
 
               case 11:
                 return _context4.abrupt("return", result);
@@ -339,26 +339,131 @@ var _ApiService = /*#__PURE__*/function () {
         }, _callee4, null, [[0, 8]]);
       }));
 
-      function read(_x5, _x6, _x7) {
+      function create(_x5) {
+        return _create.apply(this, arguments);
+      }
+
+      return create;
+    }()
+  }, {
+    key: "read",
+    value: function () {
+      var _read = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5(entity, ids, fields) {
+        var result, params, response;
+        return _regenerator.default.wrap(function _callee5$(_context5) {
+          while (1) {
+            switch (_context5.prev = _context5.next) {
+              case 0:
+                _context5.prev = 0;
+                params = {
+                  entity: entity,
+                  ids: ids,
+                  fields: fields,
+                  lang: _environment.environment.lang
+                };
+                _context5.next = 4;
+                return _jqueryLib.$.get({
+                  url: _environment.environment.backend_url + '/?get=model_read',
+                  dataType: 'json',
+                  data: params,
+                  contentType: 'application/x-www-form-urlencoded; charset=utf-8'
+                });
+
+              case 4:
+                response = _context5.sent;
+                result = response;
+                _context5.next = 11;
+                break;
+
+              case 8:
+                _context5.prev = 8;
+                _context5.t0 = _context5["catch"](0);
+                console.log('Error ApiService::read', _context5.t0);
+
+              case 11:
+                return _context5.abrupt("return", result);
+
+              case 12:
+              case "end":
+                return _context5.stop();
+            }
+          }
+        }, _callee5, null, [[0, 8]]);
+      }));
+
+      function read(_x6, _x7, _x8) {
         return _read.apply(this, arguments);
       }
 
       return read;
     }()
   }, {
+    key: "update",
+    value: function () {
+      var _update = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6(entity, ids, fields) {
+        var result, params, response;
+        return _regenerator.default.wrap(function _callee6$(_context6) {
+          while (1) {
+            switch (_context6.prev = _context6.next) {
+              case 0:
+                console.log('ApiService::update', entity, ids, fields);
+                _context6.prev = 1;
+                params = {
+                  entity: entity,
+                  ids: ids,
+                  fields: fields,
+                  lang: _environment.environment.lang
+                };
+                _context6.next = 5;
+                return _jqueryLib.$.post({
+                  url: _environment.environment.backend_url + '/?do=model_update',
+                  dataType: 'json',
+                  data: params,
+                  contentType: 'application/x-www-form-urlencoded; charset=utf-8'
+                });
+
+              case 5:
+                response = _context6.sent;
+                result = response;
+                _context6.next = 12;
+                break;
+
+              case 9:
+                _context6.prev = 9;
+                _context6.t0 = _context6["catch"](1);
+                console.log('Error ApiService::update', _context6.t0);
+
+              case 12:
+                return _context6.abrupt("return", result);
+
+              case 13:
+              case "end":
+                return _context6.stop();
+            }
+          }
+        }, _callee6, null, [[1, 9]]);
+      }));
+
+      function update(_x9, _x10, _x11) {
+        return _update.apply(this, arguments);
+      }
+
+      return update;
+    }()
+  }, {
     key: "collect",
     value: function () {
-      var _collect = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5(entity, domain, fields, order, sort, start, limit, lang) {
+      var _collect = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7(entity, domain, fields, order, sort, start, limit, lang) {
         var _this5 = this;
 
         var result, params, response;
-        return _regenerator.default.wrap(function _callee5$(_context5) {
+        return _regenerator.default.wrap(function _callee7$(_context7) {
           while (1) {
-            switch (_context5.prev = _context5.next) {
+            switch (_context7.prev = _context7.next) {
               case 0:
                 console.log('ApiService::collect', entity, domain, fields, order, sort, start, limit, lang);
                 result = [];
-                _context5.prev = 2;
+                _context7.prev = 2;
                 params = {
                   entity: entity,
                   domain: domain,
@@ -369,9 +474,9 @@ var _ApiService = /*#__PURE__*/function () {
                   start: start,
                   limit: limit
                 };
-                _context5.next = 6;
+                _context7.next = 6;
                 return _jqueryLib.$.get({
-                  url: _environment.environment.backend_url + '/index.php?get=model_collect',
+                  url: _environment.environment.backend_url + '/?get=model_collect',
                   dataType: 'json',
                   data: params,
                   contentType: 'application/x-www-form-urlencoded; charset=utf-8'
@@ -380,28 +485,28 @@ var _ApiService = /*#__PURE__*/function () {
                 });
 
               case 6:
-                response = _context5.sent;
+                response = _context7.sent;
                 result = response;
-                _context5.next = 13;
+                _context7.next = 13;
                 break;
 
               case 10:
-                _context5.prev = 10;
-                _context5.t0 = _context5["catch"](2);
-                console.log('Error ApiService::collect', _context5.t0);
+                _context7.prev = 10;
+                _context7.t0 = _context7["catch"](2);
+                console.log('Error ApiService::collect', _context7.t0);
 
               case 13:
-                return _context5.abrupt("return", result);
+                return _context7.abrupt("return", result);
 
               case 14:
               case "end":
-                return _context5.stop();
+                return _context7.stop();
             }
           }
-        }, _callee5, null, [[2, 10]]);
+        }, _callee7, null, [[2, 10]]);
       }));
 
-      function collect(_x8, _x9, _x10, _x11, _x12, _x13, _x14, _x15) {
+      function collect(_x12, _x13, _x14, _x15, _x16, _x17, _x18, _x19) {
         return _collect.apply(this, arguments);
       }
 
@@ -410,14 +515,14 @@ var _ApiService = /*#__PURE__*/function () {
   }, {
     key: "search",
     value: function () {
-      var _search = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6(entity, domain, order, sort, start, limit) {
+      var _search = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee8(entity, domain, order, sort, start, limit) {
         var ids, params, response;
-        return _regenerator.default.wrap(function _callee6$(_context6) {
+        return _regenerator.default.wrap(function _callee8$(_context8) {
           while (1) {
-            switch (_context6.prev = _context6.next) {
+            switch (_context8.prev = _context8.next) {
               case 0:
                 ids = [];
-                _context6.prev = 1;
+                _context8.prev = 1;
                 params = {
                   entity: entity,
                   domain: domain,
@@ -426,37 +531,37 @@ var _ApiService = /*#__PURE__*/function () {
                   start: start,
                   limit: limit
                 };
-                _context6.next = 5;
+                _context8.next = 5;
                 return _jqueryLib.$.get({
-                  url: _environment.environment.backend_url + '/index.php?get=model_search',
+                  url: _environment.environment.backend_url + '/?get=model_search',
                   dataType: 'json',
                   data: params,
                   contentType: 'application/x-www-form-urlencoded; charset=utf-8'
                 });
 
               case 5:
-                response = _context6.sent;
+                response = _context8.sent;
                 ids = response;
-                _context6.next = 12;
+                _context8.next = 12;
                 break;
 
               case 9:
-                _context6.prev = 9;
-                _context6.t0 = _context6["catch"](1);
-                console.log('Error ApiService::search', _context6.t0);
+                _context8.prev = 9;
+                _context8.t0 = _context8["catch"](1);
+                console.log('Error ApiService::search', _context8.t0);
 
               case 12:
-                return _context6.abrupt("return", ids);
+                return _context8.abrupt("return", ids);
 
               case 13:
               case "end":
-                return _context6.stop();
+                return _context8.stop();
             }
           }
-        }, _callee6, null, [[1, 9]]);
+        }, _callee8, null, [[1, 9]]);
       }));
 
-      function search(_x16, _x17, _x18, _x19, _x20, _x21) {
+      function search(_x20, _x21, _x22, _x23, _x24, _x25) {
         return _search.apply(this, arguments);
       }
 
@@ -488,6 +593,10 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.default = exports.Context = void 0;
 
+var _regenerator = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/regenerator */ "./node_modules/@babel/runtime/regenerator/index.js"));
+
+var _asyncToGenerator2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/asyncToGenerator */ "./node_modules/@babel/runtime/helpers/asyncToGenerator.js"));
+
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/classCallCheck */ "./node_modules/@babel/runtime/helpers/classCallCheck.js"));
 
 var _createClass2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/createClass */ "./node_modules/@babel/runtime/helpers/createClass.js"));
@@ -502,12 +611,13 @@ var _environment = __webpack_require__(/*! ./environment */ "./build/environment
 
 var Context = /*#__PURE__*/function () {
   function Context(entity, type, name, domain) {
-    var lang = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : _environment.environment.lang;
+    var mode = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : 'view';
+    var lang = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : _environment.environment.lang;
     (0, _classCallCheck2.default)(this, Context);
     (0, _defineProperty2.default)(this, "$container", void 0);
     (0, _defineProperty2.default)(this, "view", void 0);
     this.$container = (0, _jqueryLib.$)('<div />').addClass('sb-view');
-    this.view = new _View.default(this, entity, type, name, domain, lang);
+    this.view = new _View.default(this, entity, type, name, domain, mode, lang);
   }
 
   (0, _createClass2.default)(Context, [{
@@ -515,12 +625,274 @@ var Context = /*#__PURE__*/function () {
     value: function getContainer() {
       return this.$container;
     }
+    /**
+     * Calling this method means that we need to update the model : values displayed by the context have to be re-fetched from server
+     */
+
+  }, {
+    key: "refresh",
+    value: function () {
+      var _refresh = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
+        return _regenerator.default.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                _context.next = 2;
+                return this.view.onchangeView();
+
+              case 2:
+                // refresh the layout
+                this.view.onchangeModel();
+
+              case 3:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function refresh() {
+        return _refresh.apply(this, arguments);
+      }
+
+      return refresh;
+    }()
   }]);
   return Context;
 }();
 
 exports.Context = Context;
 var _default = Context;
+exports.default = _default;
+
+/***/ }),
+
+/***/ "./build/Domain.js":
+/*!*************************!*\
+  !*** ./build/Domain.js ***!
+  \*************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+var _interopRequireDefault = __webpack_require__(/*! @babel/runtime/helpers/interopRequireDefault */ "./node_modules/@babel/runtime/helpers/interopRequireDefault.js");
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.default = exports.Domain = void 0;
+
+var _classCallCheck2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/classCallCheck */ "./node_modules/@babel/runtime/helpers/classCallCheck.js"));
+
+var _createClass2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/createClass */ "./node_modules/@babel/runtime/helpers/createClass.js"));
+
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/defineProperty */ "./node_modules/@babel/runtime/helpers/defineProperty.js"));
+
+function _createForOfIteratorHelper(o, allowArrayLike) { var it; if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+/**
+ * Class Domain manipulations
+ *
+ */
+var Domain = /*#__PURE__*/function () {
+  function Domain(domain) {
+    (0, _classCallCheck2.default)(this, Domain);
+    (0, _defineProperty2.default)(this, "clauses", void 0);
+    this.clauses = new Array();
+    /*
+        supported formats : 
+        1) empty  domain : []
+        2) 1 condition only : [ '{operand}', '{operator}', '{value}' ]
+        3) 1 clause only (one or more conditions) : [ [ '{operand}', '{operator}', '{value}' ], [ '{operand}', '{operator}', '{value}' ] ]
+        4) mutiple clauses : [ [ [ '{operand}', '{operator}', '{value}' ], [ '{operand}', '{operator}', '{value}' ] ], [ [ '{operand}', '{operator}', '{value}' ] ] ]
+    */
+
+    domain = this.normalize(domain);
+
+    var _iterator = _createForOfIteratorHelper(domain),
+        _step;
+
+    try {
+      for (_iterator.s(); !(_step = _iterator.n()).done;) {
+        var d_clause = _step.value;
+        var clause = new Clause();
+
+        var _iterator2 = _createForOfIteratorHelper(d_clause),
+            _step2;
+
+        try {
+          for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+            var d_condition = _step2.value;
+            clause.addCondition(new Condition(d_condition[0], d_condition[1], d_condition[2]));
+          }
+        } catch (err) {
+          _iterator2.e(err);
+        } finally {
+          _iterator2.f();
+        }
+
+        this.addClause(clause);
+      }
+    } catch (err) {
+      _iterator.e(err);
+    } finally {
+      _iterator.f();
+    }
+  }
+
+  (0, _createClass2.default)(Domain, [{
+    key: "normalize",
+    value: function normalize(domain) {
+      if (domain.length <= 0) {
+        return [];
+      }
+
+      if (!Array.isArray(domain[0])) {
+        // single condition
+        return [[domain]];
+      } else {
+        if (domain[0].length <= 0) {
+          return [];
+        }
+
+        if (!Array.isArray(domain[0][0])) {
+          // single clause
+          return [domain];
+        }
+      }
+
+      return domain;
+    }
+  }, {
+    key: "addClause",
+    value: function addClause(clause) {
+      this.clauses.push(clause);
+    }
+  }, {
+    key: "addCondition",
+    value: function addCondition(condition) {
+      var _iterator3 = _createForOfIteratorHelper(this.clauses),
+          _step3;
+
+      try {
+        for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+          var clause = _step3.value;
+          clause.addCondition(condition);
+        }
+      } catch (err) {
+        _iterator3.e(err);
+      } finally {
+        _iterator3.f();
+      }
+    }
+  }, {
+    key: "evaluate",
+    value: function evaluate(values) {
+      var res = false;
+
+      var _iterator4 = _createForOfIteratorHelper(this.clauses),
+          _step4;
+
+      try {
+        for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
+          var clause = _step4.value;
+          var c_res = true;
+
+          var _iterator5 = _createForOfIteratorHelper(clause.getConditions()),
+              _step5;
+
+          try {
+            for (_iterator5.s(); !(_step5 = _iterator5.n()).done;) {
+              var condition = _step5.value;
+
+              if (!values.hasOwnProperty(condition.operand)) {
+                continue;
+              }
+
+              var operand = values[condition.operand];
+              var operator = condition.operator;
+              var value = condition.value;
+              var cc_res = void 0; // handle special cases
+
+              if (operator == '=') {
+                operator = '==';
+              } else if (operator == '<>') {
+                operator = '!=';
+              }
+
+              if (operator == 'in') {
+                if (!Array.isArray(value)) {
+                  continue;
+                }
+
+                cc_res = value.indexOf(operand) > -1;
+              } else {
+                var c_condition = "( '" + operand + "' " + operator + " '" + value + "')";
+                cc_res = eval(c_condition);
+              }
+
+              c_res = c_res && cc_res;
+            }
+          } catch (err) {
+            _iterator5.e(err);
+          } finally {
+            _iterator5.f();
+          }
+
+          res = res || c_res;
+        }
+      } catch (err) {
+        _iterator4.e(err);
+      } finally {
+        _iterator4.f();
+      }
+
+      return res;
+    }
+  }]);
+  return Domain;
+}();
+
+exports.Domain = Domain;
+
+var Clause = /*#__PURE__*/function () {
+  function Clause() {
+    (0, _classCallCheck2.default)(this, Clause);
+    (0, _defineProperty2.default)(this, "conditions", void 0);
+    this.conditions = new Array();
+  }
+
+  (0, _createClass2.default)(Clause, [{
+    key: "addCondition",
+    value: function addCondition(condition) {
+      this.conditions.push(condition);
+    }
+  }, {
+    key: "getConditions",
+    value: function getConditions() {
+      return this.conditions;
+    }
+  }]);
+  return Clause;
+}();
+
+var Condition = function Condition(operand, operator, value) {
+  (0, _classCallCheck2.default)(this, Condition);
+  (0, _defineProperty2.default)(this, "operand", void 0);
+  (0, _defineProperty2.default)(this, "operator", void 0);
+  (0, _defineProperty2.default)(this, "value", void 0);
+  this.operand = operand;
+  this.operator = operator;
+  this.value = value;
+};
+
+var _default = Domain;
 exports.default = _default;
 
 /***/ }),
@@ -557,6 +929,12 @@ var _equalWidgets = __webpack_require__(/*! ./equal-widgets */ "./build/equal-wi
 
 var _materialLib = __webpack_require__(/*! ./material-lib */ "./build/material-lib.js");
 
+var _Domain = _interopRequireDefault(__webpack_require__(/*! ./Domain */ "./build/Domain.js"));
+
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2.default)(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
 /*
     There are two main branches of Layouts depending on what is to be displayed:
         - 1 single object : Form 
@@ -576,8 +954,10 @@ var Layout = /*#__PURE__*/function () {
     (0, _classCallCheck2.default)(this, Layout);
     (0, _defineProperty2.default)(this, "view", void 0);
     (0, _defineProperty2.default)(this, "$layout", void 0);
+    (0, _defineProperty2.default)(this, "model_widgets", void 0);
     this.view = view;
     this.$layout = (0, _jqueryLib.$)('<div />').addClass('sb-layout');
+    this.model_widgets = {};
     this.view.$layoutContainer.append(this.$layout);
   }
 
@@ -617,12 +997,12 @@ var Layout = /*#__PURE__*/function () {
   }, {
     key: "refresh",
     value: function refresh(full) {
-      console.log('Layout::refresh');
+      console.log('Layout::refresh'); // also re-generate the layout                     
 
       if (full) {
         this.$layout.empty();
         this.layout();
-      } // feed layout with updated Model
+      } // feed layout with current Model
 
 
       this.feed(this.view.getModel().get());
@@ -652,38 +1032,79 @@ var Layout = /*#__PURE__*/function () {
           this.layoutList();
           break;
       }
-    }
+    } // todo : garder la liste des widgets instanciés pour permettre de passer en mode d'édition (pour un formulaire ou une celulle)    
+
   }, {
     key: "layoutForm",
     value: function layoutForm() {
+      var _this = this;
+
       console.log('Layout::layoutForm');
       var $elem = (0, _jqueryLib.$)('<div/>').css({
         "width": "100%"
       });
       var view_schema = this.view.getViewSchema();
-      console.log(view_schema);
-      view_schema.layout;
+      var model_fields = this.view.getModelFields();
 
       _jqueryLib.$.each(view_schema.layout.groups, function (i, group) {
         var $group = (0, _jqueryLib.$)('<div />').addClass('').appendTo($elem);
 
         _jqueryLib.$.each(group.sections, function (i, section) {
-          var $section = (0, _jqueryLib.$)('<div />').addClass('').appendTo($group);
+          var $section = (0, _jqueryLib.$)('<div />').addClass('mdc-layout-grid').appendTo($group);
 
           _jqueryLib.$.each(section.rows, function (i, row) {
-            var $row = (0, _jqueryLib.$)('<div />').addClass('mdc-layout-grid').appendTo($section);
+            var $row = (0, _jqueryLib.$)('<div />').addClass('mdc-layout-grid__inner').appendTo($section);
 
             _jqueryLib.$.each(row.columns, function (i, column) {
-              var $column = (0, _jqueryLib.$)('<div />').addClass('mdc-layout-grid__inner').appendTo($row);
+              var $column = (0, _jqueryLib.$)('<div />').addClass('mdc-layout-grid__cell').appendTo($row);
+
+              if (column.hasOwnProperty('width')) {
+                $column.addClass('mdc-layout-grid__cell--span-' + Math.round(parseInt(column.width, 10) / 100 * 12));
+              }
+
+              var $inner_cell = (0, _jqueryLib.$)('<div />').addClass('mdc-layout-grid__cell').appendTo($column);
+              $column = (0, _jqueryLib.$)('<div />').addClass('mdc-layout-grid__inner').appendTo($inner_cell);
 
               _jqueryLib.$.each(column.items, function (i, item) {
                 var $cell = (0, _jqueryLib.$)('<div />').addClass('mdc-layout-grid__cell').appendTo($column);
 
-                if (item.type == 'field') {
-                  var widget = _equalWidgets.WidgetFactory.getWidget('input', 'ok');
-
-                  $cell.append(widget.render());
+                if (item.hasOwnProperty('width')) {
+                  $cell.addClass('mdc-layout-grid__cell--span-' + Math.round(parseInt(item.width, 10) / 100 * 12));
                 }
+
+                if (item.type == 'field') {
+                  console.log(item);
+                  var config = {};
+                  var field_name = item.value;
+                  var def = model_fields[field_name];
+                  var type = def.type;
+                  var label = item.hasOwnProperty('label') ? item.label : field_name.charAt(0).toUpperCase() + field_name.slice(1);
+                  var readonly = item.hasOwnProperty('readonly') ? item.readonly : false;
+
+                  if (item.hasOwnProperty('visible')) {
+                    var visible_domain = item.visible;
+
+                    if (!Array.isArray(visible_domain)) {
+                      visible_domain = eval(visible_domain);
+                    }
+
+                    console.log('visible_domain', visible_domain);
+                    config['visible'] = visible_domain;
+                    console.log(config);
+                  }
+
+                  if (item.hasOwnProperty('widget')) {
+                    config = _objectSpread(_objectSpread({}, config), item.widget);
+                    console.log(item.widget, config);
+                    type = item.widget.type;
+                  }
+
+                  var widget = _equalWidgets.WidgetFactory.getWidget(type, label, '', config);
+
+                  widget.setReadonly(readonly);
+                  _this.model_widgets[field_name] = widget;
+                  $cell.append(widget.attach());
+                } else if (item.type == 'label') {}
               });
             });
           });
@@ -695,7 +1116,7 @@ var Layout = /*#__PURE__*/function () {
   }, {
     key: "layoutList",
     value: function layoutList() {
-      var _this = this;
+      var _this2 = this;
 
       // create table
       // we define a tree structure according to MDC pattern
@@ -711,7 +1132,7 @@ var Layout = /*#__PURE__*/function () {
       var $thead = (0, _jqueryLib.$)('<thead/>').appendTo($table);
       var $tbody = (0, _jqueryLib.$)('<tbody/>').appendTo($table); // instanciate header row and the first column which contains the 'select-all' checkbox
 
-      var $hrow = (0, _jqueryLib.$)('<tr/>').append(_materialLib.UIHelper.createUITableCellCheckbox(true)); // create other columns, based on the col_model given in the configuration
+      var $hrow = (0, _jqueryLib.$)('<tr/>').append(_materialLib.UIHelper.createTableCellCheckbox(true)); // create other columns, based on the col_model given in the configuration
 
       var schema = this.view.getViewSchema();
 
@@ -730,11 +1151,11 @@ var Layout = /*#__PURE__*/function () {
               // wait for handling of sort toggle
               setTimeout(function () {
                 // change sortname and/or sortorder
-                _this.view.setOrder($this.attr('name'));
+                _this2.view.setOrder($this.attr('name'));
 
-                _this.view.setSort($this.attr('data-sort'));
+                _this2.view.setSort($this.attr('data-sort'));
 
-                _this.view.onchangeView();
+                _this2.view.onchangeView();
               }, 100);
             }
           });
@@ -755,6 +1176,8 @@ var Layout = /*#__PURE__*/function () {
   }, {
     key: "feed",
     value: function feed(objects) {
+      console.log('Layout::feed');
+
       switch (this.view.type) {
         case 'form':
           this.feedForm(objects);
@@ -769,33 +1192,28 @@ var Layout = /*#__PURE__*/function () {
   }, {
     key: "feedList",
     value: function feedList(objects) {
-      var _this2 = this;
-
       console.log('Layout::feed', objects);
       var $elem = this.$layout.children().first();
       $elem.find('tbody').remove();
       var $tbody = (0, _jqueryLib.$)('<tbody/>');
 
-      _jqueryLib.$.each(objects, function (i, object) {
+      for (var _i = 0, _Object$keys = Object.keys(objects); _i < _Object$keys.length; _i++) {
+        var id = _Object$keys[_i];
+        var object = objects[id];
         var $row = (0, _jqueryLib.$)('<tr/>');
 
-        _materialLib.UIHelper.createUITableCellCheckbox().appendTo($row).find('input').attr('data-id', object.id);
+        _materialLib.UIHelper.createTableCellCheckbox().appendTo($row).find('input').attr('data-id', object.id);
 
-        for (var _i = 0, _Object$keys = Object.keys(object); _i < _Object$keys.length; _i++) {
-          var field = _Object$keys[_i];
-
-          var view_def = _this2.view.getField(field); // field is not part of the view, skip it
-
+        for (var _i2 = 0, _Object$keys2 = Object.keys(object); _i2 < _Object$keys2.length; _i2++) {
+          var field = _Object$keys2[_i2];
+          var view_def = this.view.getField(field); // field is not part of the view, skip it
 
           if (view_def == undefined) continue;
           var visible = view_def.hasOwnProperty('visible') ? view_def.visible : true; // do not show fields with no width
 
           if (!visible) continue;
-
-          var model_schema = _this2.view.getModelFields();
-
-          var view_schema = _this2.view.getViewFields();
-
+          var model_schema = this.view.getModelFields();
+          var view_schema = this.view.getViewFields();
           var model_def = model_schema[field];
           var type = model_def['type'];
 
@@ -803,14 +1221,14 @@ var Layout = /*#__PURE__*/function () {
             type = view_def.widget.type;
           }
 
-          var widget = _equalWidgets.WidgetFactory.getWidget(type, object[field]);
+          var widget = _equalWidgets.WidgetFactory.getWidget(type, '', object[field]);
 
           var $cell = (0, _jqueryLib.$)('<td/>').append(widget.render());
           $row.append($cell);
         }
 
         $tbody.append($row);
-      });
+      }
 
       $elem.find('table').append($tbody);
 
@@ -818,7 +1236,58 @@ var Layout = /*#__PURE__*/function () {
     }
   }, {
     key: "feedForm",
-    value: function feedForm(objects) {}
+    value: function feedForm(objects) {
+      var _this3 = this;
+
+      console.log('Layout::feedForm'); // display the first object from the collection
+
+      var ids = Object.keys(objects);
+
+      if (ids.length > 0) {
+        (function () {
+          var object_id = ids[0];
+          var object = objects[object_id];
+
+          var _loop = function _loop() {
+            var field = _Object$keys3[_i3];
+            var widget = _this3.model_widgets[field];
+
+            var $parent = _this3.$layout.find('#' + widget.getId()).parent().empty();
+
+            widget.setMode(_this3.view.getMode()).setValue(object[field]);
+            var $widget = widget.render();
+            $widget.on('_updatedWidget', function (event, new_value) {
+              console.log('Layout : received widget change event for field ' + field, new_value);
+              object[field] = new_value; // todo : use fields only (not full object)                    
+
+              _this3.view.onchangeViewModel([object_id], object);
+
+              console.log(_this3.view.getModel().get());
+            });
+            console.log('config', widget.getConfig());
+            var config = widget.getConfig(); // todo handle visibility tests (domain)                
+
+            if (config.hasOwnProperty('visible')) {
+              var domain = new _Domain.default(config.visible);
+              console.log('domain', domain);
+              console.log('evaluate', object, domain.evaluate(object));
+
+              if (domain.evaluate(object)) {
+                $parent.append($widget);
+              } else {
+                $parent.append(widget.attach());
+              }
+            } else {
+              $parent.append($widget);
+            }
+          };
+
+          for (var _i3 = 0, _Object$keys3 = Object.keys(object); _i3 < _Object$keys3.length; _i3++) {
+            _loop();
+          }
+        })();
+      }
+    }
   }]);
   return Layout;
 }();
@@ -909,6 +1378,10 @@ var Model = /*#__PURE__*/function () {
 
       return init;
     }()
+    /** 
+     * Update model by requesting data from server using parent View parameters
+    */
+
   }, {
     key: "refresh",
     value: function () {
@@ -959,8 +1432,8 @@ var Model = /*#__PURE__*/function () {
      */
 
   }, {
-    key: "update",
-    value: function update(ids, values) {
+    key: "change",
+    value: function change(ids, values) {
       var _iterator = _createForOfIteratorHelper(ids),
           _step;
 
@@ -995,7 +1468,19 @@ var Model = /*#__PURE__*/function () {
   }, {
     key: "get",
     value: function get() {
-      return this.objects;
+      var as_array = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+      var objects = [];
+
+      if (!as_array) {
+        return this.objects;
+      } else {
+        for (var _i = 0, _Object$keys = Object.keys(this.objects); _i < _Object$keys.length; _i++) {
+          var id = _Object$keys[_i];
+          objects.push(this.objects[id]);
+        }
+      }
+
+      return objects;
     }
   }, {
     key: "getTotal",
@@ -1046,6 +1531,8 @@ var _materialLib = __webpack_require__(/*! ./material-lib */ "./build/material-l
 
 var _equalServices = __webpack_require__(/*! ./equal-services */ "./build/equal-services.js");
 
+var _Context = _interopRequireDefault(__webpack_require__(/*! ./Context */ "./build/Context.js"));
+
 var _Layout = _interopRequireDefault(__webpack_require__(/*! ./Layout */ "./build/Layout.js"));
 
 var _Model = _interopRequireDefault(__webpack_require__(/*! ./Model */ "./build/Model-exposed.js"));
@@ -1061,6 +1548,7 @@ var View = /*#__PURE__*/function () {
   // Map of fields mapping their View definitions
   // Map of fields mapping their Model definitions
   // Arrray of available filters from View definition
+  // Mode under which the view is to be displayed ('View' [default], or 'edit')
   // List of currently selected filters from View definition (for filterable types)    
 
   /**
@@ -1071,7 +1559,7 @@ var View = /*#__PURE__*/function () {
    * @param name 
    * @param domain 
    */
-  function View(context, entity, type, name, domain, lang) {
+  function View(context, entity, type, name, domain, mode, lang) {
     (0, _classCallCheck2.default)(this, View);
     (0, _defineProperty2.default)(this, "context", void 0);
     (0, _defineProperty2.default)(this, "entity", void 0);
@@ -1090,6 +1578,7 @@ var View = /*#__PURE__*/function () {
     (0, _defineProperty2.default)(this, "view_fields", void 0);
     (0, _defineProperty2.default)(this, "model_fields", void 0);
     (0, _defineProperty2.default)(this, "filters", void 0);
+    (0, _defineProperty2.default)(this, "mode", void 0);
     (0, _defineProperty2.default)(this, "applied_filters_ids", void 0);
     (0, _defineProperty2.default)(this, "$headerContainer", void 0);
     (0, _defineProperty2.default)(this, "$layoutContainer", void 0);
@@ -1098,15 +1587,16 @@ var View = /*#__PURE__*/function () {
     this.entity = entity;
     this.type = type;
     this.name = name;
+    this.mode = mode;
     this.domain = domain;
     this.order = 'id';
     this.sort = 'asc';
     this.start = 0;
     this.limit = 25;
     this.lang = lang;
-    this.$headerContainer = (0, _jqueryLib.$)('<div />').addClass('sb-view-list-header');
-    this.$layoutContainer = (0, _jqueryLib.$)('<div />').addClass('sb-view-list-layout');
-    this.$footerContainer = (0, _jqueryLib.$)('<div />').addClass('sb-view-list-footer');
+    this.$headerContainer = (0, _jqueryLib.$)('<div />').addClass('sb-view-header');
+    this.$layoutContainer = (0, _jqueryLib.$)('<div />').addClass('sb-view-layout');
+    this.$footerContainer = (0, _jqueryLib.$)('<div />').addClass('sb-view-footer');
     this.filters = {};
     this.applied_filters_ids = [];
     this.layout = new _Layout.default(this);
@@ -1165,24 +1655,30 @@ var View = /*#__PURE__*/function () {
 
               case 16:
                 if (['list', 'kanban'].indexOf(this.type) >= 0) {
+                  this.$layoutContainer.addClass('sb-view-list-layout');
                   this.layoutListHeader();
                   this.layoutListFooter();
                 }
 
-                _context.next = 22;
+                if (['form'].indexOf(this.type) >= 0) {
+                  this.$layoutContainer.addClass('sb-view-form-layout');
+                  this.layoutFormHeader();
+                }
+
+                _context.next = 23;
                 break;
 
-              case 19:
-                _context.prev = 19;
+              case 20:
+                _context.prev = 20;
                 _context.t0 = _context["catch"](2);
                 console.log('Unable to init view (' + this.entity + '.' + this.type + '.' + this.name + ')', _context.t0);
 
-              case 22:
+              case 23:
               case "end":
                 return _context.stop();
             }
           }
-        }, _callee, this, [[2, 19]]);
+        }, _callee, this, [[2, 20]]);
       }));
 
       function init() {
@@ -1314,6 +1810,16 @@ var View = /*#__PURE__*/function () {
     value: function getModelFields() {
       return this.model_fields;
     }
+  }, {
+    key: "setMode",
+    value: function setMode(mode) {
+      this.mode = mode;
+    }
+  }, {
+    key: "getMode",
+    value: function getMode() {
+      return this.mode;
+    }
     /**
      * Generates a map holding all fields that are present in a given view (as items objects)
      * and stores it in the `view_fields` member
@@ -1399,25 +1905,25 @@ var View = /*#__PURE__*/function () {
     value: function layoutListFooter() {
       var _this = this;
 
-      var $footer = _materialLib.UIHelper.createUITableFooter();
+      var $footer = _materialLib.UIHelper.createPagination().addClass('sb-view-list-footer');
 
       $footer.find('.pagination-total').append((0, _jqueryLib.$)('<span class="sb-view-list-footer-start"></span>')).append((0, _jqueryLib.$)('<span />').text('-')).append((0, _jqueryLib.$)('<span class="sb-view-list-footer-end"></span>')).append((0, _jqueryLib.$)('<span />').text(' / ')).append((0, _jqueryLib.$)('<span class="sb-view-list-footer-total"></span>'));
-      $footer.find('.pagination-navigation').append(_materialLib.UIHelper.createUIButton('', '', 'icon', 'first_page').addClass('sb-view-list-footer-first_page').on('click', function (event) {
+      $footer.find('.pagination-navigation').append(_materialLib.UIHelper.createButton('', '', 'icon', 'first_page').addClass('sb-view-list-footer-first_page').on('click', function (event) {
         _this.setStart(0);
 
         _this.onchangeView();
-      })).append(_materialLib.UIHelper.createUIButton('', '', 'icon', 'chevron_left').addClass('sb-view-list-footer-prev_page').on('click', function (event) {
+      })).append(_materialLib.UIHelper.createButton('', '', 'icon', 'chevron_left').addClass('sb-view-list-footer-prev_page').on('click', function (event) {
         _this.setStart(Math.max(0, _this.getStart() - _this.getLimit()));
 
         _this.onchangeView();
-      })).append(_materialLib.UIHelper.createUIButton('', '', 'icon', 'chevron_right').addClass('sb-view-list-footer-next_page').on('click', function (event) {
+      })).append(_materialLib.UIHelper.createButton('', '', 'icon', 'chevron_right').addClass('sb-view-list-footer-next_page').on('click', function (event) {
         var new_start = Math.min(_this.getTotal() - 1, _this.getStart() + _this.getLimit());
         console.log('new start', new_start, _this.getStart(), _this.getLimit());
 
         _this.setStart(new_start);
 
         _this.onchangeView();
-      })).append(_materialLib.UIHelper.createUIButton('', '', 'icon', 'last_page').addClass('sb-view-list-footer-last_page').on('click', function (event) {
+      })).append(_materialLib.UIHelper.createButton('', '', 'icon', 'last_page').addClass('sb-view-list-footer-last_page').on('click', function (event) {
         var new_start = _this.getTotal() - 1;
 
         _this.setStart(new_start);
@@ -1425,9 +1931,9 @@ var View = /*#__PURE__*/function () {
         _this.onchangeView();
       }));
 
-      var $select = _materialLib.UIHelper.createUISelect([1, 2, 5, 10, 20, 100], 10).addClass('sb-view-list-footer-limit_select');
+      var $select = _materialLib.UIHelper.createPaginationSelect('', '', [1, 2, 5, 10, 20, 100], 10).addClass('sb-view-list-footer-limit_select');
 
-      $footer.find('.pagination-rows-per-page').append(_materialLib.UIHelper.createUIIcon('list')).append($select);
+      $footer.find('.pagination-rows-per-page').append(_materialLib.UIHelper.createIcon('list')).append($select);
       $select.find('input').on('change', function (event) {
         var $this = (0, _jqueryLib.$)(event.currentTarget);
 
@@ -1444,21 +1950,22 @@ var View = /*#__PURE__*/function () {
     value: function layoutListHeader() {
       var _this2 = this;
 
-      // container for holding chips of currently applied filters
+      var $elem = (0, _jqueryLib.$)('<div />').addClass('sb-view-list-header'); // container for holding chips of currently applied filters
+
       var $filters_set = (0, _jqueryLib.$)('<div />').addClass('sb-view-list-header-filters-set mdc-chip-set').attr('role', 'grid'); // floating menu for filters selection
 
       var $filters_menu = (0, _jqueryLib.$)('<ul/>').attr('role', 'menu').addClass('mdc-list'); // button for displaying the filters menu
 
-      var $filters_button = (0, _jqueryLib.$)('<div/>').addClass('sb-view-list-header-filters mdc-menu-surface--anchor').append(_materialLib.UIHelper.createUIButton('view-filters', 'filtres', 'mini-fab', 'filter_list')).append((0, _jqueryLib.$)('<div/>').addClass('sb-view-list-header-filters-menu mdc-menu mdc-menu-surface').css({
+      var $filters_button = (0, _jqueryLib.$)('<div/>').addClass('sb-view-list-header-filters mdc-menu-surface--anchor').append(_materialLib.UIHelper.createButton('view-filters', 'filtres', 'mini-fab', 'filter_list')).append((0, _jqueryLib.$)('<div/>').addClass('sb-view-list-header-filters-menu mdc-menu mdc-menu-surface').css({
         "margin-top": '48px'
       }).append($filters_menu));
 
       var _loop = function _loop(filter_id) {
         var filter = _this2.filters[filter_id];
 
-        _materialLib.UIHelper.createUIListItem(filter.description).appendTo($filters_menu).attr('id', filter_id).on('click', function (event) {
+        _materialLib.UIHelper.createListItem(filter.description).appendTo($filters_menu).attr('id', filter_id).on('click', function (event) {
           var $this = (0, _jqueryLib.$)(event.currentTarget);
-          $filters_set.append(_materialLib.UIHelper.createUIChip(filter.description).attr('id', filter_id).on('click', function (event) {
+          $filters_set.append(_materialLib.UIHelper.createChip(filter.description).attr('id', filter_id).on('click', function (event) {
             var $this = (0, _jqueryLib.$)(event.currentTarget);
 
             var index = _this2.applied_filters_ids.indexOf($this.attr('id'));
@@ -1493,13 +2000,13 @@ var View = /*#__PURE__*/function () {
 
       var $fields_toggle_menu = (0, _jqueryLib.$)('<ul/>').attr('role', 'menu').addClass('mdc-list'); // button for displaying the fields menu
 
-      var $fields_toggle_button = (0, _jqueryLib.$)('<div/>').addClass('sb-view-list-header-fields_toggle mdc-menu-surface--anchor').append(_materialLib.UIHelper.createUIButton('view-filters', 'fields', 'mini-fab', 'more_vert')).append((0, _jqueryLib.$)('<div/>').addClass('sb-view-list-header-fields_toggle-menu mdc-menu mdc-menu-surface').append($fields_toggle_menu));
+      var $fields_toggle_button = (0, _jqueryLib.$)('<div/>').addClass('sb-view-list-header-fields_toggle mdc-menu-surface--anchor').append(_materialLib.UIHelper.createButton('view-filters', 'fields', 'mini-fab', 'more_vert')).append((0, _jqueryLib.$)('<div/>').addClass('sb-view-list-header-fields_toggle-menu mdc-menu mdc-menu-surface').append($fields_toggle_menu));
 
       _jqueryLib.$.each(this.getViewSchema().layout.items, function (i, item) {
         var label = item.hasOwnProperty('label') ? item.label : item.value.charAt(0).toUpperCase() + item.value.slice(1);
         var visible = item.hasOwnProperty('visible') ? item.visible : true;
 
-        _materialLib.UIHelper.createUIListItemCheckbox('sb-fields-toggle-checkbox-' + item.value, label).appendTo($fields_toggle_menu).find('input').on('change', function (event) {
+        _materialLib.UIHelper.createListItemCheckbox('sb-fields-toggle-checkbox-' + item.value, label).appendTo($fields_toggle_menu).find('input').on('change', function (event) {
           var $this = (0, _jqueryLib.$)(event.currentTarget);
 
           var def = _this2.getField(item.value);
@@ -1518,9 +2025,10 @@ var View = /*#__PURE__*/function () {
         fields_toggle_menu.open = !$fields_toggle_button.find('.mdc-menu').hasClass('mdc-menu-surface--open');
       }); // attach elements to header toolbar
 
-      this.$headerContainer.append($filters_button);
-      this.$headerContainer.append($filters_set);
-      this.$headerContainer.append($fields_toggle_button);
+      $elem.append($filters_button);
+      $elem.append($filters_set);
+      $elem.append($fields_toggle_button);
+      this.$headerContainer.append($elem);
     }
   }, {
     key: "layoutListRefresh",
@@ -1540,6 +2048,82 @@ var View = /*#__PURE__*/function () {
       this.$footerContainer.find('.sb-view-list-footer-prev_page').prop('disabled', !(start > limit));
       this.$footerContainer.find('.sb-view-list-footer-next_page').prop('disabled', !(start <= total - limit));
       this.$footerContainer.find('.sb-view-list-footer-last_page').prop('disabled', !(start <= total - limit));
+    }
+  }, {
+    key: "layoutFormHeader",
+    value: function layoutFormHeader() {
+      var _this3 = this;
+
+      // container for holding chips of currently applied filters
+      var $actions_set = (0, _jqueryLib.$)('<div />').addClass('sb-view-form-header-actions');
+
+      switch (this.mode) {
+        case 'view':
+          $actions_set.append(_materialLib.UIHelper.createButton('action-edit', 'Modifier', 'raised').on('click', function () {
+            (0, _jqueryLib.$)('#sb-events').trigger('_openContext', new _Context.default(_this3.entity, _this3.type, 'default', _this3.domain, 'edit'));
+          })).append(_materialLib.UIHelper.createButton('action-create', 'Créer', 'text').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
+            var object;
+            return _regenerator.default.wrap(function _callee2$(_context2) {
+              while (1) {
+                switch (_context2.prev = _context2.next) {
+                  case 0:
+                    _context2.next = 2;
+                    return _equalServices.ApiService.create(_this3.entity);
+
+                  case 2:
+                    object = _context2.sent;
+                    // request a new Context for editing the new object
+                    (0, _jqueryLib.$)('#sb-events').trigger('_openContext', new _Context.default(_this3.entity, _this3.type, 'default', [['id', '=', object.id], ['state', '=', 'draft']], 'edit'));
+
+                  case 4:
+                  case "end":
+                    return _context2.stop();
+                }
+              }
+            }, _callee2);
+          }))));
+          break;
+
+        case 'edit':
+          $actions_set.append(_materialLib.UIHelper.createButton('action-create', 'Sauver', 'raised').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3() {
+            var objects, object;
+            return _regenerator.default.wrap(function _callee3$(_context3) {
+              while (1) {
+                switch (_context3.prev = _context3.next) {
+                  case 0:
+                    objects = _this3.model.get();
+                    object = objects[0];
+                    _context3.next = 4;
+                    return _equalServices.ApiService.update(_this3.entity, [object['id']], object);
+
+                  case 4:
+                    (0, _jqueryLib.$)('#sb-events').trigger('_closeContext');
+
+                  case 5:
+                  case "end":
+                    return _context3.stop();
+                }
+              }
+            }, _callee3);
+          })))).append(_materialLib.UIHelper.createButton('action-cancel', 'Annuler', 'outlined').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
+            return _regenerator.default.wrap(function _callee4$(_context4) {
+              while (1) {
+                switch (_context4.prev = _context4.next) {
+                  case 0:
+                    (0, _jqueryLib.$)('#sb-events').trigger('_closeContext');
+
+                  case 1:
+                  case "end":
+                    return _context4.stop();
+                }
+              }
+            }, _callee4);
+          }))));
+          break;
+      } // attach elements to header toolbar
+
+
+      this.$headerContainer.append($actions_set);
     }
   }, {
     key: "layoutRefresh",
@@ -1573,17 +2157,21 @@ var View = /*#__PURE__*/function () {
   }, {
     key: "onchangeViewModel",
     value: function onchangeViewModel(ids, values) {
-      this.model.update(ids, values);
+      this.model.change(ids, values); // model has changed : forms need to re-check the visibility attributes                
+
+      this.onchangeModel();
     }
     /**
-     * Callback for requesting a Layout update
+     * Callback for requesting a Layout update: the widgets in the layout need to be refreshed.
      * Requested from Model when a change occured in the Collection (as consequence of domain or params update)
+     * If `full`is set to true, then the layout is re-generated
      */
 
   }, {
     key: "onchangeModel",
     value: function onchangeModel() {
       var full = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+      console.log('View::onchangeModel', full, this.model.get());
       this.layoutRefresh(full);
     }
     /**
@@ -1594,9 +2182,29 @@ var View = /*#__PURE__*/function () {
 
   }, {
     key: "onchangeView",
-    value: function onchangeView() {
-      this.model.refresh();
-    }
+    value: function () {
+      var _onchangeView = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5() {
+        return _regenerator.default.wrap(function _callee5$(_context5) {
+          while (1) {
+            switch (_context5.prev = _context5.next) {
+              case 0:
+                _context5.next = 2;
+                return this.model.refresh();
+
+              case 2:
+              case "end":
+                return _context5.stop();
+            }
+          }
+        }, _callee5, this);
+      }));
+
+      function onchangeView() {
+        return _onchangeView.apply(this, arguments);
+      }
+
+      return onchangeView;
+    }()
   }]);
   return View;
 }();
@@ -1622,7 +2230,8 @@ Object.defineProperty(exports, "__esModule", ({
 exports.default = exports.environment = void 0;
 var environment = {
   backend_url: 'http://equal.local',
-  lang: 'fr'
+  lang: 'fr',
+  locale: 'fr'
 };
 exports.environment = environment;
 var _default = environment;
@@ -1735,13 +2344,15 @@ var _createClass2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtim
 
 var _Widget = _interopRequireDefault(__webpack_require__(/*! ./widgets/Widget */ "./build/widgets/Widget.js"));
 
-var _WidgetInput = _interopRequireDefault(__webpack_require__(/*! ./widgets/WidgetInput */ "./build/widgets/WidgetInput.js"));
-
 var _WidgetDate = _interopRequireDefault(__webpack_require__(/*! ./widgets/WidgetDate */ "./build/widgets/WidgetDate.js"));
+
+var _WidgetString = _interopRequireDefault(__webpack_require__(/*! ./widgets/WidgetString */ "./build/widgets/WidgetString.js"));
 
 var _WidgetText = _interopRequireDefault(__webpack_require__(/*! ./widgets/WidgetText */ "./build/widgets/WidgetText.js"));
 
 var _WidgetLink = _interopRequireDefault(__webpack_require__(/*! ./widgets/WidgetLink */ "./build/widgets/WidgetLink.js"));
+
+var _WidgetSelect = _interopRequireDefault(__webpack_require__(/*! ./widgets/WidgetSelect */ "./build/widgets/WidgetSelect.js"));
 
 var WidgetFactory = /*#__PURE__*/function () {
   function WidgetFactory() {
@@ -1750,19 +2361,47 @@ var WidgetFactory = /*#__PURE__*/function () {
 
   (0, _createClass2.default)(WidgetFactory, null, [{
     key: "getWidget",
-    value: function getWidget(type, value) {
+
+    /*
+    Widgets are based on final type either ORM types or special View types
+    widgets support two modes : view & edit, and are responsible for rendering accordingly
+        un widget à un type, un mode, une valeur (qui s'affiche selon le type et le mode)
+    et des infos de décoration: un label et un helper (facultatif)
+      les widgets sont liés à des éléments (layout items) qui ont un type propre (fields, label, button, ...)
+      les widgets liés à d'autres éléments que des fields disposent d'un ID qui permet de faire le lien avec la View parente et les infos additionnelles (aide, traduction)
+    config: {
+    id:
+    helper:
+    view:
+    domain: 
+    }    
+    */
+
+    /**
+     * factory : maps type guessed from model and view schema with a specific widget
+     * @param type 
+     * @param value 
+     */
+    value: function getWidget(type, label) {
+      var value = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
+      var config = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
+
       switch (type) {
         case 'datetime':
-          return new _WidgetDate.default(value);
+          return new _WidgetDate.default(label, value, config);
 
         case 'link':
-          return new _WidgetLink.default(value);
+          return new _WidgetLink.default(label, value, config);
 
-        case 'input':
-          return new _WidgetInput.default(value);
+        case 'text':
+          return new _WidgetText.default(label, value, config);
 
+        case 'select':
+          return new _WidgetSelect.default(label, value, config);
+
+        case 'string':
         default:
-          return new _WidgetText.default(value);
+          return new _WidgetString.default(label, value, config);
       }
     }
   }]);
@@ -1784,6 +2423,10 @@ exports.WidgetFactory = WidgetFactory;
 
 var _interopRequireDefault = __webpack_require__(/*! @babel/runtime/helpers/interopRequireDefault */ "./node_modules/@babel/runtime/helpers/interopRequireDefault.js");
 
+var _regenerator = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/regenerator */ "./node_modules/@babel/runtime/regenerator/index.js"));
+
+var _asyncToGenerator2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/asyncToGenerator */ "./node_modules/@babel/runtime/helpers/asyncToGenerator.js"));
+
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/classCallCheck */ "./node_modules/@babel/runtime/helpers/classCallCheck.js"));
 
 var _createClass2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/createClass */ "./node_modules/@babel/runtime/helpers/createClass.js"));
@@ -1794,7 +2437,7 @@ var _jqueryLib = __webpack_require__(/*! ./jquery-lib */ "./build/jquery-lib.js"
 
 var _equalLib = __webpack_require__(/*! ./equal-lib */ "./build/equal-lib.js");
 
-// todo: use MDC instead of MDL 
+// We use MDC (material design components)
 // @see https://github.com/material-components/material-components-web/blob/master/docs/getting-started.md
 var eQ = /*#__PURE__*/function () {
   // jquery object for components communication
@@ -1841,31 +2484,82 @@ var eQ = /*#__PURE__*/function () {
     }
   }, {
     key: "openContext",
-    value: function openContext(context) {
-      // stack received context
-      if (this.context) {
-        this.stack.push(this.context);
+    value: function () {
+      var _openContext = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(context) {
+        return _regenerator.default.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                // stack received context
+                if (this.context) {
+                  this.stack.push(this.context);
+
+                  if (this.context.hasOwnProperty('$container')) {
+                    // conainers are hidden and not detached in order to maintain the listeners
+                    this.context.$container.hide();
+                  }
+                }
+
+                this.context = context;
+                this.$container.append(this.context.getContainer());
+
+              case 3:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function openContext(_x) {
+        return _openContext.apply(this, arguments);
       }
 
-      this.context = context;
-      this.$container.empty();
-      this.$container.append(this.context.getContainer());
-    }
+      return openContext;
+    }()
   }, {
     key: "closeContext",
-    value: function closeContext() {
-      if (this.stack.length) {
-        this.context = this.stack.pop();
-        this.$container.empty();
-        this.$container.append(this.context.getContainer());
+    value: function () {
+      var _closeContext = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
+        return _regenerator.default.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                if (!this.stack.length) {
+                  _context2.next = 6;
+                  break;
+                }
+
+                // destroy current context
+                this.context.$container.remove(); // restore previous context
+
+                this.context = this.stack.pop();
+                _context2.next = 5;
+                return this.context.refresh();
+
+              case 5:
+                this.context.$container.show();
+
+              case 6:
+              case "end":
+                return _context2.stop();
+            }
+          }
+        }, _callee2, this);
+      }));
+
+      function closeContext() {
+        return _closeContext.apply(this, arguments);
       }
-    }
+
+      return closeContext;
+    }()
   }, {
     key: "test",
     value: function test() {
-      console.log("eQ::test"); // $("#test").dialog();
-      // $( "#datepicker" ).daterangepicker();
-      // console.log(new WidgetInput());
+      console.log("eQ::test");
+      (0, _jqueryLib.$)("#test").dialog();
+      (0, _jqueryLib.$)("#datepicker").daterangepicker(); // console.log(new WidgetInput());
 
       this.$sbEvents.trigger('_openContext', new _equalLib.Context('core\\User', 'form', 'default', []));
       /*
@@ -1885,6 +2579,42 @@ var eQ = /*#__PURE__*/function () {
 }();
 
 module.exports = eQ;
+
+/***/ }),
+
+/***/ "./build/i18n/jqueryui.js":
+/*!********************************!*\
+  !*** ./build/i18n/jqueryui.js ***!
+  \********************************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.locale = void 0;
+var locale = {
+  'fr': {
+    closeText: "Fermer",
+    prevText: "Précédent",
+    nextText: "Suivant",
+    currentText: "Aujourd'hui",
+    monthNames: ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"],
+    monthNamesShort: ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."],
+    dayNames: ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"],
+    dayNamesShort: ["dim.", "lun.", "mar.", "mer.", "jeu.", "ven.", "sam."],
+    dayNamesMin: ["D", "L", "M", "M", "J", "V", "S"],
+    weekHeader: "Sem.",
+    dateFormat: "dd/mm/yy",
+    firstDay: 1,
+    isRTL: false,
+    showMonthAfterYear: false,
+    yearSuffix: ""
+  }
+};
+exports.locale = locale;
 
 /***/ }),
 
@@ -1908,6 +2638,12 @@ Object.defineProperty(exports, "$", ({
     return _jquery.default;
   }
 }));
+Object.defineProperty(exports, "locale", ({
+  enumerable: true,
+  get: function get() {
+    return _jqueryui.locale;
+  }
+}));
 
 var _jquery = _interopRequireDefault(__webpack_require__(/*! jquery */ "./node_modules/jquery/dist/jquery-exposed.js"));
 
@@ -1928,6 +2664,8 @@ __webpack_require__(/*! jquery-ui/ui/widgets/dialog */ "./node_modules/jquery-ui
 __webpack_require__(/*! jquery-ui/ui/widgets/datepicker */ "./node_modules/jquery-ui/ui/widgets/datepicker.js");
 
 __webpack_require__(/*! daterangepicker/daterangepicker.js */ "./node_modules/daterangepicker/daterangepicker.js");
+
+var _jqueryui = __webpack_require__(/*! ./i18n/jqueryui */ "./build/i18n/jqueryui.js");
 
 /***/ }),
 
@@ -2001,6 +2739,8 @@ var _select = __webpack_require__(/*! @material/select */ "./node_modules/@mater
 
 var _menu = __webpack_require__(/*! @material/menu */ "./node_modules/@material/menu/index.js");
 
+var _jqueryLib = __webpack_require__(/*! ./jquery-lib */ "./build/jquery-lib.js");
+
 function _createForOfIteratorHelper(o, allowArrayLike) { var it; if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
 
 function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
@@ -2013,24 +2753,24 @@ var UIHelper = /*#__PURE__*/function () {
   }
 
   (0, _createClass2.default)(UIHelper, null, [{
-    key: "createUIButton",
+    key: "createButton",
 
     /*
      Helpers for element creation
     */
-    value: function createUIButton(id, label) {
+    value: function createButton(id, label) {
       var type = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : '';
       var icon = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : '';
-      var $button = $('<button/>').attr('id', id);
+      var $button = (0, _jqueryLib.$)('<button/>').attr('id', id);
 
       if (['outlined', 'raised', 'text'].indexOf(type) >= 0) {
-        $button.addClass('mdc-button mdc-button--touch').append($('<span/>').addClass('mdc-button__ripple'));
+        $button.addClass('mdc-button mdc-button--touch').append((0, _jqueryLib.$)('<span/>').addClass('mdc-button__ripple'));
 
         if (icon.length) {
-          $button.append($('<i/>').addClass('material-icons mdc-button__icon').text(icon));
+          $button.append((0, _jqueryLib.$)('<i/>').addClass('material-icons mdc-button__icon').text(icon));
         }
 
-        $button.append($('<span/>').attr('for', id).addClass('mdc-button__label').text(label));
+        $button.append((0, _jqueryLib.$)('<span/>').attr('for', id).addClass('mdc-button__label').text(label));
 
         switch (type) {
           case 'outlined':
@@ -2047,44 +2787,63 @@ var UIHelper = /*#__PURE__*/function () {
 
         new _ripple.MDCRipple($button[0]);
       } else if (['fab', 'mini-fab'].indexOf(type) >= 0) {
-        $button.addClass('mdc-fab mdc-fab--touch').append($('<div/>').addClass('mdc-fab__ripple'));
+        $button.addClass('mdc-fab mdc-fab--touch').append((0, _jqueryLib.$)('<div/>').addClass('mdc-fab__ripple'));
 
         if (type == 'mini-fab') {
           $button.addClass('mdc-fab--mini');
         }
 
-        $button.append($('<span/>').addClass('material-icons mdc-fab__icon').text(icon));
-        $button.append($('<div/>').addClass('mdc-fab__touch'));
+        $button.append((0, _jqueryLib.$)('<span/>').addClass('material-icons mdc-fab__icon').text(icon));
+        $button.append((0, _jqueryLib.$)('<div/>').addClass('mdc-fab__touch'));
         new _ripple.MDCRipple($button[0]);
       } else if (['icon'].indexOf(type) >= 0) {
-        $button.addClass('mdc-icon-button material-icons').append($('<span />').addClass('mdc-button__icon').text(icon));
+        $button.addClass('mdc-icon-button material-icons').append((0, _jqueryLib.$)('<span />').addClass('mdc-button__icon').text(icon));
       }
 
       return $button;
     }
   }, {
-    key: "createUIIcon",
-    value: function createUIIcon(icon) {
-      var $elem = $('<span class="material-icons">' + icon + '</span>');
+    key: "createIcon",
+    value: function createIcon(icon) {
+      var $elem = (0, _jqueryLib.$)('<span class="material-icons">' + icon + '</span>');
       return $elem;
     }
   }, {
-    key: "createUIInput",
-    value: function createUIInput(id, label) {
-      var $elem = $('\
+    key: "createInput",
+    value: function createInput(id, label, value) {
+      var disabled = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
+      var $elem = (0, _jqueryLib.$)('\
         <label class="mdc-text-field mdc-text-field--filled"> \
             <span class="mdc-text-field__ripple"></span> \
-            <span class="mdc-floating-label" id="my-label-id">Hint text</span> \
-            <input class="mdc-text-field__input" type="text" aria-labelledby="my-label-id"> \
+            <span class="mdc-floating-label" id="my-label-id">' + label + '</span> \
+            <input ' + (disabled ? 'disabled' : '') + ' class="mdc-text-field__input" type="text" aria-labelledby="my-label-id" value="' + value + '"> \
             <span class="mdc-line-ripple"></span>\
         </label>');
       new _textfield.MDCTextField($elem[0]);
       return $elem;
     }
   }, {
-    key: "createUICheckbox",
-    value: function createUICheckbox(id, label) {
-      var $elem = $('\
+    key: "createInputView",
+    value: function createInputView(id, label, value) {
+      var $elem = (0, _jqueryLib.$)('\
+        <label class="sb-view-form-field-mode-view mdc-text-field mdc-text-field--filled"> \
+            <span class="sb-view-form-field-label mdc-floating-label" id="my-label-id">' + label + '</span> \
+            <input disabled class="mdc-text-field__input" type="text" aria-labelledby="my-label-id" value="' + value + '"> \
+            <span class="mdc-line-ripple"></span>\
+        </label>');
+      new _textfield.MDCTextField($elem[0]);
+      return $elem;
+    }
+  }, {
+    key: "createDatePicker",
+    value: function createDatePicker() {
+      var $elem = (0, _jqueryLib.$)('<div />').datepicker();
+      return $elem;
+    }
+  }, {
+    key: "createCheckbox",
+    value: function createCheckbox(id, label) {
+      var $elem = (0, _jqueryLib.$)('\
         <div class="mdc-form-field"> \
             <div class="mdc-checkbox"> \
                 <input type="checkbox" class="mdc-checkbox__native-control" id="' + id + '"/> \
@@ -2101,9 +2860,9 @@ var UIHelper = /*#__PURE__*/function () {
       return $elem;
     }
   }, {
-    key: "createUIListItem",
-    value: function createUIListItem(label) {
-      var $elem = $('\
+    key: "createListItem",
+    value: function createListItem(label) {
+      var $elem = (0, _jqueryLib.$)('\
         <li class="mdc-list-item"> \
             <span class="mdc-list-item__ripple"></span> \
             <span class="mdc-list-item__text">' + label + '</span> \
@@ -2112,9 +2871,9 @@ var UIHelper = /*#__PURE__*/function () {
       return $elem;
     }
   }, {
-    key: "createUIListItemCheckbox",
-    value: function createUIListItemCheckbox(id, label) {
-      var $elem = $('\
+    key: "createListItemCheckbox",
+    value: function createListItemCheckbox(id, label) {
+      var $elem = (0, _jqueryLib.$)('\
         <li class="mdc-list-item"> \
             <div class="mdc-touch-target-wrapper"> \
                 <div class="mdc-checkbox mdc-checkbox--touch"> \
@@ -2135,12 +2894,12 @@ var UIHelper = /*#__PURE__*/function () {
       return $elem;
     }
   }, {
-    key: "createUITableCellCheckbox",
-    value: function createUITableCellCheckbox() {
+    key: "createTableCellCheckbox",
+    value: function createTableCellCheckbox() {
       var is_header = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
       var elem = is_header ? 'th' : 'td';
       var suffix = is_header ? 'header-' : '';
-      var $elem = $('\
+      var $elem = (0, _jqueryLib.$)('\
         <' + elem + ' class="mdc-data-table__' + suffix + 'cell mdc-data-table__' + suffix + 'cell--checkbox"> \
             <div class="mdc-checkbox mdc-data-table__' + suffix + 'row-checkbox"> \
             <input type="checkbox" class ="mdc-checkbox__native-control" /> \
@@ -2155,9 +2914,9 @@ var UIHelper = /*#__PURE__*/function () {
       return $elem;
     }
   }, {
-    key: "createUIChip",
-    value: function createUIChip(label) {
-      var $elem = $(' \
+    key: "createChip",
+    value: function createChip(label) {
+      var $elem = (0, _jqueryLib.$)(' \
         <div class="mdc-chip" role="row"> \
             <div class="mdc-chip__ripple"></div> \
             <span role="gridcell"> \
@@ -2172,14 +2931,16 @@ var UIHelper = /*#__PURE__*/function () {
       return $elem;
     }
   }, {
-    key: "createUISelect",
-    value: function createUISelect(values) {
-      var selected = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
-      var $elem = $('\
-        <div class="mdc-select mdc-select--outlined mdc-select--no-label mdc-data-table__pagination-rows-per-page-select"> \
-            <div class="mdc-select__anchor" role="button" aria-haspopup="listbox" aria-labelledby="demo-pagination-select" tabindex="0"> \
+    key: "createSelect",
+    value: function createSelect(id, label, values) {
+      var selected = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : '';
+      var $elem = (0, _jqueryLib.$)('\
+        <div class="mdc-select mdc-select--filled ' + (label.length ? '' : 'mdc-select--no-label') + ' "> \
+            <div class="mdc-select__anchor" role="button" tabindex="0"> \
+                <span class="mdc-select__ripple"></span> \
+                ' + (label.length ? '<span class="mdc-floating-label">' + label + '</span>' : '') + '\
                 <span class="mdc-select__selected-text-container"> \
-                    <span id="demo-pagination-select" class="mdc-select__selected-text">10</span> \
+                    <span class="mdc-select__selected-text">' + selected + '</span> \
                 </span> \
                 <span class="mdc-select__dropdown-icon"> \
                     <svg class="mdc-select__dropdown-icon-graphic" viewBox="7 10 10 5"> \
@@ -2187,10 +2948,7 @@ var UIHelper = /*#__PURE__*/function () {
                         <polygon class="mdc-select__dropdown-icon-active" stroke="none" fill-rule="evenodd" points="7 15 12 10 17 15"></polygon> \
                     </svg> \
                 </span> \
-                <span class="mdc-notched-outline mdc-notched-outline--notched"> \
-                    <span class="mdc-notched-outline__leading"></span> \
-                    <span class="mdc-notched-outline__trailing"></span> \
-                </span> \
+                <span class="mdc-line-ripple"></span> \
             </div> \
             <div class="mdc-select__menu mdc-menu mdc-menu-surface mdc-menu-surface--fullwidth" role="listbox"> \
                 <input type="text" style="display: none" /> \
@@ -2203,8 +2961,9 @@ var UIHelper = /*#__PURE__*/function () {
 
       if (!!values && values.constructor === Object) {
         for (var key in values) {
-          var $line = $(' \
-                <li class="mdc-list-item " role="option" data-value="' + key + '"> \
+          var $line = (0, _jqueryLib.$)(' \
+                <li class="mdc-list-item" role="option" data-value="' + key + '"> \
+                    <span class="mdc-list-item__ripple"></span> \
                     <span class="mdc-list-item__text">' + values[key] + '</span> \
                 </li>');
 
@@ -2223,8 +2982,9 @@ var UIHelper = /*#__PURE__*/function () {
             for (_iterator.s(); !(_step = _iterator.n()).done;) {
               var value = _step.value;
 
-              var _$line = $(' \
+              var _$line = (0, _jqueryLib.$)(' \
                 <li class="mdc-list-item" role="option" data-value="' + value + '"> \
+                    <span class="mdc-list-item__ripple"></span> \
                     <span class="mdc-list-item__text">' + value + '</span> \
                 </li>');
 
@@ -2241,16 +3001,17 @@ var UIHelper = /*#__PURE__*/function () {
           }
         }
 
-      var select = new _select.MDCSelect($elem[0]);
+      var select = new _select.MDCSelect($elem[0]); // make the element behave like an `input` element
+
       select.listen('MDCSelect:change', function () {
         $elem.find('input').val(select.value).trigger('change');
       });
       return $elem;
     }
   }, {
-    key: "createUITableFooter",
-    value: function createUITableFooter() {
-      var $elem = $(' \
+    key: "createPagination",
+    value: function createPagination() {
+      var $elem = (0, _jqueryLib.$)(' \
         <div class="mdc-data-table__pagination"> \
             <div class="mdc-data-table__pagination-trailing"> \
                 <div class="pagination-rows-per-page mdc-data-table__pagination-rows-per-page"></div> \
@@ -2259,6 +3020,14 @@ var UIHelper = /*#__PURE__*/function () {
                 </div> \
             </div> \
         </div>');
+      return $elem;
+    }
+  }, {
+    key: "createPaginationSelect",
+    value: function createPaginationSelect(id, label, values) {
+      var selected = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : '';
+      var $elem = UIHelper.createSelect(id, label, values, selected);
+      $elem.addClass('mdc-data-table__pagination-rows-per-page-select');
       return $elem;
     }
     /*
@@ -2282,7 +3051,7 @@ var UIHelper = /*#__PURE__*/function () {
 
       $thead.find('th:first-child').find('input[type="checkbox"]:not([data-decorated])').attr('data-decorated', '1').on('change', function (event) {
         console.log('tr onchange');
-        var $this = $(event.currentTarget);
+        var $this = (0, _jqueryLib.$)(event.currentTarget);
 
         if ($this.prop('checked')) {
           console.log('marking as checked');
@@ -2300,7 +3069,7 @@ var UIHelper = /*#__PURE__*/function () {
 
       $tbody.find('td:first-child').find('input[type="checkbox"]:not([data-decorated]').attr('data-decorated', '1').on('change', function (event) {
         console.log('td onchange');
-        var $this = $(event.currentTarget);
+        var $this = (0, _jqueryLib.$)(event.currentTarget);
         var $row = $this.closest('tr');
 
         if ($this.prop('checked')) {
@@ -2329,7 +3098,7 @@ var UIHelper = /*#__PURE__*/function () {
 
       $thead.find('th:not([data-decorated]').attr('data-decorated', '1').hover(function (event) {
         // set hover and sort order indicator
-        var $this = $(event.currentTarget);
+        var $this = (0, _jqueryLib.$)(event.currentTarget);
         $this.addClass('hover');
 
         if ($this.hasClass('sortable')) {
@@ -2345,7 +3114,7 @@ var UIHelper = /*#__PURE__*/function () {
         }
       }, function (event) {
         // unset hover and sort order indicator
-        var $this = $(event.currentTarget);
+        var $this = (0, _jqueryLib.$)(event.currentTarget);
         $this.removeClass('hover');
 
         if ($this.hasClass('sortable')) {
@@ -2360,7 +3129,7 @@ var UIHelper = /*#__PURE__*/function () {
           }
         }
       }).on('click', function (event) {
-        var $this = $(event.currentTarget); // change sortname and/or sortorder
+        var $this = (0, _jqueryLib.$)(event.currentTarget); // change sortname and/or sortorder
 
         if ($this.hasClass('sortable')) {
           // set order according to column field
@@ -2417,16 +3186,95 @@ var _createClass2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtim
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/defineProperty */ "./node_modules/@babel/runtime/helpers/defineProperty.js"));
 
 var Widget = /*#__PURE__*/function () {
-  function Widget(value) {
+  function Widget(type, label, value, config) {
     (0, _classCallCheck2.default)(this, Widget);
     (0, _defineProperty2.default)(this, "value", void 0);
+    (0, _defineProperty2.default)(this, "label", void 0);
+    (0, _defineProperty2.default)(this, "type", void 0);
+    (0, _defineProperty2.default)(this, "mode", '');
+    (0, _defineProperty2.default)(this, "id", '');
+    (0, _defineProperty2.default)(this, "readonly", false);
+    (0, _defineProperty2.default)(this, "config", void 0);
+    console.log('Widget constructor', type, label, value, config);
     this.value = value;
+    this.label = label;
+    this.type = type;
+    this.config = config;
+    this.init();
   }
 
   (0, _createClass2.default)(Widget, [{
+    key: "init",
+    value: function init() {
+      var S4 = function S4() {
+        return ((1 + Math.random()) * 0x10000 | 0).toString(16).substring(1);
+      }; // generate a random guid
+
+
+      this.id = S4() + S4() + "-" + S4() + "-" + S4() + "-" + S4() + "-" + S4() + S4() + S4(); // assign default mode
+
+      this.mode = 'view';
+    }
+  }, {
+    key: "getId",
+    value: function getId() {
+      return this.id;
+    }
+  }, {
     key: "getValue",
     value: function getValue() {
       return this.value;
+    }
+  }, {
+    key: "getLabel",
+    value: function getLabel() {
+      return this.label;
+    }
+  }, {
+    key: "getType",
+    value: function getType() {
+      return this.type;
+    }
+  }, {
+    key: "getMode",
+    value: function getMode() {
+      return this.mode;
+    }
+  }, {
+    key: "getConfig",
+    value: function getConfig() {
+      return this.config;
+    }
+  }, {
+    key: "setValue",
+    value: function setValue(value) {
+      console.log('Widget::setValue', value);
+      this.value = value;
+      return this;
+    }
+  }, {
+    key: "setLabel",
+    value: function setLabel(label) {
+      this.label = label;
+      return this;
+    }
+  }, {
+    key: "setType",
+    value: function setType(type) {
+      this.type = type;
+      return this;
+    }
+  }, {
+    key: "setMode",
+    value: function setMode(mode) {
+      this.mode = mode;
+      return this;
+    }
+  }, {
+    key: "setReadonly",
+    value: function setReadonly(readonly) {
+      this.readonly = readonly;
+      return this;
     }
     /**
      * @return always returns a JQuery object
@@ -2436,6 +3284,13 @@ var Widget = /*#__PURE__*/function () {
     key: "render",
     value: function render() {
       return $();
+    }
+  }, {
+    key: "attach",
+    value: function attach() {
+      var $elem = $('<div/>');
+      $elem.attr('id', this.getId());
+      return $elem;
     }
   }]);
   return Widget;
@@ -2473,6 +3328,12 @@ var _getPrototypeOf2 = _interopRequireDefault(__webpack_require__(/*! @babel/run
 
 var _Widget2 = _interopRequireDefault(__webpack_require__(/*! ./Widget */ "./build/widgets/Widget.js"));
 
+var _materialLib = __webpack_require__(/*! ../material-lib */ "./build/material-lib.js");
+
+var _jqueryLib = __webpack_require__(/*! ../jquery-lib */ "./build/jquery-lib.js");
+
+var _environment = __webpack_require__(/*! ../environment */ "./build/environment.js");
+
 function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
@@ -2482,80 +3343,45 @@ var WidgetDate = /*#__PURE__*/function (_Widget) {
 
   var _super = _createSuper(WidgetDate);
 
-  function WidgetDate(value) {
+  function WidgetDate(label, value, config) {
     (0, _classCallCheck2.default)(this, WidgetDate);
-    return _super.call(this, value);
+    return _super.call(this, 'date', label, value, config);
   }
 
   (0, _createClass2.default)(WidgetDate, [{
     key: "render",
     value: function render() {
-      return $('<span/>').text(new Date(this.getValue()).toLocaleDateString());
+      console.log('WidgetDate::render', this.value);
+      var $elem = (0, _jqueryLib.$)();
+      var value = this.value ? new Date(this.value).toLocaleDateString() : '';
+
+      switch (this.mode) {
+        case 'edit':
+          $elem = _materialLib.UIHelper.createInput('', this.label, value); // setup handler for relaying value update to parent layout
+
+          $elem.find('input').datepicker(_jqueryLib.locale[_environment.environment.locale]).on('change', function (event) {
+            console.log('WidgetDate : received change event');
+            var $this = (0, _jqueryLib.$)(event.currentTarget);
+            var date = $this.datepicker('getDate');
+            console.log(date);
+            $elem.trigger('_updatedWidget', date.toISOString());
+          });
+          break;
+
+        case 'view':
+        default:
+          $elem = _materialLib.UIHelper.createInputView('', this.label, value);
+          break;
+      }
+
+      $elem.attr('id', this.getId());
+      return $elem;
     }
   }]);
   return WidgetDate;
 }(_Widget2.default);
 
 exports.default = WidgetDate;
-
-/***/ }),
-
-/***/ "./build/widgets/WidgetInput.js":
-/*!**************************************!*\
-  !*** ./build/widgets/WidgetInput.js ***!
-  \**************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-var _interopRequireDefault = __webpack_require__(/*! @babel/runtime/helpers/interopRequireDefault */ "./node_modules/@babel/runtime/helpers/interopRequireDefault.js");
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.default = void 0;
-
-var _classCallCheck2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/classCallCheck */ "./node_modules/@babel/runtime/helpers/classCallCheck.js"));
-
-var _createClass2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/createClass */ "./node_modules/@babel/runtime/helpers/createClass.js"));
-
-var _inherits2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/inherits */ "./node_modules/@babel/runtime/helpers/inherits.js"));
-
-var _possibleConstructorReturn2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/possibleConstructorReturn */ "./node_modules/@babel/runtime/helpers/possibleConstructorReturn.js"));
-
-var _getPrototypeOf2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/getPrototypeOf */ "./node_modules/@babel/runtime/helpers/getPrototypeOf.js"));
-
-var _Widget2 = _interopRequireDefault(__webpack_require__(/*! ./Widget */ "./build/widgets/Widget.js"));
-
-var _materialLib = __webpack_require__(/*! ../material-lib */ "./build/material-lib.js");
-
-function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
-
-function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
-
-var WidgetInput = /*#__PURE__*/function (_Widget) {
-  (0, _inherits2.default)(WidgetInput, _Widget);
-
-  var _super = _createSuper(WidgetInput);
-
-  function WidgetInput(value) {
-    (0, _classCallCheck2.default)(this, WidgetInput);
-    return _super.call(this, value);
-  }
-
-  (0, _createClass2.default)(WidgetInput, [{
-    key: "render",
-    value: function render() {
-      var $elem = _materialLib.UIHelper.createUIInput('', this.getValue());
-
-      return $elem;
-    }
-  }]);
-  return WidgetInput;
-}(_Widget2.default);
-
-exports.default = WidgetInput;
 
 /***/ }),
 
@@ -2596,9 +3422,9 @@ var WidgetLink = /*#__PURE__*/function (_Widget) {
 
   var _super = _createSuper(WidgetLink);
 
-  function WidgetLink(value) {
+  function WidgetLink(label, value, config) {
     (0, _classCallCheck2.default)(this, WidgetLink);
-    return _super.call(this, value);
+    return _super.call(this, 'link', label, value, config);
   }
 
   (0, _createClass2.default)(WidgetLink, [{
@@ -2611,6 +3437,165 @@ var WidgetLink = /*#__PURE__*/function (_Widget) {
 }(_Widget2.default);
 
 exports.default = WidgetLink;
+
+/***/ }),
+
+/***/ "./build/widgets/WidgetSelect.js":
+/*!***************************************!*\
+  !*** ./build/widgets/WidgetSelect.js ***!
+  \***************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+var _interopRequireDefault = __webpack_require__(/*! @babel/runtime/helpers/interopRequireDefault */ "./node_modules/@babel/runtime/helpers/interopRequireDefault.js");
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.default = void 0;
+
+var _classCallCheck2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/classCallCheck */ "./node_modules/@babel/runtime/helpers/classCallCheck.js"));
+
+var _createClass2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/createClass */ "./node_modules/@babel/runtime/helpers/createClass.js"));
+
+var _inherits2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/inherits */ "./node_modules/@babel/runtime/helpers/inherits.js"));
+
+var _possibleConstructorReturn2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/possibleConstructorReturn */ "./node_modules/@babel/runtime/helpers/possibleConstructorReturn.js"));
+
+var _getPrototypeOf2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/getPrototypeOf */ "./node_modules/@babel/runtime/helpers/getPrototypeOf.js"));
+
+var _Widget2 = _interopRequireDefault(__webpack_require__(/*! ./Widget */ "./build/widgets/Widget.js"));
+
+var _materialLib = __webpack_require__(/*! ../material-lib */ "./build/material-lib.js");
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
+
+var WidgetSelect = /*#__PURE__*/function (_Widget) {
+  (0, _inherits2.default)(WidgetSelect, _Widget);
+
+  var _super = _createSuper(WidgetSelect);
+
+  function WidgetSelect(label, value, config) {
+    (0, _classCallCheck2.default)(this, WidgetSelect);
+    return _super.call(this, 'select', label, value, config);
+  }
+
+  (0, _createClass2.default)(WidgetSelect, [{
+    key: "render",
+    value: function render() {
+      console.log('WidgetSelect::render', this.config);
+      var $elem;
+      var value = this.value ? this.value : '';
+      console.log(this.value, value);
+
+      switch (this.mode) {
+        case 'edit':
+          $elem = _materialLib.UIHelper.createSelect('', this.label, this.config.values, value); // setup handler for relaying value update to parent layout
+
+          $elem.find('input').on('change', function (event) {
+            console.log('WidgetSelect : received change event');
+            var $this = $(event.currentTarget);
+            $elem.trigger('_updatedWidget', $this.val());
+          });
+          break;
+
+        case 'view':
+        default:
+          $elem = $('<span/>').text(value);
+          $elem = _materialLib.UIHelper.createInputView('', this.label, value);
+          break;
+      }
+
+      $elem.attr('id', this.getId());
+      return $elem;
+    }
+  }]);
+  return WidgetSelect;
+}(_Widget2.default);
+
+exports.default = WidgetSelect;
+
+/***/ }),
+
+/***/ "./build/widgets/WidgetString.js":
+/*!***************************************!*\
+  !*** ./build/widgets/WidgetString.js ***!
+  \***************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+var _interopRequireDefault = __webpack_require__(/*! @babel/runtime/helpers/interopRequireDefault */ "./node_modules/@babel/runtime/helpers/interopRequireDefault.js");
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.default = void 0;
+
+var _classCallCheck2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/classCallCheck */ "./node_modules/@babel/runtime/helpers/classCallCheck.js"));
+
+var _createClass2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/createClass */ "./node_modules/@babel/runtime/helpers/createClass.js"));
+
+var _inherits2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/inherits */ "./node_modules/@babel/runtime/helpers/inherits.js"));
+
+var _possibleConstructorReturn2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/possibleConstructorReturn */ "./node_modules/@babel/runtime/helpers/possibleConstructorReturn.js"));
+
+var _getPrototypeOf2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/getPrototypeOf */ "./node_modules/@babel/runtime/helpers/getPrototypeOf.js"));
+
+var _Widget2 = _interopRequireDefault(__webpack_require__(/*! ./Widget */ "./build/widgets/Widget.js"));
+
+var _materialLib = __webpack_require__(/*! ../material-lib */ "./build/material-lib.js");
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
+
+var WidgetString = /*#__PURE__*/function (_Widget) {
+  (0, _inherits2.default)(WidgetString, _Widget);
+
+  var _super = _createSuper(WidgetString);
+
+  function WidgetString(label, value, config) {
+    (0, _classCallCheck2.default)(this, WidgetString);
+    return _super.call(this, 'string', label, value, config);
+  }
+
+  (0, _createClass2.default)(WidgetString, [{
+    key: "render",
+    value: function render() {
+      var $elem;
+      var value = this.value ? this.value : '';
+
+      switch (this.mode) {
+        case 'edit':
+          $elem = _materialLib.UIHelper.createInput('', this.label, value, this.readonly); // setup handler for relaying value update to parent layout
+
+          $elem.find('input').on('change', function (event) {
+            console.log('WidgetString : received change event');
+            var $this = $(event.currentTarget);
+            $elem.trigger('_updatedWidget', $this.val());
+          });
+          break;
+
+        case 'view':
+        default:
+          $elem = _materialLib.UIHelper.createInputView('', this.label, value);
+          break;
+      }
+
+      $elem.attr('id', this.getId());
+      return $elem;
+    }
+  }]);
+  return WidgetString;
+}(_Widget2.default);
+
+exports.default = WidgetString;
 
 /***/ }),
 
@@ -2642,6 +3627,8 @@ var _getPrototypeOf2 = _interopRequireDefault(__webpack_require__(/*! @babel/run
 
 var _Widget2 = _interopRequireDefault(__webpack_require__(/*! ./Widget */ "./build/widgets/Widget.js"));
 
+var _materialLib = __webpack_require__(/*! ../material-lib */ "./build/material-lib.js");
+
 function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
@@ -2651,15 +3638,24 @@ var WidgetText = /*#__PURE__*/function (_Widget) {
 
   var _super = _createSuper(WidgetText);
 
-  function WidgetText(value) {
+  function WidgetText(label, value, config) {
     (0, _classCallCheck2.default)(this, WidgetText);
-    return _super.call(this, value);
+    return _super.call(this, 'text', label, value, config);
   }
 
   (0, _createClass2.default)(WidgetText, [{
     key: "render",
     value: function render() {
-      return $('<span/>').text(this.getValue());
+      var value = this.value ? this.value : '';
+
+      switch (this.mode) {
+        case 'edit':
+          return _materialLib.UIHelper.createInput('', this.label, value);
+
+        case 'view':
+        default:
+          return $('<span/>').text(value);
+      }
     }
   }]);
   return WidgetText;

@@ -39,6 +39,8 @@ export class View {
     // Arrray of available filters from View definition
     private filters: any;
 
+    // Mode under which the view is to be displayed ('View' [default], or 'edit')
+    private mode;
 
     // List of currently selected filters from View definition (for filterable types)    
     private applied_filters_ids: any[];
@@ -54,13 +56,14 @@ export class View {
      * @param type 
      * @param name 
      * @param domain 
-     */
-    
-    constructor(context: Context, entity: string, type: string, name: string, domain: any[], lang: string) {
+     */    
+    constructor(context: Context, entity: string, type: string, name: string, domain: any[], mode: string, lang: string) {
         this.context = context;
         this.entity = entity;
         this.type = type; 
         this.name = name;
+
+        this.mode = mode;
 
         this.domain = domain;        
         this.order = 'id';
@@ -69,9 +72,9 @@ export class View {
         this.limit = 25;
         this.lang = lang;
 
-        this.$headerContainer = $('<div />').addClass('sb-view-list-header');
-        this.$layoutContainer = $('<div />').addClass('sb-view-list-layout');
-        this.$footerContainer = $('<div />').addClass('sb-view-list-footer');
+        this.$headerContainer = $('<div />').addClass('sb-view-header');
+        this.$layoutContainer = $('<div />').addClass('sb-view-layout');
+        this.$footerContainer = $('<div />').addClass('sb-view-footer');
 
         this.filters = {};
         this.applied_filters_ids = [];
@@ -102,14 +105,20 @@ export class View {
             await this.model.init();
 
             if(['list', 'kanban'].indexOf(this.type) >= 0) {
+                this.$layoutContainer.addClass('sb-view-list-layout');
                 this.layoutListHeader();
                 this.layoutListFooter();
             }
+            if(['form'].indexOf(this.type) >= 0) {
+                this.$layoutContainer.addClass('sb-view-form-layout');
+                this.layoutFormHeader();
+            }            
         }
         catch(err) {
             console.log('Unable to init view ('+this.entity+'.'+this.type+'.'+this.name+')', err);
         }
     }
+
 
 
     public setField(field: string, value: any) {
@@ -190,6 +199,14 @@ export class View {
         return this.model_fields;
     }
 
+    public setMode(mode: string) {
+        this.mode = mode;
+    }
+
+    public getMode() {
+        return this.mode;
+    }
+
 
     /**
      * Generates a map holding all fields that are present in a given view (as items objects)
@@ -238,7 +255,7 @@ export class View {
 
 
     private layoutListFooter() {
-        let $footer = UIHelper.createUITableFooter();
+        let $footer = UIHelper.createPagination().addClass('sb-view-list-footer');
 
         $footer.find('.pagination-total')
         .append( $('<span class="sb-view-list-footer-start"></span>') ).append( $('<span />').text('-') )
@@ -247,21 +264,21 @@ export class View {
 
         $footer.find('.pagination-navigation')
         .append(
-            UIHelper.createUIButton('', '', 'icon', 'first_page').addClass('sb-view-list-footer-first_page') 
+            UIHelper.createButton('', '', 'icon', 'first_page').addClass('sb-view-list-footer-first_page') 
             .on('click', (event: any) => {
                 this.setStart(0);
                 this.onchangeView();
             })
         )
         .append(
-            UIHelper.createUIButton('', '', 'icon', 'chevron_left').addClass('sb-view-list-footer-prev_page')
+            UIHelper.createButton('', '', 'icon', 'chevron_left').addClass('sb-view-list-footer-prev_page')
             .on('click', (event: any) => {
                 this.setStart( Math.max(0, this.getStart() - this.getLimit()) );
                 this.onchangeView();
             })
         )
         .append(
-            UIHelper.createUIButton('', '', 'icon', 'chevron_right').addClass('sb-view-list-footer-next_page')
+            UIHelper.createButton('', '', 'icon', 'chevron_right').addClass('sb-view-list-footer-next_page')
             .on('click', (event: any) => {
                 let new_start:number = Math.min( this.getTotal()-1, this.getStart() + this.getLimit() );
                 console.log('new start', new_start, this.getStart(), this.getLimit());
@@ -270,7 +287,7 @@ export class View {
             })
         )
         .append(
-            UIHelper.createUIButton('', '', 'icon', 'last_page').addClass('sb-view-list-footer-last_page')
+            UIHelper.createButton('', '', 'icon', 'last_page').addClass('sb-view-list-footer-last_page')
             .on('click', (event: any) => {
                 let new_start:number = this.getTotal()-1;
                 this.setStart(new_start);
@@ -278,10 +295,10 @@ export class View {
             })
         );
 
-        let $select = UIHelper.createUISelect([1, 2, 5, 10, 20, 100], 10).addClass('sb-view-list-footer-limit_select');
+        let $select = UIHelper.createPaginationSelect('', '', [1, 2, 5, 10, 20, 100], 10).addClass('sb-view-list-footer-limit_select');
         
         $footer.find('.pagination-rows-per-page')
-        .append(UIHelper.createUIIcon('list'))
+        .append(UIHelper.createIcon('list'))
         .append($select);
 
         $select.find('input').on('change', (event: any) => {
@@ -295,6 +312,7 @@ export class View {
     }
 
     private layoutListHeader() {
+        let $elem = $('<div />').addClass('sb-view-list-header');
         // container for holding chips of currently applied filters
         let $filters_set = $('<div />').addClass('sb-view-list-header-filters-set mdc-chip-set').attr('role', 'grid');
 
@@ -302,19 +320,19 @@ export class View {
         let $filters_menu = $('<ul/>').attr('role', 'menu').addClass('mdc-list');
         // button for displaying the filters menu
         let $filters_button = $('<div/>').addClass('sb-view-list-header-filters mdc-menu-surface--anchor')
-        .append( UIHelper.createUIButton('view-filters', 'filtres', 'mini-fab', 'filter_list') )
+        .append( UIHelper.createButton('view-filters', 'filtres', 'mini-fab', 'filter_list') )
         .append( $('<div/>').addClass('sb-view-list-header-filters-menu mdc-menu mdc-menu-surface').css({"margin-top": '48px'}).append($filters_menu) );
         
         for(let filter_id in this.filters) {
             let filter = this.filters[filter_id];
 
-            UIHelper.createUIListItem(filter.description)
+            UIHelper.createListItem(filter.description)
             .appendTo($filters_menu)
             .attr('id', filter_id)
             .on('click', (event) => {
                 let $this = $(event.currentTarget);                
                 $filters_set.append(
-                    UIHelper.createUIChip(filter.description)
+                    UIHelper.createChip(filter.description)
                     .attr('id', filter_id)
                     .on('click', (event) => {
                         let $this = $(event.currentTarget)
@@ -341,14 +359,14 @@ export class View {
         let $fields_toggle_menu = $('<ul/>').attr('role', 'menu').addClass('mdc-list');
         // button for displaying the fields menu
         let $fields_toggle_button = $('<div/>').addClass('sb-view-list-header-fields_toggle mdc-menu-surface--anchor')        
-        .append( UIHelper.createUIButton('view-filters', 'fields', 'mini-fab', 'more_vert') )
+        .append( UIHelper.createButton('view-filters', 'fields', 'mini-fab', 'more_vert') )
         .append( $('<div/>').addClass('sb-view-list-header-fields_toggle-menu mdc-menu mdc-menu-surface').append($fields_toggle_menu) );
 
         $.each(this.getViewSchema().layout.items, (i, item) => {            
             let label = (item.hasOwnProperty('label'))?item.label:item.value.charAt(0).toUpperCase() + item.value.slice(1);
             let visible = (item.hasOwnProperty('visible'))?item.visible:true;
 
-            UIHelper.createUIListItemCheckbox('sb-fields-toggle-checkbox-'+item.value, label)
+            UIHelper.createListItemCheckbox('sb-fields-toggle-checkbox-'+item.value, label)
             .appendTo($fields_toggle_menu)
             .find('input')
             .on('change', (event) => {
@@ -369,9 +387,11 @@ export class View {
 
 
         // attach elements to header toolbar
-        this.$headerContainer.append( $filters_button );
-        this.$headerContainer.append( $filters_set );        
-        this.$headerContainer.append( $fields_toggle_button );
+        $elem.append( $filters_button );
+        $elem.append( $filters_set );        
+        $elem.append( $fields_toggle_button );
+
+        this.$headerContainer.append( $elem );
     }
 
     private layoutListRefresh(full: boolean = false) {
@@ -391,6 +411,54 @@ export class View {
         this.$footerContainer.find('.sb-view-list-footer-next_page').prop('disabled', !(start <= total-limit));
         this.$footerContainer.find('.sb-view-list-footer-last_page').prop('disabled', !(start <= total-limit));        
     }
+
+    private layoutFormHeader() {
+        // container for holding chips of currently applied filters
+        let $actions_set = $('<div />').addClass('sb-view-form-header-actions');
+
+        switch(this.mode) {
+            case 'view':
+                $actions_set
+                .append( 
+                    UIHelper.createButton('action-edit', 'Modifier', 'raised')
+                    .on('click', () => {
+                        $('#sb-events').trigger('_openContext', new Context(this.entity, this.type, 'default', this.domain, 'edit'));
+                    })
+                )
+                .append( 
+                    UIHelper.createButton('action-create', 'Créer', 'text')
+                    .on('click', async () => {
+                        // create a new object
+                        let object = await ApiService.create(this.entity);
+                        // request a new Context for editing the new object
+                        $('#sb-events').trigger('_openContext', new Context(this.entity, this.type, 'default', [['id', '=', object.id], ['state', '=', 'draft']], 'edit'));
+                    })
+                );
+                break;
+            case 'edit':
+                $actions_set
+                .append( 
+                    UIHelper.createButton('action-create', 'Sauver', 'raised')
+                    .on('click', async () => {
+                        let objects = this.model.get();
+                        let object = objects[0];
+                        await ApiService.update(this.entity, [object['id']], object);
+                        $('#sb-events').trigger('_closeContext');
+                    })
+                )
+                .append( 
+                    UIHelper.createButton('action-cancel', 'Annuler', 'outlined')
+                    .on('click', async () => {
+                        $('#sb-events').trigger('_closeContext');
+                    })
+                );
+                break;
+        }
+    
+        // attach elements to header toolbar
+        this.$headerContainer.append( $actions_set );
+    }
+
 
     private layoutRefresh(full: boolean = false) {
         this.layout.refresh(full);
@@ -418,15 +486,19 @@ modifications des champs (a rpriori un par un) : relayer les changementrs depuis
      * @param ids       array   one or more objecft identifiers
      * @param values    object   map of fields names and their related values
      */
-    public onchangeViewModel(ids: [], values: object) {
-        this.model.update(ids, values);
+    public onchangeViewModel(ids: Array<any>, values: object) {
+        this.model.change(ids, values);
+        // model has changed : forms need to re-check the visibility attributes                
+        this.onchangeModel();
     }
     
     /**
-     * Callback for requesting a Layout update
+     * Callback for requesting a Layout update: the widgets in the layout need to be refreshed.
      * Requested from Model when a change occured in the Collection (as consequence of domain or params update)
+     * If `full`is set to true, then the layout is re-generated
      */
     public onchangeModel(full: boolean = false) {
+        console.log('View::onchangeModel', full, this.model.get());
         this.layoutRefresh(full);
     }
     
@@ -435,8 +507,8 @@ modifications des champs (a rpriori un par un) : relayer les changementrs depuis
      * Requested either from view: domain has been updated
      * or from layout: context has been updated (sort column, sorting order, limit, page, ...)
      */
-    public onchangeView() {
-        this.model.refresh();
+    public async onchangeView() {
+        await this.model.refresh();
     }
 }
 
