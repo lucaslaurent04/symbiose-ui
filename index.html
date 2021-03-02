@@ -12,6 +12,7 @@
         <meta name="description" content="">        
 
         <link rel="stylesheet" href="css/font-awesome.min.css">
+        <link rel="stylesheet" href="css/material-basics.css">
         
         
         <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,600,700,400italic|Roboto+Mono:400,500|Material+Icons|Google+Material+Icons" />
@@ -69,85 +70,154 @@ body, html {
     box-sizing: border-box;
 }
 
+.sb-container-header {
+    margin-left: 12px;
+    height: 48px;
+}
 
+.sb-container-header h3 {
+    line-height: 48px;
+}
 
+.sb-context {
+    /* container height minus the header */
+    height: calc(100% - 48px);
+}
 
 .sb-view { 
     position: relative;
+    height: 100%;
+}
+
+.sb-view-layout {
+    /* height must be decremented by heght of other elements from parent (header and footer) */
+    height: calc(100% - 112px);
 }
 
 .sb-layout {
     position: relative;
+    height: 100%;
 }
 
-.sb-view-list-layout table th {
+.mdc-data-table {
+    height: 100%;
+}
+
+.mdc-data-table__table-container::-webkit-scrollbar {
+    width: 4px;
+    overflow-y: scroll;
+    background: #EAEAEA;
+
+}
+
+.mdc-data-table__table-container::-webkit-scrollbar-thumb {
+    background: var(--mdc-theme-primary, #6200ee);
+    border-radius: 10px;
+}
+
+.sb-view-layout-list table th {
     cursor: pointer;
     user-select: none;
+    position: sticky;
+    top: 0;
+    z-index: 3;
 }
 
-.sb-view-list-layout table th.sortable.hover {
+.sb-view-layout-list table th.sortable.hover {
     background-color: #f0f0f0;
 }
 
-.sb-view-list-layout table th.sorted {
+.sb-view-layout-list table th.sorted {
     color: black;
 }
 
-.sb-view-list-layout table th.asc::after, .sb-view-list-layout table th.desc::after {
+.sb-view-layout-list table th.asc::after, .sb-view-layout-list table th.desc::after {
     position: absolute;
     margin-left: 6px;
     font-family: FontAwesome;
     opacity: 0.3;
 }
 
-.sb-view-list-layout table th.asc::after {
+.sb-view-layout-list table th.asc::after {
     content: "\f0d7";
 }
 
-.sb-view-list-layout table th.desc::after {
+.sb-view-layout-list table th.desc::after {
     content: "\f0d8";
 }
 
-.sb-view-list-header {
+.sb-view-header-list {
     position: relative;
+    height: 112px;
+    line-height: 112px;
+}
+
+.sb-view-header-list-actions {
+    margin-left: 12px;
+    height: 56px;
+    line-height: 56px;
+}
+
+.sb-view-header-list-actions-selected {
+    position: relative;
+    display: inline-block;
+    margin-left: 12px;
+}
+/* todo: improve this (add a custom class)*/
+.sb-view-header-list-actions-selected .mdc-button__label {
+    padding-right: 10px;
+}
+
+.sb-view-header-list-actions-selected .mdc-button__label::after {
+    content: "\f0d7";
+}
+
+.sb-view-header-list-actions-selected .mdc-button__label::after {
+    position: absolute;
+    margin-left: 6px;
+    font-family: FontAwesome;
+    opacity: 0.5;
+}
+
+.sb-view-header-list-navigation {
     height: 56px;
     line-height: 56px;
     display: flex;
 }
 
-.sb-view-list-header-filters {
+.sb-view-header-list-filters {
     margin-top: 4px;
 }
 
-.sb-view-list-header-filters .sb-view-list-header-filters-menu {
+.sb-view-header-list-filters .sb-view-header-list-filters-menu {
     min-width: 250px;
     left: 10px !important;
 }
 
-.sb-view-list-header-filters-set {
+.sb-view-header-list-filters-set {
     margin-top: 4px;
 }
 
-.sb-view-list-header-filters button {
+.sb-view-header-list-filters button {
     background-color: white;
     color: black;
     box-shadow: none !important;
 }
 
-.sb-view-list-header-fields_toggle {
-    flex-grow: 1;
+.sb-view-header-list-fields_toggle {
+    /* flex-grow: 1; */
     margin-top: 4px;
     margin-right: 10px;
     text-align: right;
 }
 
-.sb-view-list-header-fields_toggle button {
+.sb-view-header-list-fields_toggle button {
     background-color: white;
     color: black;
     box-shadow: none !important;
 }
 
-.sb-view-list-header-fields_toggle .sb-view-list-header-fields_toggle-menu {
+.sb-view-header-list-fields_toggle .sb-view-header-list-fields_toggle-menu {
     min-width: 250px;
     max-width: 250px;
     right: 0 !important;
@@ -155,11 +225,17 @@ body, html {
     margin-top: 44px;
 }
 
-.sb-view-list-footer-limit_select {
+.sb-view-header-list-pagination {
+    flex: 1;
+    flex-grow: 1;
+
+}
+
+.sb-view-header-list-pagination-limit_select {
     margin-left: 12px;
 }
 
-.sb-view-list-footer .pagination-navigation {
+.sb-view-header-list-pagination .pagination-navigation {
     user-select: none; 
 }
 
@@ -181,7 +257,7 @@ body, html {
     display: flex;
     flex-direction: row;
     align-items: center;
-    padding: 0 10px;
+    padding: 0 14px;
     max-width: 250px;
 }
 
@@ -191,22 +267,22 @@ body, html {
 }
 
 
-.sb-view-list-layout .mdc-line-ripple::before, .sb-view-list-layout .mdc-line-ripple::after {
+.sb-view-layout-list .mdc-line-ripple::before, .sb-view-layout-list .mdc-line-ripple::after {
   border: none !important;
 }
 
-.sb-view-list-layout .sb-view-form-field-label {
+.sb-view-layout-list .sb-view-form-field-label {
     display: none !important;
 }
-.sb-view-list-layout .sb-view-form-field-mode-view::before {
+.sb-view-layout-list .sb-view-form-field-mode-view::before {
     display: none !important;
 }
-.sb-view-list-layout .sb-view-form-field-mode-view {
+.sb-view-layout-list .sb-view-form-field-mode-view {
 	background-color: transparent !important;
     height: 44px !important;
 }
 
-.sb-view-list-layout .sb-view-form-field-mode-view input {
+.sb-view-layout-list .sb-view-form-field-mode-view input {
     height: 100%;
 }
 
@@ -219,6 +295,10 @@ body, html {
 
 .mdc-list-item .mdc-checkbox {
     margin-left: -11px;
+}
+
+.mdc-list-item__graphic {
+    color: rgba(0,0,0,.54) !important;
 }
 
 .mdc-chip .mdc-chip__icon {
@@ -247,6 +327,9 @@ body, html {
     color: rgba(0, 0, 0, 0.8) !important;
 }
 
+.mdc-layout-grid {
+    padding: 12px !important;
+}
 
 
 
@@ -324,8 +407,8 @@ body, html {
 
 
 .ui-datepicker-calendar thead th {
-  color: #999999;
-  font-weight: 200;
+    color: #999999;
+    font-weight: 200;
 }
 
 .ui-datepicker-buttonpane {

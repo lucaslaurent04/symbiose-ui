@@ -11,11 +11,14 @@ import Model from "./Model";
 
 export class View {
 
-    public context: any;
     public entity: string;
     public type: string; 
     public name: string;
 
+    // Mode under which the view is to be displayed ('View' [default], or 'edit')
+    public mode;
+    // Purpose for which the view is to be displayed (this impacts the action buttons in the header)
+    public purpose;
 
     // View holds the params for search requests performed by Model
     public domain: any[];
@@ -39,12 +42,15 @@ export class View {
     // Arrray of available filters from View definition
     private filters: any;
 
-    // Mode under which the view is to be displayed ('View' [default], or 'edit')
-    private mode;
 
     // List of currently selected filters from View definition (for filterable types)    
     private applied_filters_ids: any[];
 
+    // When type is list, one or more objects might be selected
+    private selected_ids: any[];
+
+    public $container: any;
+    
     public $headerContainer: any;
     public $layoutContainer: any;
     public $footerContainer: any;
@@ -57,13 +63,13 @@ export class View {
      * @param name 
      * @param domain 
      */    
-    constructor(context: Context, entity: string, type: string, name: string, domain: any[], mode: string, lang: string) {
-        this.context = context;
+    constructor(entity: string, type: string, name: string, domain: any[], mode: string, purpose:string, lang: string) {
         this.entity = entity;
         this.type = type; 
         this.name = name;
 
         this.mode = mode;
+        this.purpose = purpose;
 
         this.domain = domain;        
         this.order = 'id';
@@ -72,9 +78,13 @@ export class View {
         this.limit = 25;
         this.lang = lang;
 
-        this.$headerContainer = $('<div />').addClass('sb-view-header');
-        this.$layoutContainer = $('<div />').addClass('sb-view-layout');
-        this.$footerContainer = $('<div />').addClass('sb-view-footer');
+        this.selected_ids = [];
+
+        this.$container = $('<div />').addClass('sb-view');
+
+        this.$headerContainer = $('<div />').addClass('sb-view-header').appendTo(this.$container);
+        this.$layoutContainer = $('<div />').addClass('sb-view-layout').appendTo(this.$container);
+        this.$footerContainer = $('<div />').addClass('sb-view-footer').appendTo(this.$container);
 
         this.filters = {};
         this.applied_filters_ids = [];
@@ -85,11 +95,12 @@ export class View {
         this.init();
     }
 
+    public getContainer() {
+        return this.$container;
+    }
     
     public async init() {
         console.log('View::init');
-        // inject View in parent Context object
-        this.context.$container.append(this.$headerContainer).append(this.$layoutContainer).append(this.$footerContainer);
 
         try {
             this.view_schema = await ApiService.getView(this.entity, this.type + '.' + this.name);
@@ -105,7 +116,7 @@ export class View {
             await this.model.init();
 
             if(['list', 'kanban'].indexOf(this.type) >= 0) {
-                this.$layoutContainer.addClass('sb-view-list-layout');
+                this.$layoutContainer.addClass('sb-view-layout-list');
                 this.layoutListHeader();
                 this.layoutListFooter();
             }
@@ -152,7 +163,7 @@ export class View {
     }
 
     /**
-     * Applicable domain for the View corresponds to the parent Context domain with additional filters currently applied on the View
+     * Applicable domain for the View corresponds to initial domain (from  parent Context) with additional filters currently applied on the View
      */
     public getDomain() {
         console.log('View::getDomain', this.domain, this.applied_filters_ids);
@@ -255,30 +266,31 @@ export class View {
 
 
     private layoutListFooter() {
-        let $footer = UIHelper.createPagination().addClass('sb-view-list-footer');
+        /*
+        let $footer = UIHelper.createPagination().addClass('sb-view-header-list-pagination');
 
         $footer.find('.pagination-total')
-        .append( $('<span class="sb-view-list-footer-start"></span>') ).append( $('<span />').text('-') )
-        .append( $('<span class="sb-view-list-footer-end"></span>') ).append( $('<span />').text(' / ') )
-        .append( $('<span class="sb-view-list-footer-total"></span>') );
+        .append( $('<span class="sb-view-header-list-pagination-start"></span>') ).append( $('<span />').text('-') )
+        .append( $('<span class="sb-view-header-list-pagination-end"></span>') ).append( $('<span />').text(' / ') )
+        .append( $('<span class="sb-view-header-list-pagination-total"></span>') );
 
         $footer.find('.pagination-navigation')
         .append(
-            UIHelper.createButton('', '', 'icon', 'first_page').addClass('sb-view-list-footer-first_page') 
+            UIHelper.createButton('', '', 'icon', 'first_page').addClass('sb-view-header-list-pagination-first_page') 
             .on('click', (event: any) => {
                 this.setStart(0);
                 this.onchangeView();
             })
         )
         .append(
-            UIHelper.createButton('', '', 'icon', 'chevron_left').addClass('sb-view-list-footer-prev_page')
+            UIHelper.createButton('', '', 'icon', 'chevron_left').addClass('sb-view-header-list-pagination-prev_page')
             .on('click', (event: any) => {
                 this.setStart( Math.max(0, this.getStart() - this.getLimit()) );
                 this.onchangeView();
             })
         )
         .append(
-            UIHelper.createButton('', '', 'icon', 'chevron_right').addClass('sb-view-list-footer-next_page')
+            UIHelper.createButton('', '', 'icon', 'chevron_right').addClass('sb-view-header-list-pagination-next_page')
             .on('click', (event: any) => {
                 let new_start:number = Math.min( this.getTotal()-1, this.getStart() + this.getLimit() );
                 console.log('new start', new_start, this.getStart(), this.getLimit());
@@ -287,7 +299,7 @@ export class View {
             })
         )
         .append(
-            UIHelper.createButton('', '', 'icon', 'last_page').addClass('sb-view-list-footer-last_page')
+            UIHelper.createButton('', '', 'icon', 'last_page').addClass('sb-view-header-list-pagination-last_page')
             .on('click', (event: any) => {
                 let new_start:number = this.getTotal()-1;
                 this.setStart(new_start);
@@ -295,7 +307,7 @@ export class View {
             })
         );
 
-        let $select = UIHelper.createPaginationSelect('', '', [1, 2, 5, 10, 20, 100], 10).addClass('sb-view-list-footer-limit_select');
+        let $select = UIHelper.createPaginationSelect('', '', [1, 2, 5, 10, 20, 100], 10).addClass('sb-view-header-list-pagination-limit_select');
         
         $footer.find('.pagination-rows-per-page')
         .append(UIHelper.createIcon('list'))
@@ -309,19 +321,60 @@ export class View {
         });
 
         this.$footerContainer.append( $footer );
+        */
     }
 
     private layoutListHeader() {
-        let $elem = $('<div />').addClass('sb-view-list-header');
+        let $elem = $('<div />').addClass('sb-view-header-list');
+
+        let $level1 = $('<div />').addClass('sb-view-header-list-actions').appendTo($elem);
+        let $level2 = $('<div />').addClass('sb-view-header-list-navigation').appendTo($elem);
+
+
+        let $actions_set = $('<div />').addClass('sb-view-header-list-actions-set').appendTo($level1);
+
+        switch(this.purpose) {
+            case 'view':
+                $actions_set
+                .append( 
+                    UIHelper.createButton('action-edit', 'Créer', 'raised')
+                    .on('click', () => {
+                        $('#sb-events').trigger('_openContext', new Context(this.entity, 'form', 'default', [], 'edit', 'create'));
+                    })
+                );        
+                break;
+            case 'select':
+                $actions_set
+                .append( 
+                    UIHelper.createButton('action-select', 'Sélectionner', 'raised', 'check')
+                    .on('click', () => {
+                        // $('#sb-events').trigger('_openContext', new Context(this.entity, this.type, 'default', this.domain, 'edit', 'update'));
+                    })
+                );        
+                break;
+            case 'add':
+                $actions_set
+                .append( 
+                    UIHelper.createButton('action-add', 'Ajouter', 'raised', 'check')
+                    .on('click', () => {
+                        // $('#sb-events').trigger('_openContext', new Context(this.entity, this.type, 'default', this.domain, 'edit', 'update'));
+                    })
+                );
+                break;        
+        }
+
+
+
+
         // container for holding chips of currently applied filters
-        let $filters_set = $('<div />').addClass('sb-view-list-header-filters-set mdc-chip-set').attr('role', 'grid');
+        let $filters_set = $('<div />').addClass('sb-view-header-list-filters-set mdc-chip-set').attr('role', 'grid');
 
         // floating menu for filters selection
         let $filters_menu = $('<ul/>').attr('role', 'menu').addClass('mdc-list');
         // button for displaying the filters menu
-        let $filters_button = $('<div/>').addClass('sb-view-list-header-filters mdc-menu-surface--anchor')
+        let $filters_button = $('<div/>').addClass('sb-view-header-list-filters mdc-menu-surface--anchor')
         .append( UIHelper.createButton('view-filters', 'filtres', 'mini-fab', 'filter_list') )
-        .append( $('<div/>').addClass('sb-view-list-header-filters-menu mdc-menu mdc-menu-surface').css({"margin-top": '48px'}).append($filters_menu) );
+        .append( $('<div/>').addClass('sb-view-header-list-filters-menu mdc-menu mdc-menu-surface').css({"margin-top": '48px'}).append($filters_menu) );
         
         for(let filter_id in this.filters) {
             let filter = this.filters[filter_id];
@@ -355,12 +408,15 @@ export class View {
             filters_menu.open = !$filters_button.find('.mdc-menu').hasClass('mdc-menu-surface--open');
         });
 
+// todo : create a createMenu helper
         // floating menu for fields selection
         let $fields_toggle_menu = $('<ul/>').attr('role', 'menu').addClass('mdc-list');
+
+
         // button for displaying the fields menu
-        let $fields_toggle_button = $('<div/>').addClass('sb-view-list-header-fields_toggle mdc-menu-surface--anchor')        
+        let $fields_toggle_button = $('<div/>').addClass('sb-view-header-list-fields_toggle mdc-menu-surface--anchor')        
         .append( UIHelper.createButton('view-filters', 'fields', 'mini-fab', 'more_vert') )
-        .append( $('<div/>').addClass('sb-view-list-header-fields_toggle-menu mdc-menu mdc-menu-surface').append($fields_toggle_menu) );
+        .append( $('<div/>').addClass('sb-view-header-list-fields_toggle-menu mdc-menu mdc-menu-surface').append($fields_toggle_menu) );
 
         $.each(this.getViewSchema().layout.items, (i, item) => {            
             let label = (item.hasOwnProperty('label'))?item.label:item.value.charAt(0).toUpperCase() + item.value.slice(1);
@@ -386,10 +442,68 @@ export class View {
         });    
 
 
+
+        // pagination controls
+        let $pagination = UIHelper.createPagination().addClass('sb-view-header-list-pagination');
+
+        $pagination.find('.pagination-total')
+        .append( $('<span class="sb-view-header-list-pagination-start"></span>') ).append( $('<span />').text('-') )
+        .append( $('<span class="sb-view-header-list-pagination-end"></span>') ).append( $('<span />').text(' / ') )
+        .append( $('<span class="sb-view-header-list-pagination-total"></span>') );
+
+        $pagination.find('.pagination-navigation')
+        .append(
+            UIHelper.createButton('', '', 'icon', 'first_page').addClass('sb-view-header-list-pagination-first_page') 
+            .on('click', (event: any) => {
+                this.setStart(0);
+                this.onchangeView();
+            })
+        )
+        .append(
+            UIHelper.createButton('', '', 'icon', 'chevron_left').addClass('sb-view-header-list-pagination-prev_page')
+            .on('click', (event: any) => {
+                this.setStart( Math.max(0, this.getStart() - this.getLimit()) );
+                this.onchangeView();
+            })
+        )
+        .append(
+            UIHelper.createButton('', '', 'icon', 'chevron_right').addClass('sb-view-header-list-pagination-next_page')
+            .on('click', (event: any) => {
+                let new_start:number = Math.min( this.getTotal()-1, this.getStart() + this.getLimit() );
+                console.log('new start', new_start, this.getStart(), this.getLimit());
+                this.setStart(new_start);
+                this.onchangeView();
+            })
+        )
+        .append(
+            UIHelper.createButton('', '', 'icon', 'last_page').addClass('sb-view-header-list-pagination-last_page')
+            .on('click', (event: any) => {
+                let new_start:number = this.getTotal()-1;
+                this.setStart(new_start);
+                this.onchangeView();
+            })
+        );
+
+        let $select = UIHelper.createPaginationSelect('', '', [1, 2, 5, 10, 25, 50, 100], 10).addClass('sb-view-header-list-pagination-limit_select');
+        
+        $pagination.find('.pagination-rows-per-page')
+        .append($select);
+
+        $select.find('input').on('change', (event: any) => {
+            let $this = $(event.currentTarget);
+            this.setLimit(<number>$this.val());
+            this.setStart(0);
+            this.onchangeView();
+        });
+
+        
+
+
         // attach elements to header toolbar
-        $elem.append( $filters_button );
-        $elem.append( $filters_set );        
-        $elem.append( $fields_toggle_button );
+        $level2.append( $filters_button );
+        $level2.append( $filters_set );        
+        $level2.append( $pagination );
+        $level2.append( $fields_toggle_button );
 
         this.$headerContainer.append( $elem );
     }
@@ -400,16 +514,52 @@ export class View {
         let total: number = this.getTotal();
         let start: number = this.getStart() + 1;
         let end: number = start + limit - 1;
-        end = Math.min(end, start + this.model.get().length - 1);
+        end = Math.min(end, start + this.model.ids().length - 1);
         console.log('res', total, start, end, limit);
-        this.$footerContainer.find('.sb-view-list-footer-total').html(total);
-        this.$footerContainer.find('.sb-view-list-footer-start').html(start);
-        this.$footerContainer.find('.sb-view-list-footer-end').html(end);
+        this.$container.find('.sb-view-header-list-pagination-total').html(total);
+        this.$container.find('.sb-view-header-list-pagination-start').html(start);
+        this.$container.find('.sb-view-header-list-pagination-end').html(end);
 
-        this.$footerContainer.find('.sb-view-list-footer-first_page').prop('disabled', !(start > limit));
-        this.$footerContainer.find('.sb-view-list-footer-prev_page').prop('disabled', !(start > limit));
-        this.$footerContainer.find('.sb-view-list-footer-next_page').prop('disabled', !(start <= total-limit));
-        this.$footerContainer.find('.sb-view-list-footer-last_page').prop('disabled', !(start <= total-limit));        
+        this.$container.find('.sb-view-header-list-pagination-first_page').prop('disabled', !(start > limit));
+        this.$container.find('.sb-view-header-list-pagination-prev_page').prop('disabled', !(start > limit));
+        this.$container.find('.sb-view-header-list-pagination-next_page').prop('disabled', !(start <= total-limit));
+        this.$container.find('.sb-view-header-list-pagination-last_page').prop('disabled', !(start <= total-limit));
+
+
+        let $action_set = this.$container.find('.sb-view-header-list-actions-set');
+        $action_set.find('.sb-view-header-list-actions-selected').remove();
+
+        if(this.selected_ids.length > 0) {
+            let count = this.selected_ids.length;        
+
+            let $selected_menu = $('<ul/>').attr('role', 'menu').addClass('mdc-list');
+
+            let $fields_toggle_button = $('<div/>').addClass('sb-view-header-list-actions-selected mdc-menu-surface--anchor')        
+            .append( UIHelper.createButton('action-selected', count+' sélectionnés', 'outlined') )
+            .append( $('<div/>').addClass('mdc-menu mdc-menu-surface').css({"margin-top": '48px', "width": "100%"}).append($selected_menu) );
+
+            UIHelper.createListItem('Modifier', 'edit')
+            .appendTo($selected_menu)
+            .on('click', (event) => {
+                let selected_id = this.selected_ids[0];
+                $('#sb-events').trigger('_openContext', new Context(this.entity, 'form', 'default', ['id', '=', selected_id], 'edit', 'update'));
+            });
+
+            UIHelper.createListItem('Supprimer', 'delete')
+            .appendTo($selected_menu)
+            .on('click', (event) => {
+
+            });
+
+            let fields_toggle_menu = new MDCMenu($fields_toggle_button.find('.mdc-menu')[0]);        
+            $fields_toggle_button.find('button').on('click', () => {
+                fields_toggle_menu.open = !$fields_toggle_button.find('.mdc-menu').hasClass('mdc-menu-surface--open');
+            });  
+
+            $action_set.append($fields_toggle_button);
+        }
+
+
     }
 
     private layoutFormHeader() {
@@ -422,7 +572,7 @@ export class View {
                 .append( 
                     UIHelper.createButton('action-edit', 'Modifier', 'raised')
                     .on('click', () => {
-                        $('#sb-events').trigger('_openContext', new Context(this.entity, this.type, 'default', this.domain, 'edit'));
+                        $('#sb-events').trigger('_openContext', new Context(this.entity, this.type, 'default', this.domain, 'edit', 'update'));
                     })
                 )
                 .append( 
@@ -431,7 +581,7 @@ export class View {
                         // create a new object
                         let object = await ApiService.create(this.entity);
                         // request a new Context for editing the new object
-                        $('#sb-events').trigger('_openContext', new Context(this.entity, this.type, 'default', [['id', '=', object.id], ['state', '=', 'draft']], 'edit'));
+                        $('#sb-events').trigger('_openContext', new Context(this.entity, this.type, 'default', [['id', '=', object.id], ['state', '=', 'draft']], 'edit', 'create'));
                     })
                 );
                 break;
@@ -443,7 +593,7 @@ export class View {
                         let objects = this.model.get();
                         let object = objects[0];
                         await ApiService.update(this.entity, [object['id']], object);
-                        $('#sb-events').trigger('_closeContext');
+                        $('#sb-events').trigger('_closeContext', true);
                     })
                 )
                 .append( 
@@ -508,7 +658,15 @@ modifications des champs (a rpriori un par un) : relayer les changementrs depuis
      * or from layout: context has been updated (sort column, sorting order, limit, page, ...)
      */
     public async onchangeView() {
+        // reset selection
+        this.onchangeSelection([]);
         await this.model.refresh();
+    }
+
+    public onchangeSelection(selection: Array<any>) {
+        console.log('selection updated', selection);
+        this.selected_ids = selection;
+        this.layoutListRefresh();
     }
 }
 

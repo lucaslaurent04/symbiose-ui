@@ -85,24 +85,15 @@ export class Model {
     }
     
     public ids() {
-        return Object.keys(this.objects);
+        return this.objects.map( (object:any) => object['id']);
     }
 
     /**
      * Return the entire Collection
      *
      */
-    public get(as_array: boolean = false) {
-        let objects:any = [];
-        if(!as_array) {
-            return this.objects;
-        }
-        else {
-            for (let id of Object.keys(this.objects)) {
-                objects.push(this.objects[id]);
-            }
-        }
-        return objects;
+    public get() {        
+        return this.objects;
     }
     
     public getTotal() {

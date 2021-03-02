@@ -11,6 +11,8 @@ class eQ {
     
     // the main container in which the Context views are injected
     private $container: any;
+
+    private $headerContainer: any;
     
     // stack of Context (only current context is visible)
     private stack: Array<Context>;
@@ -24,6 +26,7 @@ class eQ {
         
         // `#sb-container` is a convention and must be present in the DOM
         this.$container = $('#sb-container');
+        this.$headerContainer = $('<div/>').addClass('sb-container-header').appendTo(this.$container);
         this.context = <Context>{};
         this.stack = [];
         this.init();
@@ -49,6 +52,43 @@ class eQ {
         });
         
     }
+
+    private getPurposeString(entity:string, type:string = 'list', purpose:string = 'view') {
+        let result: string = '';
+        let parts = entity.split('\\');
+        entity = <string>parts.pop();
+        if(purpose == 'view') {
+            result = entity;
+            if(type == 'list') {
+// todo : improve this                
+                result += 's';
+            }
+        }
+        else {
+            result = purpose + ' ' + entity;
+        }
+        return result;
+    }
+
+    private updateHeader() {
+        let $elem = $('<h3 />');
+        let text = '';
+
+        this.$headerContainer.empty().append($elem);
+
+        // use all contexts in stack...
+        for(let context of this.stack) {
+            if(context.hasOwnProperty('$container')) {
+                text += this.getPurposeString(context.getEntity(), context.getType(), context.getPurpose());
+                text += ' > ';
+            }
+        }
+        // + the active context
+        if(this.context.hasOwnProperty('$container')) {
+            text += this.getPurposeString(this.context.getEntity(), this.context.getType(), this.context.getPurpose());
+        }
+        $elem.text(text);
+    }
     
     private async openContext(context: Context) {
         // stack received context
@@ -57,21 +97,26 @@ class eQ {
             if(this.context.hasOwnProperty('$container')) {
                 // conainers are hidden and not detached in order to maintain the listeners
                 this.context.$container.hide();
-            }            
+            }
         }
         this.context = context;
         this.$container.append(this.context.getContainer());
+        this.updateHeader();
     }
     
-    private async closeContext() {
+    private async closeContext(refresh: boolean = false) {
         if(this.stack.length) {
             // destroy current context
             this.context.$container.remove();
             // restore previous context
             this.context = <Context>this.stack.pop();
-            await this.context.refresh();
+            // do we need to refresh ?
+            if(refresh) {
+                await this.context.refresh();
+            }            
             this.context.$container.show();
-        }        
+        }
+        this.updateHeader();
     }
     
     public test() {
@@ -79,9 +124,8 @@ class eQ {
         $("#test").dialog();
         $( "#datepicker" ).daterangepicker();
 
-        // console.log(new WidgetInput());
         
-        this.$sbEvents.trigger('_openContext', new Context('core\\User', 'form', 'default', []));
+        this.$sbEvents.trigger('_openContext', new Context('core\\User', 'list', 'default', []));
         /*
         setTimeout( () => {
             console.log('timeout1');

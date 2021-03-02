@@ -107,12 +107,16 @@ class UIHelper {
         return $elem;
     }
 
-    public static createListItem(label: string) {
+    public static createListItem(label: string, icon:string = '') {
         let $elem = $('\
         <li class="mdc-list-item"> \
-            <span class="mdc-list-item__ripple"></span> \
             <span class="mdc-list-item__text">'+label+'</span> \
+            <span class="mdc-list-item__ripple"></span> \
         </li>');
+
+        if(icon.length) {
+            $elem.prepend($('<span/>').addClass('mdc-list-item__graphic material-icons').text(icon));
+        }
 
         new MDCRipple($elem[0]);
         return $elem;
@@ -284,15 +288,12 @@ class UIHelper {
         .find('input[type="checkbox"]:not([data-decorated])')
         .attr('data-decorated', '1')
         .on('change', (event:any) => {
-            console.log('tr onchange');
             let $this = $(event.currentTarget);
             if($this.prop('checked')) {
-                console.log('marking as checked');
                 $table.find('tbody').find('td:first-child').find('input[type="checkbox"]').prop('checked', true);
                 $table.find('tbody').find('tr').addClass('mdc-data-table__row--selected');
             }
             else {
-                console.log('marking as unchecked');
                 $table.find('tbody').find('td:first-child').find('input[type="checkbox"]').prop('checked', false);
                 $table.find('tbody').find('tr').removeClass('mdc-data-table__row--selected');
             }
@@ -305,7 +306,6 @@ class UIHelper {
         .find('input[type="checkbox"]:not([data-decorated]')
         .attr('data-decorated', '1')
         .on('change', (event:any) => {
-            console.log('td onchange');
             let $this = $(event.currentTarget);
             let $row = $this.closest('tr');
 
@@ -321,7 +321,7 @@ class UIHelper {
             }
             else {
                 $row.removeClass('mdc-data-table__row--selected');
-                // none checkboxes checked ?
+                // none of the checkboxes checked ?
                 if($tbody.find('input:checked').length == 0) {
                     $thead.find('th:first-child').find('input').prop("indeterminate", false).prop("checked", false);
                 }

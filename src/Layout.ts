@@ -71,7 +71,6 @@ export class Layout {
         $tbody.find("input:checked").each( (i:number, elem:any) => {
             selection.push($(elem).attr('data-id'));
         });
-        console.log('selection', selection);
         return selection;
     }
     
@@ -170,7 +169,12 @@ export class Layout {
         let $tbody = $('<tbody/>').appendTo($table);
             
         // instanciate header row and the first column which contains the 'select-all' checkbox
-        let $hrow = $('<tr/>').append( UIHelper.createTableCellCheckbox(true) );
+        let $hrow = $('<tr/>');
+
+        UIHelper.createTableCellCheckbox(true).appendTo($hrow)
+        .find('input')
+        .on('click', () => setTimeout(() => this.view.onchangeSelection(this.getSelected()) ) );
+
 
         // create other columns, based on the col_model given in the configuration
         let schema = this.view.getViewSchema();
@@ -194,6 +198,11 @@ export class Layout {
                             this.view.setOrder(<string>$this.attr('name'));
                             this.view.setSort(<string>$this.attr('data-sort'));
                             this.view.onchangeView();
+                            // unselect all lines
+                            this.$layout.find('input[type="checkbox"]').each( (i:number, elem:any) => {
+                                $(elem).prop('checked', false).prop('indeterminate', false);
+                            });
+                    
                         }, 100);
                     }
                 });
@@ -241,8 +250,11 @@ export class Layout {
             let object = objects[id];
             let $row = $('<tr/>');
 
-            UIHelper.createTableCellCheckbox().appendTo($row).find('input').attr('data-id', object.id);
-           
+            UIHelper.createTableCellCheckbox().appendTo($row)
+            .find('input')
+            .attr('data-id', object.id)
+            .on('click', () => setTimeout( () => this.view.onchangeSelection(this.getSelected()) ) );
+
             for(let field of Object.keys(object)) {
                 let view_def = this.view.getField(field);
                 // field is not part of the view, skip it
