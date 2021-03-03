@@ -13,6 +13,7 @@ export class _ApiService {
         
     /**
      * Internal objects for cache management
+     * These are Map objects for storing promises of requests
      */
     private views: any;
     private translations: any;
@@ -20,7 +21,8 @@ export class _ApiService {
 
     private last_count: number; 
 
-    constructor() {
+
+    constructor() {        
 
         $.ajaxSetup({
             cache:false,
@@ -69,88 +71,87 @@ export class _ApiService {
      * schemas methods
      */
     private loadSchema(entity:string) {
-        var promise = $.Deferred();
         var package_name = this.getPackageName(entity);
         var class_name = this.getClassName(entity);
         
-        if(typeof(this.schemas[package_name]) != 'undefined' && typeof(this.schemas[package_name][class_name]) != 'undefined') {
-            promise.resolve(this.schemas[package_name][class_name]);
-        }
-        else {
+        if(typeof(this.schemas[package_name]) == 'undefined' 
+        || typeof(this.schemas[package_name][class_name]) == 'undefined') {
+            if(typeof(this.schemas[package_name]) == 'undefined') {
+                this.schemas[package_name] = {};
+            }
+            this.schemas[package_name][class_name] = $.Deferred();
             $.get({
-                url: environment.backend_url+'/index.php?get=model_schema&entity='+entity
+                url: environment.backend_url+'/?get=model_schema&entity='+entity
             })
             .then( (json_data) => {
-                if(typeof(this.schemas[package_name]) == 'undefined') {
-                    this.schemas[package_name] = {};
-                }
-                this.schemas[package_name][class_name] = json_data;
-                promise.resolve(this.schemas[package_name][class_name]);
+                this.schemas[package_name][class_name].resolve(json_data);
             })
             .catch( (response:any) => {
-                promise.reject(response.responseJSON);
+                console.log('ApiService::loadSchema error', response.responseJSON);
+                this.schemas[package_name][class_name].resolve({});
             });            
         }
-       return promise;
+       return this.schemas[package_name][class_name];
     }
 
     // the view_id matches the following convention : view_type.view_name
     private loadView(entity:string, view_id:string) {
-        var promise = $.Deferred();
         var package_name = this.getPackageName(entity);
         var class_name = this.getClassName(entity);
 
-        if(typeof(this.views[package_name]) != 'undefined' && typeof(this.views[package_name][class_name]) != 'undefined' && typeof(this.views[package_name][class_name][view_id]) != 'undefined') {
-            promise.resolve(this.views[package_name][class_name][view_id]);
-        }
-        else {
+        if(typeof(this.views[package_name]) == 'undefined' 
+        || typeof(this.views[package_name][class_name]) == 'undefined' 
+        || typeof(this.views[package_name][class_name][view_id]) == 'undefined') {
+            if(typeof(this.views[package_name]) == 'undefined') {
+                this.views[package_name] = {};
+            }
+            if(typeof(this.views[package_name][class_name]) == 'undefined') {
+                this.views[package_name][class_name] = {};
+            }
+            this.views[package_name][class_name][view_id] = $.Deferred();
             $.get({
-                url: environment.backend_url+'/index.php?get=model_view&entity='+entity+'&view_id='+view_id
+                url: environment.backend_url+'/?get=model_view&entity='+entity+'&view_id='+view_id
             })
-            .then( (json_data) => {
-                if(typeof(this.views[package_name]) == 'undefined') {
-                    this.views[package_name] = {};
-                }
-                if(typeof(this.views[package_name][class_name]) == 'undefined') {
-                    this.views[package_name][class_name] = {};
-                }
-                this.views[package_name][class_name][view_id] = json_data;                
-                promise.resolve(this.views[package_name][class_name][view_id]);
+            .then( (json_data) => {                
+                this.views[package_name][class_name][view_id].resolve(json_data);
             })
             .catch( (response:any) => {
-                promise.reject(response.responseJSON);
+                console.log('ApiService::loadView error', response.responseJSON);
+                this.views[package_name][class_name][view_id].resolve({});
             });
         }
-        return promise;
+        return this.views[package_name][class_name][view_id];
     }
 
-    private loadTranslation(entity:string) {
-        var promise = $.Deferred();
+    private loadTranslation(entity:string, lang:string) {
         var package_name = this.getPackageName(entity);
         var class_name = this.getClassName(entity);
 
-        if(typeof(this.translations[package_name]) != 'undefined' && typeof(this.translations[package_name][class_name]) != 'undefined' && typeof(this.translations[package_name][class_name][environment.lang]) != 'undefined') {
-            promise.resolve(this.translations[package_name][class_name][environment.lang]);
-        }
-        else {
+        if(typeof(this.translations[package_name]) == 'undefined' 
+        || typeof(this.translations[package_name][class_name]) == 'undefined' 
+        || typeof(this.translations[package_name][class_name][lang]) == 'undefined') {
+            console.log('loadtranslation promise not found: requesting', entity, lang, this.translations);
+            if(typeof(this.translations[package_name]) == 'undefined') {
+                this.translations[package_name] = {};
+            }
+            if(typeof(this.translations[package_name][class_name]) == 'undefined') {
+                this.translations[package_name][class_name] = {};
+            }
+            this.translations[package_name][class_name][lang] = $.Deferred();
             $.get({
-                url: environment.backend_url+'/index.php?get=config_i18n&entity='+entity+'&lang='+environment.lang
+                url: environment.backend_url+'/?get=config_i18n&entity='+entity+'&lang='+lang
             })
-            .then( (json_data) => {
-                if(typeof(this.translations[package_name]) == 'undefined') {
-                    this.translations[package_name] = {};
-                }
-                if(typeof(this.translations[package_name][class_name]) == 'undefined') {
-                    this.translations[package_name][class_name] = {};
-                }
-                this.translations[package_name][class_name][environment.lang] = json_data;                
-                promise.resolve(this.translations[package_name][class_name][environment.lang]);
+            .then( (json_data) => {                
+                this.translations[package_name][class_name][lang].resolve(json_data);
             })
             .catch( (response:any) => {
-                promise.reject(response.responseJSON);
+                console.log('ApiService::loadTranslation error', response.responseJSON);
+                this.translations[package_name][class_name][lang].resolve({});
             });            
         }
-       return promise;
+        // stored object is a promise, that might or might not be resolved, 
+        // with either translation object or empty object if no translation was found
+        return this.translations[package_name][class_name][lang];
     }
         
         
@@ -158,8 +159,8 @@ export class _ApiService {
         return this.last_count;
     }
     
-    public async getTranslation(entity:string) {
-        const translation = await this.loadTranslation(entity);
+    public async getTranslation(entity:string, lang:string) {
+        const translation = await this.loadTranslation(entity, lang);
         return translation;
     }
         

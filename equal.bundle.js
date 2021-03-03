@@ -43,6 +43,7 @@ var _environment = __webpack_require__(/*! ./environment */ "./build/environment
 var _ApiService = /*#__PURE__*/function () {
   /**
    * Internal objects for cache management
+   * These are Map objects for storing promises of requests
    */
   function _ApiService() {
     var _this = this;
@@ -109,29 +110,28 @@ var _ApiService = /*#__PURE__*/function () {
     value: function loadSchema(entity) {
       var _this2 = this;
 
-      var promise = _jqueryLib.$.Deferred();
-
       var package_name = this.getPackageName(entity);
       var class_name = this.getClassName(entity);
 
-      if (typeof this.schemas[package_name] != 'undefined' && typeof this.schemas[package_name][class_name] != 'undefined') {
-        promise.resolve(this.schemas[package_name][class_name]);
-      } else {
-        _jqueryLib.$.get({
-          url: _environment.environment.backend_url + '/index.php?get=model_schema&entity=' + entity
-        }).then(function (json_data) {
-          if (typeof _this2.schemas[package_name] == 'undefined') {
-            _this2.schemas[package_name] = {};
-          }
+      if (typeof this.schemas[package_name] == 'undefined' || typeof this.schemas[package_name][class_name] == 'undefined') {
+        if (typeof this.schemas[package_name] == 'undefined') {
+          this.schemas[package_name] = {};
+        }
 
-          _this2.schemas[package_name][class_name] = json_data;
-          promise.resolve(_this2.schemas[package_name][class_name]);
+        this.schemas[package_name][class_name] = _jqueryLib.$.Deferred();
+
+        _jqueryLib.$.get({
+          url: _environment.environment.backend_url + '/?get=model_schema&entity=' + entity
+        }).then(function (json_data) {
+          _this2.schemas[package_name][class_name].resolve(json_data);
         }).catch(function (response) {
-          promise.reject(response.responseJSON);
+          console.log('ApiService::loadSchema error', response.responseJSON);
+
+          _this2.schemas[package_name][class_name].resolve({});
         });
       }
 
-      return promise;
+      return this.schemas[package_name][class_name];
     } // the view_id matches the following convention : view_type.view_name
 
   }, {
@@ -139,66 +139,68 @@ var _ApiService = /*#__PURE__*/function () {
     value: function loadView(entity, view_id) {
       var _this3 = this;
 
-      var promise = _jqueryLib.$.Deferred();
-
       var package_name = this.getPackageName(entity);
       var class_name = this.getClassName(entity);
 
-      if (typeof this.views[package_name] != 'undefined' && typeof this.views[package_name][class_name] != 'undefined' && typeof this.views[package_name][class_name][view_id] != 'undefined') {
-        promise.resolve(this.views[package_name][class_name][view_id]);
-      } else {
+      if (typeof this.views[package_name] == 'undefined' || typeof this.views[package_name][class_name] == 'undefined' || typeof this.views[package_name][class_name][view_id] == 'undefined') {
+        if (typeof this.views[package_name] == 'undefined') {
+          this.views[package_name] = {};
+        }
+
+        if (typeof this.views[package_name][class_name] == 'undefined') {
+          this.views[package_name][class_name] = {};
+        }
+
+        this.views[package_name][class_name][view_id] = _jqueryLib.$.Deferred();
+
         _jqueryLib.$.get({
-          url: _environment.environment.backend_url + '/index.php?get=model_view&entity=' + entity + '&view_id=' + view_id
+          url: _environment.environment.backend_url + '/?get=model_view&entity=' + entity + '&view_id=' + view_id
         }).then(function (json_data) {
-          if (typeof _this3.views[package_name] == 'undefined') {
-            _this3.views[package_name] = {};
-          }
-
-          if (typeof _this3.views[package_name][class_name] == 'undefined') {
-            _this3.views[package_name][class_name] = {};
-          }
-
-          _this3.views[package_name][class_name][view_id] = json_data;
-          promise.resolve(_this3.views[package_name][class_name][view_id]);
+          _this3.views[package_name][class_name][view_id].resolve(json_data);
         }).catch(function (response) {
-          promise.reject(response.responseJSON);
+          console.log('ApiService::loadView error', response.responseJSON);
+
+          _this3.views[package_name][class_name][view_id].resolve({});
         });
       }
 
-      return promise;
+      return this.views[package_name][class_name][view_id];
     }
   }, {
     key: "loadTranslation",
-    value: function loadTranslation(entity) {
+    value: function loadTranslation(entity, lang) {
       var _this4 = this;
-
-      var promise = _jqueryLib.$.Deferred();
 
       var package_name = this.getPackageName(entity);
       var class_name = this.getClassName(entity);
 
-      if (typeof this.translations[package_name] != 'undefined' && typeof this.translations[package_name][class_name] != 'undefined' && typeof this.translations[package_name][class_name][_environment.environment.lang] != 'undefined') {
-        promise.resolve(this.translations[package_name][class_name][_environment.environment.lang]);
-      } else {
+      if (typeof this.translations[package_name] == 'undefined' || typeof this.translations[package_name][class_name] == 'undefined' || typeof this.translations[package_name][class_name][lang] == 'undefined') {
+        console.log('loadtranslation promise not found: requesting', entity, lang, this.translations);
+
+        if (typeof this.translations[package_name] == 'undefined') {
+          this.translations[package_name] = {};
+        }
+
+        if (typeof this.translations[package_name][class_name] == 'undefined') {
+          this.translations[package_name][class_name] = {};
+        }
+
+        this.translations[package_name][class_name][lang] = _jqueryLib.$.Deferred();
+
         _jqueryLib.$.get({
-          url: _environment.environment.backend_url + '/index.php?get=config_i18n&entity=' + entity + '&lang=' + _environment.environment.lang
+          url: _environment.environment.backend_url + '/?get=config_i18n&entity=' + entity + '&lang=' + lang
         }).then(function (json_data) {
-          if (typeof _this4.translations[package_name] == 'undefined') {
-            _this4.translations[package_name] = {};
-          }
-
-          if (typeof _this4.translations[package_name][class_name] == 'undefined') {
-            _this4.translations[package_name][class_name] = {};
-          }
-
-          _this4.translations[package_name][class_name][_environment.environment.lang] = json_data;
-          promise.resolve(_this4.translations[package_name][class_name][_environment.environment.lang]);
+          _this4.translations[package_name][class_name][lang].resolve(json_data);
         }).catch(function (response) {
-          promise.reject(response.responseJSON);
-        });
-      }
+          console.log('ApiService::loadTranslation error', response.responseJSON);
 
-      return promise;
+          _this4.translations[package_name][class_name][lang].resolve({});
+        });
+      } // stored object is a promise, that might or might not be resolved, 
+      // with either translation object or empty object if no translation was found
+
+
+      return this.translations[package_name][class_name][lang];
     }
   }, {
     key: "getLastCount",
@@ -208,14 +210,14 @@ var _ApiService = /*#__PURE__*/function () {
   }, {
     key: "getTranslation",
     value: function () {
-      var _getTranslation = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(entity) {
+      var _getTranslation = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(entity, lang) {
         var translation;
         return _regenerator.default.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
                 _context.next = 2;
-                return this.loadTranslation(entity);
+                return this.loadTranslation(entity, lang);
 
               case 2:
                 translation = _context.sent;
@@ -229,7 +231,7 @@ var _ApiService = /*#__PURE__*/function () {
         }, _callee, this);
       }));
 
-      function getTranslation(_x) {
+      function getTranslation(_x, _x2) {
         return _getTranslation.apply(this, arguments);
       }
 
@@ -259,7 +261,7 @@ var _ApiService = /*#__PURE__*/function () {
         }, _callee2, this);
       }));
 
-      function getSchema(_x2) {
+      function getSchema(_x3) {
         return _getSchema.apply(this, arguments);
       }
 
@@ -289,7 +291,7 @@ var _ApiService = /*#__PURE__*/function () {
         }, _callee3, this);
       }));
 
-      function getView(_x3, _x4) {
+      function getView(_x4, _x5) {
         return _getView.apply(this, arguments);
       }
 
@@ -339,7 +341,7 @@ var _ApiService = /*#__PURE__*/function () {
         }, _callee4, null, [[0, 8]]);
       }));
 
-      function create(_x5) {
+      function create(_x6) {
         return _create.apply(this, arguments);
       }
 
@@ -391,7 +393,7 @@ var _ApiService = /*#__PURE__*/function () {
         }, _callee5, null, [[0, 8]]);
       }));
 
-      function read(_x6, _x7, _x8) {
+      function read(_x7, _x8, _x9) {
         return _read.apply(this, arguments);
       }
 
@@ -444,7 +446,7 @@ var _ApiService = /*#__PURE__*/function () {
         }, _callee6, null, [[1, 9]]);
       }));
 
-      function update(_x9, _x10, _x11) {
+      function update(_x10, _x11, _x12) {
         return _update.apply(this, arguments);
       }
 
@@ -506,7 +508,7 @@ var _ApiService = /*#__PURE__*/function () {
         }, _callee7, null, [[2, 10]]);
       }));
 
-      function collect(_x12, _x13, _x14, _x15, _x16, _x17, _x18, _x19) {
+      function collect(_x13, _x14, _x15, _x16, _x17, _x18, _x19, _x20) {
         return _collect.apply(this, arguments);
       }
 
@@ -561,7 +563,7 @@ var _ApiService = /*#__PURE__*/function () {
         }, _callee8, null, [[1, 9]]);
       }));
 
-      function search(_x20, _x21, _x22, _x23, _x24, _x25) {
+      function search(_x21, _x22, _x23, _x24, _x25, _x26) {
         return _search.apply(this, arguments);
       }
 
@@ -649,6 +651,11 @@ var Context = /*#__PURE__*/function () {
   }
 
   (0, _createClass2.default)(Context, [{
+    key: "hasChanged",
+    value: function hasChanged() {
+      return this.view.hasChanged();
+    }
+  }, {
     key: "getEntity",
     value: function getEntity() {
       return this.view.entity;
@@ -672,6 +679,11 @@ var Context = /*#__PURE__*/function () {
     key: "getContainer",
     value: function getContainer() {
       return this.$container;
+    }
+  }, {
+    key: "getView",
+    value: function getView() {
+      return this.view;
     }
     /**
      * Calling this method means that we need to update the model : values displayed by the context have to be re-fetched from server
@@ -979,6 +991,12 @@ var _materialLib = __webpack_require__(/*! ./material-lib */ "./build/material-l
 
 var _Domain = _interopRequireDefault(__webpack_require__(/*! ./Domain */ "./build/Domain.js"));
 
+function _createForOfIteratorHelper(o, allowArrayLike) { var it; if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2.default)(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -1044,17 +1062,42 @@ var Layout = /*#__PURE__*/function () {
 
   }, {
     key: "refresh",
-    value: function refresh(full) {
-      console.log('Layout::refresh'); // also re-generate the layout                     
+    value: function () {
+      var _refresh = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2(full) {
+        var objects;
+        return _regenerator.default.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                console.log('Layout::refresh'); // also re-generate the layout                     
 
-      if (full) {
-        this.$layout.empty();
-        this.layout();
-      } // feed layout with current Model
+                if (full) {
+                  this.$layout.empty();
+                  this.layout();
+                } // feed layout with current Model
 
 
-      this.feed(this.view.getModel().get());
-    }
+                _context2.next = 4;
+                return this.view.getModel().get();
+
+              case 4:
+                objects = _context2.sent;
+                this.feed(objects);
+
+              case 6:
+              case "end":
+                return _context2.stop();
+            }
+          }
+        }, _callee2, this);
+      }));
+
+      function refresh(_x) {
+        return _refresh.apply(this, arguments);
+      }
+
+      return refresh;
+    }()
   }, {
     key: "getSelected",
     value: function getSelected() {
@@ -1079,7 +1122,7 @@ var Layout = /*#__PURE__*/function () {
           this.layoutList();
           break;
       }
-    } // todo : garder la liste des widgets instanciés pour permettre de passer en mode d'édition (pour un formulaire ou une celulle)    
+    } // We store the list of instanciated widgetsto allow switching from view mode to edit mode  (for a form or a cell)
 
   }, {
     key: "layoutForm",
@@ -1120,7 +1163,6 @@ var Layout = /*#__PURE__*/function () {
                 }
 
                 if (item.type == 'field') {
-                  console.log(item);
                   var config = {};
                   var field_name = item.value;
                   var def = model_fields[field_name];
@@ -1256,29 +1298,49 @@ var Layout = /*#__PURE__*/function () {
       $elem.find('tbody').remove();
       var $tbody = (0, _jqueryLib.$)('<tbody/>');
 
-      for (var _i = 0, _Object$keys = Object.keys(objects); _i < _Object$keys.length; _i++) {
-        var id = _Object$keys[_i];
-        var object = objects[id];
-        var $row = (0, _jqueryLib.$)('<tr/>');
-
-        _materialLib.UIHelper.createTableCellCheckbox().appendTo($row).find('input').attr('data-id', object.id).on('click', function () {
-          return setTimeout(function () {
-            return _this3.view.onchangeSelection(_this3.getSelected());
+      var _loop = function _loop() {
+        var i = _Object$keys[_i];
+        var object = objects[i];
+        var $row = (0, _jqueryLib.$)('<tr/>').on('click', function () {
+          (0, _jqueryLib.$)('#sb-events').trigger('_openContext', {
+            entity: _this3.view.getEntity(),
+            type: 'form',
+            domain: ['id', '=', object.id]
           });
+        });
+
+        _materialLib.UIHelper.createTableCellCheckbox().appendTo($row).find('input').attr('data-id', object.id).on('click', function (event) {
+          // wait for widget to update and notify about change
+          setTimeout(function () {
+            return _this3.view.onchangeSelection(_this3.getSelected());
+          }); // prevent handling of click on parent `tr` element
+
+          event.stopPropagation();
         });
 
         for (var _i2 = 0, _Object$keys2 = Object.keys(object); _i2 < _Object$keys2.length; _i2++) {
           var field = _Object$keys2[_i2];
-          var view_def = this.view.getField(field); // field is not part of the view, skip it
+
+          var view_def = _this3.view.getField(field); // field is not part of the view, skip it
+
 
           if (view_def == undefined) continue;
           var visible = view_def.hasOwnProperty('visible') ? view_def.visible : true; // do not show fields with no width
 
           if (!visible) continue;
-          var model_schema = this.view.getModelFields();
-          var view_schema = this.view.getViewFields();
+
+          var model_schema = _this3.view.getModelFields();
+
+          var view_schema = _this3.view.getViewFields();
+
           var model_def = model_schema[field];
-          var type = model_def['type'];
+          var type = model_def['type']; // handle `alias` type
+
+          while (type == 'alias') {
+            var target = model_def['alias'];
+            model_def = model_schema[target];
+            type = model_def['type'];
+          }
 
           if (view_def.hasOwnProperty('widget')) {
             type = view_def.widget.type;
@@ -1291,6 +1353,10 @@ var Layout = /*#__PURE__*/function () {
         }
 
         $tbody.append($row);
+      };
+
+      for (var _i = 0, _Object$keys = Object.keys(objects); _i < _Object$keys.length; _i++) {
+        _loop();
       }
 
       $elem.find('table').append($tbody);
@@ -1305,46 +1371,54 @@ var Layout = /*#__PURE__*/function () {
       console.log('Layout::feedForm'); // display the first object from the collection
 
       var ids = Object.keys(objects);
+      var fields = Object.keys(this.view.getViewFields());
 
       if (ids.length > 0) {
         (function () {
           var object_id = ids[0];
           var object = objects[object_id];
 
-          var _loop = function _loop() {
-            var field = _Object$keys3[_i3];
-            var widget = _this4.model_widgets[field];
+          var _iterator = _createForOfIteratorHelper(fields),
+              _step;
 
-            var $parent = _this4.$layout.find('#' + widget.getId()).parent().empty();
+          try {
+            var _loop2 = function _loop2() {
+              var field = _step.value;
+              var widget = _this4.model_widgets[field];
 
-            widget.setMode(_this4.view.getMode()).setValue(object[field]);
-            var $widget = widget.render();
-            $widget.on('_updatedWidget', function (event, new_value) {
-              console.log('Layout : received widget change event for field ' + field, new_value);
-              object[field] = new_value; // todo : use fields only (not full object)                    
+              var $parent = _this4.$layout.find('#' + widget.getId()).parent().empty();
 
-              _this4.view.onchangeViewModel([object_id], object);
+              widget.setMode(_this4.view.getMode()).setValue(object[field]);
+              var $widget = widget.render();
+              $widget.on('_updatedWidget', function (event, new_value) {
+                console.log('Layout : received widget change event for field ' + field, new_value);
+                object[field] = new_value; // todo : use updated fields only (not full object)                    
 
-              console.log(_this4.view.getModel().get());
-            });
-            console.log('config', widget.getConfig());
-            var config = widget.getConfig(); // todo handle visibility tests (domain)                
+                _this4.view.onchangeViewModel([object_id], object);
+              });
+              console.log('config', widget.getConfig());
+              var config = widget.getConfig(); // handle visibility tests (domain)           
 
-            if (config.hasOwnProperty('visible')) {
-              var domain = new _Domain.default(config.visible);
+              if (config.hasOwnProperty('visible')) {
+                var domain = new _Domain.default(config.visible);
 
-              if (domain.evaluate(object)) {
-                $parent.append($widget);
+                if (domain.evaluate(object)) {
+                  $parent.append($widget);
+                } else {
+                  $parent.append(widget.attach());
+                }
               } else {
-                $parent.append(widget.attach());
+                $parent.append($widget);
               }
-            } else {
-              $parent.append($widget);
-            }
-          };
+            };
 
-          for (var _i3 = 0, _Object$keys3 = Object.keys(object); _i3 < _Object$keys3.length; _i3++) {
-            _loop();
+            for (_iterator.s(); !(_step = _iterator.n()).done;) {
+              _loop2();
+            }
+          } catch (err) {
+            _iterator.e(err);
+          } finally {
+            _iterator.f();
           }
         })();
       }
@@ -1385,6 +1459,8 @@ var _createClass2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtim
 
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/defineProperty */ "./node_modules/@babel/runtime/helpers/defineProperty.js"));
 
+var _jqueryLib = __webpack_require__(/*! ./jquery-lib */ "./build/jquery-lib.js");
+
 var _equalServices = __webpack_require__(/*! ./equal-services */ "./build/equal-services.js");
 
 function _createForOfIteratorHelper(o, allowArrayLike) { var it; if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
@@ -1406,7 +1482,11 @@ var Model = /*#__PURE__*/function () {
     (0, _defineProperty2.default)(this, "view", void 0);
     (0, _defineProperty2.default)(this, "objects", void 0);
     (0, _defineProperty2.default)(this, "total", void 0);
+    (0, _defineProperty2.default)(this, "loaded_promise", void 0);
+    (0, _defineProperty2.default)(this, "has_changed", void 0);
     this.view = view;
+    this.loaded_promise = _jqueryLib.$.Deferred();
+    this.has_changed = false;
     this.objects = {};
     this.total = 0;
   }
@@ -1439,6 +1519,11 @@ var Model = /*#__PURE__*/function () {
 
       return init;
     }()
+  }, {
+    key: "hasChanged",
+    value: function hasChanged() {
+      return this.has_changed;
+    }
     /** 
      * Update model by requesting data from server using parent View parameters
     */
@@ -1462,24 +1547,25 @@ var Model = /*#__PURE__*/function () {
 
               case 6:
                 this.objects = _context2.sent;
+                this.loaded_promise.resolve();
                 this.total = _equalServices.ApiService.getLastCount();
                 console.log(this.objects); // trigger model change handler in the parent View (in order to update the layout)
 
                 this.view.onchangeModel();
-                _context2.next = 15;
+                _context2.next = 16;
                 break;
 
-              case 12:
-                _context2.prev = 12;
+              case 13:
+                _context2.prev = 13;
                 _context2.t0 = _context2["catch"](2);
                 console.log('Unable to fetch Collection from server', _context2.t0);
 
-              case 15:
+              case 16:
               case "end":
                 return _context2.stop();
             }
           }
-        }, _callee2, this, [[2, 12]]);
+        }, _callee2, this, [[2, 13]]);
       }));
 
       function refresh() {
@@ -1506,6 +1592,7 @@ var Model = /*#__PURE__*/function () {
             for (var field in values) {
               if (this.objects[id].hasOwnProperty(field)) {
                 this.objects[id][field] = values[field];
+                this.has_changed = true;
               }
             }
           }
@@ -1531,7 +1618,16 @@ var Model = /*#__PURE__*/function () {
   }, {
     key: "get",
     value: function get() {
-      return this.objects;
+      var _this = this;
+
+      var promise = _jqueryLib.$.Deferred();
+
+      this.loaded_promise.then(function () {
+        promise.resolve(_this.objects);
+      }).catch(function () {
+        promise.resolve({});
+      });
+      return promise;
     }
   }, {
     key: "getTotal",
@@ -1544,6 +1640,144 @@ var Model = /*#__PURE__*/function () {
 
 exports.Model = Model;
 var _default = Model;
+exports.default = _default;
+
+/***/ }),
+
+/***/ "./build/TranslationService.js":
+/*!*************************************!*\
+  !*** ./build/TranslationService.js ***!
+  \*************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+var _interopRequireDefault = __webpack_require__(/*! @babel/runtime/helpers/interopRequireDefault */ "./node_modules/@babel/runtime/helpers/interopRequireDefault.js");
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.default = exports._TranslationService = void 0;
+
+var _regenerator = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/regenerator */ "./node_modules/@babel/runtime/regenerator/index.js"));
+
+var _asyncToGenerator2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/asyncToGenerator */ "./node_modules/@babel/runtime/helpers/asyncToGenerator.js"));
+
+var _classCallCheck2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/classCallCheck */ "./node_modules/@babel/runtime/helpers/classCallCheck.js"));
+
+var _createClass2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/createClass */ "./node_modules/@babel/runtime/helpers/createClass.js"));
+
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/defineProperty */ "./node_modules/@babel/runtime/helpers/defineProperty.js"));
+
+var _jqueryLib = __webpack_require__(/*! ./jquery-lib */ "./build/jquery-lib.js");
+
+var _environment = __webpack_require__(/*! ./environment */ "./build/environment.js");
+
+/**
+ * This service is in charge of loading the UI translations and provide getters to retrieve requested values
+ */
+var _TranslationService = /*#__PURE__*/function () {
+  // promise object
+  // remember if the file fetching has been done
+  function _TranslationService() {
+    (0, _classCallCheck2.default)(this, _TranslationService);
+    (0, _defineProperty2.default)(this, "translations", void 0);
+    (0, _defineProperty2.default)(this, "resolved", void 0);
+    this.resolved = null;
+    this.init();
+  }
+
+  (0, _createClass2.default)(_TranslationService, [{
+    key: "init",
+    value: function init() {
+      var _this = this;
+
+      this.translations = _jqueryLib.$.Deferred();
+      this.resolved = false;
+      fetch('./i18n/' + _environment.environment.lang).then(function (response) {
+        response.json().then(function (json_data) {
+          // keep a copy for instant translation (we have no mean to detect if)
+          _this.resolved = json_data;
+
+          _this.translations.resolve(json_data);
+        }).catch(function () {
+          _this.translations.resolve({});
+        });
+      }).catch(function () {
+        _this.translations.resolve({});
+      });
+    }
+  }, {
+    key: "translate",
+    value: function () {
+      var _translate = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(value) {
+        var translation, translations;
+        return _regenerator.default.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                translation = '';
+                _context.prev = 1;
+                _context.next = 4;
+                return this.translations;
+
+              case 4:
+                translations = _context.sent;
+
+                if (translations.hasOwnProperty(value)) {
+                  translation = translations[value];
+                }
+
+                _context.next = 10;
+                break;
+
+              case 8:
+                _context.prev = 8;
+                _context.t0 = _context["catch"](1);
+
+              case 10:
+                return _context.abrupt("return", translation);
+
+              case 11:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this, [[1, 8]]);
+      }));
+
+      function translate(_x) {
+        return _translate.apply(this, arguments);
+      }
+
+      return translate;
+    }()
+    /**
+     * Instant translation (non-blocking). If no value is found the given string is returned as result.
+     * *
+     * @param value 
+     */
+
+  }, {
+    key: "instant",
+    value: function instant(value) {
+      var translation = value;
+
+      if (this.resolved) {
+        if (this.resolved.hasOwnProperty(value)) {
+          translation = this.resolved[value];
+        }
+      }
+
+      return translation;
+    }
+  }]);
+  return _TranslationService;
+}();
+
+exports._TranslationService = _TranslationService;
+var _default = _TranslationService;
 exports.default = _default;
 
 /***/ }),
@@ -1580,9 +1814,9 @@ var _jqueryLib = __webpack_require__(/*! ./jquery-lib */ "./build/jquery-lib.js"
 
 var _materialLib = __webpack_require__(/*! ./material-lib */ "./build/material-lib.js");
 
-var _equalServices = __webpack_require__(/*! ./equal-services */ "./build/equal-services.js");
+var _environment = __webpack_require__(/*! ./environment */ "./build/environment.js");
 
-var _Context = _interopRequireDefault(__webpack_require__(/*! ./Context */ "./build/Context.js"));
+var _equalServices = __webpack_require__(/*! ./equal-services */ "./build/equal-services.js");
 
 var _Layout = _interopRequireDefault(__webpack_require__(/*! ./Layout */ "./build/Layout.js"));
 
@@ -1627,6 +1861,7 @@ var View = /*#__PURE__*/function () {
     (0, _defineProperty2.default)(this, "lang", void 0);
     (0, _defineProperty2.default)(this, "layout", void 0);
     (0, _defineProperty2.default)(this, "model", void 0);
+    (0, _defineProperty2.default)(this, "translation", void 0);
     (0, _defineProperty2.default)(this, "view_schema", void 0);
     (0, _defineProperty2.default)(this, "model_schema", void 0);
     (0, _defineProperty2.default)(this, "view_fields", void 0);
@@ -1662,11 +1897,6 @@ var View = /*#__PURE__*/function () {
   }
 
   (0, _createClass2.default)(View, [{
-    key: "getContainer",
-    value: function getContainer() {
-      return this.$container;
-    }
-  }, {
     key: "init",
     value: function () {
       var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
@@ -1679,14 +1909,19 @@ var View = /*#__PURE__*/function () {
                 console.log('View::init');
                 _context.prev = 1;
                 _context.next = 4;
-                return _equalServices.ApiService.getView(this.entity, this.type + '.' + this.name);
+                return _equalServices.ApiService.getTranslation(this.entity, _environment.environment.lang);
 
               case 4:
-                this.view_schema = _context.sent;
+                this.translation = _context.sent;
                 _context.next = 7;
-                return _equalServices.ApiService.getSchema(this.entity);
+                return _equalServices.ApiService.getView(this.entity, this.type + '.' + this.name);
 
               case 7:
+                this.view_schema = _context.sent;
+                _context.next = 10;
+                return _equalServices.ApiService.getSchema(this.entity);
+
+              case 10:
                 this.model_schema = _context.sent;
                 this.loadViewFields(this.view_schema);
                 this.loadModelFields(this.model_schema);
@@ -1706,14 +1941,14 @@ var View = /*#__PURE__*/function () {
                   }
                 }
 
-                _context.next = 13;
+                _context.next = 16;
                 return this.layout.init();
 
-              case 13:
-                _context.next = 15;
+              case 16:
+                _context.next = 18;
                 return this.model.init();
 
-              case 15:
+              case 18:
                 if (['list', 'kanban'].indexOf(this.type) >= 0) {
                   this.$layoutContainer.addClass('sb-view-layout-list');
                   this.layoutListHeader();
@@ -1725,20 +1960,20 @@ var View = /*#__PURE__*/function () {
                   this.layoutFormHeader();
                 }
 
-                _context.next = 22;
+                _context.next = 25;
                 break;
 
-              case 19:
-                _context.prev = 19;
+              case 22:
+                _context.prev = 22;
                 _context.t0 = _context["catch"](1);
                 console.log('Unable to init view (' + this.entity + '.' + this.type + '.' + this.name + ')', _context.t0);
 
-              case 22:
+              case 25:
               case "end":
                 return _context.stop();
             }
           }
-        }, _callee, this, [[1, 19]]);
+        }, _callee, this, [[1, 22]]);
       }));
 
       function init() {
@@ -1747,6 +1982,16 @@ var View = /*#__PURE__*/function () {
 
       return init;
     }()
+  }, {
+    key: "hasChanged",
+    value: function hasChanged() {
+      return this.model.hasChanged();
+    }
+  }, {
+    key: "getContainer",
+    value: function getContainer() {
+      return this.$container;
+    }
   }, {
     key: "setField",
     value: function setField(field, value) {
@@ -1782,6 +2027,16 @@ var View = /*#__PURE__*/function () {
     key: "getEntity",
     value: function getEntity() {
       return this.entity;
+    }
+  }, {
+    key: "getType",
+    value: function getType() {
+      return this.type;
+    }
+  }, {
+    key: "getTranslation",
+    value: function getTranslation() {
+      return this.translation;
     }
   }, {
     key: "getViewSchema",
@@ -1860,6 +2115,10 @@ var View = /*#__PURE__*/function () {
     value: function getLayout() {
       return this.layout;
     }
+    /**
+     * Return a Map of layout fields items mapping names with their definition
+     */
+
   }, {
     key: "getViewFields",
     value: function getViewFields() {
@@ -1962,58 +2221,7 @@ var View = /*#__PURE__*/function () {
     }
   }, {
     key: "layoutListFooter",
-    value: function layoutListFooter() {
-      /*
-      let $footer = UIHelper.createPagination().addClass('sb-view-header-list-pagination');
-        $footer.find('.pagination-total')
-      .append( $('<span class="sb-view-header-list-pagination-start"></span>') ).append( $('<span />').text('-') )
-      .append( $('<span class="sb-view-header-list-pagination-end"></span>') ).append( $('<span />').text(' / ') )
-      .append( $('<span class="sb-view-header-list-pagination-total"></span>') );
-        $footer.find('.pagination-navigation')
-      .append(
-          UIHelper.createButton('', '', 'icon', 'first_page').addClass('sb-view-header-list-pagination-first_page') 
-          .on('click', (event: any) => {
-              this.setStart(0);
-              this.onchangeView();
-          })
-      )
-      .append(
-          UIHelper.createButton('', '', 'icon', 'chevron_left').addClass('sb-view-header-list-pagination-prev_page')
-          .on('click', (event: any) => {
-              this.setStart( Math.max(0, this.getStart() - this.getLimit()) );
-              this.onchangeView();
-          })
-      )
-      .append(
-          UIHelper.createButton('', '', 'icon', 'chevron_right').addClass('sb-view-header-list-pagination-next_page')
-          .on('click', (event: any) => {
-              let new_start:number = Math.min( this.getTotal()-1, this.getStart() + this.getLimit() );
-              console.log('new start', new_start, this.getStart(), this.getLimit());
-              this.setStart(new_start);
-              this.onchangeView();
-          })
-      )
-      .append(
-          UIHelper.createButton('', '', 'icon', 'last_page').addClass('sb-view-header-list-pagination-last_page')
-          .on('click', (event: any) => {
-              let new_start:number = this.getTotal()-1;
-              this.setStart(new_start);
-              this.onchangeView();
-          })
-      );
-        let $select = UIHelper.createPaginationSelect('', '', [1, 2, 5, 10, 20, 100], 10).addClass('sb-view-header-list-pagination-limit_select');
-      
-      $footer.find('.pagination-rows-per-page')
-      .append(UIHelper.createIcon('list'))
-      .append($select);
-        $select.find('input').on('change', (event: any) => {
-          let $this = $(event.currentTarget);
-          this.setLimit(<number>$this.val());
-          this.setStart(0);
-          this.onchangeView();
-      });
-        this.$footerContainer.append( $footer );
-      */
+    value: function layoutListFooter() {// it is best UX practice to avoid footer on lists
     }
   }, {
     key: "layoutListHeader",
@@ -2028,7 +2236,14 @@ var View = /*#__PURE__*/function () {
       switch (this.purpose) {
         case 'view':
           $actions_set.append(_materialLib.UIHelper.createButton('action-edit', 'Créer', 'raised').on('click', function () {
-            (0, _jqueryLib.$)('#sb-events').trigger('_openContext', new _Context.default(_this.entity, 'form', 'default', [], 'edit', 'create'));
+            (0, _jqueryLib.$)('#sb-events').trigger('_openContext', {
+              entity: _this.entity,
+              type: 'form',
+              name: 'default',
+              domain: [],
+              mode: 'edit',
+              purpose: 'create'
+            });
           }));
           break;
 
@@ -2196,7 +2411,14 @@ var View = /*#__PURE__*/function () {
 
         _materialLib.UIHelper.createListItem('Modifier', 'edit').appendTo($selected_menu).on('click', function (event) {
           var selected_id = _this2.selected_ids[0];
-          (0, _jqueryLib.$)('#sb-events').trigger('_openContext', new _Context.default(_this2.entity, 'form', 'default', ['id', '=', selected_id], 'edit', 'update'));
+          (0, _jqueryLib.$)('#sb-events').trigger('_openContext', {
+            entity: _this2.entity,
+            type: 'form',
+            name: 'default',
+            domain: ['id', '=', selected_id],
+            mode: 'edit',
+            purpose: 'update'
+          });
         });
 
         _materialLib.UIHelper.createListItem('Supprimer', 'delete').appendTo($selected_menu).on('click', function (event) {});
@@ -2218,9 +2440,16 @@ var View = /*#__PURE__*/function () {
 
       switch (this.mode) {
         case 'view':
-          $actions_set.append(_materialLib.UIHelper.createButton('action-edit', 'Modifier', 'raised').on('click', function () {
-            (0, _jqueryLib.$)('#sb-events').trigger('_openContext', new _Context.default(_this3.entity, _this3.type, 'default', _this3.domain, 'edit', 'update'));
-          })).append(_materialLib.UIHelper.createButton('action-create', 'Créer', 'text').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
+          $actions_set.append(_materialLib.UIHelper.createButton('action-edit', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_UPDATE'), 'raised').on('click', function () {
+            (0, _jqueryLib.$)('#sb-events').trigger('_openContext', {
+              entity: _this3.entity,
+              type: _this3.type,
+              name: 'default',
+              domain: _this3.domain,
+              mode: 'edit',
+              purpose: 'update'
+            });
+          })).append(_materialLib.UIHelper.createButton('action-create', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_CREATE'), 'text').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
             var object;
             return _regenerator.default.wrap(function _callee2$(_context2) {
               while (1) {
@@ -2232,7 +2461,14 @@ var View = /*#__PURE__*/function () {
                   case 2:
                     object = _context2.sent;
                     // request a new Context for editing the new object
-                    (0, _jqueryLib.$)('#sb-events').trigger('_openContext', new _Context.default(_this3.entity, _this3.type, 'default', [['id', '=', object.id], ['state', '=', 'draft']], 'edit', 'create'));
+                    (0, _jqueryLib.$)('#sb-events').trigger('_openContext', {
+                      entity: _this3.entity,
+                      type: _this3.type,
+                      name: 'default',
+                      domain: [['id', '=', object.id], ['state', '=', 'draft']],
+                      mode: 'edit',
+                      purpose: 'create'
+                    });
 
                   case 4:
                   case "end":
@@ -2244,34 +2480,55 @@ var View = /*#__PURE__*/function () {
           break;
 
         case 'edit':
-          $actions_set.append(_materialLib.UIHelper.createButton('action-create', 'Sauver', 'raised').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3() {
+          $actions_set.append(_materialLib.UIHelper.createButton('action-create', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_SAVE'), 'raised').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3() {
             var objects, object;
             return _regenerator.default.wrap(function _callee3$(_context3) {
               while (1) {
                 switch (_context3.prev = _context3.next) {
                   case 0:
-                    objects = _this3.model.get();
+                    _context3.next = 2;
+                    return _this3.model.get();
+
+                  case 2:
+                    objects = _context3.sent;
                     object = objects[0];
-                    _context3.next = 4;
+                    _context3.next = 6;
                     return _equalServices.ApiService.update(_this3.entity, [object['id']], object);
 
-                  case 4:
-                    (0, _jqueryLib.$)('#sb-events').trigger('_closeContext', true);
+                  case 6:
+                    (0, _jqueryLib.$)('#sb-events').trigger('_closeContext', {
+                      refresh: true
+                    });
 
-                  case 5:
+                  case 7:
                   case "end":
                     return _context3.stop();
                 }
               }
             }, _callee3);
-          })))).append(_materialLib.UIHelper.createButton('action-cancel', 'Annuler', 'outlined').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
+          })))).append(_materialLib.UIHelper.createButton('action-cancel', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_CANCEL'), 'outlined').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
+            var validation;
             return _regenerator.default.wrap(function _callee4$(_context4) {
               while (1) {
                 switch (_context4.prev = _context4.next) {
                   case 0:
+                    validation = true;
+
+                    if (_this3.hasChanged()) {
+                      validation = confirm(_equalServices.TranslationService.instant('SB_ACTIONS_MESSAGE_ABANDON_CHANGE'));
+                    }
+
+                    if (validation) {
+                      _context4.next = 4;
+                      break;
+                    }
+
+                    return _context4.abrupt("return");
+
+                  case 4:
                     (0, _jqueryLib.$)('#sb-events').trigger('_closeContext');
 
-                  case 1:
+                  case 5:
                   case "end":
                     return _context4.stop();
                 }
@@ -2286,14 +2543,37 @@ var View = /*#__PURE__*/function () {
     }
   }, {
     key: "layoutRefresh",
-    value: function layoutRefresh() {
-      var full = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
-      this.layout.refresh(full);
+    value: function () {
+      var _layoutRefresh = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5() {
+        var full,
+            _args5 = arguments;
+        return _regenerator.default.wrap(function _callee5$(_context5) {
+          while (1) {
+            switch (_context5.prev = _context5.next) {
+              case 0:
+                full = _args5.length > 0 && _args5[0] !== undefined ? _args5[0] : false;
+                _context5.next = 3;
+                return this.layout.refresh(full);
 
-      if (['list', 'kanban'].indexOf(this.type) >= 0) {
-        this.layoutListRefresh();
+              case 3:
+                if (['list', 'kanban'].indexOf(this.type) >= 0) {
+                  this.layoutListRefresh();
+                }
+
+              case 4:
+              case "end":
+                return _context5.stop();
+            }
+          }
+        }, _callee5, this);
+      }));
+
+      function layoutRefresh() {
+        return _layoutRefresh.apply(this, arguments);
       }
-    } // handle actions
+
+      return layoutRefresh;
+    }() // handle actions
 
     /*    
     //1) mode edit
@@ -2330,7 +2610,7 @@ var View = /*#__PURE__*/function () {
     key: "onchangeModel",
     value: function onchangeModel() {
       var full = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
-      console.log('View::onchangeModel', full, this.model.get());
+      console.log('View::onchangeModel', full);
       this.layoutRefresh(full);
     }
     /**
@@ -2342,21 +2622,22 @@ var View = /*#__PURE__*/function () {
   }, {
     key: "onchangeView",
     value: function () {
-      var _onchangeView = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5() {
-        return _regenerator.default.wrap(function _callee5$(_context5) {
+      var _onchangeView = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6() {
+        return _regenerator.default.wrap(function _callee6$(_context6) {
           while (1) {
-            switch (_context5.prev = _context5.next) {
+            switch (_context6.prev = _context6.next) {
               case 0:
+                // reset selection
                 this.onchangeSelection([]);
-                _context5.next = 3;
+                _context6.next = 3;
                 return this.model.refresh();
 
               case 3:
               case "end":
-                return _context5.stop();
+                return _context6.stop();
             }
           }
-        }, _callee5, this);
+        }, _callee6, this);
       }));
 
       function onchangeView() {
@@ -2469,17 +2750,19 @@ var _interopRequireDefault = __webpack_require__(/*! @babel/runtime/helpers/inte
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.default = exports.ApiService = void 0;
+exports.TranslationService = exports.ApiService = void 0;
 
 var _ApiService2 = _interopRequireDefault(__webpack_require__(/*! ./ApiService */ "./build/ApiService.js"));
+
+var _TranslationService2 = _interopRequireDefault(__webpack_require__(/*! ./TranslationService */ "./build/TranslationService.js"));
 
 /**
  * Singleton instances
  */
 var ApiService = new _ApiService2.default();
 exports.ApiService = ApiService;
-var _default = ApiService;
-exports.default = _default;
+var TranslationService = new _TranslationService2.default();
+exports.TranslationService = TranslationService;
 
 /***/ }),
 
@@ -2604,11 +2887,19 @@ var _jqueryLib = __webpack_require__(/*! ./jquery-lib */ "./build/jquery-lib.js"
 
 var _equalLib = __webpack_require__(/*! ./equal-lib */ "./build/equal-lib.js");
 
+var _environment = __webpack_require__(/*! ./environment */ "./build/environment.js");
+
+var _equalServices = __webpack_require__(/*! ./equal-services */ "./build/equal-services.js");
+
 function _createForOfIteratorHelper(o, allowArrayLike) { var it; if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
 
 function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
 
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2.default)(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
 // We use MDC (material design components)
 // @see https://github.com/material-components/material-components-web/blob/master/docs/getting-started.md
@@ -2636,104 +2927,50 @@ var eQ = /*#__PURE__*/function () {
 
   (0, _createClass2.default)(eQ, [{
     key: "init",
-    value: function init() {
-      var _this = this;
-
-      // $sbEvents is a jQuery object used to communicate: it allows an both internal services and external lib to connect with eQ-UI
-      // $('#sb-events').trigger(event, data);
-      this.$sbEvents = (0, _jqueryLib.$)('<div/>').attr('id', 'sb-events').css('display', 'none').appendTo('body');
-      /*
-          A new contexte can be requested by ngx (menu or app) or by opening a sub-objet
-      */
-
-      this.$sbEvents.on('_openContext', function (event, context) {
-        console.log('eQ: received _openContext', context);
-
-        _this.openContext(context);
-      });
-      this.$sbEvents.on('_closeContext', function (event) {
-        console.log('eQ: received _closeContext');
-
-        _this.closeContext();
-      });
-    }
-  }, {
-    key: "getPurposeString",
-    value: function getPurposeString(entity) {
-      var type = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 'list';
-      var purpose = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 'view';
-      var result = '';
-      var parts = entity.split('\\');
-      entity = parts.pop();
-
-      if (purpose == 'view') {
-        result = entity;
-
-        if (type == 'list') {
-          // todo : improve this                
-          result += 's';
-        }
-      } else {
-        result = purpose + ' ' + entity;
-      }
-
-      return result;
-    }
-  }, {
-    key: "updateHeader",
-    value: function updateHeader() {
-      var $elem = (0, _jqueryLib.$)('<h3 />');
-      var text = '';
-      this.$headerContainer.empty().append($elem); // use all contexts in stack...
-
-      var _iterator = _createForOfIteratorHelper(this.stack),
-          _step;
-
-      try {
-        for (_iterator.s(); !(_step = _iterator.n()).done;) {
-          var context = _step.value;
-
-          if (context.hasOwnProperty('$container')) {
-            text += this.getPurposeString(context.getEntity(), context.getType(), context.getPurpose());
-            text += ' > ';
-          }
-        } // + the active context
-
-      } catch (err) {
-        _iterator.e(err);
-      } finally {
-        _iterator.f();
-      }
-
-      if (this.context.hasOwnProperty('$container')) {
-        text += this.getPurposeString(this.context.getEntity(), this.context.getType(), this.context.getPurpose());
-      }
-
-      $elem.text(text);
-    }
-  }, {
-    key: "openContext",
     value: function () {
-      var _openContext = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(context) {
+      var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
+        var _this = this;
+
         return _regenerator.default.wrap(function _callee$(_context) {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                // stack received context
-                if (this.context) {
-                  this.stack.push(this.context);
+                // $sbEvents is a jQuery object used to communicate: it allows an both internal services and external lib to connect with eQ-UI
+                // $('#sb-events').trigger(event, data);
+                this.$sbEvents = (0, _jqueryLib.$)('<div/>').attr('id', 'sb-events').css('display', 'none').appendTo('body');
+                /*
+                    A new context can be requested by ngx (menu or app) or by opening a sub-objet
+                */
 
-                  if (this.context.hasOwnProperty('$container')) {
-                    // conainers are hidden and not detached in order to maintain the listeners
-                    this.context.$container.hide();
-                  }
-                }
+                this.$sbEvents.on('_openContext', function (event, config) {
+                  var params = {
+                    entity: '',
+                    type: 'list',
+                    name: 'default',
+                    domain: [],
+                    mode: 'view',
+                    purpose: 'view',
+                    lang: _environment.environment.lang
+                  }; // extend default params with received config
 
-                this.context = context;
-                this.$container.append(this.context.getContainer());
-                this.updateHeader();
+                  config = _objectSpread(_objectSpread({}, params), config);
+                  var context = new _equalLib.Context(config.entity, config.type, config.name, config.domain, config.mode, config.purpose, config.lang);
+                  console.log('eQ: received _openContext', context);
 
-              case 4:
+                  _this.openContext(context);
+                });
+                this.$sbEvents.on('_closeContext', function (event, config) {
+                  console.log('eQ: received _closeContext');
+                  var params = {
+                    refresh: false,
+                    silent: false
+                  };
+                  config = _objectSpread(_objectSpread({}, params), config);
+
+                  _this.closeContext(config.refresh, config.silent);
+                });
+
+              case 3:
               case "end":
                 return _context.stop();
             }
@@ -2741,54 +2978,342 @@ var eQ = /*#__PURE__*/function () {
         }, _callee, this);
       }));
 
-      function openContext(_x) {
-        return _openContext.apply(this, arguments);
+      function init() {
+        return _init.apply(this, arguments);
       }
 
-      return openContext;
+      return init;
     }()
   }, {
-    key: "closeContext",
+    key: "getPurposeString",
     value: function () {
-      var _closeContext = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
-        var refresh,
-            _args2 = arguments;
+      var _getPurposeString = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2(context) {
+        var result, entity, type, purpose, translation, parts, purpose_const, _translation, objects, object;
+
         return _regenerator.default.wrap(function _callee2$(_context2) {
           while (1) {
             switch (_context2.prev = _context2.next) {
               case 0:
-                refresh = _args2.length > 0 && _args2[0] !== undefined ? _args2[0] : false;
+                result = '';
+                entity = context.getEntity();
+                type = context.getType();
+                purpose = context.getPurpose();
+                _context2.next = 6;
+                return _equalServices.ApiService.getTranslation(entity, _environment.environment.lang);
+
+              case 6:
+                translation = _context2.sent;
+
+                if (translation.hasOwnProperty('name')) {
+                  entity = translation['name'];
+                } else {
+                  parts = entity.split('\\');
+                  entity = parts.pop(); // set the first letter uppercase
+
+                  entity = entity.charAt(0).toUpperCase() + entity.slice(1);
+                }
+
+                if (!(purpose == 'view')) {
+                  _context2.next = 13;
+                  break;
+                }
+
+                result = entity;
+
+                if (type == 'list') {
+                  if (translation.hasOwnProperty('plural')) {
+                    result = translation['plural'];
+                  } else {
+                    result += 's';
+                  }
+                }
+
+                _context2.next = 29;
+                break;
+
+              case 13:
+                // i18n: look in config translation file
+                purpose_const = '';
+                _context2.t0 = purpose;
+                _context2.next = _context2.t0 === 'create' ? 17 : _context2.t0 === 'update' ? 19 : _context2.t0 === 'select' ? 21 : _context2.t0 === 'add' ? 23 : 25;
+                break;
+
+              case 17:
+                purpose_const = 'SB_PURPOSE_CREATE';
+                return _context2.abrupt("break", 25);
+
+              case 19:
+                purpose_const = 'SB_PURPOSE_UPDATE';
+                return _context2.abrupt("break", 25);
+
+              case 21:
+                purpose_const = 'SB_PURPOSE_SELECT';
+                return _context2.abrupt("break", 25);
+
+              case 23:
+                purpose_const = 'SB_PURPOSE_ADD';
+                return _context2.abrupt("break", 25);
+
+              case 25:
+                _context2.next = 27;
+                return _equalServices.TranslationService.translate(purpose_const);
+
+              case 27:
+                _translation = _context2.sent;
+
+                if (_translation.length) {
+                  result = _translation + ' ' + entity;
+                } else {
+                  result = purpose.charAt(0).toUpperCase() + purpose.slice(1) + ' ' + entity;
+                }
+
+              case 29:
+                if (!(type == 'form')) {
+                  _context2.next = 34;
+                  break;
+                }
+
+                _context2.next = 32;
+                return context.getView().getModel().get();
+
+              case 32:
+                objects = _context2.sent;
+
+                if (objects.length) {
+                  object = objects[0];
+
+                  if (object.hasOwnProperty('name')) {
+                    result += ' [' + object['name'] + ']';
+                  }
+                }
+
+              case 34:
+                return _context2.abrupt("return", result);
+
+              case 35:
+              case "end":
+                return _context2.stop();
+            }
+          }
+        }, _callee2);
+      }));
+
+      function getPurposeString(_x) {
+        return _getPurposeString.apply(this, arguments);
+      }
+
+      return getPurposeString;
+    }()
+  }, {
+    key: "updateHeader",
+    value: function () {
+      var _updateHeader = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3() {
+        var _this2 = this;
+
+        var $elem, _iterator, _step, _loop;
+
+        return _regenerator.default.wrap(function _callee3$(_context4) {
+          while (1) {
+            switch (_context4.prev = _context4.next) {
+              case 0:
+                $elem = (0, _jqueryLib.$)('<h3 />');
+                this.$headerContainer.empty().append($elem); // use all contexts in stack...
+
+                _iterator = _createForOfIteratorHelper(this.stack);
+                _context4.prev = 3;
+                _loop = /*#__PURE__*/_regenerator.default.mark(function _loop() {
+                  var context;
+                  return _regenerator.default.wrap(function _loop$(_context3) {
+                    while (1) {
+                      switch (_context3.prev = _context3.next) {
+                        case 0:
+                          context = _step.value;
+
+                          if (!context.hasOwnProperty('$container')) {
+                            _context3.next = 8;
+                            break;
+                          }
+
+                          _context3.t0 = (0, _jqueryLib.$)('<a />');
+                          _context3.next = 5;
+                          return _this2.getPurposeString(context);
+
+                        case 5:
+                          _context3.t1 = _context3.sent;
+
+                          _context3.t0.text.call(_context3.t0, _context3.t1).appendTo($elem).on('click', function () {
+                            // 2) close all contexts after the one clicked
+                            console.log('clicked', _this2.stack.length, _this2.stack);
+
+                            for (var i = _this2.stack.length - 1; i > 0; --i) {
+                              // unstack contexts silently (except for the last one), and ask for validation at each step
+                              if (_this2.stack[i] == context) {
+                                var validation = true;
+
+                                if (_this2.context.hasChanged()) {
+                                  validation = confirm(_equalServices.TranslationService.instant('SB_ACTIONS_MESSAGE_ABANDON_CHANGE'));
+                                }
+
+                                if (!validation) return;
+
+                                _this2.closeContext();
+
+                                break;
+                              } else {
+                                var _validation = true;
+
+                                if (_this2.context.hasChanged()) {
+                                  _validation = confirm(_equalServices.TranslationService.instant('SB_ACTIONS_MESSAGE_ABANDON_CHANGE'));
+                                }
+
+                                if (!_validation) return;
+
+                                _this2.closeContext(false, true);
+                              }
+                            }
+                          });
+
+                          (0, _jqueryLib.$)('<span> › </span>').appendTo($elem);
+
+                        case 8:
+                        case "end":
+                          return _context3.stop();
+                      }
+                    }
+                  }, _loop);
+                });
+
+                _iterator.s();
+
+              case 6:
+                if ((_step = _iterator.n()).done) {
+                  _context4.next = 10;
+                  break;
+                }
+
+                return _context4.delegateYield(_loop(), "t0", 8);
+
+              case 8:
+                _context4.next = 6;
+                break;
+
+              case 10:
+                _context4.next = 15;
+                break;
+
+              case 12:
+                _context4.prev = 12;
+                _context4.t1 = _context4["catch"](3);
+
+                _iterator.e(_context4.t1);
+
+              case 15:
+                _context4.prev = 15;
+
+                _iterator.f();
+
+                return _context4.finish(15);
+
+              case 18:
+                if (!this.context.hasOwnProperty('$container')) {
+                  _context4.next = 24;
+                  break;
+                }
+
+                _context4.t2 = (0, _jqueryLib.$)('<span />');
+                _context4.next = 22;
+                return this.getPurposeString(this.context);
+
+              case 22:
+                _context4.t3 = _context4.sent;
+
+                _context4.t2.text.call(_context4.t2, _context4.t3).appendTo($elem);
+
+              case 24:
+              case "end":
+                return _context4.stop();
+            }
+          }
+        }, _callee3, this, [[3, 12, 15, 18]]);
+      }));
+
+      function updateHeader() {
+        return _updateHeader.apply(this, arguments);
+      }
+
+      return updateHeader;
+    }()
+  }, {
+    key: "openContext",
+    value: function openContext(context) {
+      // stack received context
+      if (this.context) {
+        this.stack.push(this.context);
+
+        if (this.context.hasOwnProperty('$container')) {
+          // conainers are hidden and not detached in order to maintain the listeners
+          this.context.$container.hide();
+        }
+      }
+
+      this.context = context;
+      this.$container.append(this.context.getContainer());
+      this.updateHeader();
+    }
+    /**
+     * 
+     * @param refresh the content of the Context needs to be re-displayed (a change occured in the Model)
+     * @param silent do not show the pop-ed context and do not refresh the header 
+     */
+
+  }, {
+    key: "closeContext",
+    value: function () {
+      var _closeContext = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
+        var refresh,
+            silent,
+            _args5 = arguments;
+        return _regenerator.default.wrap(function _callee4$(_context5) {
+          while (1) {
+            switch (_context5.prev = _context5.next) {
+              case 0:
+                refresh = _args5.length > 0 && _args5[0] !== undefined ? _args5[0] : false;
+                silent = _args5.length > 1 && _args5[1] !== undefined ? _args5[1] : false;
+                console.log('closeContext', refresh, silent);
 
                 if (!this.stack.length) {
-                  _context2.next = 8;
+                  _context5.next = 12;
                   break;
                 }
 
                 // destroy current context
                 this.context.$container.remove(); // restore previous context
 
-                this.context = this.stack.pop(); // do we need to refresh ?
+                this.context = this.stack.pop();
 
-                if (!refresh) {
-                  _context2.next = 7;
+                if (silent) {
+                  _context5.next = 12;
                   break;
                 }
 
-                _context2.next = 7;
+                if (!refresh) {
+                  _context5.next = 10;
+                  break;
+                }
+
+                _context5.next = 10;
                 return this.context.refresh();
 
-              case 7:
+              case 10:
                 this.context.$container.show();
-
-              case 8:
                 this.updateHeader();
 
-              case 9:
+              case 12:
               case "end":
-                return _context2.stop();
+                return _context5.stop();
             }
           }
-        }, _callee2, this);
+        }, _callee4, this);
       }));
 
       function closeContext() {
@@ -2803,7 +3328,10 @@ var eQ = /*#__PURE__*/function () {
       console.log("eQ::test");
       (0, _jqueryLib.$)("#test").dialog();
       (0, _jqueryLib.$)("#datepicker").daterangepicker();
-      this.$sbEvents.trigger('_openContext', new _equalLib.Context('core\\User', 'list', 'default', []));
+      this.$sbEvents.trigger('_openContext', {
+        entity: 'core\\User',
+        type: 'list'
+      });
       /*
       setTimeout( () => {
           console.log('timeout1');

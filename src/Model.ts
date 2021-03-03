@@ -19,14 +19,16 @@ export class Model {
     // total objects matching the current domain on the back-end
     private total: number;
 
-
-    
+    private loaded_promise: any;
+    private has_changed: boolean;
     
     // Collecitons do not deal with lang: it is used in ApiService set in the environment var
     
     constructor(view:View) {
         this.view = view;
 
+        this.loaded_promise = $.Deferred();
+        this.has_changed = false;
         
         this.objects = {};
         this.total = 0;
@@ -44,6 +46,10 @@ export class Model {
         
     }
         
+    public hasChanged() {
+        return this.has_changed;
+    }
+
     /** 
      * Update model by requesting data from server using parent View parameters
     */
@@ -56,7 +62,8 @@ export class Model {
         try {
             console.log(this.view.getDomain());
             this.objects = await ApiService.collect(this.view.getEntity(), this.view.getDomain(), fields, this.view.getOrder(), this.view.getSort(), this.view.getStart(), this.view.getLimit(), this.view.getLang());
-
+            
+            this.loaded_promise.resolve();
             this.total = ApiService.getLastCount();
 
             console.log(this.objects);
@@ -78,6 +85,7 @@ export class Model {
                 for (let field in values) {                    
                     if(this.objects[id].hasOwnProperty(field)) {
                         this.objects[id][field] = values[field];
+                        this.has_changed = true;
                     }
                 }
             }
@@ -92,8 +100,18 @@ export class Model {
      * Return the entire Collection
      *
      */
-    public get() {        
-        return this.objects;
+    public get() {
+        let promise = $.Deferred();
+        
+        this.loaded_promise.
+        then( () => {
+            promise.resolve(this.objects);
+        })
+        .catch( () => {
+            promise.resolve({});
+        })
+        
+        return promise;
     }
     
     public getTotal() {

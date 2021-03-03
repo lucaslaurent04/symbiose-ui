@@ -1,7 +1,8 @@
 import { $ } from "./jquery-lib";
 import { UIHelper, MDCMenu } from './material-lib';
+import { environment } from "./environment";
 
-import { ApiService } from "./equal-services";
+import { ApiService, TranslationService } from "./equal-services";
 
 import Context from "./Context";
 import Layout from "./Layout";
@@ -31,6 +32,7 @@ export class View {
     private layout: Layout;
     private model: Model;
 
+    private translation: any;
     private view_schema: any;
     private model_schema: any;
 
@@ -94,15 +96,12 @@ export class View {
 
         this.init();
     }
-
-    public getContainer() {
-        return this.$container;
-    }
     
     public async init() {
         console.log('View::init');
 
         try {
+            this.translation = await ApiService.getTranslation(this.entity, environment.lang);
             this.view_schema = await ApiService.getView(this.entity, this.type + '.' + this.name);
             this.model_schema = await ApiService.getSchema(this.entity);
             this.loadViewFields(this.view_schema);
@@ -130,7 +129,13 @@ export class View {
         }
     }
 
+    public hasChanged() {
+        return this.model.hasChanged();
+    }
 
+    public getContainer() {
+        return this.$container;
+    }
 
     public setField(field: string, value: any) {
         this.view_fields[field] = value;
@@ -155,6 +160,15 @@ export class View {
     public getEntity() {
         return this.entity;
     }
+
+    public getType() {
+        return this.type;
+    }
+
+    public getTranslation() {
+        return this.translation;
+    }
+
     public getViewSchema() {
         return this.view_schema;
     }
@@ -202,6 +216,9 @@ export class View {
         return this.layout;
     }
 
+    /**
+     * Return a Map of layout fields items mapping names with their definition
+     */
     public getViewFields() {
         return this.view_fields;
     }
@@ -266,62 +283,7 @@ export class View {
 
 
     private layoutListFooter() {
-        /*
-        let $footer = UIHelper.createPagination().addClass('sb-view-header-list-pagination');
-
-        $footer.find('.pagination-total')
-        .append( $('<span class="sb-view-header-list-pagination-start"></span>') ).append( $('<span />').text('-') )
-        .append( $('<span class="sb-view-header-list-pagination-end"></span>') ).append( $('<span />').text(' / ') )
-        .append( $('<span class="sb-view-header-list-pagination-total"></span>') );
-
-        $footer.find('.pagination-navigation')
-        .append(
-            UIHelper.createButton('', '', 'icon', 'first_page').addClass('sb-view-header-list-pagination-first_page') 
-            .on('click', (event: any) => {
-                this.setStart(0);
-                this.onchangeView();
-            })
-        )
-        .append(
-            UIHelper.createButton('', '', 'icon', 'chevron_left').addClass('sb-view-header-list-pagination-prev_page')
-            .on('click', (event: any) => {
-                this.setStart( Math.max(0, this.getStart() - this.getLimit()) );
-                this.onchangeView();
-            })
-        )
-        .append(
-            UIHelper.createButton('', '', 'icon', 'chevron_right').addClass('sb-view-header-list-pagination-next_page')
-            .on('click', (event: any) => {
-                let new_start:number = Math.min( this.getTotal()-1, this.getStart() + this.getLimit() );
-                console.log('new start', new_start, this.getStart(), this.getLimit());
-                this.setStart(new_start);
-                this.onchangeView();
-            })
-        )
-        .append(
-            UIHelper.createButton('', '', 'icon', 'last_page').addClass('sb-view-header-list-pagination-last_page')
-            .on('click', (event: any) => {
-                let new_start:number = this.getTotal()-1;
-                this.setStart(new_start);
-                this.onchangeView();
-            })
-        );
-
-        let $select = UIHelper.createPaginationSelect('', '', [1, 2, 5, 10, 20, 100], 10).addClass('sb-view-header-list-pagination-limit_select');
-        
-        $footer.find('.pagination-rows-per-page')
-        .append(UIHelper.createIcon('list'))
-        .append($select);
-
-        $select.find('input').on('change', (event: any) => {
-            let $this = $(event.currentTarget);
-            this.setLimit(<number>$this.val());
-            this.setStart(0);
-            this.onchangeView();
-        });
-
-        this.$footerContainer.append( $footer );
-        */
+        // it is best UX practice to avoid footer on lists
     }
 
     private layoutListHeader() {
@@ -339,7 +301,7 @@ export class View {
                 .append( 
                     UIHelper.createButton('action-edit', 'Créer', 'raised')
                     .on('click', () => {
-                        $('#sb-events').trigger('_openContext', new Context(this.entity, 'form', 'default', [], 'edit', 'create'));
+                        $('#sb-events').trigger('_openContext', {entity: this.entity, type: 'form', name: 'default', domain: [], mode: 'edit', purpose: 'create'});
                     })
                 );        
                 break;
@@ -542,7 +504,7 @@ export class View {
             .appendTo($selected_menu)
             .on('click', (event) => {
                 let selected_id = this.selected_ids[0];
-                $('#sb-events').trigger('_openContext', new Context(this.entity, 'form', 'default', ['id', '=', selected_id], 'edit', 'update'));
+                $('#sb-events').trigger('_openContext', {entity: this.entity, type: 'form', name: 'default', domain: ['id', '=', selected_id], mode: 'edit', purpose: 'update'});
             });
 
             UIHelper.createListItem('Supprimer', 'delete')
@@ -570,35 +532,40 @@ export class View {
             case 'view':
                 $actions_set
                 .append( 
-                    UIHelper.createButton('action-edit', 'Modifier', 'raised')
+                    UIHelper.createButton('action-edit', TranslationService.instant('SB_ACTIONS_BUTTON_UPDATE'), 'raised')
                     .on('click', () => {
-                        $('#sb-events').trigger('_openContext', new Context(this.entity, this.type, 'default', this.domain, 'edit', 'update'));
+                        $('#sb-events').trigger('_openContext', {entity: this.entity, type: this.type, name: 'default', domain: this.domain, mode: 'edit', purpose: 'update'});
                     })
                 )
                 .append( 
-                    UIHelper.createButton('action-create', 'Créer', 'text')
+                    UIHelper.createButton('action-create', TranslationService.instant('SB_ACTIONS_BUTTON_CREATE'), 'text')
                     .on('click', async () => {
                         // create a new object
                         let object = await ApiService.create(this.entity);
                         // request a new Context for editing the new object
-                        $('#sb-events').trigger('_openContext', new Context(this.entity, this.type, 'default', [['id', '=', object.id], ['state', '=', 'draft']], 'edit', 'create'));
+                        $('#sb-events').trigger('_openContext', {entity: this.entity, type: this.type, name: 'default', domain: [['id', '=', object.id], ['state', '=', 'draft']], mode: 'edit', purpose: 'create'});
                     })
                 );
                 break;
             case 'edit':
                 $actions_set
                 .append( 
-                    UIHelper.createButton('action-create', 'Sauver', 'raised')
+                    UIHelper.createButton('action-create', TranslationService.instant('SB_ACTIONS_BUTTON_SAVE'), 'raised')
                     .on('click', async () => {
-                        let objects = this.model.get();
+                        let objects = await this.model.get();
                         let object = objects[0];
                         await ApiService.update(this.entity, [object['id']], object);
-                        $('#sb-events').trigger('_closeContext', true);
+                        $('#sb-events').trigger('_closeContext', {refresh: true});
                     })
                 )
                 .append( 
-                    UIHelper.createButton('action-cancel', 'Annuler', 'outlined')
+                    UIHelper.createButton('action-cancel', TranslationService.instant('SB_ACTIONS_BUTTON_CANCEL'), 'outlined')
                     .on('click', async () => {
+                        let validation = true;
+                        if(this.hasChanged()) {
+                            validation = confirm(TranslationService.instant('SB_ACTIONS_MESSAGE_ABANDON_CHANGE'));
+                        }
+                        if(!validation) return;
                         $('#sb-events').trigger('_closeContext');
                     })
                 );
@@ -610,8 +577,8 @@ export class View {
     }
 
 
-    private layoutRefresh(full: boolean = false) {
-        this.layout.refresh(full);
+    private async layoutRefresh(full: boolean = false) {
+        await this.layout.refresh(full);
         if(['list', 'kanban'].indexOf(this.type) >= 0) {
             this.layoutListRefresh();
         }
@@ -648,7 +615,7 @@ modifications des champs (a rpriori un par un) : relayer les changementrs depuis
      * If `full`is set to true, then the layout is re-generated
      */
     public onchangeModel(full: boolean = false) {
-        console.log('View::onchangeModel', full, this.model.get());
+        console.log('View::onchangeModel', full);
         this.layoutRefresh(full);
     }
     

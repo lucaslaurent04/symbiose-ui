@@ -5,6 +5,7 @@ import { UIHelper } from './material-lib';
 
 import Domain from "./Domain";
 
+import Context from "./Context";
 import View from "./View";
 import Model from "./Model";
 
@@ -51,7 +52,7 @@ export class Layout {
 
     // refresh layout
     // this method is called in response to parent View `onchangeModel` method 
-    public refresh(full: boolean) {
+    public async refresh(full: boolean) {
         console.log('Layout::refresh');
                      
         // also re-generate the layout                     
@@ -61,7 +62,8 @@ export class Layout {
         }
 
         // feed layout with current Model
-        this.feed(this.view.getModel().get());
+        let objects = await this.view.getModel().get();
+        this.feed(objects);
     }       
 
     
@@ -86,8 +88,10 @@ export class Layout {
                 break;
         }        
               
+
     }
-// todo : garder la liste des widgets instanciés pour permettre de passer en mode d'édition (pour un formulaire ou une celulle)    
+
+    // We store the list of instanciated widgetsto allow switching from view mode to edit mode  (for a form or a cell)
     private layoutForm() {
         console.log('Layout::layoutForm');
         let $elem = $('<div/>').css({"width": "100%"});
@@ -119,7 +123,6 @@ export class Layout {
                             }
 
                             if(item.type == 'field') {
-                                console.log(item);
                                 let config:any = {};
                                 let field_name = item.value;
                                 let def = model_fields[field_name];
@@ -246,14 +249,22 @@ export class Layout {
 
         let $tbody = $('<tbody/>');       
 
-        for (let id of Object.keys(objects)) {
-            let object = objects[id];
-            let $row = $('<tr/>');
+        for (let i of Object.keys(objects)) {
+            let object = objects[i];
+            let $row = $('<tr/>')
+            .on('click', () => {
+                $('#sb-events').trigger('_openContext', {entity: this.view.getEntity(), type: 'form', domain: ['id', '=', object.id]});
+            });
 
             UIHelper.createTableCellCheckbox().appendTo($row)
             .find('input')
             .attr('data-id', object.id)
-            .on('click', () => setTimeout( () => this.view.onchangeSelection(this.getSelected()) ) );
+            .on('click', (event:any) => {
+                // wait for widget to update and notify about change
+                setTimeout( () => this.view.onchangeSelection(this.getSelected()) );
+                // prevent handling of click on parent `tr` element
+                event.stopPropagation();
+            });
 
             for(let field of Object.keys(object)) {
                 let view_def = this.view.getField(field);
@@ -269,6 +280,13 @@ export class Layout {
                 let model_def = model_schema[field];
 
                 let type = model_def['type'];
+
+                // handle `alias` type
+                while(type == 'alias') {
+                    let target = model_def['alias'];
+                    model_def = model_schema[target];
+                    type = model_def['type'];
+                }
 
                 if(view_def.hasOwnProperty('widget')) {
                     type = view_def.widget.type;
@@ -293,10 +311,11 @@ export class Layout {
         console.log('Layout::feedForm');
         // display the first object from the collection
         let ids = Object.keys(objects);
+        let fields = Object.keys(this.view.getViewFields());
         if(ids.length > 0) {
             let object_id = ids[0];
             let object:any = objects[object_id];
-            for(let field of Object.keys(object)) {
+            for(let field of fields) {
                 let widget = this.model_widgets[field];
                 let $parent = this.$layout.find('#'+widget.getId()).parent().empty();
 
@@ -307,16 +326,14 @@ export class Layout {
                 $widget.on('_updatedWidget', (event:any, new_value: any) => {
                     console.log('Layout : received widget change event for field '+field, new_value);
                     object[field] = new_value;
-// todo : use fields only (not full object)                    
+// todo : use updated fields only (not full object)                    
                     this.view.onchangeViewModel([object_id], object);
-                                        
-                    console.log(this.view.getModel().get())
                 });
                 console.log('config', widget.getConfig());
                 let config = widget.getConfig();
-// todo handle visibility tests (domain)                
+                
+                // handle visibility tests (domain)           
                 if(config.hasOwnProperty('visible')) {
-
                     let domain = new Domain(config.visible);
                     if( domain.evaluate(object) ) {
                         $parent.append($widget);    

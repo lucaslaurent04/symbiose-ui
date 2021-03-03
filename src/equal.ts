@@ -1,5 +1,7 @@
 import { $ } from "./jquery-lib";
-import { Context, Model, View, Layout } from "./equal-lib";
+import { Context } from "./equal-lib";
+import { environment } from "./environment";
+import { ApiService, TranslationService } from "./equal-services";
 
 // We use MDC (material design components)
 // @see https://github.com/material-components/material-components-web/blob/master/docs/getting-started.md
@@ -13,7 +15,7 @@ class eQ {
     private $container: any;
 
     private $headerContainer: any;
-    
+
     // stack of Context (only current context is visible)
     private stack: Array<Context>;
 
@@ -33,64 +35,155 @@ class eQ {
     }
     
     
-    private init() {
+    private async init() {
+
         // $sbEvents is a jQuery object used to communicate: it allows an both internal services and external lib to connect with eQ-UI
         // $('#sb-events').trigger(event, data);
         this.$sbEvents = $('<div/>').attr('id', 'sb-events').css('display','none').appendTo('body');
-
+        
         /*
-            A new contexte can be requested by ngx (menu or app) or by opening a sub-objet
+            A new context can be requested by ngx (menu or app) or by opening a sub-objet
         */        
-        this.$sbEvents.on('_openContext', (event:any, context:Context) => {
+        this.$sbEvents.on('_openContext', (event:any, config:any) => {
+            let params = {
+                entity:     '', 
+                type:       'list', 
+                name:       'default', 
+                domain:     [], 
+                mode:       'view', 
+                purpose:    'view', 
+                lang:   environment.lang
+            };
+            // extend default params with received config
+            config = {...params, ...config};
+
+            let context: Context = new Context(config.entity, config.type, config.name, config.domain, config.mode, config.purpose, config.lang);
             console.log('eQ: received _openContext', context);
             this.openContext(context);
         });
 
-        this.$sbEvents.on('_closeContext', (event:any) => {
+        this.$sbEvents.on('_closeContext', (event:any, config: any) => {
             console.log('eQ: received _closeContext');
-            this.closeContext();
+            let params = {
+                refresh: false, 
+                silent: false
+            };
+            config = {...params, ...config};
+
+            this.closeContext(config.refresh, config.silent);
         });
         
     }
 
-    private getPurposeString(entity:string, type:string = 'list', purpose:string = 'view') {
+    private async getPurposeString(context:Context) {
         let result: string = '';
-        let parts = entity.split('\\');
-        entity = <string>parts.pop();
+
+        let entity = context.getEntity();
+        let type = context.getType();
+        let purpose = context.getPurpose();    
+
+        let translation = await ApiService.getTranslation(entity, environment.lang);
+
+        if(translation.hasOwnProperty('name')) {
+            entity = translation['name'];    
+        }
+        else {
+            let parts = entity.split('\\');
+            entity = <string>parts.pop();    
+            // set the first letter uppercase
+            entity = entity.charAt(0).toUpperCase() + entity.slice(1);
+        }
+
         if(purpose == 'view') {
             result = entity;
+            
             if(type == 'list') {
-// todo : improve this                
-                result += 's';
+                if(translation.hasOwnProperty('plural')) {
+                    result = translation['plural'];    
+                }
+                else {
+                    result += 's';
+                }                
             }
         }
         else {
-            result = purpose + ' ' + entity;
+            // i18n: look in config translation file
+            let purpose_const: string = '';
+            switch(purpose) {
+                case 'create':  purpose_const = 'SB_PURPOSE_CREATE'; break;
+                case 'update':  purpose_const = 'SB_PURPOSE_UPDATE'; break;
+                case 'select':  purpose_const = 'SB_PURPOSE_SELECT'; break;
+                case 'add':     purpose_const = 'SB_PURPOSE_ADD'; break;
+            }
+            let translation = await TranslationService.translate(purpose_const);
+            if(translation.length) {
+                result = translation + ' ' + entity;
+            }
+            else {
+                result = purpose.charAt(0).toUpperCase() + purpose.slice(1) + ' ' + entity;
+            }
         }
+        // when editing an object, append current object identifier to the breadcrumb
+        if(type == 'form') {
+            let objects = await context.getView().getModel().get();
+            if(objects.length) {
+                let object = objects[0];
+                if(object.hasOwnProperty('name')) {
+                    result += ' ['+object['name']+']';
+                }    
+            }
+        }
+
         return result;
     }
 
-    private updateHeader() {
+    private async updateHeader() {
         let $elem = $('<h3 />');
-        let text = '';
 
         this.$headerContainer.empty().append($elem);
 
         // use all contexts in stack...
         for(let context of this.stack) {
             if(context.hasOwnProperty('$container')) {
-                text += this.getPurposeString(context.getEntity(), context.getType(), context.getPurpose());
-                text += ' > ';
+
+                $('<a />').text(await this.getPurposeString(context)).appendTo($elem)
+                .on('click', () => {
+                    
+                    // 2) close all contexts after the one clicked
+                    console.log('clicked', this.stack.length, this.stack)
+                    for(let i = this.stack.length-1; i > 0; --i) {
+                        // unstack contexts silently (except for the last one), and ask for validation at each step
+                        if(this.stack[i] == context) {
+                            let validation = true;
+                            if(this.context.hasChanged()) {
+                                validation = confirm(TranslationService.instant('SB_ACTIONS_MESSAGE_ABANDON_CHANGE'));
+                            }
+                            if(!validation) return;        
+                            this.closeContext();
+                            break;
+                        }
+                        else {
+                            let validation = true;
+                            if(this.context.hasChanged()) {
+                                validation = confirm(TranslationService.instant('SB_ACTIONS_MESSAGE_ABANDON_CHANGE'));
+                            }
+                            if(!validation) return;        
+                            this.closeContext(false, true);
+                        }                        
+                    }
+                });
+
+                $('<span> › </span>').appendTo($elem);
             }
         }
         // + the active context
         if(this.context.hasOwnProperty('$container')) {
-            text += this.getPurposeString(this.context.getEntity(), this.context.getType(), this.context.getPurpose());
+            $('<span />').text(await this.getPurposeString(this.context)).appendTo($elem)
         }
-        $elem.text(text);
+        
     }
-    
-    private async openContext(context: Context) {
+
+    private openContext(context: Context) {
         // stack received context
         if(this.context) {
             this.stack.push(this.context);
@@ -103,20 +196,27 @@ class eQ {
         this.$container.append(this.context.getContainer());
         this.updateHeader();
     }
-    
-    private async closeContext(refresh: boolean = false) {
+
+    /**
+     * 
+     * @param refresh the content of the Context needs to be re-displayed (a change occured in the Model)
+     * @param silent do not show the pop-ed context and do not refresh the header 
+     */
+    private async closeContext(refresh: boolean = false, silent: boolean = false) {
+        console.log('closeContext', refresh, silent);
         if(this.stack.length) {
             // destroy current context
             this.context.$container.remove();
             // restore previous context
             this.context = <Context>this.stack.pop();
-            // do we need to refresh ?
-            if(refresh) {
-                await this.context.refresh();
-            }            
-            this.context.$container.show();
+            if(!silent) {
+                if(refresh) {
+                    await this.context.refresh();
+                }    
+                this.context.$container.show();
+                this.updateHeader();
+            }
         }
-        this.updateHeader();
     }
     
     public test() {
@@ -125,7 +225,7 @@ class eQ {
         $( "#datepicker" ).daterangepicker();
 
         
-        this.$sbEvents.trigger('_openContext', new Context('core\\User', 'list', 'default', []));
+        this.$sbEvents.trigger('_openContext', {entity: 'core\\User', type: 'list'} );
         /*
         setTimeout( () => {
             console.log('timeout1');

@@ -79,6 +79,16 @@ body, html {
     line-height: 48px;
 }
 
+.sb-container-header a {
+    cursor: pointer;
+    text-decoration: none;
+    color: var(--mdc-theme-primary);
+}
+
+.sb-container-header a:hover {
+
+}
+
 .sb-context {
     /* container height minus the header */
     height: calc(100% - 48px);
@@ -389,7 +399,7 @@ body, html {
   text-align: center;
   height: 33px;
   width: 33px;
-  line-height: 36px;
+  line-height: 30px;
 }
 .ui-datepicker-calendar .ui-state-highlight {
   color: var(--mdc-theme-primary);
@@ -434,6 +444,7 @@ body, html {
 }
 
 .ui-datepicker .ui-datepicker-prev {
+    text-decoration: none;
     height: auto !important;
     width: auto !important;
 	left: 8px !important;
@@ -441,6 +452,7 @@ body, html {
 }
 
 .ui-datepicker .ui-datepicker-next {
+    text-decoration: none;
     height: auto !important;
     width: auto !important;
 	right: 8px !important;

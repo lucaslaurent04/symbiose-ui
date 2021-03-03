@@ -1,11 +1,8 @@
 import  _ApiService from "./ApiService";
-
+import  _TranslationService from "./TranslationService";
 
 /**
  * Singleton instances
  */
-export var ApiService = new _ApiService();
-
-
-
-export default ApiService;
+export const ApiService = new _ApiService();
+export const TranslationService = new _TranslationService();

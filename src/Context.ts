@@ -42,6 +42,10 @@ FORM
         this.$container.append(this.view.getContainer())
     }    
 
+    public hasChanged() {
+        return this.view.hasChanged();
+    }
+
     public getEntity() {
         return this.view.entity;
     }
@@ -60,6 +64,10 @@ FORM
 
     public getContainer() {
         return this.$container;
+    }
+
+    public getView() {
+        return this.view;
     }
     
     /**
