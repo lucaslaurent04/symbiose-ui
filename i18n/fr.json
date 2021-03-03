@@ -1,0 +1,20 @@
+{
+    "HELLO": "Bonjour",
+
+    "SB_PURPOSE_CREATE": "Création",
+    "SB_PURPOSE_UPDATE": "Modification",
+    "SB_PURPOSE_SELECT": "Sélection",
+    "SB_PURPOSE_ADD": "Ajout",
+    
+    
+    "SB_ACTIONS_BUTTON_CREATE": "Créer",
+    "SB_ACTIONS_BUTTON_SAVE": "Sauver",
+    "SB_ACTIONS_BUTTON_UPDATE": "Modifier",    
+    "SB_ACTIONS_BUTTON_CANCEL": "Annuler",
+    
+    "SB_ACTIONS_MESSAGE_ABANDON_CHANGE": "Des modifications ont été apportées et vont être perdues. Voulez-vous continuer ?",
+    
+    
+
+    "LAST_LINE": "the only line without commma"
+}
