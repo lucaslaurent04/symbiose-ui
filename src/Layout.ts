@@ -52,6 +52,14 @@ export class Layout {
     }
 
 
+    public markAsInvalid(field: string, message: string) {
+        let widget = this.model_widgets[field];
+        let $elem = this.$layout.find('#'+widget.getId())
+        $elem.addClass('mdc-text-field--invalid');
+        $elem.find('.mdc-text-field-helper-text').addClass('mdc-text-field-helper-text--persistent mdc-text-field-helper-text--validation-msg').text(message);
+    }
+
+
     // refresh layout
     // this method is called in response to parent View `onchangeModel` method 
     public async refresh(full: boolean) {
@@ -178,7 +186,7 @@ export class Layout {
                                     let readonly = (item.hasOwnProperty('readonly'))?item.readonly:false;
     
                                     config['helper'] = field_helper;
-                                    
+
                                     if(item.hasOwnProperty('visible')) {
                                         let visible_domain = item.visible;
                                         if(!Array.isArray(visible_domain)) {

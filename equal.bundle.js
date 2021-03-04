@@ -433,7 +433,7 @@ var _ApiService = /*#__PURE__*/function () {
               case 9:
                 _context6.prev = 9;
                 _context6.t0 = _context6["catch"](1);
-                console.log('Error ApiService::update', _context6.t0);
+                result = _context6.t0.responseJSON;
 
               case 12:
                 return _context6.abrupt("return", result);
@@ -1059,7 +1059,15 @@ var Layout = /*#__PURE__*/function () {
       }
 
       return init;
-    }() // refresh layout
+    }()
+  }, {
+    key: "markAsInvalid",
+    value: function markAsInvalid(field, message) {
+      var widget = this.model_widgets[field];
+      var $elem = this.$layout.find('#' + widget.getId());
+      $elem.addClass('mdc-text-field--invalid');
+      $elem.find('.mdc-text-field-helper-text').addClass('mdc-text-field-helper-text--persistent mdc-text-field-helper-text--validation-msg').text(message);
+    } // refresh layout
     // this method is called in response to parent View `onchangeModel` method 
 
   }, {
@@ -2564,7 +2572,7 @@ var View = /*#__PURE__*/function () {
 
         case 'edit':
           $actions_set.append(_materialLib.UIHelper.createButton('action-save', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_SAVE'), 'raised').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3() {
-            var objects, object;
+            var objects, object, response, errors, field, msg;
             return _regenerator.default.wrap(function _callee3$(_context3) {
               while (1) {
                 switch (_context3.prev = _context3.next) {
@@ -2579,9 +2587,23 @@ var View = /*#__PURE__*/function () {
                     return _equalServices.ApiService.update(_this3.entity, [object['id']], object);
 
                   case 6:
-                    (0, _jqueryLib.$)('#sb-events').trigger('_closeContext');
+                    response = _context3.sent;
 
-                  case 7:
+                    if (!response.hasOwnProperty('errors')) {
+                      (0, _jqueryLib.$)('#sb-events').trigger('_closeContext');
+                    } else {
+                      errors = response['errors'];
+
+                      if (errors.hasOwnProperty('INVALID_PARAM')) {
+                        for (field in errors['INVALID_PARAM']) {
+                          msg = Object.values(errors['INVALID_PARAM'][field])[0];
+
+                          _this3.layout.markAsInvalid(field, msg);
+                        }
+                      }
+                    }
+
+                  case 8:
                   case "end":
                     return _context3.stop();
                 }
@@ -3659,17 +3681,17 @@ var UIHelper = /*#__PURE__*/function () {
       var helper = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : '';
       var icon = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : '';
       var disabled = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : false;
-      var $elem = (0, _jqueryLib.$)('\
+      var $elem = (0, _jqueryLib.$)('<div/>\
         <label class="mdc-text-field mdc-text-field--filled mdc-text-field--with-trailing-icon"> \
             <span class="mdc-text-field__ripple"></span> \
-            <span class="mdc-floating-label" id="my-label-id">' + label + '</span> \
+            <span class="mdc-floating-label">' + label + '</span> \
             <i aria-hidden="true" class="material-icons mdc-text-field__icon">' + icon + '</i>\
-            <input ' + (disabled ? 'disabled' : '') + ' class="mdc-text-field__input" type="text" aria-labelledby="my-label-id" value="' + value + '"> \
+            <input ' + (disabled ? 'disabled' : '') + ' class="mdc-text-field__input" type="text" autocorrect="off" autocomplete="off" spellcheck="false" value="' + value + '"> \
             <span class="mdc-line-ripple"></span>\
         </label>\
         <div class="mdc-text-field-helper-line"> \
-            <div class="mdc-text-field-helper-text" id="my-helper-id" aria-hidden="true">' + helper + '</div> \
-        </div>');
+            <div class="mdc-text-field-helper-text" aria-hidden="true">' + helper + '</div> \
+        </div></div>');
       new _textfield.MDCTextField($elem[0]);
       return $elem;
     }
@@ -3678,8 +3700,8 @@ var UIHelper = /*#__PURE__*/function () {
     value: function createInputView(id, label, value) {
       var $elem = (0, _jqueryLib.$)('\
         <label class="sb-view-form-field-mode-view mdc-text-field mdc-text-field--filled"> \
-            <span class="sb-view-form-field-label mdc-floating-label" id="my-label-id">' + label + '</span> \
-            <input disabled class="mdc-text-field__input" type="text" aria-labelledby="my-label-id" value="' + value + '"> \
+            <span class="sb-view-form-field-label mdc-floating-label">' + label + '</span> \
+            <input disabled class="mdc-text-field__input" type="text" value="' + value + '"> \
             <span class="mdc-line-ripple"></span>\
         </label>');
       new _textfield.MDCTextField($elem[0]);

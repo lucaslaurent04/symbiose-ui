@@ -237,8 +237,8 @@ export class _ApiService {
             });
             result = response;
         }
-        catch(err) {
-            console.log('Error ApiService::update', err);
+        catch(response) {
+            result = response.responseJSON;
         }
         return result;
     }

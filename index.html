@@ -394,11 +394,21 @@ body, html {
 
 .mdc-floating-label {
     font-size: 16px !important;
-    color: rgba(0, 0, 0, 0.8) !important;
+    /* color: rgba(0, 0, 0, 0.8) !important;*/
 }
 
 
+.mdc-text-field--invalid:not(.mdc-text-field--disabled) .mdc-text-field-helper-line .mdc-text-field-helper-text--validation-msg {
+    color: var(--mdc-theme-error, #b00020) !important;
+}
 
+.mdc-text-field--focused:not(.mdc-text-field--disabled) .mdc-floating-label {
+    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0,87)) !important;
+}
+
+.mdc-select--focused:not(.mdc-text-field--disabled) .mdc-floating-label {
+    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0,87)) !important;
+}
 
 .mdc-tab {
     max-width: 280px;

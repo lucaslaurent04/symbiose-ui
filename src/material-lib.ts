@@ -62,17 +62,17 @@ class UIHelper {
     }
 
     public static createInput(id:string, label:string, value:string, helper:string = '', icon: string = '', disabled: boolean = false) {
-        let $elem = $('\
+        let $elem = $('<div/>\
         <label class="mdc-text-field mdc-text-field--filled mdc-text-field--with-trailing-icon"> \
             <span class="mdc-text-field__ripple"></span> \
-            <span class="mdc-floating-label" id="my-label-id">'+label+'</span> \
+            <span class="mdc-floating-label">'+label+'</span> \
             <i aria-hidden="true" class="material-icons mdc-text-field__icon">'+icon+'</i>\
-            <input '+( (disabled)?'disabled':'' )+' class="mdc-text-field__input" type="text" aria-labelledby="my-label-id" value="'+value+'"> \
+            <input '+( (disabled)?'disabled':'' )+' class="mdc-text-field__input" type="text" autocorrect="off" autocomplete="off" spellcheck="false" value="'+value+'"> \
             <span class="mdc-line-ripple"></span>\
         </label>\
         <div class="mdc-text-field-helper-line"> \
-            <div class="mdc-text-field-helper-text" id="my-helper-id" aria-hidden="true">'+helper+'</div> \
-        </div>');
+            <div class="mdc-text-field-helper-text" aria-hidden="true">'+helper+'</div> \
+        </div></div>');
 
         
         new MDCTextField($elem[0]);
@@ -82,8 +82,8 @@ class UIHelper {
     public static createInputView(id:string, label:string, value:string) {
         let $elem = $('\
         <label class="sb-view-form-field-mode-view mdc-text-field mdc-text-field--filled"> \
-            <span class="sb-view-form-field-label mdc-floating-label" id="my-label-id">'+label+'</span> \
-            <input disabled class="mdc-text-field__input" type="text" aria-labelledby="my-label-id" value="'+value+'"> \
+            <span class="sb-view-form-field-label mdc-floating-label">'+label+'</span> \
+            <input disabled class="mdc-text-field__input" type="text" value="'+value+'"> \
             <span class="mdc-line-ripple"></span>\
         </label>');
         new MDCTextField($elem[0]);

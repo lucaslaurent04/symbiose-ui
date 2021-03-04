@@ -557,8 +557,22 @@ export class View {
                     .on('click', async () => {
                         let objects = await this.model.get();
                         let object = objects[0];
-                        await ApiService.update(this.entity, [object['id']], object);
-                        $('#sb-events').trigger('_closeContext');
+                        const response = await ApiService.update(this.entity, [object['id']], object);
+                        if(!response.hasOwnProperty('errors')) {
+                            $('#sb-events').trigger('_closeContext');
+                        }
+                        else {
+                            let errors = response['errors'];
+                            if(errors.hasOwnProperty('INVALID_PARAM')) {
+                                for(let field in errors['INVALID_PARAM']) {
+
+                                    let msg:string = <string>(Object.values(errors['INVALID_PARAM'][field]))[0];
+// todo : translate error message                                    
+                                    this.layout.markAsInvalid(field, msg);
+                                }
+                            }
+                        }
+                        
                     })
                 )
                 .append( 
