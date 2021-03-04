@@ -47,6 +47,15 @@ $(document).ready( function() {
     --mdc-typography-subtitle1-font-size: 14px;
     /* table headers */
     --mdc-typography-subtitle2-font-weight: 600;
+
+
+    --mdc-layout-grid-margin-desktop: 12px;
+    --mdc-layout-grid-gutter-desktop: 24px;
+    --mdc-layout-grid-margin-tablet: 12px;
+    --mdc-layout-grid-gutter-tablet: 18px;
+    --mdc-layout-grid-margin-phone: 12px;
+    --mdc-layout-grid-gutter-phone: 16px;
+
 }
     
 body, html {
@@ -77,6 +86,9 @@ body, html {
 
 .sb-container-header h3 {
     line-height: 48px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .sb-container-header a {
@@ -156,6 +168,10 @@ body, html {
     content: "\f0d8";
 }
 
+.sb-view-layout-list table tr {
+    cursor: pointer;
+}
+
 .sb-view-header-list {
     position: relative;
     height: 112px;
@@ -166,6 +182,10 @@ body, html {
     margin-left: 12px;
     height: 56px;
     line-height: 56px;
+}
+
+.sb-view-header-list-actions button {
+    margin-right: 12px;
 }
 
 .sb-view-header-list-actions-selected {
@@ -262,20 +282,38 @@ body, html {
     transform: translateY(-106%) scale(0.8) !important;
 }
 
+.sb-view-header-form {
+    height: 56px;
+    line-height: 56px;
+}
 
-.sb-view-form-header-actions {
+.sb-view-header-form-actions {
     display: flex;
     flex-direction: row;
     align-items: center;
-    padding: 0 14px;
+    margin-left: 12px;
     max-width: 250px;
+    height: 56px;
+    line-height: 56px;
 }
 
-.sb-view-form-header-actions button {
+.sb-view-header-form-actions button {
     flex: 1;
-    margin: 0 10px;
+    margin-right: 12px;
 }
 
+.sb-view-form-group {
+    padding: 12px;
+}
+
+.sb-view-form-group-title {
+    font-size: 20px;
+    margin-bottom: 12px;
+}
+
+.sb-view-form-sections-tabbar {
+    margin-bottom: 12px;
+}
 
 .sb-view-layout-list .mdc-line-ripple::before, .sb-view-layout-list .mdc-line-ripple::after {
   border: none !important;
@@ -298,7 +336,29 @@ body, html {
 
 
 /* Material Components customizations */
+.mdc-text-field:not(.mdc-text-field--disabled) .mdc-text-field__icon {
+    color: rgba(0,0,0,.54);
+}
 
+.mdc-text-field--with-trailing-icon .mdc-text-field__icon {
+    left: initial;
+    right: 12px;
+}
+
+.mdc-text-field--with-leading-icon .mdc-text-field__icon, .mdc-text-field--with-trailing-icon .mdc-text-field__icon {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+}
+
+.mdc-layout-grid__cell {
+    position: relative;
+}
+
+.mdc-text-field-helper-line {
+    position: absolute;
+}
 .mdc-data-table__header-cell--checkbox {
     width: 44px;
 }
@@ -337,11 +397,19 @@ body, html {
     color: rgba(0, 0, 0, 0.8) !important;
 }
 
-.mdc-layout-grid {
-    padding: 12px !important;
+
+
+
+.mdc-tab {
+    max-width: 280px;
 }
 
+.mdc-tab-bar {
+    margin-top: 12px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+}
 
+/* jqueryui datepicker material styling */
 
 
 .ui-datepicker {
@@ -362,6 +430,15 @@ body, html {
 
 .ui-datepicker .ui-datepicker-title {
     font-size: 17px;
+}
+
+.ui-datepicker-trigger {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    opacity: 0;
+    margin-top: -10px;
+    cursor: pointer;
 }
 
 .ui-corner-all {

@@ -45,6 +45,7 @@ class eQ {
             A new context can be requested by ngx (menu or app) or by opening a sub-objet
         */        
         this.$sbEvents.on('_openContext', (event:any, config:any) => {
+            console.log('eQ: received _openContext', config);
             let params = {
                 entity:     '', 
                 type:       'list', 
@@ -58,19 +59,12 @@ class eQ {
             config = {...params, ...config};
 
             let context: Context = new Context(config.entity, config.type, config.name, config.domain, config.mode, config.purpose, config.lang);
-            console.log('eQ: received _openContext', context);
+
             this.openContext(context);
         });
 
-        this.$sbEvents.on('_closeContext', (event:any, config: any) => {
-            console.log('eQ: received _closeContext');
-            let params = {
-                refresh: false, 
-                silent: false
-            };
-            config = {...params, ...config};
-
-            this.closeContext(config.refresh, config.silent);
+        this.$sbEvents.on('_closeContext', (event:any) => {
+            this.closeContext();
         });
         
     }
@@ -123,11 +117,12 @@ class eQ {
                 result = purpose.charAt(0).toUpperCase() + purpose.slice(1) + ' ' + entity;
             }
         }
-        // when editing an object, append current object identifier to the breadcrumb
+        // when context relates to a single object, append object identifier to the breadcrumb
         if(type == 'form') {
             let objects = await context.getView().getModel().get();
             if(objects.length) {
                 let object = objects[0];
+                // by convention, collections should always request the `name` field
                 if(object.hasOwnProperty('name')) {
                     result += ' ['+object['name']+']';
                 }    
@@ -168,7 +163,7 @@ class eQ {
                                 validation = confirm(TranslationService.instant('SB_ACTIONS_MESSAGE_ABANDON_CHANGE'));
                             }
                             if(!validation) return;        
-                            this.closeContext(false, true);
+                            this.closeContext(true);
                         }                        
                     }
                 });
@@ -199,18 +194,19 @@ class eQ {
 
     /**
      * 
-     * @param refresh the content of the Context needs to be re-displayed (a change occured in the Model)
      * @param silent do not show the pop-ed context and do not refresh the header 
      */
-    private async closeContext(refresh: boolean = false, silent: boolean = false) {
-        console.log('closeContext', refresh, silent);
+    private async closeContext(silent: boolean = false) {
+        console.log('closeContext', silent);
         if(this.stack.length) {
+            let has_changed:boolean = this.context.hasChanged();
             // destroy current context
             this.context.$container.remove();
+            
             // restore previous context
             this.context = <Context>this.stack.pop();
-            if(!silent) {
-                if(refresh) {
+            if(!silent) {                
+                if(has_changed && this.context.getMode() == 'view') {
                     await this.context.refresh();
                 }    
                 this.context.$container.show();

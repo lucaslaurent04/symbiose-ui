@@ -1,7 +1,9 @@
 import { $ } from "./jquery-lib";
-import { ApiService } from "./equal-services";
+
 import { Widget, WidgetFactory } from "./equal-widgets";
 import { UIHelper } from './material-lib';
+
+import { ApiService, TranslationService } from "./equal-services";
 
 import Domain from "./Domain";
 
@@ -98,11 +100,51 @@ export class Layout {
 
         let view_schema = this.view.getViewSchema();
         let model_fields = this.view.getModelFields();
+        let translation = this.view.getTranslation();
 
-        $.each(view_schema.layout.groups, (i, group) => {
-            let $group = $('<div />').addClass('').appendTo($elem);
-            $.each(group.sections, (i, section) => {
-                let $section = $('<div />').addClass('mdc-layout-grid').appendTo($group);
+        $.each(view_schema.layout.groups, (i:number, group) => {
+            let $group = $('<div />').addClass('sb-view-form-group').appendTo($elem);
+
+            // try to resolve the group title
+            let group_title = (group.hasOwnProperty('label'))?group.label:'';
+            if(group.hasOwnProperty('id')) {
+                group_title = TranslationService.resolve(translation, 'view', group.id, group_title);
+            }
+            // append the group title, if any
+            if(group_title.length) {
+                $group.append($('<div/>').addClass('sb-view-form-group-title').text(group_title));
+            }
+
+            let $tabs = UIHelper.createTabBar('test', '', '').addClass('sb-view-form-sections-tabbar');
+
+            if(group.sections.length > 1) {
+                $group.append($tabs);    
+            }
+            
+            $.each(group.sections, (i:number, section) => {
+                let section_id = 'section-'+i;
+                let $section = $('<div />').attr('id', section_id).addClass('sb-view-form-section mdc-layout-grid').appendTo($group);
+                if(i > 0) {
+                    $section.hide();
+                }
+
+                if(group.sections.length > 1) {
+                    // try to resolve the section title
+                    let section_title = (section.hasOwnProperty('label'))?section.label:'';
+                    if(section.hasOwnProperty('id')) {
+                        section_title = TranslationService.resolve(translation, 'view', section.id, section_title);
+                    }
+
+                    let $tab = UIHelper.createTabButton('', section_title, (i == 0))
+                    .on('click', () => {
+                        $group.find('.sb-view-form-section').hide();
+                        $group.find('#'+section_id).show();
+                    });
+    
+                    $tabs.find('.sb-view-form-sections').append($tab);                    
+                }
+                
+
                 $.each(section.rows, (i, row) => {
                     let $row = $('<div />').addClass('mdc-layout-grid__inner').appendTo($section);
                     $.each(row.columns, (i, column) => {
@@ -121,42 +163,53 @@ export class Layout {
                             if(item.hasOwnProperty('width')) {
                                 $cell.addClass('mdc-layout-grid__cell--span-' + Math.round((parseInt(item.width, 10) / 100) * 12));
                             }
-
-                            if(item.type == 'field') {
-                                let config:any = {};
-                                let field_name = item.value;
-                                let def = model_fields[field_name];
-                                let type = def.type;
-                                let label = (item.hasOwnProperty('label'))?item.label:field_name.charAt(0).toUpperCase() + field_name.slice(1);
-                                let readonly = (item.hasOwnProperty('readonly'))?item.readonly:false;
-
-                                if(item.hasOwnProperty('visible')) {
-                                    let visible_domain = item.visible;
-                                    if(!Array.isArray(visible_domain)) {
-                                        visible_domain = eval(visible_domain);
-                                    }
-                                    config['visible'] = visible_domain;
-                                }                                
-
-                                if(item.hasOwnProperty('widget')) {
-                                    config = {...config, ...item.widget};
-                                    console.log(item.widget, config);
-                                    type = item.widget.type;
-                                }
+                            if(item.hasOwnProperty('value')) {
+                                if(item.type == 'field') {
+                                    let config:any = {};
+                                    let field = item.value;
+                                    let def = model_fields[field];
+                                    let type = def.type;
+                                    let label = (item.hasOwnProperty('label'))?item.label:field;
+                                    let helper = (item.hasOwnProperty('help'))?item.help:'';
+                                    
+                                    let field_title = TranslationService.resolve(translation, 'model', field, label);
+                                    let field_helper = TranslationService.resolve(translation, 'model', field, helper, 'help');
                                 
-                                let widget:Widget = WidgetFactory.getWidget(type, label, '', config);
-                                widget.setReadonly(readonly);
-                                this.model_widgets[field_name] = widget;
-                                $cell.append(widget.attach());                
-                            }
-                            else if(item.type == 'label') {
-
+                                    let readonly = (item.hasOwnProperty('readonly'))?item.readonly:false;
+    
+                                    config['helper'] = field_helper;
+                                    
+                                    if(item.hasOwnProperty('visible')) {
+                                        let visible_domain = item.visible;
+                                        if(!Array.isArray(visible_domain)) {
+                                            visible_domain = eval(visible_domain);
+                                        }
+                                        config['visible'] = visible_domain;
+                                    }                                
+    
+                                    if(item.hasOwnProperty('widget')) {
+                                        config = {...config, ...item.widget};
+                                        console.log(item.widget, config);
+                                        type = item.widget.type;
+                                    }
+                                    
+                                    let widget:Widget = WidgetFactory.getWidget(type, field_title, '', config);
+                                    widget.setReadonly(readonly);
+                                    this.model_widgets[field] = widget;
+                                    $cell.append(widget.attach());                
+                                }
+                                else if(item.type == 'label') {
+    
+                                }    
                             }
                         });
                     });
                 });                
             });
+            UIHelper.decorateTabBar($tabs);
         });
+
+        
         this.$layout.append($elem);
     }
     

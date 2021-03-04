@@ -120,7 +120,7 @@ export class View {
                 this.layoutListFooter();
             }
             if(['form'].indexOf(this.type) >= 0) {
-                this.$layoutContainer.addClass('sb-view-form-layout');
+                this.$layoutContainer.addClass('sb-view-layout-form');
                 this.layoutFormHeader();
             }            
         }
@@ -299,7 +299,7 @@ export class View {
             case 'view':
                 $actions_set
                 .append( 
-                    UIHelper.createButton('action-edit', 'Créer', 'raised')
+                    UIHelper.createButton('action-edit', TranslationService.instant('SB_ACTIONS_BUTTON_CREATE'), 'raised')
                     .on('click', () => {
                         $('#sb-events').trigger('_openContext', {entity: this.entity, type: 'form', name: 'default', domain: [], mode: 'edit', purpose: 'create'});
                     })
@@ -308,7 +308,7 @@ export class View {
             case 'select':
                 $actions_set
                 .append( 
-                    UIHelper.createButton('action-select', 'Sélectionner', 'raised', 'check')
+                    UIHelper.createButton('action-select', TranslationService.instant('SB_ACTIONS_BUTTON_SELECT'), 'raised', 'check')
                     .on('click', () => {
                         // $('#sb-events').trigger('_openContext', new Context(this.entity, this.type, 'default', this.domain, 'edit', 'update'));
                     })
@@ -317,7 +317,7 @@ export class View {
             case 'add':
                 $actions_set
                 .append( 
-                    UIHelper.createButton('action-add', 'Ajouter', 'raised', 'check')
+                    UIHelper.createButton('action-add', TranslationService.instant('SB_ACTIONS_BUTTON_ADD'), 'raised', 'check')
                     .on('click', () => {
                         // $('#sb-events').trigger('_openContext', new Context(this.entity, this.type, 'default', this.domain, 'edit', 'update'));
                     })
@@ -338,6 +338,7 @@ export class View {
         .append( UIHelper.createButton('view-filters', 'filtres', 'mini-fab', 'filter_list') )
         .append( $('<div/>').addClass('sb-view-header-list-filters-menu mdc-menu mdc-menu-surface').css({"margin-top": '48px'}).append($filters_menu) );
         
+        // generate filters list
         for(let filter_id in this.filters) {
             let filter = this.filters[filter_id];
 
@@ -525,8 +526,10 @@ export class View {
     }
 
     private layoutFormHeader() {
+        let $elem = $('<div />').addClass('sb-view-header-form');
+
         // container for holding chips of currently applied filters
-        let $actions_set = $('<div />').addClass('sb-view-form-header-actions');
+        let $actions_set = $('<div />').addClass('sb-view-header-form-actions').appendTo($elem);
 
         switch(this.mode) {
             case 'view':
@@ -550,12 +553,12 @@ export class View {
             case 'edit':
                 $actions_set
                 .append( 
-                    UIHelper.createButton('action-create', TranslationService.instant('SB_ACTIONS_BUTTON_SAVE'), 'raised')
+                    UIHelper.createButton('action-save', TranslationService.instant('SB_ACTIONS_BUTTON_SAVE'), 'raised')
                     .on('click', async () => {
                         let objects = await this.model.get();
                         let object = objects[0];
                         await ApiService.update(this.entity, [object['id']], object);
-                        $('#sb-events').trigger('_closeContext', {refresh: true});
+                        $('#sb-events').trigger('_closeContext');
                     })
                 )
                 .append( 
@@ -573,7 +576,7 @@ export class View {
         }
     
         // attach elements to header toolbar
-        this.$headerContainer.append( $actions_set );
+        this.$headerContainer.append( $elem );
     }
 
 

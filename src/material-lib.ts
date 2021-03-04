@@ -5,6 +5,7 @@ import {MDCTextField} from '@material/textfield';
 import {MDCDataTable} from '@material/data-table';
 import {MDCSelect} from '@material/select';
 import {MDCMenu} from '@material/menu';
+import {MDCTabBar} from '@material/tab-bar';
 
 import { $ } from "./jquery-lib";
 
@@ -13,7 +14,7 @@ class UIHelper {
 /*
  Helpers for element creation
 */
-    public static createButton(id:string, label:string, type:string = '', icon:string = '')  {        
+    public static createButton(id:string, label:string, type:string = '', icon:string = '')  { 
         let $button = $('<button/>').attr('id', id);
 
         if(['outlined', 'raised', 'text'].indexOf(type) >= 0) {
@@ -60,14 +61,20 @@ class UIHelper {
         return $elem;
     }
 
-    public static createInput(id:string, label:string, value:string, disabled: boolean = false) {
+    public static createInput(id:string, label:string, value:string, helper:string = '', icon: string = '', disabled: boolean = false) {
         let $elem = $('\
-        <label class="mdc-text-field mdc-text-field--filled"> \
+        <label class="mdc-text-field mdc-text-field--filled mdc-text-field--with-trailing-icon"> \
             <span class="mdc-text-field__ripple"></span> \
             <span class="mdc-floating-label" id="my-label-id">'+label+'</span> \
+            <i aria-hidden="true" class="material-icons mdc-text-field__icon">'+icon+'</i>\
             <input '+( (disabled)?'disabled':'' )+' class="mdc-text-field__input" type="text" aria-labelledby="my-label-id" value="'+value+'"> \
             <span class="mdc-line-ripple"></span>\
-        </label>');
+        </label>\
+        <div class="mdc-text-field-helper-line"> \
+            <div class="mdc-text-field-helper-text" id="my-helper-id" aria-hidden="true">'+helper+'</div> \
+        </div>');
+
+        
         new MDCTextField($elem[0]);
         return $elem
     }
@@ -245,6 +252,36 @@ class UIHelper {
     }
 
 
+    public static createTabBar(id:string, label:string, value:string) {
+        let $elem = $('\
+        <div class="mdc-tab-bar" role="tablist"> \
+            <div class="mdc-tab-scroller"> \
+            <div class="mdc-tab-scroller__scroll-area"> \
+                <div class="sb-view-form-sections mdc-tab-scroller__scroll-content"> \
+                </div> \
+            </div> \
+            </div> \
+        </div>');
+
+        return $elem
+    }
+
+
+    public static createTabButton(id:string, label:string, active:boolean) {
+        let $elem = $('\
+        <button class="mdc-tab '+((active)?'mdc-tab--active':'')+'" role="tab" tabindex="0"> \
+            <span class="mdc-tab__content"> \
+                <span class="mdc-tab__text-label">'+label+'</span> \
+            </span> \
+            <span class="mdc-tab-indicator '+((active)?'mdc-tab-indicator--active':'')+'"> \
+                <span class="mdc-tab-indicator__content mdc-tab-indicator__content--underline"></span> \
+            </span> \
+            <span class="mdc-tab__ripple"></span> \
+        </button>');
+
+        return $elem
+    }    
+
     public static createPagination() {
         let $elem = $(' \
         <div class="mdc-data-table__pagination"> \
@@ -267,6 +304,11 @@ class UIHelper {
  /*
   Decorators 
  */
+
+    public static decorateTabBar($elem:any) {
+        
+        new MDCTabBar($elem[0]);
+    }
 
     public static decorateTable($elem:any) {
 

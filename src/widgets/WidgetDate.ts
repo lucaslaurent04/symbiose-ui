@@ -18,10 +18,10 @@ export default class WidgetDate extends Widget {
         
         switch(this.mode) {
             case 'edit':
-                $elem = UIHelper.createInput('', this.label, value);
+                $elem = UIHelper.createInput('', this.label, value, this.config.helper, 'calendar_today');
                 // setup handler for relaying value update to parent layout
                 $elem.find('input')
-                .datepicker( locale[environment.locale] )
+                .datepicker( {showOn: "button", ...locale[environment.locale]} )
                 .on('change', (event:any) => {
                     console.log('WidgetDate : received change event');
                     let $this = $(event.currentTarget);

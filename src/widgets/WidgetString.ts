@@ -12,7 +12,7 @@ export default class WidgetString extends Widget {
         let value:string = this.value?this.value:'';
         switch(this.mode) {
             case 'edit':
-                $elem = UIHelper.createInput('', this.label, value, this.readonly);
+                $elem = UIHelper.createInput('', this.label, value, this.config.helper, '', this.readonly);
                 // setup handler for relaying value update to parent layout
                 $elem.find('input').on('change', (event) => {
                     console.log('WidgetString : received change event');

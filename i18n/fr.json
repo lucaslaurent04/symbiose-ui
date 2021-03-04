@@ -9,8 +9,10 @@
     
     "SB_ACTIONS_BUTTON_CREATE": "Créer",
     "SB_ACTIONS_BUTTON_SAVE": "Sauver",
-    "SB_ACTIONS_BUTTON_UPDATE": "Modifier",    
+    "SB_ACTIONS_BUTTON_UPDATE": "Modifier",
     "SB_ACTIONS_BUTTON_CANCEL": "Annuler",
+    "SB_ACTIONS_BUTTON_SELECT": "Sélectionner",
+    "SB_ACTIONS_BUTTON_ADD": "Ajouter",
     
     "SB_ACTIONS_MESSAGE_ABANDON_CHANGE": "Des modifications ont été apportées et vont être perdues. Voulez-vous continuer ?",
     
