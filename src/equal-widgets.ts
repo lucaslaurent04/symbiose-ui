@@ -1,11 +1,12 @@
 import Widget from "./widgets/Widget";
 
 import WidgetDate from "./widgets/WidgetDate";
+import WidgetDateTime from "./widgets/WidgetDateTime";
 import WidgetString from "./widgets/WidgetString";
 import WidgetText from "./widgets/WidgetText";
 import WidgetLink from "./widgets/WidgetLink";
 import WidgetSelect from "./widgets/WidgetSelect";
-
+import WidgetOne2Many  from "./widgets/WidgetOne2Many";
 
 class WidgetFactory {
 
@@ -38,8 +39,13 @@ config: {
  */
     public static getWidget(type: string, label: string, value: any = null, config:any = {}):Widget {
         switch(type) {
-            case 'datetime':
+            case 'date':
                 return new WidgetDate(label, value, config);
+            case 'datetime':
+                return new WidgetDateTime(label, value, config);    
+            case 'one2many':
+            case 'many2many':
+                return new WidgetOne2Many(label, value, config);    
             case 'link':
                 return new WidgetLink(label, value, config);
             case 'text':

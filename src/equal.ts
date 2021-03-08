@@ -2,6 +2,7 @@ import { $ } from "./jquery-lib";
 import { Context } from "./equal-lib";
 import { environment } from "./environment";
 import { ApiService, TranslationService } from "./equal-services";
+import moment from 'moment/moment.js';
 
 // We use MDC (material design components)
 // @see https://github.com/material-components/material-components-web/blob/master/docs/getting-started.md
@@ -36,14 +37,17 @@ class eQ {
     
     
     private async init() {
-
+        // init locale
+        moment.locale(environment.locale);
+        
         // $sbEvents is a jQuery object used to communicate: it allows an both internal services and external lib to connect with eQ-UI
         // $('#sb-events').trigger(event, data);
         this.$sbEvents = $('<div/>').attr('id', 'sb-events').css('display','none').appendTo('body');
         
-        /*
-            A new context can be requested by ngx (menu or app) or by opening a sub-objet
-        */        
+        /**
+         * 
+         * A new context can be requested by ngx (menu or app) or by opening a sub-object
+         */
         this.$sbEvents.on('_openContext', (event:any, config:any) => {
             console.log('eQ: received _openContext', config);
             let params = {
@@ -53,18 +57,25 @@ class eQ {
                 domain:     [], 
                 mode:       'view', 
                 purpose:    'view', 
-                lang:   environment.lang
+                lang:       environment.lang,
+                callback:   null
             };
             // extend default params with received config
             config = {...params, ...config};
 
-            let context: Context = new Context(config.entity, config.type, config.name, config.domain, config.mode, config.purpose, config.lang);
+            let context: Context = new Context(config.entity, config.type, config.name, config.domain, config.mode, config.purpose, config.lang, config.callback);
 
             this.openContext(context);
         });
 
-        this.$sbEvents.on('_closeContext', (event:any) => {
-            this.closeContext();
+        /**
+         * 
+         * Event handler for request for closing current context
+         * When closing, a context might transmit some value (its the case, for instance, when selecting one or more records for m2m or o2m fields)
+         */
+        this.$sbEvents.on('_closeContext', (event:any, data:any = null) => {
+            // close context non-silently with relayed data
+            this.closeContext(false, data);
         });
         
     }
@@ -196,13 +207,14 @@ class eQ {
      * 
      * @param silent do not show the pop-ed context and do not refresh the header 
      */
-    private async closeContext(silent: boolean = false) {
-        console.log('closeContext', silent);
+    private async closeContext(silent: boolean = false, data:any = null) {
+        console.log('closeContext', silent, data);
         if(this.stack.length) {
             let has_changed:boolean = this.context.hasChanged();
-            // destroy current context
-            this.context.$container.remove();
             
+            // destroy current context and run callback, if any
+            this.context.close(data);
+console.log('suite');
             // restore previous context
             this.context = <Context>this.stack.pop();
             if(!silent) {                

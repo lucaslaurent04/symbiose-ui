@@ -72,17 +72,17 @@ export class _TranslationService {
     /**
      * Helper method for resolution from a `transaltion` object (as provided by the ApiService)
      * 
-     * @param translation   object holding the translations valies
-     * @param type          kind of terms we want to perform ('model' or 'view')
-     * @param id            the identifier of the item we want to translate
-     * @param value         the default value, if any, to fall back to in case translation fails 
-     * @param section       the translation section we're looking for, for the considered value ('label', 'help', ...)
+     * @param translation   Object holding the translations values (as returned by `ApiService::getTranslation()`)
+     * @param type          Kind of terms we want to perform ('model','view','error')
+     * @param id            The identifier of the item we want to translate
+     * @param value         The default value, if any, to fall back to in case translation fails 
+     * @param section       The translation section we're looking for, for the considered value ('label', 'help', ...)
      * 
-     * @returns The translated value or the original value if translation fails.
+     * @returns The translated value, or the original value if translation fails.
      */ 
     public resolve(translation:any, type:string, id: string, value: string = '', section:string = 'label') {
         let result = value.charAt(0).toUpperCase() + value.replace('_', ' ').slice(1);
-        console.log('_TranslationService::resolve', translation);
+
         if(translation.hasOwnProperty(type)) {
             if(translation[type].hasOwnProperty(id)) {
                 if(translation[type][id].hasOwnProperty(section)) {

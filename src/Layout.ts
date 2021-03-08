@@ -56,7 +56,7 @@ export class Layout {
         let widget = this.model_widgets[field];
         let $elem = this.$layout.find('#'+widget.getId())
         $elem.addClass('mdc-text-field--invalid');
-        $elem.find('.mdc-text-field-helper-text').addClass('mdc-text-field-helper-text--persistent mdc-text-field-helper-text--validation-msg').text(message);
+        $elem.find('.mdc-text-field-helper-text').addClass('mdc-text-field-helper-text--persistent mdc-text-field-helper-text--validation-msg').text(message).attr('title', message);
     }
 
 
@@ -96,12 +96,28 @@ export class Layout {
             case 'list':
                 this.layoutList();
                 break;
-        }        
-              
-
+        }
     }
 
-    // We store the list of instanciated widgetsto allow switching from view mode to edit mode  (for a form or a cell)
+    private feed(objects: []) {
+        console.log('Layout::feed');
+        
+        switch(this.view.type) {
+            case 'form':
+                this.feedForm(objects);
+                break;
+            case 'list':
+                this.$layout.find("tbody").remove();
+                this.feedList(objects);
+                break;
+        }
+    }
+
+    /**
+     * 
+     * This method also stores the list of instanciated widgets to allow switching from view mode to edit mode  (for a form or a cell)
+     * 
+     */
     private layoutForm() {
         console.log('Layout::layoutForm');
         let $elem = $('<div/>').css({"width": "100%"});
@@ -167,10 +183,11 @@ export class Layout {
 
                         $.each(column.items, (i, item) => {
                             let $cell = $('<div />').addClass('mdc-layout-grid__cell').appendTo($column);
+                            // compute the width (on a 12 columns grid basis), from 1 to 12
+                            let width = (item.hasOwnProperty('width'))?Math.round((parseInt(item.width, 10) / 100) * 12): 12;
+                            
+                            $cell.addClass('mdc-layout-grid__cell--span-' + width);
 
-                            if(item.hasOwnProperty('width')) {
-                                $cell.addClass('mdc-layout-grid__cell--span-' + Math.round((parseInt(item.width, 10) / 100) * 12));
-                            }
                             if(item.hasOwnProperty('value')) {
                                 if(item.type == 'field') {
                                     let config:any = {};
@@ -200,7 +217,7 @@ export class Layout {
                                         console.log(item.widget, config);
                                         type = item.widget.type;
                                     }
-                                    
+
                                     let widget:Widget = WidgetFactory.getWidget(type, field_title, '', config);
                                     widget.setReadonly(readonly);
                                     this.model_widgets[field] = widget;
@@ -242,7 +259,8 @@ export class Layout {
 
         // create other columns, based on the col_model given in the configuration
         let schema = this.view.getViewSchema();
-        $.each(schema.layout.items, (i, item) => {
+
+        for(let item of schema.layout.items) {
             
             let align = (item.hasOwnProperty('align'))?item.align:'left';
             let label = (item.hasOwnProperty('label'))?item.label:item.value.charAt(0).toUpperCase() + item.value.slice(1);
@@ -277,7 +295,7 @@ export class Layout {
                 $hrow.append($cell);
             }
 
-        });
+        }
 
         $thead.append($hrow);
 
@@ -288,30 +306,20 @@ export class Layout {
 
     }
     
-    private feed(objects: []) {
-        console.log('Layout::feed');
-        
-        switch(this.view.type) {
-            case 'form':
-                this.feedForm(objects);
-                break;
-            case 'list':
-                this.$layout.find("tbody").remove();
-                this.feedList(objects);
-                break;
-        }
-    }
+
     
     private feedList(objects: any) {
         console.log('Layout::feed', objects);
+
+        let schema = this.view.getViewSchema();
 
         let $elem = this.$layout.children().first();
         $elem.find('tbody').remove();
 
         let $tbody = $('<tbody/>');       
 
-        for (let i of Object.keys(objects)) {
-            let object = objects[i];
+        for (let object of objects) {
+
             let $row = $('<tr/>')
             .on('click', () => {
                 $('#sb-events').trigger('_openContext', {entity: this.view.getEntity(), type: 'form', domain: ['id', '=', object.id]});
@@ -326,8 +334,10 @@ export class Layout {
                 // prevent handling of click on parent `tr` element
                 event.stopPropagation();
             });
+            for(let item of schema.layout.items) {
 
-            for(let field of Object.keys(object)) {
+                let field = item.value;
+
                 let view_def = this.view.getField(field);
                 // field is not part of the view, skip it
                 if(view_def == undefined) continue;
@@ -352,8 +362,21 @@ export class Layout {
                 if(view_def.hasOwnProperty('widget')) {
                     type = view_def.widget.type;
                 }
+                
+                let value = object[field];
 
-                let widget:Widget = WidgetFactory.getWidget(type, '', object[field]);
+                if(['one2many', 'many2one', 'many2many'].indexOf(type) > -1) {
+                    // by convention, `name` subfield is always loaded for relational fields
+                    if(type == 'many2one') {
+                        value = object[field]['name'];
+                    }
+                    else {
+                        value = object[field].map( (o:any) => o.name).join(', ');
+                        value = (value.length > 35)? value.substring(0, 35) + "..." : value;
+                    }                    
+                }
+
+                let widget:Widget = WidgetFactory.getWidget(type, '', value);
 
                 let $cell = $('<td/>').append(widget.render());
                 $row.append($cell);
@@ -371,16 +394,55 @@ export class Layout {
     private feedForm(objects: any) {
         console.log('Layout::feedForm');
         // display the first object from the collection
-        let ids = Object.keys(objects);
+
         let fields = Object.keys(this.view.getViewFields());
-        if(ids.length > 0) {
-            let object_id = ids[0];
-            let object:any = objects[object_id];
+        let model_schema = this.view.getModelFields();
+
+
+        if(objects.length > 0) {
+            let object:any = objects[0];
             for(let field of fields) {
                 let widget = this.model_widgets[field];
                 let $parent = this.$layout.find('#'+widget.getId()).parent().empty();
 
-                widget.setMode(this.view.getMode()).setValue(object[field]);
+                let model_def = model_schema[field];
+                let type = model_def['type'];
+        
+                let value = object[field];
+
+                if(['one2many', 'many2one', 'many2many'].indexOf(type) > -1) {
+                    let config = widget.getConfig();
+                    // by convention, `name` subfield is always loaded for relational fields
+                    if(type == 'many2one') {
+                        value = object[field]['name'];
+                    }
+                    else {
+                        value = object[field].map( (o:any) => o.name).join(', ');
+                        value = (value.length > 35)? value.substring(0, 35) + "..." : value;
+                    }
+
+                    if(type == 'many2many') {
+                        console.log(model_def);
+                        config = {...config, 
+                            entity: model_def['foreign_object'],
+                            type: 'list',
+                            name: 'default',
+                            domain: [
+                                model_def['foreign_field'],
+                                'contains',
+                                object['id']
+                            ],
+                            mode: 'view',
+                            purpose: 'view',
+                            lang: this.view.getLang()
+                        };
+
+                    }
+
+                    widget.setConfig(config);
+                }
+
+                widget.setMode(this.view.getMode()).setValue(value);
 
                 let $widget = widget.render();
 
@@ -388,7 +450,7 @@ export class Layout {
                     console.log('Layout : received widget change event for field '+field, new_value);
                     object[field] = new_value;
 // todo : use updated fields only (not full object)                    
-                    this.view.onchangeViewModel([object_id], object);
+                    this.view.onchangeViewModel([object.id], object);
                 });
                 console.log('config', widget.getConfig());
                 let config = widget.getConfig();

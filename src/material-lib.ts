@@ -62,17 +62,19 @@ class UIHelper {
     }
 
     public static createInput(id:string, label:string, value:string, helper:string = '', icon: string = '', disabled: boolean = false) {
-        let $elem = $('<div/>\
-        <label class="mdc-text-field mdc-text-field--filled mdc-text-field--with-trailing-icon"> \
-            <span class="mdc-text-field__ripple"></span> \
-            <span class="mdc-floating-label">'+label+'</span> \
-            <i aria-hidden="true" class="material-icons mdc-text-field__icon">'+icon+'</i>\
-            <input '+( (disabled)?'disabled':'' )+' class="mdc-text-field__input" type="text" autocorrect="off" autocomplete="off" spellcheck="false" value="'+value+'"> \
-            <span class="mdc-line-ripple"></span>\
-        </label>\
-        <div class="mdc-text-field-helper-line"> \
-            <div class="mdc-text-field-helper-text" aria-hidden="true">'+helper+'</div> \
-        </div></div>');
+        let $elem = $('\
+        <div> \
+            <label class="mdc-text-field mdc-text-field--filled mdc-text-field--with-trailing-icon"> \
+                <span class="mdc-text-field__ripple"></span> \
+                <span class="mdc-floating-label">'+label+'</span> \
+                <i aria-hidden="true" class="material-icons mdc-text-field__icon">'+icon+'</i>\
+                <input '+( (disabled)?'disabled':'' )+' class="mdc-text-field__input" type="text" autocorrect="off" autocomplete="off" spellcheck="false" value="'+value+'"> \
+                <span class="mdc-line-ripple"></span> \
+            </label> \
+            <div class="mdc-text-field-helper-line"> \
+                <div class="mdc-text-field-helper-text" aria-hidden="true" title="'+helper+'">'+helper+'</div> \
+            </div> \
+        </div>');
 
         
         new MDCTextField($elem[0]);
@@ -171,7 +173,8 @@ class UIHelper {
         return $elem;
     }    
 
-    public static createChip(label: string) {
+    public static createChip
+    (label: string) {
         let $elem = $(' \
         <div class="mdc-chip" role="row"> \
             <div class="mdc-chip__ripple"></div> \
@@ -210,9 +213,9 @@ class UIHelper {
                 </ul> \
             </div> \
         </div>');
-
-        // we recevied an object as param
+     
         let $list = $elem.find('ul.mdc-list');
+        // we recevied an object as param
         if( (!!values) && (values.constructor === Object)) {
             for(let key in values) {
                 let $line = $(' \
@@ -249,6 +252,18 @@ class UIHelper {
         });
 
       return $elem;
+    }
+
+    public static createList(id:string, label:string='', values:any=[]) {
+        let $elem = $('<ul id="'+id+'" role="menu" class="mdc-list"></ul>');
+
+        return $elem;
+    }
+
+    public static createMenu(id:string, label:string='', values:any=[]) {
+        let $elem = $('<div class="mdc-menu mdc-menu-surface"></div>');
+        
+        return $elem;
     }
 
 
@@ -301,9 +316,19 @@ class UIHelper {
         $elem.addClass('mdc-data-table__pagination-rows-per-page-select');
         return $elem;
     }
+
+
  /*
   Decorators 
  */
+
+    public static decorateMenu($elem:any) {        
+        let fields_toggle_menu = new MDCMenu($elem[0]);
+
+        $elem.on('_toggle', () => {
+            fields_toggle_menu.open = !$elem.hasClass('mdc-menu-surface--open');
+        });
+    }
 
     public static decorateTabBar($elem:any) {
         

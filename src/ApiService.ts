@@ -243,7 +243,7 @@ export class _ApiService {
         return result;
     }
 
-    public async collect(entity:string, domain:any[], fields:[], order:string, sort:string, start:number, limit:number, lang:string) {
+    public async collect(entity:string, domain:any[], fields:any[], order:string, sort:string, start:number, limit:number, lang:string) {
         console.log('ApiService::collect', entity, domain, fields, order, sort, start, limit, lang);
         var result = [];
         try {

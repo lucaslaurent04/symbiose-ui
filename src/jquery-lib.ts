@@ -17,4 +17,6 @@ import 'daterangepicker/daterangepicker.js';
 
 import { locale } from "./i18n/jqueryui";
 
-export { $, locale }
+
+
+export { $, locale as jqlocale}

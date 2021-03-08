@@ -8,6 +8,9 @@ export class Context {
     
     private view: View;
 
+    // callback to be called when the context closes
+    private callback: (data:any) => void;
+
 /*
 
 Contexts are created for a purpose.
@@ -35,12 +38,25 @@ FORM
  */
  
 
-    constructor(entity: string, type: string, name: string, domain: any[], mode: string = 'view', purpose: string = 'view', lang: string = environment.lang) {
+    constructor(entity: string, type: string, name: string, domain: any[], mode: string = 'view', purpose: string = 'view', lang: string = environment.lang, callback: (data:any) => void = (data:any=null) => {}) {
         this.$container = $('<div />').addClass('sb-context');
+
+        this.callback = callback;
+
         this.view = new View(entity, type, name, domain, mode, purpose, lang);
         // inject View in parent Context object
         this.$container.append(this.view.getContainer())
     }    
+
+    public close(data:any) {
+        console.log('close', data);
+        this.$container.remove();
+
+        if( ({}).toString.call(this.callback) === '[object Function]' ) {
+            this.callback(data);
+        }
+        
+    }
 
     public hasChanged() {
         return this.view.hasChanged();

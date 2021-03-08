@@ -38,7 +38,7 @@ export class Model {
     public async init() {
         
         try {            
-            this.refresh();
+            await this.refresh();
         }
         catch(err) {
             console.log('something went wrong ', err);
@@ -57,7 +57,17 @@ export class Model {
         console.log('Model::refresh');
 
         // fetch fields that are present in the parent View 
-        let fields: [] = <[]>Object.keys(this.view.getViewFields());
+        let fields: any[] = <[]>Object.keys(this.view.getViewFields());
+        let schema = this.view.getModelFields();
+
+        // append `name` subfield for relational fields, using the dot notation
+        for(let i in fields) {
+            let field = fields[i];
+            if(['many2one', 'one2many', 'many2many'].indexOf(schema[field]['type']) > -1) {
+                fields[i] = field + '.name';
+            }
+        }
+
 
         try {
             console.log(this.view.getDomain());

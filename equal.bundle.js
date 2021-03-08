@@ -612,6 +612,8 @@ var _View = _interopRequireDefault(__webpack_require__(/*! ./View */ "./build/Vi
 var _environment = __webpack_require__(/*! ./environment */ "./build/environment.js");
 
 var Context = /*#__PURE__*/function () {
+  // callback to be called when the context closes
+
   /*
   
   Contexts are created for a purpose.
@@ -641,16 +643,31 @@ var Context = /*#__PURE__*/function () {
     var mode = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : 'view';
     var purpose = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : 'view';
     var lang = arguments.length > 6 && arguments[6] !== undefined ? arguments[6] : _environment.environment.lang;
+    var callback = arguments.length > 7 && arguments[7] !== undefined ? arguments[7] : function () {
+      var data = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
+    };
     (0, _classCallCheck2.default)(this, Context);
     (0, _defineProperty2.default)(this, "$container", void 0);
     (0, _defineProperty2.default)(this, "view", void 0);
+    (0, _defineProperty2.default)(this, "callback", void 0);
     this.$container = (0, _jqueryLib.$)('<div />').addClass('sb-context');
+    this.callback = callback;
     this.view = new _View.default(entity, type, name, domain, mode, purpose, lang); // inject View in parent Context object
 
     this.$container.append(this.view.getContainer());
   }
 
   (0, _createClass2.default)(Context, [{
+    key: "close",
+    value: function close(data) {
+      console.log('close', data);
+      this.$container.remove();
+
+      if ({}.toString.call(this.callback) === '[object Function]') {
+        this.callback(data);
+      }
+    }
+  }, {
     key: "hasChanged",
     value: function hasChanged() {
       return this.view.hasChanged();
@@ -1066,7 +1083,7 @@ var Layout = /*#__PURE__*/function () {
       var widget = this.model_widgets[field];
       var $elem = this.$layout.find('#' + widget.getId());
       $elem.addClass('mdc-text-field--invalid');
-      $elem.find('.mdc-text-field-helper-text').addClass('mdc-text-field-helper-text--persistent mdc-text-field-helper-text--validation-msg').text(message);
+      $elem.find('.mdc-text-field-helper-text').addClass('mdc-text-field-helper-text--persistent mdc-text-field-helper-text--validation-msg').text(message).attr('title', message);
     } // refresh layout
     // this method is called in response to parent View `onchangeModel` method 
 
@@ -1132,7 +1149,28 @@ var Layout = /*#__PURE__*/function () {
           this.layoutList();
           break;
       }
-    } // We store the list of instanciated widgetsto allow switching from view mode to edit mode  (for a form or a cell)
+    }
+  }, {
+    key: "feed",
+    value: function feed(objects) {
+      console.log('Layout::feed');
+
+      switch (this.view.type) {
+        case 'form':
+          this.feedForm(objects);
+          break;
+
+        case 'list':
+          this.$layout.find("tbody").remove();
+          this.feedList(objects);
+          break;
+      }
+    }
+    /**
+     * 
+     * This method also stores the list of instanciated widgets to allow switching from view mode to edit mode  (for a form or a cell)
+     * 
+     */
 
   }, {
     key: "layoutForm",
@@ -1205,11 +1243,10 @@ var Layout = /*#__PURE__*/function () {
               $column = (0, _jqueryLib.$)('<div />').addClass('mdc-layout-grid__inner').appendTo($inner_cell);
 
               _jqueryLib.$.each(column.items, function (i, item) {
-                var $cell = (0, _jqueryLib.$)('<div />').addClass('mdc-layout-grid__cell').appendTo($column);
+                var $cell = (0, _jqueryLib.$)('<div />').addClass('mdc-layout-grid__cell').appendTo($column); // compute the width (on a 12 columns grid basis), from 1 to 12
 
-                if (item.hasOwnProperty('width')) {
-                  $cell.addClass('mdc-layout-grid__cell--span-' + Math.round(parseInt(item.width, 10) / 100 * 12));
-                }
+                var width = item.hasOwnProperty('width') ? Math.round(parseInt(item.width, 10) / 100 * 12) : 12;
+                $cell.addClass('mdc-layout-grid__cell--span-' + width);
 
                 if (item.hasOwnProperty('value')) {
                   if (item.type == 'field') {
@@ -1290,42 +1327,52 @@ var Layout = /*#__PURE__*/function () {
 
       var schema = this.view.getViewSchema();
 
-      _jqueryLib.$.each(schema.layout.items, function (i, item) {
-        var align = item.hasOwnProperty('align') ? item.align : 'left';
-        var label = item.hasOwnProperty('label') ? item.label : item.value.charAt(0).toUpperCase() + item.value.slice(1);
-        var sortable = item.hasOwnProperty('sortable') && item.sortable;
-        var visible = item.hasOwnProperty('visible') ? item.visible : true;
-        var $menu_item = (0, _jqueryLib.$)('<li/>').addClass('mdc-list-item').attr('role', 'menuitem');
+      var _iterator = _createForOfIteratorHelper(schema.layout.items),
+          _step;
 
-        if (visible) {
-          var $cell = (0, _jqueryLib.$)('<th/>').attr('name', item.value).append(label).on('click', function (event) {
-            var $this = (0, _jqueryLib.$)(event.currentTarget);
+      try {
+        for (_iterator.s(); !(_step = _iterator.n()).done;) {
+          var item = _step.value;
+          var align = item.hasOwnProperty('align') ? item.align : 'left';
+          var label = item.hasOwnProperty('label') ? item.label : item.value.charAt(0).toUpperCase() + item.value.slice(1);
+          var sortable = item.hasOwnProperty('sortable') && item.sortable;
+          var visible = item.hasOwnProperty('visible') ? item.visible : true;
+          var $menu_item = (0, _jqueryLib.$)('<li/>').addClass('mdc-list-item').attr('role', 'menuitem');
 
-            if ($this.hasClass('sortable')) {
-              // wait for handling of sort toggle
-              setTimeout(function () {
-                // change sortname and/or sortorder
-                _this2.view.setOrder($this.attr('name'));
+          if (visible) {
+            var $cell = (0, _jqueryLib.$)('<th/>').attr('name', item.value).append(label).on('click', function (event) {
+              var $this = (0, _jqueryLib.$)(event.currentTarget);
 
-                _this2.view.setSort($this.attr('data-sort'));
+              if ($this.hasClass('sortable')) {
+                // wait for handling of sort toggle
+                setTimeout(function () {
+                  // change sortname and/or sortorder
+                  _this2.view.setOrder($this.attr('name'));
 
-                _this2.view.onchangeView(); // unselect all lines
+                  _this2.view.setSort($this.attr('data-sort'));
+
+                  _this2.view.onchangeView(); // unselect all lines
 
 
-                _this2.$layout.find('input[type="checkbox"]').each(function (i, elem) {
-                  (0, _jqueryLib.$)(elem).prop('checked', false).prop('indeterminate', false);
-                });
-              }, 100);
+                  _this2.$layout.find('input[type="checkbox"]').each(function (i, elem) {
+                    (0, _jqueryLib.$)(elem).prop('checked', false).prop('indeterminate', false);
+                  });
+                }, 100);
+              }
+            });
+
+            if (sortable) {
+              $cell.addClass('sortable').attr('data-sort', 'asc');
             }
-          });
 
-          if (sortable) {
-            $cell.addClass('sortable').attr('data-sort', 'asc');
+            $hrow.append($cell);
           }
-
-          $hrow.append($cell);
         }
-      });
+      } catch (err) {
+        _iterator.e(err);
+      } finally {
+        _iterator.f();
+      }
 
       $thead.append($hrow);
       this.$layout.append($elem);
@@ -1333,90 +1380,107 @@ var Layout = /*#__PURE__*/function () {
       _materialLib.UIHelper.decorateTable($elem);
     }
   }, {
-    key: "feed",
-    value: function feed(objects) {
-      console.log('Layout::feed');
-
-      switch (this.view.type) {
-        case 'form':
-          this.feedForm(objects);
-          break;
-
-        case 'list':
-          this.$layout.find("tbody").remove();
-          this.feedList(objects);
-          break;
-      }
-    }
-  }, {
     key: "feedList",
     value: function feedList(objects) {
       var _this3 = this;
 
       console.log('Layout::feed', objects);
+      var schema = this.view.getViewSchema();
       var $elem = this.$layout.children().first();
       $elem.find('tbody').remove();
       var $tbody = (0, _jqueryLib.$)('<tbody/>');
 
-      var _loop = function _loop() {
-        var i = _Object$keys[_i];
-        var object = objects[i];
-        var $row = (0, _jqueryLib.$)('<tr/>').on('click', function () {
-          (0, _jqueryLib.$)('#sb-events').trigger('_openContext', {
-            entity: _this3.view.getEntity(),
-            type: 'form',
-            domain: ['id', '=', object.id]
+      var _iterator2 = _createForOfIteratorHelper(objects),
+          _step2;
+
+      try {
+        var _loop = function _loop() {
+          var object = _step2.value;
+          var $row = (0, _jqueryLib.$)('<tr/>').on('click', function () {
+            (0, _jqueryLib.$)('#sb-events').trigger('_openContext', {
+              entity: _this3.view.getEntity(),
+              type: 'form',
+              domain: ['id', '=', object.id]
+            });
           });
-        });
 
-        _materialLib.UIHelper.createTableCellCheckbox().appendTo($row).find('input').attr('data-id', object.id).on('click', function (event) {
-          // wait for widget to update and notify about change
-          setTimeout(function () {
-            return _this3.view.onchangeSelection(_this3.getSelected());
-          }); // prevent handling of click on parent `tr` element
+          _materialLib.UIHelper.createTableCellCheckbox().appendTo($row).find('input').attr('data-id', object.id).on('click', function (event) {
+            // wait for widget to update and notify about change
+            setTimeout(function () {
+              return _this3.view.onchangeSelection(_this3.getSelected());
+            }); // prevent handling of click on parent `tr` element
 
-          event.stopPropagation();
-        });
+            event.stopPropagation();
+          });
 
-        for (var _i2 = 0, _Object$keys2 = Object.keys(object); _i2 < _Object$keys2.length; _i2++) {
-          var field = _Object$keys2[_i2];
+          var _iterator3 = _createForOfIteratorHelper(schema.layout.items),
+              _step3;
 
-          var view_def = _this3.view.getField(field); // field is not part of the view, skip it
+          try {
+            for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+              var item = _step3.value;
+              var field = item.value;
+
+              var view_def = _this3.view.getField(field); // field is not part of the view, skip it
 
 
-          if (view_def == undefined) continue;
-          var visible = view_def.hasOwnProperty('visible') ? view_def.visible : true; // do not show fields with no width
+              if (view_def == undefined) continue;
+              var visible = view_def.hasOwnProperty('visible') ? view_def.visible : true; // do not show fields with no width
 
-          if (!visible) continue;
+              if (!visible) continue;
 
-          var model_schema = _this3.view.getModelFields();
+              var model_schema = _this3.view.getModelFields();
 
-          var view_schema = _this3.view.getViewFields();
+              var view_schema = _this3.view.getViewFields();
 
-          var model_def = model_schema[field];
-          var type = model_def['type']; // handle `alias` type
+              var model_def = model_schema[field];
+              var type = model_def['type']; // handle `alias` type
 
-          while (type == 'alias') {
-            var target = model_def['alias'];
-            model_def = model_schema[target];
-            type = model_def['type'];
+              while (type == 'alias') {
+                var target = model_def['alias'];
+                model_def = model_schema[target];
+                type = model_def['type'];
+              }
+
+              if (view_def.hasOwnProperty('widget')) {
+                type = view_def.widget.type;
+              }
+
+              var value = object[field];
+
+              if (['one2many', 'many2one', 'many2many'].indexOf(type) > -1) {
+                // by convention, `name` subfield is always loaded for relational fields
+                if (type == 'many2one') {
+                  value = object[field]['name'];
+                } else {
+                  value = object[field].map(function (o) {
+                    return o.name;
+                  }).join(', ');
+                  value = value.length > 35 ? value.substring(0, 35) + "..." : value;
+                }
+              }
+
+              var widget = _equalWidgets.WidgetFactory.getWidget(type, '', value);
+
+              var $cell = (0, _jqueryLib.$)('<td/>').append(widget.render());
+              $row.append($cell);
+            }
+          } catch (err) {
+            _iterator3.e(err);
+          } finally {
+            _iterator3.f();
           }
 
-          if (view_def.hasOwnProperty('widget')) {
-            type = view_def.widget.type;
-          }
+          $tbody.append($row);
+        };
 
-          var widget = _equalWidgets.WidgetFactory.getWidget(type, '', object[field]);
-
-          var $cell = (0, _jqueryLib.$)('<td/>').append(widget.render());
-          $row.append($cell);
+        for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+          _loop();
         }
-
-        $tbody.append($row);
-      };
-
-      for (var _i = 0, _Object$keys = Object.keys(objects); _i < _Object$keys.length; _i++) {
-        _loop();
+      } catch (err) {
+        _iterator2.e(err);
+      } finally {
+        _iterator2.f();
       }
 
       $elem.find('table').append($tbody);
@@ -1430,31 +1494,63 @@ var Layout = /*#__PURE__*/function () {
 
       console.log('Layout::feedForm'); // display the first object from the collection
 
-      var ids = Object.keys(objects);
       var fields = Object.keys(this.view.getViewFields());
+      var model_schema = this.view.getModelFields();
 
-      if (ids.length > 0) {
+      if (objects.length > 0) {
         (function () {
-          var object_id = ids[0];
-          var object = objects[object_id];
+          var object = objects[0];
 
-          var _iterator = _createForOfIteratorHelper(fields),
-              _step;
+          var _iterator4 = _createForOfIteratorHelper(fields),
+              _step4;
 
           try {
             var _loop2 = function _loop2() {
-              var field = _step.value;
+              var field = _step4.value;
               var widget = _this4.model_widgets[field];
 
               var $parent = _this4.$layout.find('#' + widget.getId()).parent().empty();
 
-              widget.setMode(_this4.view.getMode()).setValue(object[field]);
+              var model_def = model_schema[field];
+              var type = model_def['type'];
+              var value = object[field];
+
+              if (['one2many', 'many2one', 'many2many'].indexOf(type) > -1) {
+                var _config = widget.getConfig(); // by convention, `name` subfield is always loaded for relational fields
+
+
+                if (type == 'many2one') {
+                  value = object[field]['name'];
+                } else {
+                  value = object[field].map(function (o) {
+                    return o.name;
+                  }).join(', ');
+                  value = value.length > 35 ? value.substring(0, 35) + "..." : value;
+                }
+
+                if (type == 'many2many') {
+                  console.log(model_def);
+                  _config = _objectSpread(_objectSpread({}, _config), {}, {
+                    entity: model_def['foreign_object'],
+                    type: 'list',
+                    name: 'default',
+                    domain: [model_def['foreign_field'], 'contains', object['id']],
+                    mode: 'view',
+                    purpose: 'view',
+                    lang: _this4.view.getLang()
+                  });
+                }
+
+                widget.setConfig(_config);
+              }
+
+              widget.setMode(_this4.view.getMode()).setValue(value);
               var $widget = widget.render();
               $widget.on('_updatedWidget', function (event, new_value) {
                 console.log('Layout : received widget change event for field ' + field, new_value);
                 object[field] = new_value; // todo : use updated fields only (not full object)                    
 
-                _this4.view.onchangeViewModel([object_id], object);
+                _this4.view.onchangeViewModel([object.id], object);
               });
               console.log('config', widget.getConfig());
               var config = widget.getConfig(); // handle visibility tests (domain)           
@@ -1472,13 +1568,13 @@ var Layout = /*#__PURE__*/function () {
               }
             };
 
-            for (_iterator.s(); !(_step = _iterator.n()).done;) {
+            for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
               _loop2();
             }
           } catch (err) {
-            _iterator.e(err);
+            _iterator4.e(err);
           } finally {
-            _iterator.f();
+            _iterator4.f();
           }
         })();
       }
@@ -1559,18 +1655,25 @@ var Model = /*#__PURE__*/function () {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                try {
-                  this.refresh();
-                } catch (err) {
-                  console.log('something went wrong ', err);
-                }
+                _context.prev = 0;
+                _context.next = 3;
+                return this.refresh();
 
-              case 1:
+              case 3:
+                _context.next = 8;
+                break;
+
+              case 5:
+                _context.prev = 5;
+                _context.t0 = _context["catch"](0);
+                console.log('something went wrong ', _context.t0);
+
+              case 8:
               case "end":
                 return _context.stop();
             }
           }
-        }, _callee, this);
+        }, _callee, this, [[0, 5]]);
       }));
 
       function init() {
@@ -1592,7 +1695,7 @@ var Model = /*#__PURE__*/function () {
     key: "refresh",
     value: function () {
       var _refresh = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
-        var fields;
+        var fields, schema, i, field;
         return _regenerator.default.wrap(function _callee2$(_context2) {
           while (1) {
             switch (_context2.prev = _context2.next) {
@@ -1600,32 +1703,42 @@ var Model = /*#__PURE__*/function () {
                 console.log('Model::refresh'); // fetch fields that are present in the parent View 
 
                 fields = Object.keys(this.view.getViewFields());
-                _context2.prev = 2;
+                schema = this.view.getModelFields(); // append `name` subfield for relational fields, using the dot notation
+
+                for (i in fields) {
+                  field = fields[i];
+
+                  if (['many2one', 'one2many', 'many2many'].indexOf(schema[field]['type']) > -1) {
+                    fields[i] = field + '.name';
+                  }
+                }
+
+                _context2.prev = 4;
                 console.log(this.view.getDomain());
-                _context2.next = 6;
+                _context2.next = 8;
                 return _equalServices.ApiService.collect(this.view.getEntity(), this.view.getDomain(), fields, this.view.getOrder(), this.view.getSort(), this.view.getStart(), this.view.getLimit(), this.view.getLang());
 
-              case 6:
+              case 8:
                 this.objects = _context2.sent;
                 this.loaded_promise.resolve();
                 this.total = _equalServices.ApiService.getLastCount();
                 console.log(this.objects); // trigger model change handler in the parent View (in order to update the layout)
 
                 this.view.onchangeModel();
-                _context2.next = 16;
+                _context2.next = 18;
                 break;
 
-              case 13:
-                _context2.prev = 13;
-                _context2.t0 = _context2["catch"](2);
+              case 15:
+                _context2.prev = 15;
+                _context2.t0 = _context2["catch"](4);
                 console.log('Unable to fetch Collection from server', _context2.t0);
 
-              case 16:
+              case 18:
               case "end":
                 return _context2.stop();
             }
           }
-        }, _callee2, this, [[2, 13]]);
+        }, _callee2, this, [[4, 15]]);
       }));
 
       function refresh() {
@@ -1835,13 +1948,13 @@ var _TranslationService = /*#__PURE__*/function () {
     /**
      * Helper method for resolution from a `transaltion` object (as provided by the ApiService)
      * 
-     * @param translation   object holding the translations valies
-     * @param type          kind of terms we want to perform ('model' or 'view')
-     * @param id            the identifier of the item we want to translate
-     * @param value         the default value, if any, to fall back to in case translation fails 
-     * @param section       the translation section we're looking for, for the considered value ('label', 'help', ...)
+     * @param translation   Object holding the translations values (as returned by `ApiService::getTranslation()`)
+     * @param type          Kind of terms we want to perform ('model','view','error')
+     * @param id            The identifier of the item we want to translate
+     * @param value         The default value, if any, to fall back to in case translation fails 
+     * @param section       The translation section we're looking for, for the considered value ('label', 'help', ...)
      * 
-     * @returns The translated value or the original value if translation fails.
+     * @returns The translated value, or the original value if translation fails.
      */
 
   }, {
@@ -1850,7 +1963,6 @@ var _TranslationService = /*#__PURE__*/function () {
       var value = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : '';
       var section = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : 'label';
       var result = value.charAt(0).toUpperCase() + value.replace('_', ' ').slice(1);
-      console.log('_TranslationService::resolve', translation);
 
       if (translation.hasOwnProperty(type)) {
         if (translation[type].hasOwnProperty(id)) {
@@ -1918,6 +2030,10 @@ function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o =
 
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2.default)(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
 var View = /*#__PURE__*/function () {
   // Mode under which the view is to be displayed ('View' [default], or 'edit')
   // Purpose for which the view is to be displayed (this impacts the action buttons in the header)
@@ -1925,8 +2041,10 @@ var View = /*#__PURE__*/function () {
   // Map of fields mapping their View definitions
   // Map of fields mapping their Model definitions
   // Arrray of available filters from View definition
+  // config object for setting display of list controls and action buttons
   // List of currently selected filters from View definition (for filterable types)    
   // When type is list, one or more objects might be selected
+  // a view can be marked as changed to force a context refresh
 
   /**
    * 
@@ -1937,6 +2055,7 @@ var View = /*#__PURE__*/function () {
    * @param domain 
    */
   function View(entity, type, name, domain, mode, purpose, lang) {
+    var config = arguments.length > 7 && arguments[7] !== undefined ? arguments[7] : null;
     (0, _classCallCheck2.default)(this, View);
     (0, _defineProperty2.default)(this, "entity", void 0);
     (0, _defineProperty2.default)(this, "type", void 0);
@@ -1957,8 +2076,10 @@ var View = /*#__PURE__*/function () {
     (0, _defineProperty2.default)(this, "view_fields", void 0);
     (0, _defineProperty2.default)(this, "model_fields", void 0);
     (0, _defineProperty2.default)(this, "filters", void 0);
+    (0, _defineProperty2.default)(this, "config", void 0);
     (0, _defineProperty2.default)(this, "applied_filters_ids", void 0);
     (0, _defineProperty2.default)(this, "selected_ids", void 0);
+    (0, _defineProperty2.default)(this, "has_changed", void 0);
     (0, _defineProperty2.default)(this, "$container", void 0);
     (0, _defineProperty2.default)(this, "$headerContainer", void 0);
     (0, _defineProperty2.default)(this, "$layoutContainer", void 0);
@@ -1966,6 +2087,19 @@ var View = /*#__PURE__*/function () {
     this.entity = entity;
     this.type = type;
     this.name = name;
+    this.has_changed = false; // default config 
+    // (note: the relational fields widgets define their own actions)
+
+    this.config = {
+      show_actions: true,
+      show_filter: true,
+      show_pagination: true
+    };
+
+    if (config) {
+      this.config = _objectSpread(_objectSpread({}, this.config), config);
+    }
+
     this.mode = mode;
     this.purpose = purpose;
     this.domain = domain;
@@ -1978,7 +2112,9 @@ var View = /*#__PURE__*/function () {
     this.$container = (0, _jqueryLib.$)('<div />').addClass('sb-view');
     this.$headerContainer = (0, _jqueryLib.$)('<div />').addClass('sb-view-header').appendTo(this.$container);
     this.$layoutContainer = (0, _jqueryLib.$)('<div />').addClass('sb-view-layout').appendTo(this.$container);
-    this.$footerContainer = (0, _jqueryLib.$)('<div />').addClass('sb-view-footer').appendTo(this.$container);
+    this.$footerContainer = (0, _jqueryLib.$)('<div />').addClass('sb-view-footer').appendTo(this.$container); // apend header structure
+
+    this.$headerContainer.append((0, _jqueryLib.$)('<div />').addClass('sb-view-header-list').append((0, _jqueryLib.$)('<div />').addClass('sb-view-header-list-actions').append((0, _jqueryLib.$)('<div />').addClass('sb-view-header-list-actions-set'))).append((0, _jqueryLib.$)('<div />').addClass('sb-view-header-list-navigation')));
     this.filters = {};
     this.applied_filters_ids = [];
     this.layout = new _Layout.default(this);
@@ -2072,10 +2208,20 @@ var View = /*#__PURE__*/function () {
 
       return init;
     }()
+    /**
+     * Mark the view as changed by setting the `has_changed` member.
+     */
+
+  }, {
+    key: "change",
+    value: function change() {
+      this.has_changed = true;
+    } // either the model or the view itself can be marked as change (to control the parent context refresh)
+
   }, {
     key: "hasChanged",
     value: function hasChanged() {
-      return this.model.hasChanged();
+      return this.has_changed || this.model.hasChanged();
     }
   }, {
     key: "getContainer",
@@ -2230,8 +2376,8 @@ var View = /*#__PURE__*/function () {
       return this.mode;
     }
     /**
-     * Generates a map holding all fields that are present in a given view (as items objects)
-     * and stores it in the `view_fields` member
+     * Generates a map holding all fields (as items objects) that are present in a given view 
+     * and stores them in the `view_fields` map (does not maintain the field order)
      */
 
   }, {
@@ -2318,34 +2464,67 @@ var View = /*#__PURE__*/function () {
     value: function layoutListHeader() {
       var _this = this;
 
-      var $elem = (0, _jqueryLib.$)('<div />').addClass('sb-view-header-list');
-      var $level1 = (0, _jqueryLib.$)('<div />').addClass('sb-view-header-list-actions').appendTo($elem);
-      var $level2 = (0, _jqueryLib.$)('<div />').addClass('sb-view-header-list-navigation').appendTo($elem);
-      var $actions_set = (0, _jqueryLib.$)('<div />').addClass('sb-view-header-list-actions-set').appendTo($level1);
+      var $elem = this.$headerContainer.find('.sb-view-header-list');
+      var $level1 = $elem.find('.sb-view-header-list-actions');
+      var $level2 = $elem.find('.sb-view-header-list-navigation');
+      var $actions_set = $level1.find('.sb-view-header-list-actions-set');
 
-      switch (this.purpose) {
-        case 'view':
-          $actions_set.append(_materialLib.UIHelper.createButton('action-edit', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_CREATE'), 'raised').on('click', function () {
-            (0, _jqueryLib.$)('#sb-events').trigger('_openContext', {
-              entity: _this.entity,
-              type: 'form',
-              name: 'default',
-              domain: [],
-              mode: 'edit',
-              purpose: 'create'
-            });
-          }));
-          break;
+      if (this.config.show_actions) {
+        switch (this.purpose) {
+          case 'view':
+            $actions_set.append(_materialLib.UIHelper.createButton('action-edit', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_CREATE'), 'raised').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
+              var object;
+              return _regenerator.default.wrap(function _callee2$(_context2) {
+                while (1) {
+                  switch (_context2.prev = _context2.next) {
+                    case 0:
+                      _context2.next = 2;
+                      return _equalServices.ApiService.create(_this.entity);
 
-        case 'select':
-          $actions_set.append(_materialLib.UIHelper.createButton('action-select', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_SELECT'), 'raised', 'check').on('click', function () {// $('#sb-events').trigger('_openContext', new Context(this.entity, this.type, 'default', this.domain, 'edit', 'update'));
-          }));
-          break;
+                    case 2:
+                      object = _context2.sent;
+                      // request a new Context for editing the new object
+                      (0, _jqueryLib.$)('#sb-events').trigger('_openContext', {
+                        entity: _this.entity,
+                        type: 'form',
+                        name: 'default',
+                        domain: [['id', '=', object.id], ['state', '=', 'draft']],
+                        mode: 'edit',
+                        purpose: 'create'
+                      });
 
-        case 'add':
-          $actions_set.append(_materialLib.UIHelper.createButton('action-add', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_ADD'), 'raised', 'check').on('click', function () {// $('#sb-events').trigger('_openContext', new Context(this.entity, this.type, 'default', this.domain, 'edit', 'update'));
-          }));
-          break;
+                    case 4:
+                    case "end":
+                      return _context2.stop();
+                  }
+                }
+              }, _callee2);
+            }))));
+            break;
+
+          case 'select':
+            $actions_set.append(_materialLib.UIHelper.createButton('action-select', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_SELECT'), 'raised', 'check').on('click', function () {
+              // close context and relay selection, if any (mark the view as changed to force parent context update)
+              _this.change(); // todo : only one id should be relayed                            
+
+
+              (0, _jqueryLib.$)('#sb-events').trigger('_closeContext', {
+                selection: _this.selected_ids
+              });
+            }));
+            break;
+
+          case 'add':
+            $actions_set.append(_materialLib.UIHelper.createButton('action-add', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_ADD'), 'raised', 'check').on('click', function () {
+              // close context and relay selection, if any (mark the view as changed to force parent context update)
+              _this.change();
+
+              (0, _jqueryLib.$)('#sb-events').trigger('_closeContext', {
+                selection: _this.selected_ids
+              });
+            }));
+            break;
+        }
       } // container for holding chips of currently applied filters
 
 
@@ -2394,33 +2573,53 @@ var View = /*#__PURE__*/function () {
       $filters_button.find('button').on('click', function () {
         filters_menu.open = !$filters_button.find('.mdc-menu').hasClass('mdc-menu-surface--open');
       }); // todo : create a createMenu helper
-      // floating menu for fields selection
+      // button for displaying the fields menu
 
-      var $fields_toggle_menu = (0, _jqueryLib.$)('<ul/>').attr('role', 'menu').addClass('mdc-list'); // button for displaying the fields menu
+      var $fields_toggle_button = (0, _jqueryLib.$)('<div/>').addClass('sb-view-header-list-fields_toggle mdc-menu-surface--anchor').append(_materialLib.UIHelper.createButton('view-filters', 'fields', 'mini-fab', 'more_vert')); // create floating menu for fields selection
 
-      var $fields_toggle_button = (0, _jqueryLib.$)('<div/>').addClass('sb-view-header-list-fields_toggle mdc-menu-surface--anchor').append(_materialLib.UIHelper.createButton('view-filters', 'fields', 'mini-fab', 'more_vert')).append((0, _jqueryLib.$)('<div/>').addClass('sb-view-header-list-fields_toggle-menu mdc-menu mdc-menu-surface').append($fields_toggle_menu));
+      var $list = _materialLib.UIHelper.createList('fields-list');
 
-      _jqueryLib.$.each(this.getViewSchema().layout.items, function (i, item) {
-        var label = item.hasOwnProperty('label') ? item.label : item.value.charAt(0).toUpperCase() + item.value.slice(1);
-        var visible = item.hasOwnProperty('visible') ? item.visible : true;
+      var $menu = _materialLib.UIHelper.createMenu('fields-menu').addClass('sb-view-header-list-fields_toggle-menu');
 
-        _materialLib.UIHelper.createListItemCheckbox('sb-fields-toggle-checkbox-' + item.value, label).appendTo($fields_toggle_menu).find('input').on('change', function (event) {
-          var $this = (0, _jqueryLib.$)(event.currentTarget);
+      $menu.append($list);
+      $fields_toggle_button.append($menu);
 
-          var def = _this.getField(item.value);
+      var _iterator6 = _createForOfIteratorHelper(this.getViewSchema().layout.items),
+          _step6;
 
-          def.visible = $this.prop('checked');
-          console.log(def);
+      try {
+        var _loop2 = function _loop2() {
+          var item = _step6.value;
+          var label = item.hasOwnProperty('label') ? item.label : item.value.charAt(0).toUpperCase() + item.value.slice(1);
+          var visible = item.hasOwnProperty('visible') ? item.visible : true;
 
-          _this.setField(item.value, def);
+          _materialLib.UIHelper.createListItemCheckbox('sb-fields-toggle-checkbox-' + item.value, label).appendTo($list).find('input').on('change', function (event) {
+            var $this = (0, _jqueryLib.$)(event.currentTarget);
 
-          _this.onchangeModel(true);
-        }).prop('checked', visible);
-      });
+            var def = _this.getField(item.value);
 
-      var fields_toggle_menu = new _materialLib.MDCMenu($fields_toggle_button.find('.mdc-menu')[0]);
+            def.visible = $this.prop('checked');
+            console.log(def);
+
+            _this.setField(item.value, def);
+
+            _this.onchangeModel(true);
+          }).prop('checked', visible);
+        };
+
+        for (_iterator6.s(); !(_step6 = _iterator6.n()).done;) {
+          _loop2();
+        }
+      } catch (err) {
+        _iterator6.e(err);
+      } finally {
+        _iterator6.f();
+      }
+
+      _materialLib.UIHelper.decorateMenu($menu);
+
       $fields_toggle_button.find('button').on('click', function () {
-        fields_toggle_menu.open = !$fields_toggle_button.find('.mdc-menu').hasClass('mdc-menu-surface--open');
+        $menu.trigger('_toggle');
       }); // pagination controls
 
       var $pagination = _materialLib.UIHelper.createPagination().addClass('sb-view-header-list-pagination');
@@ -2493,13 +2692,19 @@ var View = /*#__PURE__*/function () {
 
       if (this.selected_ids.length > 0) {
         var count = this.selected_ids.length;
-        var $selected_menu = (0, _jqueryLib.$)('<ul/>').attr('role', 'menu').addClass('mdc-list');
-        var $fields_toggle_button = (0, _jqueryLib.$)('<div/>').addClass('sb-view-header-list-actions-selected mdc-menu-surface--anchor').append(_materialLib.UIHelper.createButton('action-selected', count + ' sélectionnés', 'outlined')).append((0, _jqueryLib.$)('<div/>').addClass('mdc-menu mdc-menu-surface').css({
+        var $fields_toggle_button = (0, _jqueryLib.$)('<div/>').addClass('sb-view-header-list-actions-selected mdc-menu-surface--anchor').append(_materialLib.UIHelper.createButton('action-selected', count + ' sélectionnés', 'outlined'));
+
+        var $list = _materialLib.UIHelper.createList('fields-list');
+
+        var $menu = _materialLib.UIHelper.createMenu('fields-menu').addClass('sb-view-header-list-fields_toggle-menu').css({
           "margin-top": '48px',
           "width": "100%"
-        }).append($selected_menu));
+        });
 
-        _materialLib.UIHelper.createListItem('Modifier', 'edit').appendTo($selected_menu).on('click', function (event) {
+        $menu.append($list);
+        $fields_toggle_button.append($menu);
+
+        _materialLib.UIHelper.createListItem('Modifier', 'edit').appendTo($list).on('click', function (event) {
           var selected_id = _this2.selected_ids[0];
           (0, _jqueryLib.$)('#sb-events').trigger('_openContext', {
             entity: _this2.entity,
@@ -2511,11 +2716,12 @@ var View = /*#__PURE__*/function () {
           });
         });
 
-        _materialLib.UIHelper.createListItem('Supprimer', 'delete').appendTo($selected_menu).on('click', function (event) {});
+        _materialLib.UIHelper.createListItem('Supprimer', 'delete').appendTo($list).on('click', function (event) {});
 
-        var fields_toggle_menu = new _materialLib.MDCMenu($fields_toggle_button.find('.mdc-menu')[0]);
+        _materialLib.UIHelper.decorateMenu($menu);
+
         $fields_toggle_button.find('button').on('click', function () {
-          fields_toggle_menu.open = !$fields_toggle_button.find('.mdc-menu').hasClass('mdc-menu-surface--open');
+          $menu.trigger('_toggle');
         });
         $action_set.append($fields_toggle_button);
       }
@@ -2540,21 +2746,21 @@ var View = /*#__PURE__*/function () {
               mode: 'edit',
               purpose: 'update'
             });
-          })).append(_materialLib.UIHelper.createButton('action-create', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_CREATE'), 'text').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
+          })).append(_materialLib.UIHelper.createButton('action-create', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_CREATE'), 'text').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3() {
             var object;
-            return _regenerator.default.wrap(function _callee2$(_context2) {
+            return _regenerator.default.wrap(function _callee3$(_context3) {
               while (1) {
-                switch (_context2.prev = _context2.next) {
+                switch (_context3.prev = _context3.next) {
                   case 0:
-                    _context2.next = 2;
+                    _context3.next = 2;
                     return _equalServices.ApiService.create(_this3.entity);
 
                   case 2:
-                    object = _context2.sent;
+                    object = _context3.sent;
                     // request a new Context for editing the new object
                     (0, _jqueryLib.$)('#sb-events').trigger('_openContext', {
                       entity: _this3.entity,
-                      type: _this3.type,
+                      type: 'form',
                       name: 'default',
                       domain: [['id', '=', object.id], ['state', '=', 'draft']],
                       mode: 'edit',
@@ -2563,31 +2769,31 @@ var View = /*#__PURE__*/function () {
 
                   case 4:
                   case "end":
-                    return _context2.stop();
+                    return _context3.stop();
                 }
               }
-            }, _callee2);
+            }, _callee3);
           }))));
           break;
 
         case 'edit':
-          $actions_set.append(_materialLib.UIHelper.createButton('action-save', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_SAVE'), 'raised').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3() {
-            var objects, object, response, errors, field, msg;
-            return _regenerator.default.wrap(function _callee3$(_context3) {
+          $actions_set.append(_materialLib.UIHelper.createButton('action-save', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_SAVE'), 'raised').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
+            var objects, object, response, errors, field, error_id, msg;
+            return _regenerator.default.wrap(function _callee4$(_context4) {
               while (1) {
-                switch (_context3.prev = _context3.next) {
+                switch (_context4.prev = _context4.next) {
                   case 0:
-                    _context3.next = 2;
+                    _context4.next = 2;
                     return _this3.model.get();
 
                   case 2:
-                    objects = _context3.sent;
+                    objects = _context4.sent;
                     object = objects[0];
-                    _context3.next = 6;
+                    _context4.next = 6;
                     return _equalServices.ApiService.update(_this3.entity, [object['id']], object);
 
                   case 6:
-                    response = _context3.sent;
+                    response = _context4.sent;
 
                     if (!response.hasOwnProperty('errors')) {
                       (0, _jqueryLib.$)('#sb-events').trigger('_closeContext');
@@ -2596,7 +2802,11 @@ var View = /*#__PURE__*/function () {
 
                       if (errors.hasOwnProperty('INVALID_PARAM')) {
                         for (field in errors['INVALID_PARAM']) {
-                          msg = Object.values(errors['INVALID_PARAM'][field])[0];
+                          // for each field, we handle one error at a time (the first one)
+                          error_id = Object.keys(errors['INVALID_PARAM'][field])[0];
+                          msg = Object.values(errors['INVALID_PARAM'][field])[0]; // translate error message
+
+                          msg = _equalServices.TranslationService.resolve(_this3.translation, 'error', field, msg, error_id);
 
                           _this3.layout.markAsInvalid(field, msg);
                         }
@@ -2605,15 +2815,15 @@ var View = /*#__PURE__*/function () {
 
                   case 8:
                   case "end":
-                    return _context3.stop();
+                    return _context4.stop();
                 }
               }
-            }, _callee3);
-          })))).append(_materialLib.UIHelper.createButton('action-cancel', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_CANCEL'), 'outlined').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
+            }, _callee4);
+          })))).append(_materialLib.UIHelper.createButton('action-cancel', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_CANCEL'), 'outlined').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5() {
             var validation;
-            return _regenerator.default.wrap(function _callee4$(_context4) {
+            return _regenerator.default.wrap(function _callee5$(_context5) {
               while (1) {
-                switch (_context4.prev = _context4.next) {
+                switch (_context5.prev = _context5.next) {
                   case 0:
                     validation = true;
 
@@ -2622,21 +2832,21 @@ var View = /*#__PURE__*/function () {
                     }
 
                     if (validation) {
-                      _context4.next = 4;
+                      _context5.next = 4;
                       break;
                     }
 
-                    return _context4.abrupt("return");
+                    return _context5.abrupt("return");
 
                   case 4:
                     (0, _jqueryLib.$)('#sb-events').trigger('_closeContext');
 
                   case 5:
                   case "end":
-                    return _context4.stop();
+                    return _context5.stop();
                 }
               }
-            }, _callee4);
+            }, _callee5);
           }))));
           break;
       } // attach elements to header toolbar
@@ -2647,15 +2857,15 @@ var View = /*#__PURE__*/function () {
   }, {
     key: "layoutRefresh",
     value: function () {
-      var _layoutRefresh = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5() {
+      var _layoutRefresh = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6() {
         var full,
-            _args5 = arguments;
-        return _regenerator.default.wrap(function _callee5$(_context5) {
+            _args6 = arguments;
+        return _regenerator.default.wrap(function _callee6$(_context6) {
           while (1) {
-            switch (_context5.prev = _context5.next) {
+            switch (_context6.prev = _context6.next) {
               case 0:
-                full = _args5.length > 0 && _args5[0] !== undefined ? _args5[0] : false;
-                _context5.next = 3;
+                full = _args6.length > 0 && _args6[0] !== undefined ? _args6[0] : false;
+                _context6.next = 3;
                 return this.layout.refresh(full);
 
               case 3:
@@ -2665,10 +2875,10 @@ var View = /*#__PURE__*/function () {
 
               case 4:
               case "end":
-                return _context5.stop();
+                return _context6.stop();
             }
           }
-        }, _callee5, this);
+        }, _callee6, this);
       }));
 
       function layoutRefresh() {
@@ -2725,22 +2935,22 @@ var View = /*#__PURE__*/function () {
   }, {
     key: "onchangeView",
     value: function () {
-      var _onchangeView = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6() {
-        return _regenerator.default.wrap(function _callee6$(_context6) {
+      var _onchangeView = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7() {
+        return _regenerator.default.wrap(function _callee7$(_context7) {
           while (1) {
-            switch (_context6.prev = _context6.next) {
+            switch (_context7.prev = _context7.next) {
               case 0:
                 // reset selection
                 this.onchangeSelection([]);
-                _context6.next = 3;
+                _context7.next = 3;
                 return this.model.refresh();
 
               case 3:
               case "end":
-                return _context6.stop();
+                return _context7.stop();
             }
           }
-        }, _callee6, this);
+        }, _callee7, this);
       }));
 
       function onchangeView() {
@@ -2899,6 +3109,8 @@ var _Widget = _interopRequireDefault(__webpack_require__(/*! ./widgets/Widget */
 
 var _WidgetDate = _interopRequireDefault(__webpack_require__(/*! ./widgets/WidgetDate */ "./build/widgets/WidgetDate.js"));
 
+var _WidgetDateTime = _interopRequireDefault(__webpack_require__(/*! ./widgets/WidgetDateTime */ "./build/widgets/WidgetDateTime.js"));
+
 var _WidgetString = _interopRequireDefault(__webpack_require__(/*! ./widgets/WidgetString */ "./build/widgets/WidgetString.js"));
 
 var _WidgetText = _interopRequireDefault(__webpack_require__(/*! ./widgets/WidgetText */ "./build/widgets/WidgetText.js"));
@@ -2906,6 +3118,8 @@ var _WidgetText = _interopRequireDefault(__webpack_require__(/*! ./widgets/Widge
 var _WidgetLink = _interopRequireDefault(__webpack_require__(/*! ./widgets/WidgetLink */ "./build/widgets/WidgetLink.js"));
 
 var _WidgetSelect = _interopRequireDefault(__webpack_require__(/*! ./widgets/WidgetSelect */ "./build/widgets/WidgetSelect.js"));
+
+var _WidgetOne2Many = _interopRequireDefault(__webpack_require__(/*! ./widgets/WidgetOne2Many */ "./build/widgets/WidgetOne2Many.js"));
 
 var WidgetFactory = /*#__PURE__*/function () {
   function WidgetFactory() {
@@ -2940,8 +3154,15 @@ var WidgetFactory = /*#__PURE__*/function () {
       var config = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
 
       switch (type) {
-        case 'datetime':
+        case 'date':
           return new _WidgetDate.default(label, value, config);
+
+        case 'datetime':
+          return new _WidgetDateTime.default(label, value, config);
+
+        case 'one2many':
+        case 'many2many':
+          return new _WidgetOne2Many.default(label, value, config);
 
         case 'link':
           return new _WidgetLink.default(label, value, config);
@@ -2994,6 +3215,8 @@ var _environment = __webpack_require__(/*! ./environment */ "./build/environment
 
 var _equalServices = __webpack_require__(/*! ./equal-services */ "./build/equal-services.js");
 
+var _moment = _interopRequireDefault(__webpack_require__(/*! moment/moment.js */ "./node_modules/moment/moment.js"));
+
 function _createForOfIteratorHelper(o, allowArrayLike) { var it; if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
 
 function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
@@ -3038,12 +3261,16 @@ var eQ = /*#__PURE__*/function () {
           while (1) {
             switch (_context.prev = _context.next) {
               case 0:
-                // $sbEvents is a jQuery object used to communicate: it allows an both internal services and external lib to connect with eQ-UI
+                // init locale
+                _moment.default.locale(_environment.environment.locale); // $sbEvents is a jQuery object used to communicate: it allows an both internal services and external lib to connect with eQ-UI
                 // $('#sb-events').trigger(event, data);
+
+
                 this.$sbEvents = (0, _jqueryLib.$)('<div/>').attr('id', 'sb-events').css('display', 'none').appendTo('body');
-                /*
-                    A new context can be requested by ngx (menu or app) or by opening a sub-objet
-                */
+                /**
+                 * 
+                 * A new context can be requested by ngx (menu or app) or by opening a sub-object
+                 */
 
                 this.$sbEvents.on('_openContext', function (event, config) {
                   console.log('eQ: received _openContext', config);
@@ -3054,19 +3281,29 @@ var eQ = /*#__PURE__*/function () {
                     domain: [],
                     mode: 'view',
                     purpose: 'view',
-                    lang: _environment.environment.lang
+                    lang: _environment.environment.lang,
+                    callback: null
                   }; // extend default params with received config
 
                   config = _objectSpread(_objectSpread({}, params), config);
-                  var context = new _equalLib.Context(config.entity, config.type, config.name, config.domain, config.mode, config.purpose, config.lang);
+                  var context = new _equalLib.Context(config.entity, config.type, config.name, config.domain, config.mode, config.purpose, config.lang, config.callback);
 
                   _this.openContext(context);
                 });
+                /**
+                 * 
+                 * Event handler for request for closing current context
+                 * When closing, a context might transmit some value (its the case, for instance, when selecting one or more records for m2m or o2m fields)
+                 */
+
                 this.$sbEvents.on('_closeContext', function (event) {
-                  _this.closeContext();
+                  var data = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
+
+                  // close context non-silently with relayed data
+                  _this.closeContext(false, data);
                 });
 
-              case 3:
+              case 4:
               case "end":
                 return _context.stop();
             }
@@ -3366,6 +3603,7 @@ var eQ = /*#__PURE__*/function () {
     value: function () {
       var _closeContext = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
         var silent,
+            data,
             has_changed,
             _args5 = arguments;
         return _regenerator.default.wrap(function _callee4$(_context5) {
@@ -3373,37 +3611,39 @@ var eQ = /*#__PURE__*/function () {
             switch (_context5.prev = _context5.next) {
               case 0:
                 silent = _args5.length > 0 && _args5[0] !== undefined ? _args5[0] : false;
-                console.log('closeContext', silent);
+                data = _args5.length > 1 && _args5[1] !== undefined ? _args5[1] : null;
+                console.log('closeContext', silent, data);
 
                 if (!this.stack.length) {
-                  _context5.next = 12;
+                  _context5.next = 14;
                   break;
                 }
 
-                has_changed = this.context.hasChanged(); // destroy current context
+                has_changed = this.context.hasChanged(); // destroy current context and run callback, if any
 
-                this.context.$container.remove(); // restore previous context
+                this.context.close(data);
+                console.log('suite'); // restore previous context
 
                 this.context = this.stack.pop();
 
                 if (silent) {
-                  _context5.next = 12;
+                  _context5.next = 14;
                   break;
                 }
 
                 if (!(has_changed && this.context.getMode() == 'view')) {
-                  _context5.next = 10;
+                  _context5.next = 12;
                   break;
                 }
 
-                _context5.next = 10;
+                _context5.next = 12;
                 return this.context.refresh();
 
-              case 10:
+              case 12:
                 this.context.$container.show();
                 this.updateHeader();
 
-              case 12:
+              case 14:
               case "end":
                 return _context5.stop();
             }
@@ -3503,7 +3743,7 @@ Object.defineProperty(exports, "$", ({
     return _jquery.default;
   }
 }));
-Object.defineProperty(exports, "locale", ({
+Object.defineProperty(exports, "jqlocale", ({
   enumerable: true,
   get: function get() {
     return _jqueryui.locale;
@@ -3681,17 +3921,19 @@ var UIHelper = /*#__PURE__*/function () {
       var helper = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : '';
       var icon = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : '';
       var disabled = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : false;
-      var $elem = (0, _jqueryLib.$)('<div/>\
-        <label class="mdc-text-field mdc-text-field--filled mdc-text-field--with-trailing-icon"> \
-            <span class="mdc-text-field__ripple"></span> \
-            <span class="mdc-floating-label">' + label + '</span> \
-            <i aria-hidden="true" class="material-icons mdc-text-field__icon">' + icon + '</i>\
-            <input ' + (disabled ? 'disabled' : '') + ' class="mdc-text-field__input" type="text" autocorrect="off" autocomplete="off" spellcheck="false" value="' + value + '"> \
-            <span class="mdc-line-ripple"></span>\
-        </label>\
-        <div class="mdc-text-field-helper-line"> \
-            <div class="mdc-text-field-helper-text" aria-hidden="true">' + helper + '</div> \
-        </div></div>');
+      var $elem = (0, _jqueryLib.$)('\
+        <div> \
+            <label class="mdc-text-field mdc-text-field--filled mdc-text-field--with-trailing-icon"> \
+                <span class="mdc-text-field__ripple"></span> \
+                <span class="mdc-floating-label">' + label + '</span> \
+                <i aria-hidden="true" class="material-icons mdc-text-field__icon">' + icon + '</i>\
+                <input ' + (disabled ? 'disabled' : '') + ' class="mdc-text-field__input" type="text" autocorrect="off" autocomplete="off" spellcheck="false" value="' + value + '"> \
+                <span class="mdc-line-ripple"></span> \
+            </label> \
+            <div class="mdc-text-field-helper-line"> \
+                <div class="mdc-text-field-helper-text" aria-hidden="true" title="' + helper + '">' + helper + '</div> \
+            </div> \
+        </div>');
       new _textfield.MDCTextField($elem[0]);
       return $elem;
     }
@@ -3834,9 +4076,8 @@ var UIHelper = /*#__PURE__*/function () {
                 <ul class="mdc-list"> \
                 </ul> \
             </div> \
-        </div>'); // we recevied an object as param
-
-      var $list = $elem.find('ul.mdc-list');
+        </div>');
+      var $list = $elem.find('ul.mdc-list'); // we recevied an object as param
 
       if (!!values && values.constructor === Object) {
         for (var key in values) {
@@ -3885,6 +4126,22 @@ var UIHelper = /*#__PURE__*/function () {
       select.listen('MDCSelect:change', function () {
         $elem.find('input').val(select.value).trigger('change');
       });
+      return $elem;
+    }
+  }, {
+    key: "createList",
+    value: function createList(id) {
+      var label = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
+      var values = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
+      var $elem = (0, _jqueryLib.$)('<ul id="' + id + '" role="menu" class="mdc-list"></ul>');
+      return $elem;
+    }
+  }, {
+    key: "createMenu",
+    value: function createMenu(id) {
+      var label = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
+      var values = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
+      var $elem = (0, _jqueryLib.$)('<div class="mdc-menu mdc-menu-surface"></div>');
       return $elem;
     }
   }, {
@@ -3942,6 +4199,14 @@ var UIHelper = /*#__PURE__*/function () {
      Decorators 
     */
 
+  }, {
+    key: "decorateMenu",
+    value: function decorateMenu($elem) {
+      var fields_toggle_menu = new _menu.MDCMenu($elem[0]);
+      $elem.on('_toggle', function () {
+        fields_toggle_menu.open = !$elem.hasClass('mdc-menu-surface--open');
+      });
+    }
   }, {
     key: "decorateTabBar",
     value: function decorateTabBar($elem) {
@@ -4185,6 +4450,12 @@ var Widget = /*#__PURE__*/function () {
       this.readonly = readonly;
       return this;
     }
+  }, {
+    key: "setConfig",
+    value: function setConfig(config) {
+      this.config = config;
+      return this;
+    }
     /**
      * @return always returns a JQuery object
      */
@@ -4241,6 +4512,8 @@ var _Widget2 = _interopRequireDefault(__webpack_require__(/*! ./Widget */ "./bui
 
 var _materialLib = __webpack_require__(/*! ../material-lib */ "./build/material-lib.js");
 
+var _moment = _interopRequireDefault(__webpack_require__(/*! moment/moment.js */ "./node_modules/moment/moment.js"));
+
 var _jqueryLib = __webpack_require__(/*! ../jquery-lib */ "./build/jquery-lib.js");
 
 var _environment = __webpack_require__(/*! ../environment */ "./build/environment.js");
@@ -4266,27 +4539,38 @@ var WidgetDate = /*#__PURE__*/function (_Widget) {
   (0, _createClass2.default)(WidgetDate, [{
     key: "render",
     value: function render() {
-      console.log('WidgetDate::render', this.value);
+      var _this = this;
+
+      console.log('WidgetDate::render', this.value, this.config);
       var $elem = (0, _jqueryLib.$)();
-      var value = this.value ? new Date(this.value).toLocaleDateString() : '';
+      var date = new Date(this.value);
+      var value;
 
       switch (this.mode) {
         case 'edit':
+          value = (0, _moment.default)(date).format('L');
           $elem = _materialLib.UIHelper.createInput('', this.label, value, this.config.helper, 'calendar_today'); // setup handler for relaying value update to parent layout
 
-          $elem.find('input').datepicker(_objectSpread({
+          $elem.find('input').datepicker(_objectSpread(_objectSpread({
             showOn: "button"
-          }, _jqueryLib.locale[_environment.environment.locale])).on('change', function (event) {
-            console.log('WidgetDate : received change event');
+          }, _jqueryLib.jqlocale[_environment.environment.locale]), {}, {
+            onClose: function onClose() {
+              // give the focus back once the widget will have been refreshed
+              setTimeout(function () {
+                (0, _jqueryLib.$)('#' + _this.getId()).find('input').first().trigger('focus');
+              }, 250);
+            }
+          })).on('change', function (event) {
+            // update widget value using jQuery `getDate`
             var $this = (0, _jqueryLib.$)(event.currentTarget);
             var date = $this.datepicker('getDate');
-            console.log(date);
             $elem.trigger('_updatedWidget', date.toISOString());
           });
           break;
 
         case 'view':
         default:
+          value = (0, _moment.default)(date).format('LL');
           $elem = _materialLib.UIHelper.createInputView('', this.label, value);
           break;
       }
@@ -4299,6 +4583,135 @@ var WidgetDate = /*#__PURE__*/function (_Widget) {
 }(_Widget2.default);
 
 exports.default = WidgetDate;
+
+/***/ }),
+
+/***/ "./build/widgets/WidgetDateTime.js":
+/*!*****************************************!*\
+  !*** ./build/widgets/WidgetDateTime.js ***!
+  \*****************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+var _interopRequireDefault = __webpack_require__(/*! @babel/runtime/helpers/interopRequireDefault */ "./node_modules/@babel/runtime/helpers/interopRequireDefault.js");
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.default = void 0;
+
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/defineProperty */ "./node_modules/@babel/runtime/helpers/defineProperty.js"));
+
+var _classCallCheck2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/classCallCheck */ "./node_modules/@babel/runtime/helpers/classCallCheck.js"));
+
+var _createClass2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/createClass */ "./node_modules/@babel/runtime/helpers/createClass.js"));
+
+var _inherits2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/inherits */ "./node_modules/@babel/runtime/helpers/inherits.js"));
+
+var _possibleConstructorReturn2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/possibleConstructorReturn */ "./node_modules/@babel/runtime/helpers/possibleConstructorReturn.js"));
+
+var _getPrototypeOf2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/getPrototypeOf */ "./node_modules/@babel/runtime/helpers/getPrototypeOf.js"));
+
+var _Widget2 = _interopRequireDefault(__webpack_require__(/*! ./Widget */ "./build/widgets/Widget.js"));
+
+var _materialLib = __webpack_require__(/*! ../material-lib */ "./build/material-lib.js");
+
+var _moment = _interopRequireDefault(__webpack_require__(/*! moment/moment.js */ "./node_modules/moment/moment.js"));
+
+var _jqueryLib = __webpack_require__(/*! ../jquery-lib */ "./build/jquery-lib.js");
+
+var _environment = __webpack_require__(/*! ../environment */ "./build/environment.js");
+
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2.default)(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
+
+var WidgetDateTime = /*#__PURE__*/function (_Widget) {
+  (0, _inherits2.default)(WidgetDateTime, _Widget);
+
+  var _super = _createSuper(WidgetDateTime);
+
+  function WidgetDateTime(label, value, config) {
+    (0, _classCallCheck2.default)(this, WidgetDateTime);
+    return _super.call(this, 'date', label, value, config);
+  }
+
+  (0, _createClass2.default)(WidgetDateTime, [{
+    key: "render",
+    value: function render() {
+      var _this = this;
+
+      console.log('WidgetDate::render', this.value, this.config);
+      var $elem = (0, _jqueryLib.$)();
+      var date = new Date(this.value);
+      var value;
+
+      switch (this.mode) {
+        case 'edit':
+          var format = _moment.default.localeData().longDateFormat('L') + ' ' + _moment.default.localeData().longDateFormat('LT');
+
+          value = (0, _moment.default)(date).format(format);
+          $elem = _materialLib.UIHelper.createInput('', this.label, value, this.config.helper, 'calendar_today'); // setup handler for relaying value update to parent layout
+
+          $elem.find('input').on('change', function (event) {
+            var $this = (0, _jqueryLib.$)(event.currentTarget);
+            _this.value = $this.val();
+            var mdate = (0, _moment.default)(_this.value, format, true);
+
+            if (mdate.isValid()) {
+              date = mdate.toDate();
+              $datetimepicker.datepicker('setDateTime', date);
+            }
+          });
+          var $datetimepicker = (0, _jqueryLib.$)('<input type="text" />').addClass('sb-view-layout-form-input-decoy').datepicker(_objectSpread(_objectSpread({
+            datetime: true,
+            twentyFour: true,
+            showSeconds: false
+          }, _jqueryLib.jqlocale[_environment.environment.locale]), {}, {
+            onClose: function onClose() {
+              var date = $datetimepicker.datepicker('getDate');
+              $elem.trigger('_updatedWidget', date.toISOString()); // give the focus back once the widget will have been refreshed
+
+              setTimeout(function () {
+                (0, _jqueryLib.$)('#' + _this.getId()).find('input').first().trigger('focus');
+              }, 250);
+            }
+          })).on('change', function (event) {
+            // update widget value using jQuery `getDate`
+            var $this = (0, _jqueryLib.$)(event.currentTarget);
+            var new_date = $this.datepicker('getDate'); // $elem.trigger('_updatedWidget', date.toISOString());
+
+            $elem.find('input').val((0, _moment.default)(new_date).format(format));
+          });
+          $elem.append($datetimepicker);
+          $elem.append((0, _jqueryLib.$)('<div />').addClass('sb-view-layout-form-input-button').one('click', function () {
+            $datetimepicker.datepicker('setDateTime', date);
+          }).on('click', function () {
+            $datetimepicker.datepicker('show');
+          }));
+          break;
+
+        case 'view':
+        default:
+          value = (0, _moment.default)(date).format('LLL');
+          $elem = _materialLib.UIHelper.createInputView('', this.label, value);
+          break;
+      }
+
+      $elem.attr('id', this.getId());
+      return $elem;
+    }
+  }]);
+  return WidgetDateTime;
+}(_Widget2.default);
+
+exports.default = WidgetDateTime;
 
 /***/ }),
 
@@ -4354,6 +4767,118 @@ var WidgetLink = /*#__PURE__*/function (_Widget) {
 }(_Widget2.default);
 
 exports.default = WidgetLink;
+
+/***/ }),
+
+/***/ "./build/widgets/WidgetOne2Many.js":
+/*!*****************************************!*\
+  !*** ./build/widgets/WidgetOne2Many.js ***!
+  \*****************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+var _interopRequireDefault = __webpack_require__(/*! @babel/runtime/helpers/interopRequireDefault */ "./node_modules/@babel/runtime/helpers/interopRequireDefault.js");
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.default = void 0;
+
+var _regenerator = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/regenerator */ "./node_modules/@babel/runtime/regenerator/index.js"));
+
+var _asyncToGenerator2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/asyncToGenerator */ "./node_modules/@babel/runtime/helpers/asyncToGenerator.js"));
+
+var _classCallCheck2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/classCallCheck */ "./node_modules/@babel/runtime/helpers/classCallCheck.js"));
+
+var _createClass2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/createClass */ "./node_modules/@babel/runtime/helpers/createClass.js"));
+
+var _inherits2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/inherits */ "./node_modules/@babel/runtime/helpers/inherits.js"));
+
+var _possibleConstructorReturn2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/possibleConstructorReturn */ "./node_modules/@babel/runtime/helpers/possibleConstructorReturn.js"));
+
+var _getPrototypeOf2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/getPrototypeOf */ "./node_modules/@babel/runtime/helpers/getPrototypeOf.js"));
+
+var _Widget2 = _interopRequireDefault(__webpack_require__(/*! ./Widget */ "./build/widgets/Widget.js"));
+
+var _materialLib = __webpack_require__(/*! ../material-lib */ "./build/material-lib.js");
+
+var _View = _interopRequireDefault(__webpack_require__(/*! ../View */ "./build/View.js"));
+
+var _equalServices = __webpack_require__(/*! ../equal-services */ "./build/equal-services.js");
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
+
+var WidgetOne2Many = /*#__PURE__*/function (_Widget) {
+  (0, _inherits2.default)(WidgetOne2Many, _Widget);
+
+  var _super = _createSuper(WidgetOne2Many);
+
+  function WidgetOne2Many(label, value, config) {
+    (0, _classCallCheck2.default)(this, WidgetOne2Many);
+    return _super.call(this, 'select', label, value, config);
+  }
+
+  (0, _createClass2.default)(WidgetOne2Many, [{
+    key: "render",
+    value: function render() {
+      var _this = this;
+
+      console.log('WidgetOne2Many::render', this.config);
+      var $elem;
+      $elem = $('<div />'); // during 'layout' phase, no entity is given
+
+      if (this.config.hasOwnProperty('entity') && this.config.hasOwnProperty('type') && this.config.hasOwnProperty('name')) {
+        var view = new _View.default(this.config.entity, this.config.type, this.config.name, this.config.domain, this.config.mode, this.config.purpose, this.config.lang, {
+          show_actions: false
+        });
+        var $container = view.getContainer();
+
+        if (this.mode == 'edit') {
+          $container.find('.sb-view-header-list-actions-set').append(_materialLib.UIHelper.createButton('action-edit', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_ADD'), 'raised').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
+            return _regenerator.default.wrap(function _callee$(_context) {
+              while (1) {
+                switch (_context.prev = _context.next) {
+                  case 0:
+                    // request a new Context for selecting an existing object to add to current selection
+                    $('#sb-events').trigger('_openContext', {
+                      entity: _this.config.entity,
+                      type: 'list',
+                      name: 'default',
+                      domain: [],
+                      mode: 'view',
+                      purpose: 'select',
+                      callback: function callback(data) {
+                        console.log('SELECTED:', data); // selected ids are stored in data.selection
+                        // the relayed data should be the list of selected items to add to the relation
+                        // todo :add to value (array with "+id and -id")                            
+                      }
+                    });
+
+                  case 1:
+                  case "end":
+                    return _context.stop();
+                }
+              }
+            }, _callee);
+          }))));
+        } // inject View in parent Context object
+
+
+        $elem.append($container);
+      }
+
+      $elem.attr('id', this.getId());
+      return $elem;
+    }
+  }]);
+  return WidgetOne2Many;
+}(_Widget2.default);
+
+exports.default = WidgetOne2Many;
 
 /***/ }),
 

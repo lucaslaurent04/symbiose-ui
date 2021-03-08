@@ -4,7 +4,6 @@ import { environment } from "./environment";
 
 import { ApiService, TranslationService } from "./equal-services";
 
-import Context from "./Context";
 import Layout from "./Layout";
 import Model from "./Model";
 
@@ -44,12 +43,17 @@ export class View {
     // Arrray of available filters from View definition
     private filters: any;
 
+    // config object for setting display of list controls and action buttons
+    private config: any;
 
     // List of currently selected filters from View definition (for filterable types)    
     private applied_filters_ids: any[];
 
     // When type is list, one or more objects might be selected
     private selected_ids: any[];
+
+    // a view can be marked as changed to force a context refresh
+    private has_changed: boolean;
 
     public $container: any;
     
@@ -65,10 +69,23 @@ export class View {
      * @param name 
      * @param domain 
      */    
-    constructor(entity: string, type: string, name: string, domain: any[], mode: string, purpose:string, lang: string) {
+    constructor(entity: string, type: string, name: string, domain: any[], mode: string, purpose: string, lang: string, config: any = null) {
         this.entity = entity;
         this.type = type; 
         this.name = name;
+        this.has_changed = false;
+
+        // default config 
+        // (note: the relational fields widgets define their own actions)
+        this.config = {
+            show_actions: true,
+            show_filter: true,
+            show_pagination: true
+        };
+        if(config) {
+            this.config = {...this.config, ...config};
+        }
+        
 
         this.mode = mode;
         this.purpose = purpose;
@@ -88,6 +105,20 @@ export class View {
         this.$layoutContainer = $('<div />').addClass('sb-view-layout').appendTo(this.$container);
         this.$footerContainer = $('<div />').addClass('sb-view-footer').appendTo(this.$container);
 
+
+        // apend header structure
+        this.$headerContainer.append(
+            $('<div />').addClass('sb-view-header-list')
+            .append(
+                $('<div />').addClass('sb-view-header-list-actions').append(
+                    $('<div />').addClass('sb-view-header-list-actions-set')
+                )                
+            )
+            .append(
+                $('<div />').addClass('sb-view-header-list-navigation')
+            )
+        );
+
         this.filters = {};
         this.applied_filters_ids = [];
 
@@ -96,8 +127,8 @@ export class View {
 
         this.init();
     }
-    
-    public async init() {
+   
+    private async init() {
         console.log('View::init');
 
         try {
@@ -129,8 +160,16 @@ export class View {
         }
     }
 
+    /**
+     * Mark the view as changed by setting the `has_changed` member.
+     */
+    public change() {
+        this.has_changed = true;
+    }
+    
+    // either the model or the view itself can be marked as change (to control the parent context refresh)
     public hasChanged() {
-        return this.model.hasChanged();
+        return (this.has_changed || this.model.hasChanged());
     }
 
     public getContainer() {
@@ -237,8 +276,8 @@ export class View {
 
 
     /**
-     * Generates a map holding all fields that are present in a given view (as items objects)
-     * and stores it in the `view_fields` member
+     * Generates a map holding all fields (as items objects) that are present in a given view 
+     * and stores them in the `view_fields` map (does not maintain the field order)
      */
 	private loadViewFields(view_schema: any) {
         console.log('View::loadFields', view_schema);
@@ -287,44 +326,53 @@ export class View {
     }
 
     private layoutListHeader() {
-        let $elem = $('<div />').addClass('sb-view-header-list');
 
-        let $level1 = $('<div />').addClass('sb-view-header-list-actions').appendTo($elem);
-        let $level2 = $('<div />').addClass('sb-view-header-list-navigation').appendTo($elem);
+        let $elem = this.$headerContainer.find('.sb-view-header-list');
 
+        let $level1 = $elem.find('.sb-view-header-list-actions');
+        let $level2 = $elem.find('.sb-view-header-list-navigation');
 
-        let $actions_set = $('<div />').addClass('sb-view-header-list-actions-set').appendTo($level1);
+        let $actions_set = $level1.find('.sb-view-header-list-actions-set');
 
-        switch(this.purpose) {
-            case 'view':
-                $actions_set
-                .append( 
-                    UIHelper.createButton('action-edit', TranslationService.instant('SB_ACTIONS_BUTTON_CREATE'), 'raised')
-                    .on('click', () => {
-                        $('#sb-events').trigger('_openContext', {entity: this.entity, type: 'form', name: 'default', domain: [], mode: 'edit', purpose: 'create'});
-                    })
-                );        
-                break;
-            case 'select':
-                $actions_set
-                .append( 
-                    UIHelper.createButton('action-select', TranslationService.instant('SB_ACTIONS_BUTTON_SELECT'), 'raised', 'check')
-                    .on('click', () => {
-                        // $('#sb-events').trigger('_openContext', new Context(this.entity, this.type, 'default', this.domain, 'edit', 'update'));
-                    })
-                );        
-                break;
-            case 'add':
-                $actions_set
-                .append( 
-                    UIHelper.createButton('action-add', TranslationService.instant('SB_ACTIONS_BUTTON_ADD'), 'raised', 'check')
-                    .on('click', () => {
-                        // $('#sb-events').trigger('_openContext', new Context(this.entity, this.type, 'default', this.domain, 'edit', 'update'));
-                    })
-                );
-                break;        
+        if(this.config.show_actions) {
+            switch(this.purpose) {
+                case 'view':
+                    $actions_set
+                    .append( 
+                        UIHelper.createButton('action-edit', TranslationService.instant('SB_ACTIONS_BUTTON_CREATE'), 'raised')
+                        .on('click', async () => {
+                            // create a new object
+                            let object = await ApiService.create(this.entity);
+                            // request a new Context for editing the new object
+                            $('#sb-events').trigger('_openContext', {entity: this.entity, type: 'form', name: 'default', domain: [['id', '=', object.id], ['state', '=', 'draft']], mode: 'edit', purpose: 'create'});
+                        })
+                    );
+                    break;
+                case 'select':
+                    $actions_set
+                    .append( 
+                        UIHelper.createButton('action-select', TranslationService.instant('SB_ACTIONS_BUTTON_SELECT'), 'raised', 'check')
+                        .on('click', () => {
+                            // close context and relay selection, if any (mark the view as changed to force parent context update)
+                            this.change();
+// todo : only one id should be relayed                            
+                            $('#sb-events').trigger('_closeContext', {selection: this.selected_ids});
+                        })
+                    );
+                    break;
+                case 'add':
+                    $actions_set
+                    .append( 
+                        UIHelper.createButton('action-add', TranslationService.instant('SB_ACTIONS_BUTTON_ADD'), 'raised', 'check')
+                        .on('click', () => {
+                            // close context and relay selection, if any (mark the view as changed to force parent context update)
+                            this.change();
+                            $('#sb-events').trigger('_closeContext', {selection: this.selected_ids});
+                        })
+                    );
+                    break;
+            }
         }
-
 
 
 
@@ -372,21 +420,26 @@ export class View {
         });
 
 // todo : create a createMenu helper
-        // floating menu for fields selection
-        let $fields_toggle_menu = $('<ul/>').attr('role', 'menu').addClass('mdc-list');
-
+        
 
         // button for displaying the fields menu
-        let $fields_toggle_button = $('<div/>').addClass('sb-view-header-list-fields_toggle mdc-menu-surface--anchor')        
-        .append( UIHelper.createButton('view-filters', 'fields', 'mini-fab', 'more_vert') )
-        .append( $('<div/>').addClass('sb-view-header-list-fields_toggle-menu mdc-menu mdc-menu-surface').append($fields_toggle_menu) );
+        let $fields_toggle_button = 
+        $('<div/>').addClass('sb-view-header-list-fields_toggle mdc-menu-surface--anchor')        
+        .append( UIHelper.createButton('view-filters', 'fields', 'mini-fab', 'more_vert') );
 
-        $.each(this.getViewSchema().layout.items, (i, item) => {            
+        // create floating menu for fields selection
+        let $list = UIHelper.createList('fields-list');        
+        let $menu = UIHelper.createMenu('fields-menu').addClass('sb-view-header-list-fields_toggle-menu');
+        
+        $menu.append($list);
+        $fields_toggle_button.append($menu);
+
+        for(let item of this.getViewSchema().layout.items ) {
             let label = (item.hasOwnProperty('label'))?item.label:item.value.charAt(0).toUpperCase() + item.value.slice(1);
             let visible = (item.hasOwnProperty('visible'))?item.visible:true;
 
             UIHelper.createListItemCheckbox('sb-fields-toggle-checkbox-'+item.value, label)
-            .appendTo($fields_toggle_menu)
+            .appendTo($list)
             .find('input')
             .on('change', (event) => {
                 let $this = $(event.currentTarget);
@@ -397,11 +450,12 @@ export class View {
                 this.onchangeModel(true);
             })
             .prop('checked', visible);
+        }
 
-        });
-        let fields_toggle_menu = new MDCMenu($fields_toggle_button.find('.mdc-menu')[0]);        
+        UIHelper.decorateMenu($menu);
+
         $fields_toggle_button.find('button').on('click', () => {
-            fields_toggle_menu.open = !$fields_toggle_button.find('.mdc-menu').hasClass('mdc-menu-surface--open');
+            $menu.trigger('_toggle');
         });    
 
 
@@ -493,32 +547,36 @@ export class View {
         $action_set.find('.sb-view-header-list-actions-selected').remove();
 
         if(this.selected_ids.length > 0) {
-            let count = this.selected_ids.length;        
-
-            let $selected_menu = $('<ul/>').attr('role', 'menu').addClass('mdc-list');
+            let count = this.selected_ids.length;
 
             let $fields_toggle_button = $('<div/>').addClass('sb-view-header-list-actions-selected mdc-menu-surface--anchor')        
-            .append( UIHelper.createButton('action-selected', count+' sélectionnés', 'outlined') )
-            .append( $('<div/>').addClass('mdc-menu mdc-menu-surface').css({"margin-top": '48px', "width": "100%"}).append($selected_menu) );
+            .append( UIHelper.createButton('action-selected', count+' sélectionnés', 'outlined') );
+
+            let $list = UIHelper.createList('fields-list');        
+            let $menu = UIHelper.createMenu('fields-menu').addClass('sb-view-header-list-fields_toggle-menu').css({"margin-top": '48px', "width": "100%"});
+            
+            $menu.append($list);
+            $fields_toggle_button.append($menu);
 
             UIHelper.createListItem('Modifier', 'edit')
-            .appendTo($selected_menu)
+            .appendTo($list)
             .on('click', (event) => {
                 let selected_id = this.selected_ids[0];
                 $('#sb-events').trigger('_openContext', {entity: this.entity, type: 'form', name: 'default', domain: ['id', '=', selected_id], mode: 'edit', purpose: 'update'});
             });
 
             UIHelper.createListItem('Supprimer', 'delete')
-            .appendTo($selected_menu)
+            .appendTo($list)
             .on('click', (event) => {
 
             });
 
-            let fields_toggle_menu = new MDCMenu($fields_toggle_button.find('.mdc-menu')[0]);        
-            $fields_toggle_button.find('button').on('click', () => {
-                fields_toggle_menu.open = !$fields_toggle_button.find('.mdc-menu').hasClass('mdc-menu-surface--open');
-            });  
+            UIHelper.decorateMenu($menu);
 
+            $fields_toggle_button.find('button').on('click', () => {
+                $menu.trigger('_toggle');
+            });    
+    
             $action_set.append($fields_toggle_button);
         }
 
@@ -546,7 +604,7 @@ export class View {
                         // create a new object
                         let object = await ApiService.create(this.entity);
                         // request a new Context for editing the new object
-                        $('#sb-events').trigger('_openContext', {entity: this.entity, type: this.type, name: 'default', domain: [['id', '=', object.id], ['state', '=', 'draft']], mode: 'edit', purpose: 'create'});
+                        $('#sb-events').trigger('_openContext', {entity: this.entity, type: 'form', name: 'default', domain: [['id', '=', object.id], ['state', '=', 'draft']], mode: 'edit', purpose: 'create'});
                     })
                 );
                 break;
@@ -565,9 +623,11 @@ export class View {
                             let errors = response['errors'];
                             if(errors.hasOwnProperty('INVALID_PARAM')) {
                                 for(let field in errors['INVALID_PARAM']) {
-
+                                    // for each field, we handle one error at a time (the first one)
+                                    let error_id:string = <string>(Object.keys(errors['INVALID_PARAM'][field]))[0];
                                     let msg:string = <string>(Object.values(errors['INVALID_PARAM'][field]))[0];
-// todo : translate error message                                    
+                                    // translate error message
+                                    msg = TranslationService.resolve(this.translation, 'error', field, msg, error_id);
                                     this.layout.markAsInvalid(field, msg);
                                 }
                             }

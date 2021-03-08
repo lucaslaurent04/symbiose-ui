@@ -81,6 +81,11 @@ export default class Widget {
         return this;
     }
 
+    public setConfig(config:any) {
+        this.config = config;
+        return this;
+    }
+
     /**
      * @return always returns a JQuery object
      */
