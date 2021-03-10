@@ -40,7 +40,7 @@ export class View {
     // Map of fields mapping their Model definitions
     private model_fields: any;
 
-    // Arrray of available filters from View definition
+    // Map of available filters from View definition mapping filters id with their definition
     private filters: any;
 
     // config object for setting display of list controls and action buttons
@@ -52,8 +52,7 @@ export class View {
     // When type is list, one or more objects might be selected
     private selected_ids: any[];
 
-    // a view can be marked as changed to force a context refresh
-    private has_changed: boolean;
+    private is_ready_promise: any;
 
     public $container: any;
     
@@ -61,31 +60,57 @@ export class View {
     public $layoutContainer: any;
     public $footerContainer: any;
 
+
+
     /**
      * 
-     * @param context 
      * @param entity    entity (package\Class) to be loaded: should be set only once (depend on the related view)
      * @param type 
      * @param name 
      * @param domain 
+     * @param mode
+     * @param purpose
+     * @param lang
+     * @param config
      */    
     constructor(entity: string, type: string, name: string, domain: any[], mode: string, purpose: string, lang: string, config: any = null) {
         this.entity = entity;
         this.type = type; 
         this.name = name;
-        this.has_changed = false;
+        this.is_ready_promise = $.Deferred();
 
-        // default config 
-        // (note: the relational fields widgets define their own actions)
+        // default config
         this.config = {
             show_actions: true,
             show_filter: true,
-            show_pagination: true
+            show_pagination: true,
+            // list of actions available for applying to a selection (relational fields widgets define their own actions)
+            selection_actions: [
+                {
+                    title: 'SB_ACTIONS_BUTTON_INLINE_UPDATE',
+                    icon:  'dynamic_form',
+                    handler: (event:any, selection:any) => this.actionListInlineUpdate(event, selection)
+                },
+                {
+                    title: 'SB_ACTIONS_BUTTON_UPDATE',
+                    icon:  'edit',
+                    handler: (event:any, selection:any) => {
+                        let selected_id = selection[0];
+                        $('#sb-events').trigger('_openContext', {entity: this.entity, type: 'form', name: 'default', domain: ['id', '=', selected_id], mode: 'edit', purpose: 'update'});
+                    }
+                },
+                {
+                    title: 'SB_ACTIONS_BUTTON_DELETE',
+                    icon:  'delete',
+                    handler: (event:any, selection:any) => {
+                        let selected_id = this.selected_ids[0];
+
+                    }
+                }
+            ]
         };
-        if(config) {
-            this.config = {...this.config, ...config};
-        }
-        
+
+        this.setConfig(config);
 
         this.mode = mode;
         this.purpose = purpose;
@@ -99,28 +124,25 @@ export class View {
 
         this.selected_ids = [];
 
-        this.$container = $('<div />').addClass('sb-view');
+
+        this.filters = {};
+        this.applied_filters_ids = [];
+
+        this.$container = $('<div />').addClass('sb-view').hide();
 
         this.$headerContainer = $('<div />').addClass('sb-view-header').appendTo(this.$container);
         this.$layoutContainer = $('<div />').addClass('sb-view-layout').appendTo(this.$container);
         this.$footerContainer = $('<div />').addClass('sb-view-footer').appendTo(this.$container);
 
-
         // apend header structure
-        this.$headerContainer.append(
-            $('<div />').addClass('sb-view-header-list')
-            .append(
-                $('<div />').addClass('sb-view-header-list-actions').append(
-                    $('<div />').addClass('sb-view-header-list-actions-set')
-                )                
-            )
-            .append(
-                $('<div />').addClass('sb-view-header-list-navigation')
-            )
+        this.$headerContainer.append(' \
+            <div class="sb-view-header-list"> \
+                <div class="sb-view-header-list-actions"> \
+                    <div class="sb-view-header-list-actions-set"></div> \
+                </div> \
+                <div class="sb-view-header-list-navigation"></div> \
+            </div>'
         );
-
-        this.filters = {};
-        this.applied_filters_ids = [];
 
         this.layout = new Layout(this);
         this.model = new Model(this);
@@ -131,19 +153,21 @@ export class View {
     private async init() {
         console.log('View::init');
 
+
+
+
         try {
+    
             this.translation = await ApiService.getTranslation(this.entity, environment.lang);
             this.view_schema = await ApiService.getView(this.entity, this.type + '.' + this.name);
             this.model_schema = await ApiService.getSchema(this.entity);
             this.loadViewFields(this.view_schema);
-            this.loadModelFields(this.model_schema);            
+            this.loadModelFields(this.model_schema);
             if(this.view_schema.hasOwnProperty("filters")) {
                 for(let filter of this.view_schema.filters) {
                     this.filters[filter.id] = filter;
                 }
             }
-            await this.layout.init();
-            await this.model.init();
 
             if(['list', 'kanban'].indexOf(this.type) >= 0) {
                 this.$layoutContainer.addClass('sb-view-layout-list');
@@ -153,23 +177,40 @@ export class View {
             if(['form'].indexOf(this.type) >= 0) {
                 this.$layoutContainer.addClass('sb-view-layout-form');
                 this.layoutFormHeader();
-            }            
+            }
+
+            await this.layout.init();
+            await this.model.init();
+
         }
         catch(err) {
             console.log('Unable to init view ('+this.entity+'.'+this.type+'.'+this.name+')', err);
         }
+
+        this.is_ready_promise.resolve();
+
+        this.$container.show();
+        console.log('View::init - end');
     }
 
-    /**
-     * Mark the view as changed by setting the `has_changed` member.
-     */
-    public change() {
-        this.has_changed = true;
+
+    public isReady() {
+        return this.is_ready_promise;
     }
-    
+
+    public setConfig(config:any) {
+        // override config options, if other are given
+        if(config) {
+            this.config = {...this.config, ...config};
+        }
+    }
+    public setMode(mode: string) {
+        this.mode = mode;
+    }
+
     // either the model or the view itself can be marked as change (to control the parent context refresh)
     public hasChanged() {
-        return (this.has_changed || this.model.hasChanged());
+        return this.model.hasChanged();
     }
 
     public getContainer() {
@@ -224,8 +265,7 @@ export class View {
         
         for(let filter_id of this.applied_filters_ids) {
             domain.push(this.filters[filter_id].clause);
-        } 
-        console.log('result', domain);
+        }
         return domain;
     }
     public getSort() {
@@ -255,6 +295,14 @@ export class View {
         return this.layout;
     }
 
+    public getMode() {
+        return this.mode;
+    }
+
+    public getPurpose() {
+        return this.purpose;
+    }
+
     /**
      * Return a Map of layout fields items mapping names with their definition
      */
@@ -266,13 +314,6 @@ export class View {
         return this.model_fields;
     }
 
-    public setMode(mode: string) {
-        this.mode = mode;
-    }
-
-    public getMode() {
-        return this.mode;
-    }
 
 
     /**
@@ -326,7 +367,7 @@ export class View {
     }
 
     private layoutListHeader() {
-
+        console.log('View::layoutListHeader');
         let $elem = this.$headerContainer.find('.sb-view-header-list');
 
         let $level1 = $elem.find('.sb-view-header-list-actions');
@@ -354,7 +395,6 @@ export class View {
                         UIHelper.createButton('action-select', TranslationService.instant('SB_ACTIONS_BUTTON_SELECT'), 'raised', 'check')
                         .on('click', () => {
                             // close context and relay selection, if any (mark the view as changed to force parent context update)
-                            this.change();
 // todo : only one id should be relayed                            
                             $('#sb-events').trigger('_closeContext', {selection: this.selected_ids});
                         })
@@ -366,32 +406,36 @@ export class View {
                         UIHelper.createButton('action-add', TranslationService.instant('SB_ACTIONS_BUTTON_ADD'), 'raised', 'check')
                         .on('click', () => {
                             // close context and relay selection, if any (mark the view as changed to force parent context update)
-                            this.change();
                             $('#sb-events').trigger('_closeContext', {selection: this.selected_ids});
                         })
                     );
+                    break;
+                case 'widget':
+                default:
                     break;
             }
         }
 
 
-
         // container for holding chips of currently applied filters
         let $filters_set = $('<div />').addClass('sb-view-header-list-filters-set mdc-chip-set').attr('role', 'grid');
 
-        // floating menu for filters selection
-        let $filters_menu = $('<ul/>').attr('role', 'menu').addClass('mdc-list');
-        // button for displaying the filters menu
-        let $filters_button = $('<div/>').addClass('sb-view-header-list-filters mdc-menu-surface--anchor')
-        .append( UIHelper.createButton('view-filters', 'filtres', 'mini-fab', 'filter_list') )
-        .append( $('<div/>').addClass('sb-view-header-list-filters-menu mdc-menu mdc-menu-surface').css({"margin-top": '48px'}).append($filters_menu) );
-        
+
+        // fields toggle menu : button for displaying the filters menu
+        let $filters_button = 
+        $('<div/>').addClass('sb-view-header-list-filters mdc-menu-surface--anchor')        
+        .append( UIHelper.createButton('view-filters', 'filters', 'mini-fab', 'filter_list') );
+
+        // create floating menu for filters selection
+        let $filters_menu = UIHelper.createMenu('filters-menu').addClass('sb-view-header-list-filters-menu').css({"margin-top": '48px'}).appendTo($filters_button);        
+        let $filters_list = UIHelper.createList('filters-list').appendTo($filters_menu);
+
         // generate filters list
         for(let filter_id in this.filters) {
             let filter = this.filters[filter_id];
 
             UIHelper.createListItem(filter.description)
-            .appendTo($filters_menu)
+            .appendTo($filters_list)
             .attr('id', filter_id)
             .on('click', (event) => {
                 let $this = $(event.currentTarget);                
@@ -414,50 +458,41 @@ export class View {
                 this.onchangeView();
             });
         }
-        let filters_menu = new MDCMenu($filters_button.find('.mdc-menu')[0]);        
-        $filters_button.find('button').on('click', () => {
-            filters_menu.open = !$filters_button.find('.mdc-menu').hasClass('mdc-menu-surface--open');
-        });
 
-// todo : create a createMenu helper
-        
+        UIHelper.decorateMenu($filters_menu);
+        $filters_button.find('button').on('click', () => $filters_menu.trigger('_toggle') );
 
-        // button for displaying the fields menu
+
+      
+
+        // fields toggle menu : button for displaying the fields menu
         let $fields_toggle_button = 
         $('<div/>').addClass('sb-view-header-list-fields_toggle mdc-menu-surface--anchor')        
         .append( UIHelper.createButton('view-filters', 'fields', 'mini-fab', 'more_vert') );
 
         // create floating menu for fields selection
-        let $list = UIHelper.createList('fields-list');        
-        let $menu = UIHelper.createMenu('fields-menu').addClass('sb-view-header-list-fields_toggle-menu');
-        
-        $menu.append($list);
-        $fields_toggle_button.append($menu);
+        let $fields_toggle_menu = UIHelper.createMenu('fields-menu').addClass('sb-view-header-list-fields_toggle-menu').appendTo($fields_toggle_button);
+        let $fields_toggle_list = UIHelper.createList('fields-list').appendTo($fields_toggle_menu);
 
         for(let item of this.getViewSchema().layout.items ) {
             let label = (item.hasOwnProperty('label'))?item.label:item.value.charAt(0).toUpperCase() + item.value.slice(1);
             let visible = (item.hasOwnProperty('visible'))?item.visible:true;
 
             UIHelper.createListItemCheckbox('sb-fields-toggle-checkbox-'+item.value, label)
-            .appendTo($list)
+            .appendTo($fields_toggle_list)
             .find('input')
             .on('change', (event) => {
                 let $this = $(event.currentTarget);
                 let def = this.getField(item.value);
                 def.visible = $this.prop('checked');
-                console.log(def);
                 this.setField(item.value, def);
                 this.onchangeModel(true);
             })
             .prop('checked', visible);
         }
 
-        UIHelper.decorateMenu($menu);
-
-        $fields_toggle_button.find('button').on('click', () => {
-            $menu.trigger('_toggle');
-        });    
-
+        UIHelper.decorateMenu($fields_toggle_menu);
+        $fields_toggle_button.find('button').on('click', () => $fields_toggle_menu.trigger('_toggle') );
 
 
         // pagination controls
@@ -512,27 +547,37 @@ export class View {
             this.setStart(0);
             this.onchangeView();
         });
-
         
-
-
         // attach elements to header toolbar
-        $level2.append( $filters_button );
-        $level2.append( $filters_set );        
+
+        // hide filter button if there are no filters available
+        if(Object.keys(this.filters).length) {
+            $level2.append( $filters_button );
+        }
+        $level2.append( $filters_set );
         $level2.append( $pagination );
         $level2.append( $fields_toggle_button );
 
         this.$headerContainer.append( $elem );
     }
-
+    /**
+     * Re-draw the list layout.
+     * This method is triggered by a model change @see layoutRefresh() or a selection change @see onChangeSelection().
+     * 
+     * @param full 
+     */
     private layoutListRefresh(full: boolean = false) {
+        console.log('View::layoutListRefresh#########################');
         // update footer indicators (total count)        
         let limit: number = this.getLimit();
         let total: number = this.getTotal();
         let start: number = this.getStart() + 1;
         let end: number = start + limit - 1;
         end = Math.min(end, start + this.model.ids().length - 1);
-        console.log('res', total, start, end, limit);
+
+        console.log(limit, total, start, end);
+
+
         this.$container.find('.sb-view-header-list-pagination-total').html(total);
         this.$container.find('.sb-view-header-list-pagination-start').html(start);
         this.$container.find('.sb-view-header-list-pagination-end').html(end);
@@ -546,11 +591,12 @@ export class View {
         let $action_set = this.$container.find('.sb-view-header-list-actions-set');
         $action_set.find('.sb-view-header-list-actions-selected').remove();
 
-        if(this.selected_ids.length > 0) {
+        // do not show the actions menu for 'add' and 'select' purposes
+        if(this.selected_ids.length > 0 && ['view', 'widget'].indexOf(this.purpose) > -1) {
             let count = this.selected_ids.length;
 
             let $fields_toggle_button = $('<div/>').addClass('sb-view-header-list-actions-selected mdc-menu-surface--anchor')        
-            .append( UIHelper.createButton('action-selected', count+' sélectionnés', 'outlined') );
+            .append( UIHelper.createButton('action-selected', count+' '+TranslationService.instant('SB_ACTIONS_BUTTON_SELECTED'), 'outlined') );
 
             let $list = UIHelper.createList('fields-list');        
             let $menu = UIHelper.createMenu('fields-menu').addClass('sb-view-header-list-fields_toggle-menu').css({"margin-top": '48px', "width": "100%"});
@@ -558,18 +604,12 @@ export class View {
             $menu.append($list);
             $fields_toggle_button.append($menu);
 
-            UIHelper.createListItem('Modifier', 'edit')
-            .appendTo($list)
-            .on('click', (event) => {
-                let selected_id = this.selected_ids[0];
-                $('#sb-events').trigger('_openContext', {entity: this.entity, type: 'form', name: 'default', domain: ['id', '=', selected_id], mode: 'edit', purpose: 'update'});
-            });
-
-            UIHelper.createListItem('Supprimer', 'delete')
-            .appendTo($list)
-            .on('click', (event) => {
-
-            });
+            // add actions defined in view
+            for(let item of this.config.selection_actions) {
+                UIHelper.createListItem(TranslationService.instant(item.title), item.icon)
+                .on( 'click', (event:any) => item.handler(event, this.selected_ids) )
+                .appendTo($list);                
+            }
 
             UIHelper.decorateMenu($menu);
 
@@ -579,8 +619,6 @@ export class View {
     
             $action_set.append($fields_toggle_button);
         }
-
-
     }
 
     private layoutFormHeader() {
@@ -616,7 +654,7 @@ export class View {
                         let objects = await this.model.get();
                         let object = objects[0];
                         const response = await ApiService.update(this.entity, [object['id']], object);
-                        if(!response.hasOwnProperty('errors')) {
+                        if(!response || !response.hasOwnProperty('errors')) {
                             $('#sb-events').trigger('_closeContext');
                         }
                         else {
@@ -628,11 +666,10 @@ export class View {
                                     let msg:string = <string>(Object.values(errors['INVALID_PARAM'][field]))[0];
                                     // translate error message
                                     msg = TranslationService.resolve(this.translation, 'error', field, msg, error_id);
-                                    this.layout.markAsInvalid(field, msg);
+                                    this.layout.markFieldAsInvalid(object['id'], field, msg);
                                 }
                             }
                         }
-                        
                     })
                 )
                 .append( 
@@ -661,44 +698,36 @@ export class View {
         }
     }
     
-    // handle actions
-    
-/*    
-//1) mode edit
-modifications des champs (a rpriori un par un) : relayer les changementrs depuis les Widgets via le layout => adapter la Collection (object_id, values)
-
-//2) modification du domaine / filtres : au niveau de la vue 
- 
-
-
-*/
   
     /**
-     * Callback for requesting a Model update
+     * Callback for requesting a Model update.
      * Requested from layout when a change occured in the widgets.
      * 
      * @param ids       array   one or more objecft identifiers
      * @param values    object   map of fields names and their related values
      */
-    public onchangeViewModel(ids: Array<any>, values: object) {
+    public async onchangeViewModel(ids: Array<any>, values: object, refresh: boolean = true) {
         this.model.change(ids, values);
-        // model has changed : forms need to re-check the visibility attributes                
-        this.onchangeModel();
+        // model has changed : forms need to re-check the visibility attributes
+        if(refresh) {
+            await this.onchangeModel();
+        }        
     }
     
     /**
      * Callback for requesting a Layout update: the widgets in the layout need to be refreshed.
      * Requested from Model when a change occured in the Collection (as consequence of domain or params update)
      * If `full`is set to true, then the layout is re-generated
+     * @param full  boolean
      */
-    public onchangeModel(full: boolean = false) {
+    public async onchangeModel(full: boolean = false) {
         console.log('View::onchangeModel', full);
-        this.layoutRefresh(full);
+        await this.layoutRefresh(full);
     }
     
     /**
-     * Callback for requesting a Model update
-     * Requested either from view: domain has been updated
+     * Callback for requesting a Model update.
+     * Requested either from view: domain has been updated,
      * or from layout: context has been updated (sort column, sorting order, limit, page, ...)
      */
     public async onchangeView() {
@@ -707,10 +736,67 @@ modifications des champs (a rpriori un par un) : relayer les changementrs depuis
         await this.model.refresh();
     }
 
+    /**
+     * Callback for list selection update.
+     * 
+     * @param selection 
+     */
     public onchangeSelection(selection: Array<any>) {
-        console.log('selection updated', selection);
+        console.log('View::onchangeSelection', selection);
         this.selected_ids = selection;
         this.layoutListRefresh();
+    }
+
+
+
+    private actionListInlineUpdate(event:any, selection: any) {
+        for(let selected_id of selection ) {
+            this.$layoutContainer.find('tr[data-id="'+selected_id+'"]').each( (i: number, tr: any) => {
+                let $tr = $(tr);
+                let $td = $tr.children().first();
+                let $checkbox = $td.find('.sb-checkbox').hide();
+                let $save_button = UIHelper.createButton('view-save-row', '', 'mini-fab', 'save')
+                .appendTo($td)
+                .on('click', async (event:any) => {
+                    event.stopPropagation();
+
+                    let object_id = parseInt(<string>$tr.attr('data-id'), 10);
+                    let objects = await this.model.get([object_id]);
+                    let object = objects[0];
+
+                    const response = await ApiService.update(this.entity, [object_id], object);
+                    if(!response || !response.hasOwnProperty('errors')) {
+                        $save_button.remove();
+                        $tr.find('.sb-widget-cell').each( (i: number, cell: any) => {
+                            $(cell).trigger('_toggle_mode');
+                        });
+                        $checkbox.show();
+                        // restore click handling
+                        $tr.attr('data-edit', '0');
+                    }
+                    else {
+                        let errors = response['errors'];
+                        if(errors.hasOwnProperty('INVALID_PARAM')) {
+                            for(let field in errors['INVALID_PARAM']) {
+                                // for each field, we handle one error at a time (the first one)
+                                let error_id:string = <string>(Object.keys(errors['INVALID_PARAM'][field]))[0];
+                                let msg:string = <string>(Object.values(errors['INVALID_PARAM'][field]))[0];
+                                // translate error message
+                                msg = TranslationService.resolve(this.translation, 'error', field, msg, error_id);
+                                this.layout.markFieldAsInvalid(object['id'], field, msg);
+                            }
+                        }
+                    }
+
+                });
+                // mark row as beoing edited (prevent click handling)
+                $tr.attr('data-edit', '1');
+                // for each widget of the row, switch to edit mode
+                $tr.find('.sb-widget-cell').each( (i: number, cell: any) => {
+                    $(cell).trigger('_toggle_mode');
+                });
+            });
+        }
     }
 }
 

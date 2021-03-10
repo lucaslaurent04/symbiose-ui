@@ -667,6 +667,16 @@ var Context = /*#__PURE__*/function () {
         this.callback(data);
       }
     }
+    /**
+     * 
+     * @returns Promise A promise that resolves when the View will be fully rendered
+     */
+
+  }, {
+    key: "isReady",
+    value: function isReady() {
+      return this.view.isReady();
+    }
   }, {
     key: "hasChanged",
     value: function hasChanged() {
@@ -1060,7 +1070,7 @@ var Layout = /*#__PURE__*/function () {
                   // initialize the layout
                   this.layout();
                 } catch (err) {
-                  console.log('something went wrong ', err);
+                  console.log('Something went wrong ', err);
                 }
 
               case 2:
@@ -1077,10 +1087,23 @@ var Layout = /*#__PURE__*/function () {
 
       return init;
     }()
+    /**
+     * 
+     * @param field 
+     * @param message 
+     */
+
   }, {
-    key: "markAsInvalid",
-    value: function markAsInvalid(field, message) {
-      var widget = this.model_widgets[field];
+    key: "markFieldAsInvalid",
+    value: function markFieldAsInvalid(object_id, field, message) {
+      console.log('Layout::markFieldAsInvalid', object_id, field);
+
+      if (this.view.getType() == 'form') {
+        // by convention, form widgets are strored in first index
+        object_id = 0;
+      }
+
+      var widget = this.model_widgets[object_id][field];
       var $elem = this.$layout.find('#' + widget.getId());
       $elem.addClass('mdc-text-field--invalid');
       $elem.find('.mdc-text-field-helper-text').addClass('mdc-text-field-helper-text--persistent mdc-text-field-helper-text--validation-msg').text(message).attr('title', message);
@@ -1131,7 +1154,7 @@ var Layout = /*#__PURE__*/function () {
       var selection = [];
       var $tbody = this.$layout.find("tbody");
       $tbody.find("input:checked").each(function (i, elem) {
-        selection.push((0, _jqueryLib.$)(elem).attr('data-id'));
+        selection.push(parseInt((0, _jqueryLib.$)(elem).attr('data-id'), 10));
       });
       return selection;
     }
@@ -1140,7 +1163,7 @@ var Layout = /*#__PURE__*/function () {
     value: function layout() {
       console.log('Layout::layout');
 
-      switch (this.view.type) {
+      switch (this.view.getType()) {
         case 'form':
           this.layoutForm();
           break;
@@ -1155,7 +1178,7 @@ var Layout = /*#__PURE__*/function () {
     value: function feed(objects) {
       console.log('Layout::feed');
 
-      switch (this.view.type) {
+      switch (this.view.getType()) {
         case 'form':
           this.feedForm(objects);
           break;
@@ -1276,14 +1299,21 @@ var Layout = /*#__PURE__*/function () {
 
                     if (item.hasOwnProperty('widget')) {
                       config = _objectSpread(_objectSpread({}, config), item.widget);
-                      console.log(item.widget, config);
-                      type = item.widget.type;
+
+                      if (item.widget.hasOwnProperty('type')) {
+                        type = item.widget.type;
+                      }
                     }
 
                     var widget = _equalWidgets.WidgetFactory.getWidget(type, field_title, '', config);
 
-                    widget.setReadonly(readonly);
-                    _this.model_widgets[field] = widget;
+                    widget.setReadonly(readonly); // store widget in widgets Map, using field name as key
+
+                    if (typeof _this.model_widgets[0] == 'undefined') {
+                      _this.model_widgets[0] = {};
+                    }
+
+                    _this.model_widgets[0][field] = widget;
                     $cell.append(widget.attach());
                   } else if (item.type == 'label') {}
                 }
@@ -1318,11 +1348,13 @@ var Layout = /*#__PURE__*/function () {
 
       var $hrow = (0, _jqueryLib.$)('<tr/>');
 
-      _materialLib.UIHelper.createTableCellCheckbox(true).appendTo($hrow).find('input').on('click', function () {
-        return setTimeout(function () {
-          return _this2.view.onchangeSelection(_this2.getSelected());
+      if (this.view.getPurpose() != 'widget' || this.view.getMode() == 'edit') {
+        _materialLib.UIHelper.createTableCellCheckbox(true).appendTo($hrow).find('input').on('click', function () {
+          return setTimeout(function () {
+            return _this2.view.onchangeSelection(_this2.getSelected());
+          });
         });
-      }); // create other columns, based on the col_model given in the configuration
+      } // create other columns, based on the col_model given in the configuration
 
 
       var schema = this.view.getViewSchema();
@@ -1396,38 +1428,44 @@ var Layout = /*#__PURE__*/function () {
       try {
         var _loop = function _loop() {
           var object = _step2.value;
-          var $row = (0, _jqueryLib.$)('<tr/>').on('click', function () {
-            (0, _jqueryLib.$)('#sb-events').trigger('_openContext', {
-              entity: _this3.view.getEntity(),
-              type: 'form',
-              domain: ['id', '=', object.id]
+          var $row = (0, _jqueryLib.$)('<tr/>').attr('data-id', object.id).attr('data-edit', '0').on('click', function (event) {
+            var $this = (0, _jqueryLib.$)(event.currentTarget); // discard click when row is being edited
+
+            if ($this.attr('data-edit') == '0') {
+              (0, _jqueryLib.$)('#sb-events').trigger('_openContext', {
+                entity: _this3.view.getEntity(),
+                type: 'form',
+                domain: ['id', '=', object.id]
+              });
+            }
+          });
+
+          if (_this3.view.getPurpose() != 'widget' || _this3.view.getMode() == 'edit') {
+            _materialLib.UIHelper.createTableCellCheckbox().addClass('sb-checkbox-cell').appendTo($row).find('input').attr('data-id', object.id).on('click', function (event) {
+              // wait for widget to update and notify about change
+              setTimeout(function () {
+                return _this3.view.onchangeSelection(_this3.getSelected());
+              }); // prevent handling of click on parent `tr` element
+
+              event.stopPropagation();
             });
-          });
-
-          _materialLib.UIHelper.createTableCellCheckbox().appendTo($row).find('input').attr('data-id', object.id).on('click', function (event) {
-            // wait for widget to update and notify about change
-            setTimeout(function () {
-              return _this3.view.onchangeSelection(_this3.getSelected());
-            }); // prevent handling of click on parent `tr` element
-
-            event.stopPropagation();
-          });
+          }
 
           var _iterator3 = _createForOfIteratorHelper(schema.layout.items),
               _step3;
 
           try {
-            for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+            var _loop2 = function _loop2() {
               var item = _step3.value;
               var field = item.value;
 
               var view_def = _this3.view.getField(field); // field is not part of the view, skip it
 
 
-              if (view_def == undefined) continue;
+              if (view_def == undefined) return "continue";
               var visible = view_def.hasOwnProperty('visible') ? view_def.visible : true; // do not show fields with no width
 
-              if (!visible) continue;
+              if (!visible) return "continue";
 
               var model_schema = _this3.view.getModelFields();
 
@@ -1460,10 +1498,42 @@ var Layout = /*#__PURE__*/function () {
                 }
               }
 
-              var widget = _equalWidgets.WidgetFactory.getWidget(type, '', value);
+              var widget = _equalWidgets.WidgetFactory.getWidget(type, '', value); // store widget in widgets Map, using widget id as key (there are several rows for each field)
 
-              var $cell = (0, _jqueryLib.$)('<td/>').append(widget.render());
+
+              if (typeof _this3.model_widgets[object.id] == 'undefined') {
+                _this3.model_widgets[object.id] = {};
+              }
+
+              _this3.model_widgets[object.id][field] = widget;
+              var $cell = (0, _jqueryLib.$)('<td/>').addClass('sb-widget-cell').append(widget.render()).on('_toggle_mode', function (event) {
+                console.log('toggleing mode');
+                var $this = (0, _jqueryLib.$)(event.currentTarget);
+                var mode = widget.getMode() == 'edit' ? 'view' : 'edit';
+                widget.setMode(mode);
+                var $widget = widget.render();
+
+                if (mode == 'edit') {
+                  $this.addClass('sb-widget-cell--edit');
+                  $widget.on('_updatedWidget', function (event) {
+                    var value = {};
+                    value[field] = widget.getValue(); // propagate model change, without requesting a layout refresh
+
+                    _this3.view.onchangeViewModel([object.id], value, false);
+                  });
+                } else {
+                  $this.removeClass('sb-widget-cell--edit');
+                }
+
+                $this.empty().append($widget);
+              });
               $row.append($cell);
+            };
+
+            for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+              var _ret = _loop2();
+
+              if (_ret === "continue") continue;
             }
           } catch (err) {
             _iterator3.e(err);
@@ -1505,38 +1575,47 @@ var Layout = /*#__PURE__*/function () {
               _step4;
 
           try {
-            var _loop2 = function _loop2() {
+            var _loop3 = function _loop3() {
               var field = _step4.value;
-              var widget = _this4.model_widgets[field];
+              var widget = _this4.model_widgets[0][field];
 
               var $parent = _this4.$layout.find('#' + widget.getId()).parent().empty();
 
               var model_def = model_schema[field];
               var type = model_def['type'];
-              var value = object[field];
+              var value = object[field]; // for relational fields, we need to check if the Model has been fetched al
 
               if (['one2many', 'many2one', 'many2many'].indexOf(type) > -1) {
                 var _config = widget.getConfig(); // by convention, `name` subfield is always loaded for relational fields
 
 
                 if (type == 'many2one') {
+                  // todo : need to maintain field structure with dedicated widget
                   value = object[field]['name'];
-                } else {
-                  value = object[field].map(function (o) {
-                    return o.name;
-                  }).join(', ');
-                  value = value.length > 35 ? value.substring(0, 35) + "..." : value;
                 }
+                /*
+                                    else {
+                                        value = object[field].map( (o:any) => o.name).join(', ');
+                                        value = (value.length > 35)? value.substring(0, 35) + "..." : value;
+                                    }
+                */
+
 
                 if (type == 'many2many') {
-                  console.log(model_def);
+                  // for m2m fields, the value of the field is an array of objects `{id:, name:}`
+                  // by convention, when a relation is to be removed, the id field is set to its negative value
+                  // select ids to load by filtering targeted objects
+                  var target_ids = object[field].map(function (o) {
+                    return o.id;
+                  }).filter(function (id) {
+                    return id > 0;
+                  }); // defined config for Widget's view with a custom domain according to object values
+
                   _config = _objectSpread(_objectSpread({}, _config), {}, {
                     entity: model_def['foreign_object'],
                     type: 'list',
-                    name: 'default',
-                    domain: [model_def['foreign_field'], 'contains', object['id']],
-                    mode: 'view',
-                    purpose: 'view',
+                    name: _config.hasOwnProperty('view') ? _config.view : 'default',
+                    domain: ['id', 'in', target_ids],
                     lang: _this4.view.getLang()
                   });
                 }
@@ -1546,30 +1625,38 @@ var Layout = /*#__PURE__*/function () {
 
               widget.setMode(_this4.view.getMode()).setValue(value);
               var $widget = widget.render();
-              $widget.on('_updatedWidget', function (event, new_value) {
-                console.log('Layout : received widget change event for field ' + field, new_value);
-                object[field] = new_value; // todo : use updated fields only (not full object)                    
+              /*
+                  Handle Widget update
+              */
 
-                _this4.view.onchangeViewModel([object.id], object);
+              $widget.on('_updatedWidget', function (event) {
+                console.log('widget _updatedWidget'); // update object with new value
+
+                var value = {};
+                value[field] = widget.getValue();
+
+                _this4.view.onchangeViewModel([object.id], value);
               });
-              console.log('config', widget.getConfig());
               var config = widget.getConfig(); // handle visibility tests (domain)           
 
               if (config.hasOwnProperty('visible')) {
                 var domain = new _Domain.default(config.visible);
 
                 if (domain.evaluate(object)) {
+                  // append rendered widget
                   $parent.append($widget);
                 } else {
+                  // append an empty widget container (to allow further retrieval)
                   $parent.append(widget.attach());
                 }
               } else {
+                // append rendered widget
                 $parent.append($widget);
               }
             };
 
             for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
-              _loop2();
+              _loop3();
             }
           } catch (err) {
             _iterator4.e(err);
@@ -1643,7 +1730,7 @@ var Model = /*#__PURE__*/function () {
     this.view = view;
     this.loaded_promise = _jqueryLib.$.Deferred();
     this.has_changed = false;
-    this.objects = {};
+    this.objects = [];
     this.total = 0;
   }
 
@@ -1666,7 +1753,7 @@ var Model = /*#__PURE__*/function () {
               case 5:
                 _context.prev = 5;
                 _context.t0 = _context["catch"](0);
-                console.log('something went wrong ', _context.t0);
+                console.log('Something went wrong ', _context.t0);
 
               case 8:
               case "end":
@@ -1714,31 +1801,32 @@ var Model = /*#__PURE__*/function () {
                 }
 
                 _context2.prev = 4;
-                console.log(this.view.getDomain());
-                _context2.next = 8;
+                _context2.next = 7;
                 return _equalServices.ApiService.collect(this.view.getEntity(), this.view.getDomain(), fields, this.view.getOrder(), this.view.getSort(), this.view.getStart(), this.view.getLimit(), this.view.getLang());
 
-              case 8:
+              case 7:
                 this.objects = _context2.sent;
                 this.loaded_promise.resolve();
-                this.total = _equalServices.ApiService.getLastCount();
-                console.log(this.objects); // trigger model change handler in the parent View (in order to update the layout)
+                this.total = _equalServices.ApiService.getLastCount(); // trigger model change handler in the parent View (in order to update the layout)
 
-                this.view.onchangeModel();
-                _context2.next = 18;
+                _context2.next = 12;
+                return this.view.onchangeModel();
+
+              case 12:
+                _context2.next = 17;
                 break;
 
-              case 15:
-                _context2.prev = 15;
+              case 14:
+                _context2.prev = 14;
                 _context2.t0 = _context2["catch"](4);
                 console.log('Unable to fetch Collection from server', _context2.t0);
 
-              case 18:
+              case 17:
               case "end":
                 return _context2.stop();
             }
           }
-        }, _callee2, this, [[4, 15]]);
+        }, _callee2, this, [[4, 14]]);
       }));
 
       function refresh() {
@@ -1754,20 +1842,33 @@ var Model = /*#__PURE__*/function () {
   }, {
     key: "change",
     value: function change(ids, values) {
-      var _iterator = _createForOfIteratorHelper(ids),
+      var _iterator = _createForOfIteratorHelper(this.objects),
           _step;
 
       try {
         for (_iterator.s(); !(_step = _iterator.n()).done;) {
-          var id = _step.value;
+          var object = _step.value;
 
-          if (this.objects.hasOwnProperty(id)) {
-            for (var field in values) {
-              if (this.objects[id].hasOwnProperty(field)) {
-                this.objects[id][field] = values[field];
-                this.has_changed = true;
+          var _iterator2 = _createForOfIteratorHelper(ids),
+              _step2;
+
+          try {
+            for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+              var id = _step2.value;
+
+              if (object.hasOwnProperty('id') && object.id == id) {
+                for (var field in values) {
+                  if (object.hasOwnProperty(field)) {
+                    object[field] = values[field];
+                    this.has_changed = true;
+                  }
+                }
               }
             }
+          } catch (err) {
+            _iterator2.e(err);
+          } finally {
+            _iterator2.f();
           }
         }
       } catch (err) {
@@ -1793,10 +1894,20 @@ var Model = /*#__PURE__*/function () {
     value: function get() {
       var _this = this;
 
+      var ids = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+
       var promise = _jqueryLib.$.Deferred();
 
       this.loaded_promise.then(function () {
-        promise.resolve(_this.objects);
+        // return the full collection
+        if (ids.length == 0) {
+          promise.resolve(_this.objects);
+        } else {
+          // create a custom collection by filtering objects on their ids
+          promise.resolve(_this.objects.filter(function (object) {
+            return ids.indexOf(object['id']) > -1;
+          }));
+        }
       }).catch(function () {
         promise.resolve({});
       });
@@ -2024,15 +2135,15 @@ var _Layout = _interopRequireDefault(__webpack_require__(/*! ./Layout */ "./buil
 
 var _Model = _interopRequireDefault(__webpack_require__(/*! ./Model */ "./build/Model-exposed.js"));
 
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2.default)(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
 function _createForOfIteratorHelper(o, allowArrayLike) { var it; if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
 
 function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
 
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
-function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
-
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2.default)(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
 var View = /*#__PURE__*/function () {
   // Mode under which the view is to be displayed ('View' [default], or 'edit')
@@ -2040,21 +2151,25 @@ var View = /*#__PURE__*/function () {
   // View holds the params for search requests performed by Model
   // Map of fields mapping their View definitions
   // Map of fields mapping their Model definitions
-  // Arrray of available filters from View definition
+  // Map of available filters from View definition mapping filters id with their definition
   // config object for setting display of list controls and action buttons
   // List of currently selected filters from View definition (for filterable types)    
   // When type is list, one or more objects might be selected
-  // a view can be marked as changed to force a context refresh
 
   /**
    * 
-   * @param context 
    * @param entity    entity (package\Class) to be loaded: should be set only once (depend on the related view)
    * @param type 
    * @param name 
    * @param domain 
+   * @param mode
+   * @param purpose
+   * @param lang
+   * @param config
    */
   function View(entity, type, name, domain, mode, purpose, lang) {
+    var _this = this;
+
     var config = arguments.length > 7 && arguments[7] !== undefined ? arguments[7] : null;
     (0, _classCallCheck2.default)(this, View);
     (0, _defineProperty2.default)(this, "entity", void 0);
@@ -2079,7 +2194,7 @@ var View = /*#__PURE__*/function () {
     (0, _defineProperty2.default)(this, "config", void 0);
     (0, _defineProperty2.default)(this, "applied_filters_ids", void 0);
     (0, _defineProperty2.default)(this, "selected_ids", void 0);
-    (0, _defineProperty2.default)(this, "has_changed", void 0);
+    (0, _defineProperty2.default)(this, "is_ready_promise", void 0);
     (0, _defineProperty2.default)(this, "$container", void 0);
     (0, _defineProperty2.default)(this, "$headerContainer", void 0);
     (0, _defineProperty2.default)(this, "$layoutContainer", void 0);
@@ -2087,19 +2202,42 @@ var View = /*#__PURE__*/function () {
     this.entity = entity;
     this.type = type;
     this.name = name;
-    this.has_changed = false; // default config 
-    // (note: the relational fields widgets define their own actions)
+    this.is_ready_promise = _jqueryLib.$.Deferred(); // default config
 
     this.config = {
       show_actions: true,
       show_filter: true,
-      show_pagination: true
+      show_pagination: true,
+      // list of actions available for applying to a selection (relational fields widgets define their own actions)
+      selection_actions: [{
+        title: 'SB_ACTIONS_BUTTON_INLINE_UPDATE',
+        icon: 'dynamic_form',
+        handler: function handler(event, selection) {
+          return _this.actionListInlineUpdate(event, selection);
+        }
+      }, {
+        title: 'SB_ACTIONS_BUTTON_UPDATE',
+        icon: 'edit',
+        handler: function handler(event, selection) {
+          var selected_id = selection[0];
+          (0, _jqueryLib.$)('#sb-events').trigger('_openContext', {
+            entity: _this.entity,
+            type: 'form',
+            name: 'default',
+            domain: ['id', '=', selected_id],
+            mode: 'edit',
+            purpose: 'update'
+          });
+        }
+      }, {
+        title: 'SB_ACTIONS_BUTTON_DELETE',
+        icon: 'delete',
+        handler: function handler(event, selection) {
+          var selected_id = _this.selected_ids[0];
+        }
+      }]
     };
-
-    if (config) {
-      this.config = _objectSpread(_objectSpread({}, this.config), config);
-    }
-
+    this.setConfig(config);
     this.mode = mode;
     this.purpose = purpose;
     this.domain = domain;
@@ -2109,14 +2247,20 @@ var View = /*#__PURE__*/function () {
     this.limit = 25;
     this.lang = lang;
     this.selected_ids = [];
-    this.$container = (0, _jqueryLib.$)('<div />').addClass('sb-view');
+    this.filters = {};
+    this.applied_filters_ids = [];
+    this.$container = (0, _jqueryLib.$)('<div />').addClass('sb-view').hide();
     this.$headerContainer = (0, _jqueryLib.$)('<div />').addClass('sb-view-header').appendTo(this.$container);
     this.$layoutContainer = (0, _jqueryLib.$)('<div />').addClass('sb-view-layout').appendTo(this.$container);
     this.$footerContainer = (0, _jqueryLib.$)('<div />').addClass('sb-view-footer').appendTo(this.$container); // apend header structure
 
-    this.$headerContainer.append((0, _jqueryLib.$)('<div />').addClass('sb-view-header-list').append((0, _jqueryLib.$)('<div />').addClass('sb-view-header-list-actions').append((0, _jqueryLib.$)('<div />').addClass('sb-view-header-list-actions-set'))).append((0, _jqueryLib.$)('<div />').addClass('sb-view-header-list-navigation')));
-    this.filters = {};
-    this.applied_filters_ids = [];
+    this.$headerContainer.append(' \
+            <div class="sb-view-header-list"> \
+                <div class="sb-view-header-list-actions"> \
+                    <div class="sb-view-header-list-actions-set"></div> \
+                </div> \
+                <div class="sb-view-header-list-navigation"></div> \
+            </div>');
     this.layout = new _Layout.default(this);
     this.model = new _Model.default(this);
     this.init();
@@ -2167,14 +2311,6 @@ var View = /*#__PURE__*/function () {
                   }
                 }
 
-                _context.next = 16;
-                return this.layout.init();
-
-              case 16:
-                _context.next = 18;
-                return this.model.init();
-
-              case 18:
                 if (['list', 'kanban'].indexOf(this.type) >= 0) {
                   this.$layoutContainer.addClass('sb-view-layout-list');
                   this.layoutListHeader();
@@ -2186,6 +2322,14 @@ var View = /*#__PURE__*/function () {
                   this.layoutFormHeader();
                 }
 
+                _context.next = 18;
+                return this.layout.init();
+
+              case 18:
+                _context.next = 20;
+                return this.model.init();
+
+              case 20:
                 _context.next = 25;
                 break;
 
@@ -2195,6 +2339,11 @@ var View = /*#__PURE__*/function () {
                 console.log('Unable to init view (' + this.entity + '.' + this.type + '.' + this.name + ')', _context.t0);
 
               case 25:
+                this.is_ready_promise.resolve();
+                this.$container.show();
+                console.log('View::init - end');
+
+              case 28:
               case "end":
                 return _context.stop();
             }
@@ -2208,20 +2357,29 @@ var View = /*#__PURE__*/function () {
 
       return init;
     }()
-    /**
-     * Mark the view as changed by setting the `has_changed` member.
-     */
-
   }, {
-    key: "change",
-    value: function change() {
-      this.has_changed = true;
+    key: "isReady",
+    value: function isReady() {
+      return this.is_ready_promise;
+    }
+  }, {
+    key: "setConfig",
+    value: function setConfig(config) {
+      // override config options, if other are given
+      if (config) {
+        this.config = _objectSpread(_objectSpread({}, this.config), config);
+      }
+    }
+  }, {
+    key: "setMode",
+    value: function setMode(mode) {
+      this.mode = mode;
     } // either the model or the view itself can be marked as change (to control the parent context refresh)
 
   }, {
     key: "hasChanged",
     value: function hasChanged() {
-      return this.has_changed || this.model.hasChanged();
+      return this.model.hasChanged();
     }
   }, {
     key: "getContainer",
@@ -2308,7 +2466,6 @@ var View = /*#__PURE__*/function () {
         _iterator2.f();
       }
 
-      console.log('result', domain);
       return domain;
     }
   }, {
@@ -2351,6 +2508,16 @@ var View = /*#__PURE__*/function () {
     value: function getLayout() {
       return this.layout;
     }
+  }, {
+    key: "getMode",
+    value: function getMode() {
+      return this.mode;
+    }
+  }, {
+    key: "getPurpose",
+    value: function getPurpose() {
+      return this.purpose;
+    }
     /**
      * Return a Map of layout fields items mapping names with their definition
      */
@@ -2364,16 +2531,6 @@ var View = /*#__PURE__*/function () {
     key: "getModelFields",
     value: function getModelFields() {
       return this.model_fields;
-    }
-  }, {
-    key: "setMode",
-    value: function setMode(mode) {
-      this.mode = mode;
-    }
-  }, {
-    key: "getMode",
-    value: function getMode() {
-      return this.mode;
     }
     /**
      * Generates a map holding all fields (as items objects) that are present in a given view 
@@ -2462,8 +2619,9 @@ var View = /*#__PURE__*/function () {
   }, {
     key: "layoutListHeader",
     value: function layoutListHeader() {
-      var _this = this;
+      var _this2 = this;
 
+      console.log('View::layoutListHeader');
       var $elem = this.$headerContainer.find('.sb-view-header-list');
       var $level1 = $elem.find('.sb-view-header-list-actions');
       var $level2 = $elem.find('.sb-view-header-list-navigation');
@@ -2479,13 +2637,13 @@ var View = /*#__PURE__*/function () {
                   switch (_context2.prev = _context2.next) {
                     case 0:
                       _context2.next = 2;
-                      return _equalServices.ApiService.create(_this.entity);
+                      return _equalServices.ApiService.create(_this2.entity);
 
                     case 2:
                       object = _context2.sent;
                       // request a new Context for editing the new object
                       (0, _jqueryLib.$)('#sb-events').trigger('_openContext', {
-                        entity: _this.entity,
+                        entity: _this2.entity,
                         type: 'form',
                         name: 'default',
                         domain: [['id', '=', object.id], ['state', '=', 'draft']],
@@ -2505,11 +2663,9 @@ var View = /*#__PURE__*/function () {
           case 'select':
             $actions_set.append(_materialLib.UIHelper.createButton('action-select', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_SELECT'), 'raised', 'check').on('click', function () {
               // close context and relay selection, if any (mark the view as changed to force parent context update)
-              _this.change(); // todo : only one id should be relayed                            
-
-
+              // todo : only one id should be relayed                            
               (0, _jqueryLib.$)('#sb-events').trigger('_closeContext', {
-                selection: _this.selected_ids
+                selection: _this2.selected_ids
               });
             }));
             break;
@@ -2517,51 +2673,56 @@ var View = /*#__PURE__*/function () {
           case 'add':
             $actions_set.append(_materialLib.UIHelper.createButton('action-add', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_ADD'), 'raised', 'check').on('click', function () {
               // close context and relay selection, if any (mark the view as changed to force parent context update)
-              _this.change();
-
               (0, _jqueryLib.$)('#sb-events').trigger('_closeContext', {
-                selection: _this.selected_ids
+                selection: _this2.selected_ids
               });
             }));
+            break;
+
+          case 'widget':
+          default:
             break;
         }
       } // container for holding chips of currently applied filters
 
 
-      var $filters_set = (0, _jqueryLib.$)('<div />').addClass('sb-view-header-list-filters-set mdc-chip-set').attr('role', 'grid'); // floating menu for filters selection
+      var $filters_set = (0, _jqueryLib.$)('<div />').addClass('sb-view-header-list-filters-set mdc-chip-set').attr('role', 'grid'); // fields toggle menu : button for displaying the filters menu
 
-      var $filters_menu = (0, _jqueryLib.$)('<ul/>').attr('role', 'menu').addClass('mdc-list'); // button for displaying the filters menu
+      var $filters_button = (0, _jqueryLib.$)('<div/>').addClass('sb-view-header-list-filters mdc-menu-surface--anchor').append(_materialLib.UIHelper.createButton('view-filters', 'filters', 'mini-fab', 'filter_list')); // create floating menu for filters selection
 
-      var $filters_button = (0, _jqueryLib.$)('<div/>').addClass('sb-view-header-list-filters mdc-menu-surface--anchor').append(_materialLib.UIHelper.createButton('view-filters', 'filtres', 'mini-fab', 'filter_list')).append((0, _jqueryLib.$)('<div/>').addClass('sb-view-header-list-filters-menu mdc-menu mdc-menu-surface').css({
+      var $filters_menu = _materialLib.UIHelper.createMenu('filters-menu').addClass('sb-view-header-list-filters-menu').css({
         "margin-top": '48px'
-      }).append($filters_menu)); // generate filters list
+      }).appendTo($filters_button);
+
+      var $filters_list = _materialLib.UIHelper.createList('filters-list').appendTo($filters_menu); // generate filters list
+
 
       var _loop = function _loop(filter_id) {
-        var filter = _this.filters[filter_id];
+        var filter = _this2.filters[filter_id];
 
-        _materialLib.UIHelper.createListItem(filter.description).appendTo($filters_menu).attr('id', filter_id).on('click', function (event) {
+        _materialLib.UIHelper.createListItem(filter.description).appendTo($filters_list).attr('id', filter_id).on('click', function (event) {
           var $this = (0, _jqueryLib.$)(event.currentTarget);
           $filters_set.append(_materialLib.UIHelper.createChip(filter.description).attr('id', filter_id).on('click', function (event) {
             var $this = (0, _jqueryLib.$)(event.currentTarget);
 
-            var index = _this.applied_filters_ids.indexOf($this.attr('id'));
+            var index = _this2.applied_filters_ids.indexOf($this.attr('id'));
 
             if (index > -1) {
-              _this.applied_filters_ids.splice(index, 1);
+              _this2.applied_filters_ids.splice(index, 1);
 
-              _this.setStart(0);
+              _this2.setStart(0);
 
-              _this.onchangeView();
+              _this2.onchangeView();
             }
 
             $this.remove();
           }));
 
-          _this.applied_filters_ids.push($this.attr('id'));
+          _this2.applied_filters_ids.push($this.attr('id'));
 
-          _this.setStart(0);
+          _this2.setStart(0);
 
-          _this.onchangeView();
+          _this2.onchangeView();
         });
       };
 
@@ -2569,20 +2730,17 @@ var View = /*#__PURE__*/function () {
         _loop(filter_id);
       }
 
-      var filters_menu = new _materialLib.MDCMenu($filters_button.find('.mdc-menu')[0]);
+      _materialLib.UIHelper.decorateMenu($filters_menu);
+
       $filters_button.find('button').on('click', function () {
-        filters_menu.open = !$filters_button.find('.mdc-menu').hasClass('mdc-menu-surface--open');
-      }); // todo : create a createMenu helper
-      // button for displaying the fields menu
+        return $filters_menu.trigger('_toggle');
+      }); // fields toggle menu : button for displaying the fields menu
 
       var $fields_toggle_button = (0, _jqueryLib.$)('<div/>').addClass('sb-view-header-list-fields_toggle mdc-menu-surface--anchor').append(_materialLib.UIHelper.createButton('view-filters', 'fields', 'mini-fab', 'more_vert')); // create floating menu for fields selection
 
-      var $list = _materialLib.UIHelper.createList('fields-list');
+      var $fields_toggle_menu = _materialLib.UIHelper.createMenu('fields-menu').addClass('sb-view-header-list-fields_toggle-menu').appendTo($fields_toggle_button);
 
-      var $menu = _materialLib.UIHelper.createMenu('fields-menu').addClass('sb-view-header-list-fields_toggle-menu');
-
-      $menu.append($list);
-      $fields_toggle_button.append($menu);
+      var $fields_toggle_list = _materialLib.UIHelper.createList('fields-list').appendTo($fields_toggle_menu);
 
       var _iterator6 = _createForOfIteratorHelper(this.getViewSchema().layout.items),
           _step6;
@@ -2593,17 +2751,16 @@ var View = /*#__PURE__*/function () {
           var label = item.hasOwnProperty('label') ? item.label : item.value.charAt(0).toUpperCase() + item.value.slice(1);
           var visible = item.hasOwnProperty('visible') ? item.visible : true;
 
-          _materialLib.UIHelper.createListItemCheckbox('sb-fields-toggle-checkbox-' + item.value, label).appendTo($list).find('input').on('change', function (event) {
+          _materialLib.UIHelper.createListItemCheckbox('sb-fields-toggle-checkbox-' + item.value, label).appendTo($fields_toggle_list).find('input').on('change', function (event) {
             var $this = (0, _jqueryLib.$)(event.currentTarget);
 
-            var def = _this.getField(item.value);
+            var def = _this2.getField(item.value);
 
             def.visible = $this.prop('checked');
-            console.log(def);
 
-            _this.setField(item.value, def);
+            _this2.setField(item.value, def);
 
-            _this.onchangeModel(true);
+            _this2.onchangeModel(true);
           }).prop('checked', visible);
         };
 
@@ -2616,36 +2773,36 @@ var View = /*#__PURE__*/function () {
         _iterator6.f();
       }
 
-      _materialLib.UIHelper.decorateMenu($menu);
+      _materialLib.UIHelper.decorateMenu($fields_toggle_menu);
 
       $fields_toggle_button.find('button').on('click', function () {
-        $menu.trigger('_toggle');
+        return $fields_toggle_menu.trigger('_toggle');
       }); // pagination controls
 
       var $pagination = _materialLib.UIHelper.createPagination().addClass('sb-view-header-list-pagination');
 
       $pagination.find('.pagination-total').append((0, _jqueryLib.$)('<span class="sb-view-header-list-pagination-start"></span>')).append((0, _jqueryLib.$)('<span />').text('-')).append((0, _jqueryLib.$)('<span class="sb-view-header-list-pagination-end"></span>')).append((0, _jqueryLib.$)('<span />').text(' / ')).append((0, _jqueryLib.$)('<span class="sb-view-header-list-pagination-total"></span>'));
       $pagination.find('.pagination-navigation').append(_materialLib.UIHelper.createButton('', '', 'icon', 'first_page').addClass('sb-view-header-list-pagination-first_page').on('click', function (event) {
-        _this.setStart(0);
+        _this2.setStart(0);
 
-        _this.onchangeView();
+        _this2.onchangeView();
       })).append(_materialLib.UIHelper.createButton('', '', 'icon', 'chevron_left').addClass('sb-view-header-list-pagination-prev_page').on('click', function (event) {
-        _this.setStart(Math.max(0, _this.getStart() - _this.getLimit()));
+        _this2.setStart(Math.max(0, _this2.getStart() - _this2.getLimit()));
 
-        _this.onchangeView();
+        _this2.onchangeView();
       })).append(_materialLib.UIHelper.createButton('', '', 'icon', 'chevron_right').addClass('sb-view-header-list-pagination-next_page').on('click', function (event) {
-        var new_start = Math.min(_this.getTotal() - 1, _this.getStart() + _this.getLimit());
-        console.log('new start', new_start, _this.getStart(), _this.getLimit());
+        var new_start = Math.min(_this2.getTotal() - 1, _this2.getStart() + _this2.getLimit());
+        console.log('new start', new_start, _this2.getStart(), _this2.getLimit());
 
-        _this.setStart(new_start);
+        _this2.setStart(new_start);
 
-        _this.onchangeView();
+        _this2.onchangeView();
       })).append(_materialLib.UIHelper.createButton('', '', 'icon', 'last_page').addClass('sb-view-header-list-pagination-last_page').on('click', function (event) {
-        var new_start = _this.getTotal() - 1;
+        var new_start = _this2.getTotal() - 1;
 
-        _this.setStart(new_start);
+        _this2.setStart(new_start);
 
-        _this.onchangeView();
+        _this2.onchangeView();
       }));
 
       var $select = _materialLib.UIHelper.createPaginationSelect('', '', [1, 2, 5, 10, 25, 50, 100], 10).addClass('sb-view-header-list-pagination-limit_select');
@@ -2654,32 +2811,44 @@ var View = /*#__PURE__*/function () {
       $select.find('input').on('change', function (event) {
         var $this = (0, _jqueryLib.$)(event.currentTarget);
 
-        _this.setLimit($this.val());
+        _this2.setLimit($this.val());
 
-        _this.setStart(0);
+        _this2.setStart(0);
 
-        _this.onchangeView();
+        _this2.onchangeView();
       }); // attach elements to header toolbar
+      // hide filter button if there are no filters available
 
-      $level2.append($filters_button);
+      if (Object.keys(this.filters).length) {
+        $level2.append($filters_button);
+      }
+
       $level2.append($filters_set);
       $level2.append($pagination);
       $level2.append($fields_toggle_button);
       this.$headerContainer.append($elem);
     }
+    /**
+     * Re-draw the list layout.
+     * This method is triggered by a model change @see layoutRefresh() or a selection change @see onChangeSelection().
+     * 
+     * @param full 
+     */
+
   }, {
     key: "layoutListRefresh",
     value: function layoutListRefresh() {
-      var _this2 = this;
+      var _this3 = this;
 
       var full = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
-      // update footer indicators (total count)        
+      console.log('View::layoutListRefresh#########################'); // update footer indicators (total count)        
+
       var limit = this.getLimit();
       var total = this.getTotal();
       var start = this.getStart() + 1;
       var end = start + limit - 1;
       end = Math.min(end, start + this.model.ids().length - 1);
-      console.log('res', total, start, end, limit);
+      console.log(limit, total, start, end);
       this.$container.find('.sb-view-header-list-pagination-total').html(total);
       this.$container.find('.sb-view-header-list-pagination-start').html(start);
       this.$container.find('.sb-view-header-list-pagination-end').html(end);
@@ -2688,11 +2857,11 @@ var View = /*#__PURE__*/function () {
       this.$container.find('.sb-view-header-list-pagination-next_page').prop('disabled', !(start <= total - limit));
       this.$container.find('.sb-view-header-list-pagination-last_page').prop('disabled', !(start <= total - limit));
       var $action_set = this.$container.find('.sb-view-header-list-actions-set');
-      $action_set.find('.sb-view-header-list-actions-selected').remove();
+      $action_set.find('.sb-view-header-list-actions-selected').remove(); // do not show the actions menu for 'add' and 'select' purposes
 
-      if (this.selected_ids.length > 0) {
+      if (this.selected_ids.length > 0 && ['view', 'widget'].indexOf(this.purpose) > -1) {
         var count = this.selected_ids.length;
-        var $fields_toggle_button = (0, _jqueryLib.$)('<div/>').addClass('sb-view-header-list-actions-selected mdc-menu-surface--anchor').append(_materialLib.UIHelper.createButton('action-selected', count + ' sélectionnés', 'outlined'));
+        var $fields_toggle_button = (0, _jqueryLib.$)('<div/>').addClass('sb-view-header-list-actions-selected mdc-menu-surface--anchor').append(_materialLib.UIHelper.createButton('action-selected', count + ' ' + _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_SELECTED'), 'outlined'));
 
         var $list = _materialLib.UIHelper.createList('fields-list');
 
@@ -2702,21 +2871,28 @@ var View = /*#__PURE__*/function () {
         });
 
         $menu.append($list);
-        $fields_toggle_button.append($menu);
+        $fields_toggle_button.append($menu); // add actions defined in view
 
-        _materialLib.UIHelper.createListItem('Modifier', 'edit').appendTo($list).on('click', function (event) {
-          var selected_id = _this2.selected_ids[0];
-          (0, _jqueryLib.$)('#sb-events').trigger('_openContext', {
-            entity: _this2.entity,
-            type: 'form',
-            name: 'default',
-            domain: ['id', '=', selected_id],
-            mode: 'edit',
-            purpose: 'update'
-          });
-        });
+        var _iterator7 = _createForOfIteratorHelper(this.config.selection_actions),
+            _step7;
 
-        _materialLib.UIHelper.createListItem('Supprimer', 'delete').appendTo($list).on('click', function (event) {});
+        try {
+          var _loop3 = function _loop3() {
+            var item = _step7.value;
+
+            _materialLib.UIHelper.createListItem(_equalServices.TranslationService.instant(item.title), item.icon).on('click', function (event) {
+              return item.handler(event, _this3.selected_ids);
+            }).appendTo($list);
+          };
+
+          for (_iterator7.s(); !(_step7 = _iterator7.n()).done;) {
+            _loop3();
+          }
+        } catch (err) {
+          _iterator7.e(err);
+        } finally {
+          _iterator7.f();
+        }
 
         _materialLib.UIHelper.decorateMenu($menu);
 
@@ -2729,7 +2905,7 @@ var View = /*#__PURE__*/function () {
   }, {
     key: "layoutFormHeader",
     value: function layoutFormHeader() {
-      var _this3 = this;
+      var _this4 = this;
 
       var $elem = (0, _jqueryLib.$)('<div />').addClass('sb-view-header-form'); // container for holding chips of currently applied filters
 
@@ -2739,10 +2915,10 @@ var View = /*#__PURE__*/function () {
         case 'view':
           $actions_set.append(_materialLib.UIHelper.createButton('action-edit', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_UPDATE'), 'raised').on('click', function () {
             (0, _jqueryLib.$)('#sb-events').trigger('_openContext', {
-              entity: _this3.entity,
-              type: _this3.type,
+              entity: _this4.entity,
+              type: _this4.type,
               name: 'default',
-              domain: _this3.domain,
+              domain: _this4.domain,
               mode: 'edit',
               purpose: 'update'
             });
@@ -2753,13 +2929,13 @@ var View = /*#__PURE__*/function () {
                 switch (_context3.prev = _context3.next) {
                   case 0:
                     _context3.next = 2;
-                    return _equalServices.ApiService.create(_this3.entity);
+                    return _equalServices.ApiService.create(_this4.entity);
 
                   case 2:
                     object = _context3.sent;
                     // request a new Context for editing the new object
                     (0, _jqueryLib.$)('#sb-events').trigger('_openContext', {
-                      entity: _this3.entity,
+                      entity: _this4.entity,
                       type: 'form',
                       name: 'default',
                       domain: [['id', '=', object.id], ['state', '=', 'draft']],
@@ -2784,18 +2960,18 @@ var View = /*#__PURE__*/function () {
                 switch (_context4.prev = _context4.next) {
                   case 0:
                     _context4.next = 2;
-                    return _this3.model.get();
+                    return _this4.model.get();
 
                   case 2:
                     objects = _context4.sent;
                     object = objects[0];
                     _context4.next = 6;
-                    return _equalServices.ApiService.update(_this3.entity, [object['id']], object);
+                    return _equalServices.ApiService.update(_this4.entity, [object['id']], object);
 
                   case 6:
                     response = _context4.sent;
 
-                    if (!response.hasOwnProperty('errors')) {
+                    if (!response || !response.hasOwnProperty('errors')) {
                       (0, _jqueryLib.$)('#sb-events').trigger('_closeContext');
                     } else {
                       errors = response['errors'];
@@ -2806,9 +2982,9 @@ var View = /*#__PURE__*/function () {
                           error_id = Object.keys(errors['INVALID_PARAM'][field])[0];
                           msg = Object.values(errors['INVALID_PARAM'][field])[0]; // translate error message
 
-                          msg = _equalServices.TranslationService.resolve(_this3.translation, 'error', field, msg, error_id);
+                          msg = _equalServices.TranslationService.resolve(_this4.translation, 'error', field, msg, error_id);
 
-                          _this3.layout.markAsInvalid(field, msg);
+                          _this4.layout.markFieldAsInvalid(object['id'], field, msg);
                         }
                       }
                     }
@@ -2827,7 +3003,7 @@ var View = /*#__PURE__*/function () {
                   case 0:
                     validation = true;
 
-                    if (_this3.hasChanged()) {
+                    if (_this4.hasChanged()) {
                       validation = confirm(_equalServices.TranslationService.instant('SB_ACTIONS_MESSAGE_ABANDON_CHANGE'));
                     }
 
@@ -2886,20 +3062,9 @@ var View = /*#__PURE__*/function () {
       }
 
       return layoutRefresh;
-    }() // handle actions
-
-    /*    
-    //1) mode edit
-    modifications des champs (a rpriori un par un) : relayer les changementrs depuis les Widgets via le layout => adapter la Collection (object_id, values)
-    
-    //2) modification du domaine / filtres : au niveau de la vue 
-     
-    
-    
-    */
-
+    }()
     /**
-     * Callback for requesting a Model update
+     * Callback for requesting a Model update.
      * Requested from layout when a change occured in the widgets.
      * 
      * @param ids       array   one or more objecft identifiers
@@ -2908,49 +3073,100 @@ var View = /*#__PURE__*/function () {
 
   }, {
     key: "onchangeViewModel",
-    value: function onchangeViewModel(ids, values) {
-      this.model.change(ids, values); // model has changed : forms need to re-check the visibility attributes                
+    value: function () {
+      var _onchangeViewModel = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7(ids, values) {
+        var refresh,
+            _args7 = arguments;
+        return _regenerator.default.wrap(function _callee7$(_context7) {
+          while (1) {
+            switch (_context7.prev = _context7.next) {
+              case 0:
+                refresh = _args7.length > 2 && _args7[2] !== undefined ? _args7[2] : true;
+                this.model.change(ids, values); // model has changed : forms need to re-check the visibility attributes
 
-      this.onchangeModel();
-    }
+                if (!refresh) {
+                  _context7.next = 5;
+                  break;
+                }
+
+                _context7.next = 5;
+                return this.onchangeModel();
+
+              case 5:
+              case "end":
+                return _context7.stop();
+            }
+          }
+        }, _callee7, this);
+      }));
+
+      function onchangeViewModel(_x, _x2) {
+        return _onchangeViewModel.apply(this, arguments);
+      }
+
+      return onchangeViewModel;
+    }()
     /**
      * Callback for requesting a Layout update: the widgets in the layout need to be refreshed.
      * Requested from Model when a change occured in the Collection (as consequence of domain or params update)
      * If `full`is set to true, then the layout is re-generated
+     * @param full  boolean
      */
 
   }, {
     key: "onchangeModel",
-    value: function onchangeModel() {
-      var full = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
-      console.log('View::onchangeModel', full);
-      this.layoutRefresh(full);
-    }
+    value: function () {
+      var _onchangeModel = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee8() {
+        var full,
+            _args8 = arguments;
+        return _regenerator.default.wrap(function _callee8$(_context8) {
+          while (1) {
+            switch (_context8.prev = _context8.next) {
+              case 0:
+                full = _args8.length > 0 && _args8[0] !== undefined ? _args8[0] : false;
+                console.log('View::onchangeModel', full);
+                _context8.next = 4;
+                return this.layoutRefresh(full);
+
+              case 4:
+              case "end":
+                return _context8.stop();
+            }
+          }
+        }, _callee8, this);
+      }));
+
+      function onchangeModel() {
+        return _onchangeModel.apply(this, arguments);
+      }
+
+      return onchangeModel;
+    }()
     /**
-     * Callback for requesting a Model update
-     * Requested either from view: domain has been updated
+     * Callback for requesting a Model update.
+     * Requested either from view: domain has been updated,
      * or from layout: context has been updated (sort column, sorting order, limit, page, ...)
      */
 
   }, {
     key: "onchangeView",
     value: function () {
-      var _onchangeView = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7() {
-        return _regenerator.default.wrap(function _callee7$(_context7) {
+      var _onchangeView = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee9() {
+        return _regenerator.default.wrap(function _callee9$(_context9) {
           while (1) {
-            switch (_context7.prev = _context7.next) {
+            switch (_context9.prev = _context9.next) {
               case 0:
                 // reset selection
                 this.onchangeSelection([]);
-                _context7.next = 3;
+                _context9.next = 3;
                 return this.model.refresh();
 
               case 3:
               case "end":
-                return _context7.stop();
+                return _context9.stop();
             }
           }
-        }, _callee7, this);
+        }, _callee9, this);
       }));
 
       function onchangeView() {
@@ -2959,12 +3175,106 @@ var View = /*#__PURE__*/function () {
 
       return onchangeView;
     }()
+    /**
+     * Callback for list selection update.
+     * 
+     * @param selection 
+     */
+
   }, {
     key: "onchangeSelection",
     value: function onchangeSelection(selection) {
-      console.log('selection updated', selection);
+      console.log('View::onchangeSelection', selection);
       this.selected_ids = selection;
       this.layoutListRefresh();
+    }
+  }, {
+    key: "actionListInlineUpdate",
+    value: function actionListInlineUpdate(event, selection) {
+      var _this5 = this;
+
+      var _iterator8 = _createForOfIteratorHelper(selection),
+          _step8;
+
+      try {
+        for (_iterator8.s(); !(_step8 = _iterator8.n()).done;) {
+          var selected_id = _step8.value;
+          this.$layoutContainer.find('tr[data-id="' + selected_id + '"]').each(function (i, tr) {
+            var $tr = (0, _jqueryLib.$)(tr);
+            var $td = $tr.children().first();
+            var $checkbox = $td.find('.sb-checkbox').hide();
+
+            var $save_button = _materialLib.UIHelper.createButton('view-save-row', '', 'mini-fab', 'save').appendTo($td).on('click', /*#__PURE__*/function () {
+              var _ref5 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee10(event) {
+                var object_id, objects, object, response, errors, field, error_id, msg;
+                return _regenerator.default.wrap(function _callee10$(_context10) {
+                  while (1) {
+                    switch (_context10.prev = _context10.next) {
+                      case 0:
+                        event.stopPropagation();
+                        object_id = parseInt($tr.attr('data-id'), 10);
+                        _context10.next = 4;
+                        return _this5.model.get([object_id]);
+
+                      case 4:
+                        objects = _context10.sent;
+                        object = objects[0];
+                        _context10.next = 8;
+                        return _equalServices.ApiService.update(_this5.entity, [object_id], object);
+
+                      case 8:
+                        response = _context10.sent;
+
+                        if (!response || !response.hasOwnProperty('errors')) {
+                          $save_button.remove();
+                          $tr.find('.sb-widget-cell').each(function (i, cell) {
+                            (0, _jqueryLib.$)(cell).trigger('_toggle_mode');
+                          });
+                          $checkbox.show(); // restore click handling
+
+                          $tr.attr('data-edit', '0');
+                        } else {
+                          errors = response['errors'];
+
+                          if (errors.hasOwnProperty('INVALID_PARAM')) {
+                            for (field in errors['INVALID_PARAM']) {
+                              // for each field, we handle one error at a time (the first one)
+                              error_id = Object.keys(errors['INVALID_PARAM'][field])[0];
+                              msg = Object.values(errors['INVALID_PARAM'][field])[0]; // translate error message
+
+                              msg = _equalServices.TranslationService.resolve(_this5.translation, 'error', field, msg, error_id);
+
+                              _this5.layout.markFieldAsInvalid(object['id'], field, msg);
+                            }
+                          }
+                        }
+
+                      case 10:
+                      case "end":
+                        return _context10.stop();
+                    }
+                  }
+                }, _callee10);
+              }));
+
+              return function (_x3) {
+                return _ref5.apply(this, arguments);
+              };
+            }()); // mark row as beoing edited (prevent click handling)
+
+
+            $tr.attr('data-edit', '1'); // for each widget of the row, switch to edit mode
+
+            $tr.find('.sb-widget-cell').each(function (i, cell) {
+              (0, _jqueryLib.$)(cell).trigger('_toggle_mode');
+            });
+          });
+        }
+      } catch (err) {
+        _iterator8.e(err);
+      } finally {
+        _iterator8.f();
+      }
     }
   }]);
   return View;
@@ -3121,6 +3431,8 @@ var _WidgetSelect = _interopRequireDefault(__webpack_require__(/*! ./widgets/Wid
 
 var _WidgetOne2Many = _interopRequireDefault(__webpack_require__(/*! ./widgets/WidgetOne2Many */ "./build/widgets/WidgetOne2Many.js"));
 
+var _WidgetMany2Many = _interopRequireDefault(__webpack_require__(/*! ./widgets/WidgetMany2Many */ "./build/widgets/WidgetMany2Many.js"));
+
 var WidgetFactory = /*#__PURE__*/function () {
   function WidgetFactory() {
     (0, _classCallCheck2.default)(this, WidgetFactory);
@@ -3161,8 +3473,10 @@ var WidgetFactory = /*#__PURE__*/function () {
           return new _WidgetDateTime.default(label, value, config);
 
         case 'one2many':
-        case 'many2many':
           return new _WidgetOne2Many.default(label, value, config);
+
+        case 'many2many':
+          return new _WidgetMany2Many.default(label, value, config);
 
         case 'link':
           return new _WidgetLink.default(label, value, config);
@@ -3579,18 +3893,23 @@ var eQ = /*#__PURE__*/function () {
   }, {
     key: "openContext",
     value: function openContext(context) {
-      // stack received context
+      var _this3 = this;
+
+      var prev_context = this.context; // stack received context        
+
       if (this.context) {
         this.stack.push(this.context);
-
-        if (this.context.hasOwnProperty('$container')) {
-          // conainers are hidden and not detached in order to maintain the listeners
-          this.context.$container.hide();
-        }
       }
 
       this.context = context;
-      this.$container.append(this.context.getContainer());
+      this.context.isReady().then(function () {
+        if (prev_context && prev_context.hasOwnProperty('$container')) {
+          // conainers are hidden and not detached in order to maintain the listeners
+          prev_context.$container.hide();
+        }
+
+        _this3.$container.append(_this3.context.getContainer());
+      });
       this.updateHeader();
     }
     /**
@@ -3894,10 +4213,12 @@ var UIHelper = /*#__PURE__*/function () {
 
         new _ripple.MDCRipple($button[0]);
       } else if (['fab', 'mini-fab'].indexOf(type) >= 0) {
-        $button.addClass('mdc-fab mdc-fab--touch').append((0, _jqueryLib.$)('<div/>').addClass('mdc-fab__ripple'));
+        $button.addClass('mdc-fab').append((0, _jqueryLib.$)('<div/>').addClass('mdc-fab__ripple'));
 
         if (type == 'mini-fab') {
           $button.addClass('mdc-fab--mini');
+        } else {
+          $button.addClass('mdc-fab--touch');
         }
 
         $button.append((0, _jqueryLib.$)('<span/>').addClass('material-icons mdc-fab__icon').text(icon));
@@ -3947,12 +4268,6 @@ var UIHelper = /*#__PURE__*/function () {
             <span class="mdc-line-ripple"></span>\
         </label>');
       new _textfield.MDCTextField($elem[0]);
-      return $elem;
-    }
-  }, {
-    key: "createDatePicker",
-    value: function createDatePicker() {
-      var $elem = (0, _jqueryLib.$)('<div />').datepicker();
       return $elem;
     }
   }, {
@@ -4022,10 +4337,10 @@ var UIHelper = /*#__PURE__*/function () {
       var suffix = is_header ? 'header-' : '';
       var $elem = (0, _jqueryLib.$)('\
         <' + elem + ' class="mdc-data-table__' + suffix + 'cell mdc-data-table__' + suffix + 'cell--checkbox"> \
-            <div class="mdc-checkbox mdc-data-table__' + suffix + 'row-checkbox"> \
-            <input type="checkbox" class ="mdc-checkbox__native-control" /> \
-            <div class="mdc-checkbox__background"> \
-                <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24"><path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59" /></svg> \
+            <div class="sb-checkbox mdc-checkbox mdc-data-table__' + suffix + 'row-checkbox"> \
+                <input type="checkbox" class ="mdc-checkbox__native-control" /> \
+                <div class="mdc-checkbox__background"> \
+                    <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24"><path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59" /></svg> \
                 <div class="mdc-checkbox__mixedmark"></div> \
             </div> \
             <div class="mdc-checkbox__ripple"></div> \
@@ -4373,7 +4688,9 @@ var Widget = /*#__PURE__*/function () {
     this.value = value;
     this.label = label;
     this.type = type;
-    this.config = config;
+    this.config = config; // assign default mode
+
+    this.mode = 'view';
     this.init();
   }
 
@@ -4385,9 +4702,7 @@ var Widget = /*#__PURE__*/function () {
       }; // generate a random guid
 
 
-      this.id = S4() + S4() + "-" + S4() + "-" + S4() + "-" + S4() + "-" + S4() + S4() + S4(); // assign default mode
-
-      this.mode = 'view';
+      this.id = S4() + S4() + "-" + S4() + "-" + S4() + "-" + S4() + "-" + S4() + S4() + S4();
     }
   }, {
     key: "getId",
@@ -4469,7 +4784,7 @@ var Widget = /*#__PURE__*/function () {
     key: "attach",
     value: function attach() {
       var $elem = $('<div/>');
-      $elem.attr('id', this.getId());
+      $elem.addClass('sb-widget').attr('id', this.getId());
       return $elem;
     }
   }]);
@@ -4564,7 +4879,8 @@ var WidgetDate = /*#__PURE__*/function (_Widget) {
             // update widget value using jQuery `getDate`
             var $this = (0, _jqueryLib.$)(event.currentTarget);
             var date = $this.datepicker('getDate');
-            $elem.trigger('_updatedWidget', date.toISOString());
+            _this.value = date.toISOString();
+            $elem.trigger('_updatedWidget');
           });
           break;
 
@@ -4575,7 +4891,7 @@ var WidgetDate = /*#__PURE__*/function (_Widget) {
           break;
       }
 
-      $elem.attr('id', this.getId());
+      $elem.addClass('sb-widget').attr('id', this.getId());
       return $elem;
     }
   }]);
@@ -4676,7 +4992,8 @@ var WidgetDateTime = /*#__PURE__*/function (_Widget) {
           }, _jqueryLib.jqlocale[_environment.environment.locale]), {}, {
             onClose: function onClose() {
               var date = $datetimepicker.datepicker('getDate');
-              $elem.trigger('_updatedWidget', date.toISOString()); // give the focus back once the widget will have been refreshed
+              _this.value = date.toISOString();
+              $elem.trigger('_updatedWidget'); // give the focus back once the widget will have been refreshed
 
               setTimeout(function () {
                 (0, _jqueryLib.$)('#' + _this.getId()).find('input').first().trigger('focus');
@@ -4704,7 +5021,7 @@ var WidgetDateTime = /*#__PURE__*/function (_Widget) {
           break;
       }
 
-      $elem.attr('id', this.getId());
+      $elem.addClass('sb-widget').attr('id', this.getId());
       return $elem;
     }
   }]);
@@ -4770,10 +5087,10 @@ exports.default = WidgetLink;
 
 /***/ }),
 
-/***/ "./build/widgets/WidgetOne2Many.js":
-/*!*****************************************!*\
-  !*** ./build/widgets/WidgetOne2Many.js ***!
-  \*****************************************/
+/***/ "./build/widgets/WidgetMany2Many.js":
+/*!******************************************!*\
+  !*** ./build/widgets/WidgetMany2Many.js ***!
+  \******************************************/
 /***/ ((__unused_webpack_module, exports, __webpack_require__) => {
 
 "use strict";
@@ -4794,11 +5111,15 @@ var _classCallCheck2 = _interopRequireDefault(__webpack_require__(/*! @babel/run
 
 var _createClass2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/createClass */ "./node_modules/@babel/runtime/helpers/createClass.js"));
 
+var _assertThisInitialized2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/assertThisInitialized */ "./node_modules/@babel/runtime/helpers/assertThisInitialized.js"));
+
 var _inherits2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/inherits */ "./node_modules/@babel/runtime/helpers/inherits.js"));
 
 var _possibleConstructorReturn2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/possibleConstructorReturn */ "./node_modules/@babel/runtime/helpers/possibleConstructorReturn.js"));
 
 var _getPrototypeOf2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/getPrototypeOf */ "./node_modules/@babel/runtime/helpers/getPrototypeOf.js"));
+
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/defineProperty */ "./node_modules/@babel/runtime/helpers/defineProperty.js"));
 
 var _Widget2 = _interopRequireDefault(__webpack_require__(/*! ./Widget */ "./build/widgets/Widget.js"));
 
@@ -4808,57 +5129,126 @@ var _View = _interopRequireDefault(__webpack_require__(/*! ../View */ "./build/V
 
 var _equalServices = __webpack_require__(/*! ../equal-services */ "./build/equal-services.js");
 
+function _createForOfIteratorHelper(o, allowArrayLike) { var it; if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
 function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
 
-var WidgetOne2Many = /*#__PURE__*/function (_Widget) {
-  (0, _inherits2.default)(WidgetOne2Many, _Widget);
+var WidgetMany2Many = /*#__PURE__*/function (_Widget) {
+  (0, _inherits2.default)(WidgetMany2Many, _Widget);
 
-  var _super = _createSuper(WidgetOne2Many);
+  var _super = _createSuper(WidgetMany2Many);
 
-  function WidgetOne2Many(label, value, config) {
-    (0, _classCallCheck2.default)(this, WidgetOne2Many);
-    return _super.call(this, 'select', label, value, config);
+  function WidgetMany2Many(label, value, config) {
+    var _this;
+
+    (0, _classCallCheck2.default)(this, WidgetMany2Many);
+    _this = _super.call(this, 'select', label, value, config);
+    (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "rel_type", void 0);
+    _this.rel_type = 'many2many';
+    return _this;
   }
 
-  (0, _createClass2.default)(WidgetOne2Many, [{
+  (0, _createClass2.default)(WidgetMany2Many, [{
     key: "render",
     value: function render() {
-      var _this = this;
+      var _this2 = this;
 
       console.log('WidgetOne2Many::render', this.config);
       var $elem;
-      $elem = $('<div />'); // during 'layout' phase, no entity is given
+      $elem = $('<div />'); // make sure view is not instanciated during 'layout' phase (while config is still incomplete)
 
       if (this.config.hasOwnProperty('entity') && this.config.hasOwnProperty('type') && this.config.hasOwnProperty('name')) {
-        var view = new _View.default(this.config.entity, this.config.type, this.config.name, this.config.domain, this.config.mode, this.config.purpose, this.config.lang, {
-          show_actions: false
-        });
+        var view_config = {
+          show_actions: false,
+          // update the actions of the "current selection" button
+          selection_actions: [{
+            title: 'SB_ACTIONS_BUTTON_REMOVE',
+            icon: 'delete',
+            handler: function handler(event, selection) {
+              var ids = _this2.value.map(function (o) {
+                return o.id;
+              });
+
+              var _iterator = _createForOfIteratorHelper(selection),
+                  _step;
+
+              try {
+                for (_iterator.s(); !(_step = _iterator.n()).done;) {
+                  var id = _step.value;
+                  var index = ids.indexOf(id);
+
+                  if (index > -1) {
+                    ids[index] = -ids[index];
+                  }
+                }
+              } catch (err) {
+                _iterator.e(err);
+              } finally {
+                _iterator.f();
+              }
+
+              _this2.value = ids.map(function (id) {
+                return {
+                  id: id
+                };
+              });
+              $elem.trigger('_updatedWidget');
+            }
+          }]
+        };
+        var view = new _View.default(this.config.entity, 'list', this.config.name, this.config.domain, this.mode, 'widget', this.config.lang, view_config);
         var $container = view.getContainer();
 
         if (this.mode == 'edit') {
           $container.find('.sb-view-header-list-actions-set').append(_materialLib.UIHelper.createButton('action-edit', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_ADD'), 'raised').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
+            var purpose;
             return _regenerator.default.wrap(function _callee$(_context) {
               while (1) {
                 switch (_context.prev = _context.next) {
                   case 0:
-                    // request a new Context for selecting an existing object to add to current selection
+                    purpose = _this2.rel_type == 'many2many' ? 'add' : 'select'; // request a new Context for selecting an existing object to add to current selection
+
                     $('#sb-events').trigger('_openContext', {
-                      entity: _this.config.entity,
+                      entity: _this2.config.entity,
                       type: 'list',
                       name: 'default',
                       domain: [],
                       mode: 'view',
-                      purpose: 'select',
+                      purpose: purpose,
                       callback: function callback(data) {
-                        console.log('SELECTED:', data); // selected ids are stored in data.selection
-                        // the relayed data should be the list of selected items to add to the relation
-                        // todo :add to value (array with "+id and -id")                            
+                        if (data && data.selection) {
+                          var ids = _this2.value.map(function (o) {
+                            return o.id;
+                          }); // 1) remove from current selection items (+ or -) that are in returned selection
+
+
+                          for (var i = ids.length - 1; i >= 0; --i) {
+                            var item = Math.abs(ids[i]);
+
+                            if (data.selection.indexOf(item) > -1) {
+                              ids.splice(i, 1);
+                            }
+                          } // 2) append returned selection to current selection
+
+
+                          ids = ids.concat(data.selection);
+                          _this2.value = ids.map(function (id) {
+                            return {
+                              id: id
+                            };
+                          });
+                          $elem.trigger('_updatedWidget');
+                        }
                       }
                     });
 
-                  case 1:
+                  case 2:
                   case "end":
                     return _context.stop();
                 }
@@ -4871,12 +5261,63 @@ var WidgetOne2Many = /*#__PURE__*/function (_Widget) {
         $elem.append($container);
       }
 
-      $elem.attr('id', this.getId());
+      $elem.addClass('sb-widget').attr('id', this.getId());
       return $elem;
     }
   }]);
-  return WidgetOne2Many;
+  return WidgetMany2Many;
 }(_Widget2.default);
+
+exports.default = WidgetMany2Many;
+
+/***/ }),
+
+/***/ "./build/widgets/WidgetOne2Many.js":
+/*!*****************************************!*\
+  !*** ./build/widgets/WidgetOne2Many.js ***!
+  \*****************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+var _interopRequireDefault = __webpack_require__(/*! @babel/runtime/helpers/interopRequireDefault */ "./node_modules/@babel/runtime/helpers/interopRequireDefault.js");
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.default = void 0;
+
+var _classCallCheck2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/classCallCheck */ "./node_modules/@babel/runtime/helpers/classCallCheck.js"));
+
+var _inherits2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/inherits */ "./node_modules/@babel/runtime/helpers/inherits.js"));
+
+var _possibleConstructorReturn2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/possibleConstructorReturn */ "./node_modules/@babel/runtime/helpers/possibleConstructorReturn.js"));
+
+var _getPrototypeOf2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/getPrototypeOf */ "./node_modules/@babel/runtime/helpers/getPrototypeOf.js"));
+
+var _WidgetMany2Many2 = _interopRequireDefault(__webpack_require__(/*! ./WidgetMany2Many */ "./build/widgets/WidgetMany2Many.js"));
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
+
+var WidgetOne2Many = /*#__PURE__*/function (_WidgetMany2Many) {
+  (0, _inherits2.default)(WidgetOne2Many, _WidgetMany2Many);
+
+  var _super = _createSuper(WidgetOne2Many);
+
+  function WidgetOne2Many(label, value, config) {
+    var _this;
+
+    (0, _classCallCheck2.default)(this, WidgetOne2Many);
+    _this = _super.call(this, label, value, config);
+    _this.rel_type = 'one2many';
+    return _this;
+  }
+
+  return WidgetOne2Many;
+}(_WidgetMany2Many2.default);
 
 exports.default = WidgetOne2Many;
 
@@ -4929,6 +5370,8 @@ var WidgetSelect = /*#__PURE__*/function (_Widget) {
   (0, _createClass2.default)(WidgetSelect, [{
     key: "render",
     value: function render() {
+      var _this = this;
+
       console.log('WidgetSelect::render', this.config);
       var $elem;
       var value = this.value ? this.value : '';
@@ -4941,7 +5384,8 @@ var WidgetSelect = /*#__PURE__*/function (_Widget) {
           $elem.find('input').on('change', function (event) {
             console.log('WidgetSelect : received change event');
             var $this = $(event.currentTarget);
-            $elem.trigger('_updatedWidget', $this.val());
+            _this.value = $this.val();
+            $elem.trigger('_updatedWidget');
           });
           break;
 
@@ -4952,7 +5396,7 @@ var WidgetSelect = /*#__PURE__*/function (_Widget) {
           break;
       }
 
-      $elem.attr('id', this.getId());
+      $elem.addClass('sb-widget').attr('id', this.getId());
       return $elem;
     }
   }]);
@@ -5010,6 +5454,8 @@ var WidgetString = /*#__PURE__*/function (_Widget) {
   (0, _createClass2.default)(WidgetString, [{
     key: "render",
     value: function render() {
+      var _this = this;
+
       var $elem;
       var value = this.value ? this.value : '';
 
@@ -5018,9 +5464,9 @@ var WidgetString = /*#__PURE__*/function (_Widget) {
           $elem = _materialLib.UIHelper.createInput('', this.label, value, this.config.helper, '', this.readonly); // setup handler for relaying value update to parent layout
 
           $elem.find('input').on('change', function (event) {
-            console.log('WidgetString : received change event');
             var $this = $(event.currentTarget);
-            $elem.trigger('_updatedWidget', $this.val());
+            _this.value = $this.val();
+            $elem.trigger('_updatedWidget');
           });
           break;
 
@@ -5030,7 +5476,7 @@ var WidgetString = /*#__PURE__*/function (_Widget) {
           break;
       }
 
-      $elem.attr('id', this.getId());
+      $elem.addClass('sb-widget').attr('id', this.getId());
       return $elem;
     }
   }]);

@@ -39,10 +39,13 @@ class UIHelper {
             new MDCRipple($button[0]);
         }
         else if(['fab', 'mini-fab'].indexOf(type) >= 0) {
-            $button.addClass('mdc-fab mdc-fab--touch')
+            $button.addClass('mdc-fab')
             .append($('<div/>').addClass('mdc-fab__ripple'));
             if(type == 'mini-fab') {
-                $button.addClass('mdc-fab--mini')
+                $button.addClass('mdc-fab--mini');
+            }
+            else {
+                $button.addClass('mdc-fab--touch');
             }
             $button.append($('<span/>').addClass('material-icons mdc-fab__icon').text(icon))
             $button.append($('<div/>').addClass('mdc-fab__touch'));
@@ -90,11 +93,6 @@ class UIHelper {
         </label>');
         new MDCTextField($elem[0]);
         return $elem
-    }
-
-    public static createDatePicker() {
-        let $elem = $('<div />').datepicker();
-        return $elem;
     }
 
     public static createCheckbox(id:string, label:string) {
@@ -159,10 +157,10 @@ class UIHelper {
         let suffix = (is_header)?'header-':'';
         let $elem = $('\
         <'+elem+' class="mdc-data-table__'+suffix+'cell mdc-data-table__'+suffix+'cell--checkbox"> \
-            <div class="mdc-checkbox mdc-data-table__'+suffix+'row-checkbox"> \
-            <input type="checkbox" class ="mdc-checkbox__native-control" /> \
-            <div class="mdc-checkbox__background"> \
-                <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24"><path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59" /></svg> \
+            <div class="sb-checkbox mdc-checkbox mdc-data-table__'+suffix+'row-checkbox"> \
+                <input type="checkbox" class ="mdc-checkbox__native-control" /> \
+                <div class="mdc-checkbox__background"> \
+                    <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24"><path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59" /></svg> \
                 <div class="mdc-checkbox__mixedmark"></div> \
             </div> \
             <div class="mdc-checkbox__ripple"></div> \
@@ -173,8 +171,7 @@ class UIHelper {
         return $elem;
     }    
 
-    public static createChip
-    (label: string) {
+    public static createChip(label: string) {
         let $elem = $(' \
         <div class="mdc-chip" role="row"> \
             <div class="mdc-chip__ripple"></div> \
@@ -261,8 +258,7 @@ class UIHelper {
     }
 
     public static createMenu(id:string, label:string='', values:any=[]) {
-        let $elem = $('<div class="mdc-menu mdc-menu-surface"></div>');
-        
+        let $elem = $('<div class="mdc-menu mdc-menu-surface"></div>');        
         return $elem;
     }
 

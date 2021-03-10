@@ -190,16 +190,22 @@ class eQ {
     }
 
     private openContext(context: Context) {
-        // stack received context
+        let prev_context = this.context;
+        // stack received context        
         if(this.context) {
             this.stack.push(this.context);
-            if(this.context.hasOwnProperty('$container')) {
-                // conainers are hidden and not detached in order to maintain the listeners
-                this.context.$container.hide();
-            }
         }
         this.context = context;
-        this.$container.append(this.context.getContainer());
+
+        this.context.isReady().then( () => {
+            if(prev_context && prev_context.hasOwnProperty('$container')) {
+                // conainers are hidden and not detached in order to maintain the listeners
+                prev_context.$container.hide();
+            }
+            this.$container.append(this.context.getContainer());
+        });
+        
+        
         this.updateHeader();
     }
 

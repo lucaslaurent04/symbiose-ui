@@ -273,7 +273,7 @@ export class _ApiService {
         return result;
     }
 
-    public async search(entity:string, domain:[], order:string, sort:string, start:number, limit:number) {
+    public async search(entity:string, domain:any[], order:string, sort:string, start:number, limit:number) {
         var ids = [];
         try {
             let params = {

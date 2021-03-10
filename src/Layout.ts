@@ -47,16 +47,26 @@ export class Layout {
             this.layout();
         }
         catch(err) {
-            console.log('something went wrong ', err);
+            console.log('Something went wrong ', err);
         }        
     }
 
-
-    public markAsInvalid(field: string, message: string) {
-        let widget = this.model_widgets[field];
+    /**
+     * 
+     * @param field 
+     * @param message 
+     */
+    public markFieldAsInvalid(object_id: number, field: string, message: string) {
+        console.log('Layout::markFieldAsInvalid', object_id, field);
+        if(this.view.getType() == 'form') {
+            // by convention, form widgets are strored in first index
+            object_id = 0;
+        }
+        let widget = this.model_widgets[object_id][field];
         let $elem = this.$layout.find('#'+widget.getId())
         $elem.addClass('mdc-text-field--invalid');
         $elem.find('.mdc-text-field-helper-text').addClass('mdc-text-field-helper-text--persistent mdc-text-field-helper-text--validation-msg').text(message).attr('title', message);
+
     }
 
 
@@ -75,13 +85,12 @@ export class Layout {
         let objects = await this.view.getModel().get();
         this.feed(objects);
     }       
-
     
     public getSelected() {
         var selection = <any>[];
         let $tbody = this.$layout.find("tbody");
         $tbody.find("input:checked").each( (i:number, elem:any) => {
-            selection.push($(elem).attr('data-id'));
+            selection.push( parseInt(<string>$(elem).attr('data-id'), 10) );
         });
         return selection;
     }
@@ -89,7 +98,7 @@ export class Layout {
     private layout() {
         console.log('Layout::layout');
                 
-        switch(this.view.type) {
+        switch(this.view.getType()) {
             case 'form':
                 this.layoutForm();
                 break;
@@ -99,10 +108,10 @@ export class Layout {
         }
     }
 
-    private feed(objects: []) {
+    private  feed(objects: []) {
         console.log('Layout::feed');
         
-        switch(this.view.type) {
+        switch(this.view.getType()) {
             case 'form':
                 this.feedForm(objects);
                 break;
@@ -214,13 +223,18 @@ export class Layout {
     
                                     if(item.hasOwnProperty('widget')) {
                                         config = {...config, ...item.widget};
-                                        console.log(item.widget, config);
-                                        type = item.widget.type;
+                                        if(item.widget.hasOwnProperty('type')) {
+                                            type = item.widget.type;
+                                        }
                                     }
 
                                     let widget:Widget = WidgetFactory.getWidget(type, field_title, '', config);
                                     widget.setReadonly(readonly);
-                                    this.model_widgets[field] = widget;
+                                    // store widget in widgets Map, using field name as key
+                                    if(typeof this.model_widgets[0] == 'undefined') {
+                                        this.model_widgets[0] = {};
+                                    }
+                                    this.model_widgets[0][field] = widget;
                                     $cell.append(widget.attach());                
                                 }
                                 else if(item.type == 'label') {
@@ -252,16 +266,17 @@ export class Layout {
         // instanciate header row and the first column which contains the 'select-all' checkbox
         let $hrow = $('<tr/>');
 
-        UIHelper.createTableCellCheckbox(true).appendTo($hrow)
-        .find('input')
-        .on('click', () => setTimeout(() => this.view.onchangeSelection(this.getSelected()) ) );
-
+        if(this.view.getPurpose() != 'widget' || this.view.getMode() == 'edit') {
+            UIHelper.createTableCellCheckbox(true)
+            .appendTo($hrow)
+            .find('input')
+            .on('click', () => setTimeout( () => this.view.onchangeSelection(this.getSelected()) ) );    
+        }
 
         // create other columns, based on the col_model given in the configuration
         let schema = this.view.getViewSchema();
 
-        for(let item of schema.layout.items) {
-            
+        for(let item of schema.layout.items) {            
             let align = (item.hasOwnProperty('align'))?item.align:'left';
             let label = (item.hasOwnProperty('label'))?item.label:item.value.charAt(0).toUpperCase() + item.value.slice(1);
             let sortable = (item.hasOwnProperty('sortable') && item.sortable);
@@ -299,11 +314,9 @@ export class Layout {
 
         $thead.append($hrow);
 
-        this.$layout.append($elem)
-
+        this.$layout.append($elem);
 
         UIHelper.decorateTable($elem);
-
     }
     
 
@@ -321,19 +334,30 @@ export class Layout {
         for (let object of objects) {
 
             let $row = $('<tr/>')
-            .on('click', () => {
-                $('#sb-events').trigger('_openContext', {entity: this.view.getEntity(), type: 'form', domain: ['id', '=', object.id]});
+            .attr('data-id', object.id)
+            .attr('data-edit', '0')
+            .on('click', (event:any) => {
+                let $this = $(event.currentTarget);
+                // discard click when row is being edited
+                if($this.attr('data-edit') == '0') {
+                    $('#sb-events').trigger('_openContext', {entity: this.view.getEntity(), type: 'form', domain: ['id', '=', object.id]});
+                }                
             });
 
-            UIHelper.createTableCellCheckbox().appendTo($row)
-            .find('input')
-            .attr('data-id', object.id)
-            .on('click', (event:any) => {
-                // wait for widget to update and notify about change
-                setTimeout( () => this.view.onchangeSelection(this.getSelected()) );
-                // prevent handling of click on parent `tr` element
-                event.stopPropagation();
-            });
+            if(this.view.getPurpose() != 'widget' || this.view.getMode() == 'edit') {
+                UIHelper.createTableCellCheckbox()
+                .addClass('sb-checkbox-cell')
+                .appendTo($row)
+                .find('input')
+                .attr('data-id', object.id)
+                .on('click', (event:any) => {
+                    // wait for widget to update and notify about change
+                    setTimeout( () => this.view.onchangeSelection(this.getSelected()) );
+                    // prevent handling of click on parent `tr` element
+                    event.stopPropagation();
+                });
+            }
+
             for(let item of schema.layout.items) {
 
                 let field = item.value;
@@ -378,7 +402,36 @@ export class Layout {
 
                 let widget:Widget = WidgetFactory.getWidget(type, '', value);
 
-                let $cell = $('<td/>').append(widget.render());
+                // store widget in widgets Map, using widget id as key (there are several rows for each field)
+                if(typeof this.model_widgets[object.id] == 'undefined') {
+                    this.model_widgets[object.id] = {};
+                }
+                this.model_widgets[object.id][field] = widget;
+
+
+                let $cell = $('<td/>').addClass('sb-widget-cell').append(widget.render())
+                .on( '_toggle_mode', (event:any) => {
+                    console.log('toggleing mode');
+                    let $this = $(event.currentTarget);
+                    let mode = (widget.getMode() == 'edit')?'view':'edit';
+                    widget.setMode( mode );
+                    let $widget = widget.render();
+
+                    if(mode == 'edit') {
+                        $this.addClass('sb-widget-cell--edit');
+                        $widget.on('_updatedWidget', (event:any) => {
+                            let value:any = {};
+                            value[field] = widget.getValue();
+                            // propagate model change, without requesting a layout refresh
+                            this.view.onchangeViewModel([object.id], value, false);
+                        });    
+                    }
+                    else {
+                        $this.removeClass('sb-widget-cell--edit');
+                    }
+                    $this.empty().append($widget);
+                } );
+
                 $row.append($cell);
             }
             $tbody.append($row);
@@ -402,7 +455,7 @@ export class Layout {
         if(objects.length > 0) {
             let object:any = objects[0];
             for(let field of fields) {
-                let widget = this.model_widgets[field];
+                let widget = this.model_widgets[0][field];
                 let $parent = this.$layout.find('#'+widget.getId()).parent().empty();
 
                 let model_def = model_schema[field];
@@ -410,33 +463,35 @@ export class Layout {
         
                 let value = object[field];
 
+                // for relational fields, we need to check if the Model has been fetched al
                 if(['one2many', 'many2one', 'many2many'].indexOf(type) > -1) {
                     let config = widget.getConfig();
                     // by convention, `name` subfield is always loaded for relational fields
                     if(type == 'many2one') {
+// todo : need to maintain field structure with dedicated widget
                         value = object[field]['name'];
                     }
+/*
                     else {
                         value = object[field].map( (o:any) => o.name).join(', ');
                         value = (value.length > 35)? value.substring(0, 35) + "..." : value;
                     }
+*/
 
                     if(type == 'many2many') {
-                        console.log(model_def);
+                        // for m2m fields, the value of the field is an array of objects `{id:, name:}`
+                        // by convention, when a relation is to be removed, the id field is set to its negative value
+
+                        // select ids to load by filtering targeted objects
+                        let target_ids = object[field].map( (o:any) => o.id ).filter( (id:number) => id > 0 );
+                        // defined config for Widget's view with a custom domain according to object values
                         config = {...config, 
                             entity: model_def['foreign_object'],
                             type: 'list',
-                            name: 'default',
-                            domain: [
-                                model_def['foreign_field'],
-                                'contains',
-                                object['id']
-                            ],
-                            mode: 'view',
-                            purpose: 'view',
+                            name: (config.hasOwnProperty('view'))?config.view:'default',
+                            domain: ['id','in',target_ids],
                             lang: this.view.getLang()
                         };
-
                     }
 
                     widget.setConfig(config);
@@ -446,26 +501,34 @@ export class Layout {
 
                 let $widget = widget.render();
 
-                $widget.on('_updatedWidget', (event:any, new_value: any) => {
-                    console.log('Layout : received widget change event for field '+field, new_value);
-                    object[field] = new_value;
-// todo : use updated fields only (not full object)                    
-                    this.view.onchangeViewModel([object.id], object);
+                /*
+                    Handle Widget update
+                */
+                $widget.on('_updatedWidget', (event:any) => {
+                    console.log('widget _updatedWidget');
+                    // update object with new value
+                    let value:any = {};
+                    value[field] = widget.getValue();
+                    this.view.onchangeViewModel([object.id], value);
                 });
-                console.log('config', widget.getConfig());
+
+
                 let config = widget.getConfig();
                 
                 // handle visibility tests (domain)           
                 if(config.hasOwnProperty('visible')) {
                     let domain = new Domain(config.visible);
                     if( domain.evaluate(object) ) {
+                        // append rendered widget
                         $parent.append($widget);    
                     }
                     else {
+                        // append an empty widget container (to allow further retrieval)
                         $parent.append(widget.attach());
                     }                    
                 }
                 else {
+                    // append rendered widget
                     $parent.append($widget);
                 }
                 

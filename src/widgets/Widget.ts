@@ -18,6 +18,8 @@ export default class Widget {
         this.label = label;
         this.type = type;
         this.config = config;
+        // assign default mode
+        this.mode = 'view';
 
         this.init();
     }
@@ -26,8 +28,6 @@ export default class Widget {
         var S4 = () => (((1+Math.random())*0x10000)|0).toString(16).substring(1);
         // generate a random guid
         this.id = (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
-        // assign default mode
-        this.mode = 'view';
     }
 
     public getId() {
@@ -95,7 +95,7 @@ export default class Widget {
 
     public attach(): JQuery {
         let $elem = $('<div/>');
-        $elem.attr('id', this.getId());
+        $elem.addClass('sb-widget').attr('id', this.getId());
         return $elem;
     }
     

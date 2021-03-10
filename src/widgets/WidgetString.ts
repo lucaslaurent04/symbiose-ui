@@ -15,9 +15,9 @@ export default class WidgetString extends Widget {
                 $elem = UIHelper.createInput('', this.label, value, this.config.helper, '', this.readonly);
                 // setup handler for relaying value update to parent layout
                 $elem.find('input').on('change', (event) => {
-                    console.log('WidgetString : received change event');
                     let $this = $(event.currentTarget);
-                    $elem.trigger('_updatedWidget', $this.val());
+                    this.value = $this.val();
+                    $elem.trigger('_updatedWidget');
                 });
                 break;
             case 'view':
@@ -25,7 +25,7 @@ export default class WidgetString extends Widget {
                 $elem = UIHelper.createInputView('', this.label, value);                
                 break;
         }
-        $elem.attr('id', this.getId());
+        $elem.addClass('sb-widget').attr('id', this.getId());
 
 
         return $elem;

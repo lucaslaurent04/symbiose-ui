@@ -43,7 +43,11 @@ $(document).ready( function() {
 :root {
     /* colored buttons */
     --mdc-theme-primary: #3f51b5;
-    --mdc-theme-primary-hover: #4f6fc5;
+    --mdc-theme-primary-hover: #4f61c5;
+
+    --mdc-theme-primary-selected: #f5f5ff;
+    --mdc-theme-primary-outline: #b1b1dc;
+
     /* checkbox background */
     --mdc-theme-secondary: #3f51b5;
     /* menus */
@@ -127,6 +131,7 @@ body, html {
 .mdc-data-table {
     height: 100%;
 }
+
 
 .mdc-data-table__table-container::-webkit-scrollbar {
     width: 4px;
@@ -357,7 +362,51 @@ body, html {
     opacity: 0;
 }
 
+
+.sb-widget {
+    position: relative;
+}
+
+.sb-checkbox {
+    position: relative;
+}
+
 /* Material Components customizations */
+
+/* adapt inputs for inline editing */
+.sb-widget-cell .mdc-text-field {
+  height: 100%;
+}
+
+.sb-widget-cell.sb-widget-cell--edit .mdc-text-field {
+    outline: solid 1px var(--mdc-theme-primary-outline);
+}
+
+.sb-widget-cell .mdc-text-field-helper-line {
+  display: none;
+}
+
+.sb-widget-cell .mdc-text-field--filled::before {
+  display: none;
+}
+
+.sb-widget-cell .mdc-text-field--invalid .mdc-text-field__input {
+    color: var(--mdc-theme-error, #b00020);
+}
+
+/* make mini-fab flat (mini save buttons) */ 
+.sb-checkbox-cell .mdc-fab--mini {
+    box-shadow: none !important;
+    margin: 2px 0;
+}
+
+
+.mdc-menu {
+    width: auto !important;
+    min-width: var(--mdc-menu-min-width, 200px) !important;
+    max-width: calc(100vw - 32px) !important;
+}
+
 .mdc-text-field:not(.mdc-text-field--disabled) .mdc-text-field__icon {
     color: rgba(0,0,0,.54);
 }
@@ -388,7 +437,9 @@ body, html {
 .mdc-data-table__header-cell--checkbox {
     width: 44px;
 }
-
+.mdc-data-table__row--selected {
+    background-color: var(--mdc-theme-primary-selected) !important;
+}
 .mdc-list-item .mdc-checkbox {
     margin-left: -11px;
 }
@@ -423,6 +474,7 @@ body, html {
     /* color: rgba(0, 0, 0, 0.8) !important;*/
 }
 
+
 .mdc-text-field-helper-line {
     max-width: 100%;
 }
@@ -443,11 +495,11 @@ body, html {
 }
 
 .mdc-text-field--focused:not(.mdc-text-field--disabled) .mdc-floating-label {
-    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0,87)) !important;
+    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;
 }
 
 .mdc-select--focused:not(.mdc-text-field--disabled) .mdc-floating-label {
-    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0,87)) !important;
+    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;
 }
 
 .mdc-tab {
@@ -463,11 +515,14 @@ body, html {
     user-select: none;
 }
 
+
+
 /* jqueryui datepicker material styling */
 
 
 .ui-datepicker {
-  font-family: "Roboto";
+    z-index: 3 !important;
+    font-family: "Roboto";
 }
 
 

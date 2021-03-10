@@ -19,7 +19,8 @@ export default class WidgetSelect extends Widget {
                 $elem.find('input').on('change', (event) => {
                     console.log('WidgetSelect : received change event');
                     let $this = $(event.currentTarget);
-                    $elem.trigger('_updatedWidget', $this.val());
+                    this.value = $this.val();
+                    $elem.trigger('_updatedWidget');
                 });
                 break;
             case 'view':
@@ -28,7 +29,7 @@ export default class WidgetSelect extends Widget {
                 $elem = UIHelper.createInputView('', this.label, value);                
                 break;
         }
-        $elem.attr('id', this.getId());
+        $elem.addClass('sb-widget').attr('id', this.getId());
 
 
         return $elem;

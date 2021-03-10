@@ -7,6 +7,7 @@ import WidgetText from "./widgets/WidgetText";
 import WidgetLink from "./widgets/WidgetLink";
 import WidgetSelect from "./widgets/WidgetSelect";
 import WidgetOne2Many  from "./widgets/WidgetOne2Many";
+import WidgetMany2Many  from "./widgets/WidgetMany2Many";
 
 class WidgetFactory {
 
@@ -37,15 +38,16 @@ config: {
  * @param type 
  * @param value 
  */
-    public static getWidget(type: string, label: string, value: any = null, config:any = {}):Widget {
+    public static getWidget(type: string, label: string, value: any = null, config:any = {}): Widget {
         switch(type) {
             case 'date':
                 return new WidgetDate(label, value, config);
             case 'datetime':
                 return new WidgetDateTime(label, value, config);    
             case 'one2many':
+                return new WidgetOne2Many(label, value, config);                
             case 'many2many':
-                return new WidgetOne2Many(label, value, config);    
+                return new WidgetMany2Many(label, value, config);
             case 'link':
                 return new WidgetLink(label, value, config);
             case 'text':

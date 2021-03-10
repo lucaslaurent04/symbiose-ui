@@ -58,6 +58,14 @@ FORM
         
     }
 
+    /**
+     * 
+     * @returns Promise A promise that resolves when the View will be fully rendered
+     */
+    public isReady() {
+        return this.view.isReady();
+    }
+
     public hasChanged() {
         return this.view.hasChanged();
     }

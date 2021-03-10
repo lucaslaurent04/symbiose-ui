@@ -37,7 +37,8 @@ export default class WidgetDate extends Widget {
                     // update widget value using jQuery `getDate`
                     let $this = $(event.currentTarget);
                     let date = $this.datepicker('getDate');
-                    $elem.trigger('_updatedWidget', date.toISOString());
+                    this.value = date.toISOString();
+                    $elem.trigger('_updatedWidget');
                 });
                 break;
             case 'view':
@@ -46,7 +47,7 @@ export default class WidgetDate extends Widget {
                 $elem = UIHelper.createInputView('', this.label, value);
                 break;
         }
-        $elem.attr('id', this.getId());
+        $elem.addClass('sb-widget').attr('id', this.getId());
 
         return $elem;
     }
