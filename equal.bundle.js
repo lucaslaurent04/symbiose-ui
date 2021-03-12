@@ -1506,10 +1506,9 @@ var Layout = /*#__PURE__*/function () {
               }
 
               _this3.model_widgets[object.id][field] = widget;
-              var $cell = (0, _jqueryLib.$)('<td/>').addClass('sb-widget-cell').append(widget.render()).on('_toggle_mode', function (event) {
+              var $cell = (0, _jqueryLib.$)('<td/>').addClass('sb-widget-cell').append(widget.render()).on('_toggle_mode', function (event, mode) {
                 console.log('toggleing mode');
                 var $this = (0, _jqueryLib.$)(event.currentTarget);
-                var mode = widget.getMode() == 'edit' ? 'view' : 'edit';
                 widget.setMode(mode);
                 var $widget = widget.render();
 
@@ -3200,74 +3199,77 @@ var View = /*#__PURE__*/function () {
         for (_iterator8.s(); !(_step8 = _iterator8.n()).done;) {
           var selected_id = _step8.value;
           this.$layoutContainer.find('tr[data-id="' + selected_id + '"]').each(function (i, tr) {
-            var $tr = (0, _jqueryLib.$)(tr);
-            var $td = $tr.children().first();
-            var $checkbox = $td.find('.sb-checkbox').hide();
+            var $tr = (0, _jqueryLib.$)(tr); // not already in edit mode
 
-            var $save_button = _materialLib.UIHelper.createButton('view-save-row', '', 'mini-fab', 'save').appendTo($td).on('click', /*#__PURE__*/function () {
-              var _ref5 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee10(event) {
-                var object_id, objects, object, response, errors, field, error_id, msg;
-                return _regenerator.default.wrap(function _callee10$(_context10) {
-                  while (1) {
-                    switch (_context10.prev = _context10.next) {
-                      case 0:
-                        event.stopPropagation();
-                        object_id = parseInt($tr.attr('data-id'), 10);
-                        _context10.next = 4;
-                        return _this5.model.get([object_id]);
+            if ($tr.attr('data-edit') != '1') {
+              var $td = $tr.children().first();
+              var $checkbox = $td.find('.sb-checkbox').hide();
 
-                      case 4:
-                        objects = _context10.sent;
-                        object = objects[0];
-                        _context10.next = 8;
-                        return _equalServices.ApiService.update(_this5.entity, [object_id], object);
+              var $save_button = _materialLib.UIHelper.createButton('view-save-row', '', 'mini-fab', 'save').appendTo($td).on('click', /*#__PURE__*/function () {
+                var _ref5 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee10(event) {
+                  var object_id, objects, object, response, errors, field, error_id, msg;
+                  return _regenerator.default.wrap(function _callee10$(_context10) {
+                    while (1) {
+                      switch (_context10.prev = _context10.next) {
+                        case 0:
+                          event.stopPropagation();
+                          object_id = parseInt($tr.attr('data-id'), 10);
+                          _context10.next = 4;
+                          return _this5.model.get([object_id]);
 
-                      case 8:
-                        response = _context10.sent;
+                        case 4:
+                          objects = _context10.sent;
+                          object = objects[0];
+                          _context10.next = 8;
+                          return _equalServices.ApiService.update(_this5.entity, [object_id], object);
 
-                        if (!response || !response.hasOwnProperty('errors')) {
-                          $save_button.remove();
-                          $tr.find('.sb-widget-cell').each(function (i, cell) {
-                            (0, _jqueryLib.$)(cell).trigger('_toggle_mode');
-                          });
-                          $checkbox.show(); // restore click handling
+                        case 8:
+                          response = _context10.sent;
 
-                          $tr.attr('data-edit', '0');
-                        } else {
-                          errors = response['errors'];
+                          if (!response || !response.hasOwnProperty('errors')) {
+                            $save_button.remove();
+                            $tr.find('.sb-widget-cell').each(function (i, cell) {
+                              (0, _jqueryLib.$)(cell).trigger('_toggle_mode', 'view');
+                            });
+                            $checkbox.show(); // restore click handling
 
-                          if (errors.hasOwnProperty('INVALID_PARAM')) {
-                            for (field in errors['INVALID_PARAM']) {
-                              // for each field, we handle one error at a time (the first one)
-                              error_id = Object.keys(errors['INVALID_PARAM'][field])[0];
-                              msg = Object.values(errors['INVALID_PARAM'][field])[0]; // translate error message
+                            $tr.attr('data-edit', '0');
+                          } else {
+                            errors = response['errors'];
 
-                              msg = _equalServices.TranslationService.resolve(_this5.translation, 'error', field, msg, error_id);
+                            if (errors.hasOwnProperty('INVALID_PARAM')) {
+                              for (field in errors['INVALID_PARAM']) {
+                                // for each field, we handle one error at a time (the first one)
+                                error_id = Object.keys(errors['INVALID_PARAM'][field])[0];
+                                msg = Object.values(errors['INVALID_PARAM'][field])[0]; // translate error message
 
-                              _this5.layout.markFieldAsInvalid(object['id'], field, msg);
+                                msg = _equalServices.TranslationService.resolve(_this5.translation, 'error', field, msg, error_id);
+
+                                _this5.layout.markFieldAsInvalid(object['id'], field, msg);
+                              }
                             }
                           }
-                        }
 
-                      case 10:
-                      case "end":
-                        return _context10.stop();
+                        case 10:
+                        case "end":
+                          return _context10.stop();
+                      }
                     }
-                  }
-                }, _callee10);
-              }));
+                  }, _callee10);
+                }));
 
-              return function (_x3) {
-                return _ref5.apply(this, arguments);
-              };
-            }()); // mark row as beoing edited (prevent click handling)
+                return function (_x3) {
+                  return _ref5.apply(this, arguments);
+                };
+              }()); // mark row as being edited (prevent click handling)
 
 
-            $tr.attr('data-edit', '1'); // for each widget of the row, switch to edit mode
+              $tr.attr('data-edit', '1'); // for each widget of the row, switch to edit mode
 
-            $tr.find('.sb-widget-cell').each(function (i, cell) {
-              (0, _jqueryLib.$)(cell).trigger('_toggle_mode');
-            });
+              $tr.find('.sb-widget-cell').each(function (i, cell) {
+                (0, _jqueryLib.$)(cell).trigger('_toggle_mode', 'edit');
+              });
+            }
           });
         }
       } catch (err) {
@@ -4363,6 +4365,27 @@ var UIHelper = /*#__PURE__*/function () {
             <span role="gridcell"> \
                 <i class="material-icons mdc-chip__icon mdc-chip__icon--trailing" tabindex="-1" role="button">cancel</i> \
             </span> \
+        </div>');
+      return $elem;
+    }
+  }, {
+    key: "createSnackbar",
+    value: function createSnackbar(label) {
+      var action = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
+      var link = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : '';
+      var $elem = (0, _jqueryLib.$)(' \
+        <div class="mdc-snackbar"> \
+            <div class="mdc-snackbar__surface" role="status" aria-relevant="additions"> \
+                <div class="mdc-snackbar__label" aria-atomic="false"> \
+                ' + label + ' \
+                </div> \
+                <div class="mdc-snackbar__actions" aria-atomic="true"> \
+                    <button type="button" class="mdc-button mdc-snackbar__action"> \
+                        <div class="mdc-button__ripple"></div> \
+                        <span class="mdc-button__label">' + action + '</span> \
+                    </button> \
+                </div> \
+            </div> \
         </div>');
       return $elem;
     }

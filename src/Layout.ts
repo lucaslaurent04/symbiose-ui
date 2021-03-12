@@ -410,10 +410,9 @@ export class Layout {
 
 
                 let $cell = $('<td/>').addClass('sb-widget-cell').append(widget.render())
-                .on( '_toggle_mode', (event:any) => {
+                .on( '_toggle_mode', (event:any, mode: string) => {
                     console.log('toggleing mode');
                     let $this = $(event.currentTarget);
-                    let mode = (widget.getMode() == 'edit')?'view':'edit';
                     widget.setMode( mode );
                     let $widget = widget.render();
 

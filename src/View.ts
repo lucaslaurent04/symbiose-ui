@@ -751,50 +751,54 @@ export class View {
 
     private actionListInlineUpdate(event:any, selection: any) {
         for(let selected_id of selection ) {
+
             this.$layoutContainer.find('tr[data-id="'+selected_id+'"]').each( (i: number, tr: any) => {
                 let $tr = $(tr);
-                let $td = $tr.children().first();
-                let $checkbox = $td.find('.sb-checkbox').hide();
-                let $save_button = UIHelper.createButton('view-save-row', '', 'mini-fab', 'save')
-                .appendTo($td)
-                .on('click', async (event:any) => {
-                    event.stopPropagation();
-
-                    let object_id = parseInt(<string>$tr.attr('data-id'), 10);
-                    let objects = await this.model.get([object_id]);
-                    let object = objects[0];
-
-                    const response = await ApiService.update(this.entity, [object_id], object);
-                    if(!response || !response.hasOwnProperty('errors')) {
-                        $save_button.remove();
-                        $tr.find('.sb-widget-cell').each( (i: number, cell: any) => {
-                            $(cell).trigger('_toggle_mode');
-                        });
-                        $checkbox.show();
-                        // restore click handling
-                        $tr.attr('data-edit', '0');
-                    }
-                    else {
-                        let errors = response['errors'];
-                        if(errors.hasOwnProperty('INVALID_PARAM')) {
-                            for(let field in errors['INVALID_PARAM']) {
-                                // for each field, we handle one error at a time (the first one)
-                                let error_id:string = <string>(Object.keys(errors['INVALID_PARAM'][field]))[0];
-                                let msg:string = <string>(Object.values(errors['INVALID_PARAM'][field]))[0];
-                                // translate error message
-                                msg = TranslationService.resolve(this.translation, 'error', field, msg, error_id);
-                                this.layout.markFieldAsInvalid(object['id'], field, msg);
+                // not already in edit mode
+                if($tr.attr('data-edit') != '1') {
+                    let $td = $tr.children().first();
+                    let $checkbox = $td.find('.sb-checkbox').hide();
+                    let $save_button = UIHelper.createButton('view-save-row', '', 'mini-fab', 'save')
+                    .appendTo($td)
+                    .on('click', async (event:any) => {
+                        event.stopPropagation();
+    
+                        let object_id = parseInt(<string>$tr.attr('data-id'), 10);
+                        let objects = await this.model.get([object_id]);
+                        let object = objects[0];
+    
+                        const response = await ApiService.update(this.entity, [object_id], object);
+                        if(!response || !response.hasOwnProperty('errors')) {
+                            $save_button.remove();
+                            $tr.find('.sb-widget-cell').each( (i: number, cell: any) => {
+                                $(cell).trigger('_toggle_mode', 'view');
+                            });
+                            $checkbox.show();
+                            // restore click handling
+                            $tr.attr('data-edit', '0');
+                        }
+                        else {
+                            let errors = response['errors'];
+                            if(errors.hasOwnProperty('INVALID_PARAM')) {
+                                for(let field in errors['INVALID_PARAM']) {
+                                    // for each field, we handle one error at a time (the first one)
+                                    let error_id:string = <string>(Object.keys(errors['INVALID_PARAM'][field]))[0];
+                                    let msg:string = <string>(Object.values(errors['INVALID_PARAM'][field]))[0];
+                                    // translate error message
+                                    msg = TranslationService.resolve(this.translation, 'error', field, msg, error_id);
+                                    this.layout.markFieldAsInvalid(object['id'], field, msg);
+                                }
                             }
                         }
-                    }
-
-                });
-                // mark row as beoing edited (prevent click handling)
-                $tr.attr('data-edit', '1');
-                // for each widget of the row, switch to edit mode
-                $tr.find('.sb-widget-cell').each( (i: number, cell: any) => {
-                    $(cell).trigger('_toggle_mode');
-                });
+    
+                    });
+                    // mark row as being edited (prevent click handling)
+                    $tr.attr('data-edit', '1');
+                    // for each widget of the row, switch to edit mode
+                    $tr.find('.sb-widget-cell').each( (i: number, cell: any) => {
+                        $(cell).trigger('_toggle_mode', 'edit');
+                    });
+                }                
             });
         }
     }
