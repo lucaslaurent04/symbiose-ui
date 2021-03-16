@@ -1,6 +1,7 @@
 import { $ } from "./jquery-lib";
 import { Context } from "./equal-lib";
 import { environment } from "./environment";
+import { UIHelper } from './material-lib';
 import { ApiService, TranslationService } from "./equal-services";
 import moment from 'moment/moment.js';
 
@@ -144,7 +145,7 @@ class eQ {
     }
 
     private async updateHeader() {
-        let $elem = $('<h3 />');
+        let $elem = $('<h3 />').css({display: 'flex'});
 
         this.$headerContainer.empty().append($elem);
 
@@ -153,38 +154,44 @@ class eQ {
             if(context.hasOwnProperty('$container')) {
 
                 $('<a />').text(await this.getPurposeString(context)).appendTo($elem)
-                .on('click', () => {
-                    
-                    // 2) close all contexts after the one clicked
-                    console.log('clicked', this.stack.length, this.stack)
+                .on('click', () => {                    
+                    // close all contexts after the one clicked
                     for(let i = this.stack.length-1; i > 0; --i) {
-                        // unstack contexts silently (except for the last one), and ask for validation at each step
-                        if(this.stack[i] == context) {
-                            let validation = true;
-                            if(this.context.hasChanged()) {
-                                validation = confirm(TranslationService.instant('SB_ACTIONS_MESSAGE_ABANDON_CHANGE'));
-                            }
+                        // unstack contexts silently (except for the targeted one), and ask for validation at each step
+                        if(this.context.hasChanged()) {
+                            let validation = confirm(TranslationService.instant('SB_ACTIONS_MESSAGE_ABANDON_CHANGE'));
                             if(!validation) return;        
                             this.closeContext();
-                            break;
                         }
                         else {
-                            let validation = true;
-                            if(this.context.hasChanged()) {
-                                validation = confirm(TranslationService.instant('SB_ACTIONS_MESSAGE_ABANDON_CHANGE'));
+                            if(this.stack[i] == context) {
+                                this.closeContext();
                             }
-                            if(!validation) return;        
-                            this.closeContext(true);
-                        }                        
+                            else {
+                                this.closeContext(true);
+                            }
+                        }
                     }
                 });
 
-                $('<span> › </span>').appendTo($elem);
+                $('<span> › </span>').css({'margin': '0 10px'}).appendTo($elem);
             }
         }
         // + the active context
         if(this.context.hasOwnProperty('$container')) {
-            $('<span />').text(await this.getPurposeString(this.context)).appendTo($elem)
+            $('<span />').text(await this.getPurposeString(this.context)).appendTo($elem);
+            if(this.stack.length > 1) {
+                UIHelper.createButton('context-close', '', 'mini-fab', 'close').css({'transform': 'scale(0.5)', 'margin-top': '3px', 'background': 'grey'}).appendTo($elem)
+                .on('click', () => {                    
+                    let validation = true;
+                    if(this.context.hasChanged()) {
+                        validation = confirm(TranslationService.instant('SB_ACTIONS_MESSAGE_ABANDON_CHANGE'));
+                    }
+                    if(!validation) return;
+                    this.closeContext();
+                });                
+            }
+            
         }
         
     }

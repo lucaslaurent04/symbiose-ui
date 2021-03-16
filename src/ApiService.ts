@@ -22,8 +22,7 @@ export class _ApiService {
     private last_count: number; 
 
 
-    constructor() {        
-
+    constructor() {
         $.ajaxSetup({
             cache:false,
             beforeSend: (xhr) => {
@@ -219,7 +218,15 @@ export class _ApiService {
         return result;
     }
 
-    public async update(entity:string, ids:Array<number>, fields:Array<any>) {
+    /**
+     * 
+     * In practice, only one object is updated at a time (through form or list inline editing)
+     * 
+     * @param entity 
+     * @param ids 
+     * @param fields 
+     */
+    public async update(entity:string, ids:Array<number>, fields:Array<any>, force: boolean=false) {
         console.log('ApiService::update', entity, ids, fields);
         let result: any;
         try {
@@ -227,7 +234,8 @@ export class _ApiService {
                 entity: entity,
                 ids: ids,
                 fields: fields,
-                lang: environment.lang
+                lang: environment.lang,
+                force: force
             };
             const response = await $.post({
                 url: environment.backend_url+'/?do=model_update',

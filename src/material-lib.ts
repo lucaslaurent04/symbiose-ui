@@ -6,6 +6,8 @@ import {MDCDataTable} from '@material/data-table';
 import {MDCSelect} from '@material/select';
 import {MDCMenu} from '@material/menu';
 import {MDCTabBar} from '@material/tab-bar';
+import {MDCSnackbar} from '@material/snackbar';
+import {MDCSwitch} from '@material/switch';
 
 import { $ } from "./jquery-lib";
 
@@ -61,6 +63,21 @@ class UIHelper {
 
     public static createIcon(icon: string) {
         let $elem = $('<span class="material-icons">'+icon+'</span>');
+        return $elem;
+    }
+
+    public static createSwitch(id:string, label:string, value:boolean, helper:string = '', icon: string = '', disabled: boolean = false) {
+        let $elem = $('\
+        <div class="mdc-switch"> \
+            <div class="mdc-switch__track"></div> \
+            <div class="mdc-switch__thumb-underlay"> \
+                <div class="mdc-switch__thumb"></div> \
+                <input type="checkbox" class="mdc-switch__native-control" role="switch" '+ ((value)?'checked':'') +'> \
+            </div> \
+        </div> \
+        <label for="basic-switch">'+label+'</label> \
+        ');
+        new MDCSwitch($elem[0]);
         return $elem;
     }
 
@@ -187,21 +204,30 @@ class UIHelper {
         return $elem;        
     }
 
-    public static createSnackbar(label: string, action: string = '', link: string = '') {
-        let $elem = $(' \
+    public static createSnackbar(label: string, action: string = '', link: string = '', timeout: number = 4000) {
+        let elem = ' \
         <div class="mdc-snackbar"> \
             <div class="mdc-snackbar__surface" role="status" aria-relevant="additions"> \
                 <div class="mdc-snackbar__label" aria-atomic="false"> \
                 '+label+' \
                 </div> \
-                <div class="mdc-snackbar__actions" aria-atomic="true"> \
+                <div class="mdc-snackbar__actions" aria-atomic="true">';
+        if(action.length) {
+            elem += '\
                     <button type="button" class="mdc-button mdc-snackbar__action"> \
                         <div class="mdc-button__ripple"></div> \
                         <span class="mdc-button__label">'+action+'</span> \
-                    </button> \
+                    </button>';
+        }
+        elem += '\
+                    <button class="mdc-icon-button mdc-snackbar__dismiss material-icons" title="Dismiss">close</button> \
                 </div> \
             </div> \
-        </div>');
+        </div>';
+        let $elem = $(elem);
+        let snackbar = new MDCSnackbar($elem[0]);
+        snackbar.timeoutMs = timeout;
+        snackbar.open();
         return $elem;
     }
 
@@ -266,7 +292,7 @@ class UIHelper {
             $elem.find('input').val(select.value).trigger('change');
         });
 
-      return $elem;
+        return $elem;
     }
 
     public static createList(id:string, label:string='', values:any=[]) {

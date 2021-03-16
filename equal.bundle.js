@@ -399,24 +399,39 @@ var _ApiService = /*#__PURE__*/function () {
 
       return read;
     }()
+    /**
+     * 
+     * In practice, only one object is updated at a time (through form or list inline editing)
+     * 
+     * @param entity 
+     * @param ids 
+     * @param fields 
+     */
+
   }, {
     key: "update",
     value: function () {
       var _update = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6(entity, ids, fields) {
-        var result, params, response;
+        var force,
+            result,
+            params,
+            response,
+            _args6 = arguments;
         return _regenerator.default.wrap(function _callee6$(_context6) {
           while (1) {
             switch (_context6.prev = _context6.next) {
               case 0:
+                force = _args6.length > 3 && _args6[3] !== undefined ? _args6[3] : false;
                 console.log('ApiService::update', entity, ids, fields);
-                _context6.prev = 1;
+                _context6.prev = 2;
                 params = {
                   entity: entity,
                   ids: ids,
                   fields: fields,
-                  lang: _environment.environment.lang
+                  lang: _environment.environment.lang,
+                  force: force
                 };
-                _context6.next = 5;
+                _context6.next = 6;
                 return _jqueryLib.$.post({
                   url: _environment.environment.backend_url + '/?do=model_update',
                   dataType: 'json',
@@ -424,26 +439,26 @@ var _ApiService = /*#__PURE__*/function () {
                   contentType: 'application/x-www-form-urlencoded; charset=utf-8'
                 });
 
-              case 5:
+              case 6:
                 response = _context6.sent;
                 result = response;
-                _context6.next = 12;
+                _context6.next = 13;
                 break;
 
-              case 9:
-                _context6.prev = 9;
-                _context6.t0 = _context6["catch"](1);
+              case 10:
+                _context6.prev = 10;
+                _context6.t0 = _context6["catch"](2);
                 result = _context6.t0.responseJSON;
 
-              case 12:
+              case 13:
                 return _context6.abrupt("return", result);
 
-              case 13:
+              case 14:
               case "end":
                 return _context6.stop();
             }
           }
-        }, _callee6, null, [[1, 9]]);
+        }, _callee6, null, [[2, 10]]);
       }));
 
       function update(_x10, _x11, _x12) {
@@ -1190,6 +1205,42 @@ var Layout = /*#__PURE__*/function () {
       }
     }
     /**
+     * Generate a widget config based on a layout item (from View schema)
+     * @param field_name 
+     */
+
+  }, {
+    key: "getWidgetConfig",
+    value: function getWidgetConfig(item) {
+      console.log('Layout::getWidgetConfig', item);
+      var config = {};
+      var field = item.value;
+      var translation = this.view.getTranslation();
+      var model_fields = this.view.getModelFields();
+      var def = model_fields[field];
+      var label = item.hasOwnProperty('label') ? item.label : field;
+      var helper = item.hasOwnProperty('help') ? item.help : '';
+      config.type = def.type;
+      config.title = _equalServices.TranslationService.resolve(translation, 'model', field, label, 'label');
+      config.helper = _equalServices.TranslationService.resolve(translation, 'model', field, helper, 'help');
+      config.readonly = item.hasOwnProperty('readonly') ? item.readonly : false;
+      config.align = item.hasOwnProperty('align') ? item.align : 'left';
+      config.sortable = item.hasOwnProperty('sortable') && item.sortable;
+      config.visible = true;
+
+      if (item.hasOwnProperty('visible')) {
+        // evaluate visible attr (either a bool or a domain)
+        config.visible = eval(item.visible);
+      }
+
+      if (item.hasOwnProperty('widget')) {
+        // overload config with widget config
+        config = _objectSpread(_objectSpread({}, config), item.widget);
+      }
+
+      return config;
+    }
+    /**
      * 
      * This method also stores the list of instanciated widgets to allow switching from view mode to edit mode  (for a form or a cell)
      * 
@@ -1273,47 +1324,17 @@ var Layout = /*#__PURE__*/function () {
 
                 if (item.hasOwnProperty('value')) {
                   if (item.type == 'field') {
-                    var config = {};
-                    var field = item.value;
-                    var def = model_fields[field];
-                    var type = def.type;
-                    var label = item.hasOwnProperty('label') ? item.label : field;
-                    var helper = item.hasOwnProperty('help') ? item.help : '';
+                    var config = _this.getWidgetConfig(item);
 
-                    var field_title = _equalServices.TranslationService.resolve(translation, 'model', field, label);
+                    var widget = _equalWidgets.WidgetFactory.getWidget(config.type, config.title, '', config);
 
-                    var field_helper = _equalServices.TranslationService.resolve(translation, 'model', field, helper, 'help');
-
-                    var readonly = item.hasOwnProperty('readonly') ? item.readonly : false;
-                    config['helper'] = field_helper;
-
-                    if (item.hasOwnProperty('visible')) {
-                      var visible_domain = item.visible;
-
-                      if (!Array.isArray(visible_domain)) {
-                        visible_domain = eval(visible_domain);
-                      }
-
-                      config['visible'] = visible_domain;
-                    }
-
-                    if (item.hasOwnProperty('widget')) {
-                      config = _objectSpread(_objectSpread({}, config), item.widget);
-
-                      if (item.widget.hasOwnProperty('type')) {
-                        type = item.widget.type;
-                      }
-                    }
-
-                    var widget = _equalWidgets.WidgetFactory.getWidget(type, field_title, '', config);
-
-                    widget.setReadonly(readonly); // store widget in widgets Map, using field name as key
+                    widget.setReadonly(config.readonly); // store widget in widgets Map, using field name as key
 
                     if (typeof _this.model_widgets[0] == 'undefined') {
                       _this.model_widgets[0] = {};
                     }
 
-                    _this.model_widgets[0][field] = widget;
+                    _this.model_widgets[0][item.value] = widget;
                     $cell.append(widget.attach());
                   } else if (item.type == 'label') {}
                 }
@@ -1365,14 +1386,10 @@ var Layout = /*#__PURE__*/function () {
       try {
         for (_iterator.s(); !(_step = _iterator.n()).done;) {
           var item = _step.value;
-          var align = item.hasOwnProperty('align') ? item.align : 'left';
-          var label = item.hasOwnProperty('label') ? item.label : item.value.charAt(0).toUpperCase() + item.value.slice(1);
-          var sortable = item.hasOwnProperty('sortable') && item.sortable;
-          var visible = item.hasOwnProperty('visible') ? item.visible : true;
-          var $menu_item = (0, _jqueryLib.$)('<li/>').addClass('mdc-list-item').attr('role', 'menuitem');
+          var config = this.getWidgetConfig(item);
 
-          if (visible) {
-            var $cell = (0, _jqueryLib.$)('<th/>').attr('name', item.value).append(label).on('click', function (event) {
+          if (config.visible) {
+            var $cell = (0, _jqueryLib.$)('<th/>').attr('name', item.value).append(config.title).on('click', function (event) {
               var $this = (0, _jqueryLib.$)(event.currentTarget);
 
               if ($this.hasClass('sortable')) {
@@ -1393,7 +1410,7 @@ var Layout = /*#__PURE__*/function () {
               }
             });
 
-            if (sortable) {
+            if (config.sortable) {
               $cell.addClass('sortable').attr('data-sort', 'asc');
             }
 
@@ -1438,7 +1455,7 @@ var Layout = /*#__PURE__*/function () {
                 domain: ['id', '=', object.id]
               });
             }
-          });
+          }); // for lists in edit mode (excepted widgets), add a checkbox
 
           if (_this3.view.getPurpose() != 'widget' || _this3.view.getMode() == 'edit') {
             _materialLib.UIHelper.createTableCellCheckbox().addClass('sb-checkbox-cell').appendTo($row).find('input').attr('data-id', object.id).on('click', function (event) {
@@ -1457,57 +1474,33 @@ var Layout = /*#__PURE__*/function () {
           try {
             var _loop2 = function _loop2() {
               var item = _step3.value;
-              var field = item.value;
 
-              var view_def = _this3.view.getField(field); // field is not part of the view, skip it
+              var config = _this3.getWidgetConfig(item);
 
+              if (!config.visible) return "continue";
+              var value = object[item.value];
 
-              if (view_def == undefined) return "continue";
-              var visible = view_def.hasOwnProperty('visible') ? view_def.visible : true; // do not show fields with no width
-
-              if (!visible) return "continue";
-
-              var model_schema = _this3.view.getModelFields();
-
-              var view_schema = _this3.view.getViewFields();
-
-              var model_def = model_schema[field];
-              var type = model_def['type']; // handle `alias` type
-
-              while (type == 'alias') {
-                var target = model_def['alias'];
-                model_def = model_schema[target];
-                type = model_def['type'];
-              }
-
-              if (view_def.hasOwnProperty('widget')) {
-                type = view_def.widget.type;
-              }
-
-              var value = object[field];
-
-              if (['one2many', 'many2one', 'many2many'].indexOf(type) > -1) {
+              if (['one2many', 'many2one', 'many2many'].indexOf(config.type) > -1) {
                 // by convention, `name` subfield is always loaded for relational fields
-                if (type == 'many2one') {
-                  value = object[field]['name'];
+                if (config.type == 'many2one') {
+                  value = object[item.value]['name'];
                 } else {
-                  value = object[field].map(function (o) {
+                  value = object[item.value].map(function (o) {
                     return o.name;
                   }).join(', ');
                   value = value.length > 35 ? value.substring(0, 35) + "..." : value;
                 }
               }
 
-              var widget = _equalWidgets.WidgetFactory.getWidget(type, '', value); // store widget in widgets Map, using widget id as key (there are several rows for each field)
+              var widget = _equalWidgets.WidgetFactory.getWidget(config.type, '', value, config); // store widget in widgets Map, using widget id as key (there are several rows for each field)
 
 
               if (typeof _this3.model_widgets[object.id] == 'undefined') {
                 _this3.model_widgets[object.id] = {};
               }
 
-              _this3.model_widgets[object.id][field] = widget;
+              _this3.model_widgets[object.id][item.value] = widget;
               var $cell = (0, _jqueryLib.$)('<td/>').addClass('sb-widget-cell').append(widget.render()).on('_toggle_mode', function (event, mode) {
-                console.log('toggleing mode');
                 var $this = (0, _jqueryLib.$)(event.currentTarget);
                 widget.setMode(mode);
                 var $widget = widget.render();
@@ -1516,7 +1509,7 @@ var Layout = /*#__PURE__*/function () {
                   $this.addClass('sb-widget-cell--edit');
                   $widget.on('_updatedWidget', function (event) {
                     var value = {};
-                    value[field] = widget.getValue(); // propagate model change, without requesting a layout refresh
+                    value[item.value] = widget.getValue(); // propagate model change, without requesting a layout refresh
 
                     _this3.view.onchangeViewModel([object.id], value, false);
                   });
@@ -1578,29 +1571,19 @@ var Layout = /*#__PURE__*/function () {
               var field = _step4.value;
               var widget = _this4.model_widgets[0][field];
 
-              var $parent = _this4.$layout.find('#' + widget.getId()).parent().empty();
+              var $parent = _this4.$layout.find('#' + widget.getId()).parent();
 
               var model_def = model_schema[field];
               var type = model_def['type'];
-              var value = object[field]; // for relational fields, we need to check if the Model has been fetched al
+              var value = object[field];
+              var config = widget.getConfig(); // for relational fields, we need to check if the Model has been fetched al
 
               if (['one2many', 'many2one', 'many2many'].indexOf(type) > -1) {
-                var _config = widget.getConfig(); // by convention, `name` subfield is always loaded for relational fields
-
-
+                // by convention, `name` subfield is always loaded for relational fields
                 if (type == 'many2one') {
                   // todo : need to maintain field structure with dedicated widget
                   value = object[field]['name'];
-                }
-                /*
-                                    else {
-                                        value = object[field].map( (o:any) => o.name).join(', ');
-                                        value = (value.length > 35)? value.substring(0, 35) + "..." : value;
-                                    }
-                */
-
-
-                if (type == 'many2many') {
+                } else if (type == 'many2many') {
                   // for m2m fields, the value of the field is an array of objects `{id:, name:}`
                   // by convention, when a relation is to be removed, the id field is set to its negative value
                   // select ids to load by filtering targeted objects
@@ -1608,49 +1591,53 @@ var Layout = /*#__PURE__*/function () {
                     return o.id;
                   }).filter(function (id) {
                     return id > 0;
-                  }); // defined config for Widget's view with a custom domain according to object values
+                  });
 
-                  _config = _objectSpread(_objectSpread({}, _config), {}, {
+                  if (!target_ids.length) {
+                    target_ids.push(0);
+                  } // defined config for Widget's view with a custom domain according to object values
+
+
+                  config = _objectSpread(_objectSpread({}, config), {}, {
                     entity: model_def['foreign_object'],
                     type: 'list',
-                    name: _config.hasOwnProperty('view') ? _config.view : 'default',
+                    name: config.hasOwnProperty('view') ? config.view : 'default',
                     domain: ['id', 'in', target_ids],
                     lang: _this4.view.getLang()
                   });
                 }
 
-                widget.setConfig(_config);
+                widget.setConfig(config);
               }
 
               widget.setMode(_this4.view.getMode()).setValue(value);
-              var $widget = widget.render();
-              /*
-                  Handle Widget update
-              */
-
-              $widget.on('_updatedWidget', function (event) {
-                console.log('widget _updatedWidget'); // update object with new value
-
-                var value = {};
-                value[field] = widget.getValue();
-
-                _this4.view.onchangeViewModel([object.id], value);
-              });
-              var config = widget.getConfig(); // handle visibility tests (domain)           
+              var visible = true; // handle visibility tests (domain)           
 
               if (config.hasOwnProperty('visible')) {
-                var domain = new _Domain.default(config.visible);
-
-                if (domain.evaluate(object)) {
-                  // append rendered widget
-                  $parent.append($widget);
+                // visible attribute is a Domain
+                if (Array.isArray(config.visible)) {
+                  var domain = new _Domain.default(config.visible);
+                  visible = domain.evaluate(object);
                 } else {
-                  // append an empty widget container (to allow further retrieval)
-                  $parent.append(widget.attach());
+                  visible = config.visible;
                 }
+              }
+
+              if (!visible) {
+                $parent.empty().append(widget.attach());
               } else {
-                // append rendered widget
-                $parent.append($widget);
+                var $widget = widget.render(); // Handle Widget update handler
+
+                $widget.on('_updatedWidget', function (event) {
+                  console.log('widget _updatedWidget'); // update object with new value
+
+                  var value = {};
+                  value[field] = widget.getValue();
+
+                  _this4.view.onchangeViewModel([object.id], value);
+                }); // append rendered widget
+
+                $parent.empty().append($widget);
               }
             };
 
@@ -1716,19 +1703,20 @@ function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len 
  * Acts like server-side Collection.class.php
  */
 var Model = /*#__PURE__*/function () {
-  // Collection (map) of objects: objects ids mapping related objects
+  // Collection (array) of objects (we use array to maintain objects order)
+  // Map for keeping track of the fields that have been changed, on an object basis (keys are objects ids)
   // total objects matching the current domain on the back-end
   // Collecitons do not deal with lang: it is used in ApiService set in the environment var
   function Model(view) {
     (0, _classCallCheck2.default)(this, Model);
     (0, _defineProperty2.default)(this, "view", void 0);
     (0, _defineProperty2.default)(this, "objects", void 0);
+    (0, _defineProperty2.default)(this, "has_changed", void 0);
     (0, _defineProperty2.default)(this, "total", void 0);
     (0, _defineProperty2.default)(this, "loaded_promise", void 0);
-    (0, _defineProperty2.default)(this, "has_changed", void 0);
     this.view = view;
     this.loaded_promise = _jqueryLib.$.Deferred();
-    this.has_changed = false;
+    this.has_changed = {};
     this.objects = [];
     this.total = 0;
   }
@@ -1771,7 +1759,7 @@ var Model = /*#__PURE__*/function () {
   }, {
     key: "hasChanged",
     value: function hasChanged() {
-      return this.has_changed;
+      return Object.keys(this.has_changed).length > 0;
     }
     /** 
      * Update model by requesting data from server using parent View parameters
@@ -1835,57 +1823,62 @@ var Model = /*#__PURE__*/function () {
       return refresh;
     }()
     /**
-     * React to external request of Model change (one ore more objects in the collection have been updated through the Layout)
+     * React to external request of Model change (one ore more objects in the collection have been updated through the Layout).
+     * Changes are made on a field basis.
+     * 
      */
 
   }, {
     key: "change",
     value: function change(ids, values) {
-      var _iterator = _createForOfIteratorHelper(this.objects),
-          _step;
+      console.log('Model::change', ids, values);
 
-      try {
-        for (_iterator.s(); !(_step = _iterator.n()).done;) {
-          var object = _step.value;
+      for (var index in this.objects) {
+        var object = this.objects[index];
 
-          var _iterator2 = _createForOfIteratorHelper(ids),
-              _step2;
+        var _iterator = _createForOfIteratorHelper(ids),
+            _step;
 
-          try {
-            for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
-              var id = _step2.value;
+        try {
+          for (_iterator.s(); !(_step = _iterator.n()).done;) {
+            var id = _step.value;
 
-              if (object.hasOwnProperty('id') && object.id == id) {
-                for (var field in values) {
-                  if (object.hasOwnProperty(field)) {
-                    object[field] = values[field];
-                    this.has_changed = true;
-                  }
+            if (object.hasOwnProperty('id') && object.id == id) {
+              for (var field in values) {
+                if (object.hasOwnProperty(field)) {
+                  if (!this.has_changed.hasOwnProperty(id)) {
+                    this.has_changed[id] = [];
+                  } // update field
+
+
+                  this.objects[index][field] = values[field]; // mark field as changed
+
+                  this.has_changed[id].push(field);
                 }
               }
             }
-          } catch (err) {
-            _iterator2.e(err);
-          } finally {
-            _iterator2.f();
           }
+        } catch (err) {
+          _iterator.e(err);
+        } finally {
+          _iterator.f();
         }
-      } catch (err) {
-        _iterator.e(err);
-      } finally {
-        _iterator.f();
       }
+
+      console.log('##########################', this.objects);
     }
   }, {
     key: "ids",
     value: function ids() {
       return this.objects.map(function (object) {
-        return object['id'];
+        return object.id;
       });
     }
     /**
-     * Return the entire Collection
-     *
+     * Return the Collection.
+     * The result set can be limited to a subset of specific objects by specifying an array of ids.
+     * 
+     * @param ids array list of objects identifiers that must be returned
      */
 
   }, {
@@ -1898,19 +1891,81 @@ var Model = /*#__PURE__*/function () {
       var promise = _jqueryLib.$.Deferred();
 
       this.loaded_promise.then(function () {
-        // return the full collection
-        if (ids.length == 0) {
-          promise.resolve(_this.objects);
-        } else {
+        if (ids.length) {
           // create a custom collection by filtering objects on their ids
           promise.resolve(_this.objects.filter(function (object) {
-            return ids.indexOf(object['id']) > -1;
+            return ids.indexOf(+object['id']) > -1;
           }));
+        } else {
+          // return the full collection
+          promise.resolve(_this.objects);
         }
       }).catch(function () {
-        promise.resolve({});
+        return promise.resolve({});
       });
       return promise;
+    }
+    /**
+     * Returns a collection holding only modified objects with their modified fields.
+     * The collection will be empty if no changes occured.
+     * 
+     * @param ids array list of objects identifiers that must be returned (if changed)
+     */
+
+  }, {
+    key: "getChanges",
+    value: function getChanges() {
+      var _this2 = this;
+
+      var ids = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+      var collection = [];
+
+      var _loop = function _loop(id) {
+        if (ids.length && ids.indexOf(+id) < 0) return "continue";
+        var fields = _this2.has_changed[id];
+
+        var object = _this2.objects.find(function (object) {
+          return object.id == id;
+        });
+
+        if (object == undefined) return "continue";
+        var result = {
+          id: id
+        };
+
+        var _iterator2 = _createForOfIteratorHelper(fields),
+            _step2;
+
+        try {
+          for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+            var field = _step2.value;
+            result[field] = object[field];
+          } // force appending `state`and `modified` fields (when present) for concurrency control
+
+        } catch (err) {
+          _iterator2.e(err);
+        } finally {
+          _iterator2.f();
+        }
+
+        if (object.hasOwnProperty('modified')) {
+          result['modified'] = object.modified;
+        }
+
+        if (object.hasOwnProperty('state')) {
+          result['state'] = object.state;
+        }
+
+        collection.push(result);
+      };
+
+      for (var id in this.has_changed) {
+        var _ret = _loop(id);
+
+        if (_ret === "continue") continue;
+      }
+
+      return collection;
     }
   }, {
     key: "getTotal",
@@ -2840,7 +2895,7 @@ var View = /*#__PURE__*/function () {
       var _this3 = this;
 
       var full = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
-      console.log('View::layoutListRefresh#########################'); // update footer indicators (total count)        
+      console.log('View::layoutListRefresh'); // update footer indicators (total count)        
 
       var limit = this.getLimit();
       var total = this.getTotal();
@@ -2953,42 +3008,112 @@ var View = /*#__PURE__*/function () {
 
         case 'edit':
           $actions_set.append(_materialLib.UIHelper.createButton('action-save', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_SAVE'), 'raised').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
-            var objects, object, response, errors, field, error_id, msg;
+            var objects, object, response, errors, field, error_id, msg, _field, validation;
+
             return _regenerator.default.wrap(function _callee4$(_context4) {
               while (1) {
                 switch (_context4.prev = _context4.next) {
                   case 0:
-                    _context4.next = 2;
-                    return _this4.model.get();
-
-                  case 2:
-                    objects = _context4.sent;
-                    object = objects[0];
-                    _context4.next = 6;
-                    return _equalServices.ApiService.update(_this4.entity, [object['id']], object);
-
-                  case 6:
-                    response = _context4.sent;
-
-                    if (!response || !response.hasOwnProperty('errors')) {
-                      (0, _jqueryLib.$)('#sb-events').trigger('_closeContext');
-                    } else {
-                      errors = response['errors'];
-
-                      if (errors.hasOwnProperty('INVALID_PARAM')) {
-                        for (field in errors['INVALID_PARAM']) {
-                          // for each field, we handle one error at a time (the first one)
-                          error_id = Object.keys(errors['INVALID_PARAM'][field])[0];
-                          msg = Object.values(errors['INVALID_PARAM'][field])[0]; // translate error message
-
-                          msg = _equalServices.TranslationService.resolve(_this4.translation, 'error', field, msg, error_id);
-
-                          _this4.layout.markFieldAsInvalid(object['id'], field, msg);
-                        }
-                      }
+                    if (!(_this4.purpose == 'create')) {
+                      _context4.next = 6;
+                      break;
                     }
 
-                  case 8:
+                    _context4.next = 3;
+                    return _this4.model.get();
+
+                  case 3:
+                    objects = _context4.sent;
+                    _context4.next = 7;
+                    break;
+
+                  case 6:
+                    // get changed objects only 
+                    objects = _this4.model.getChanges();
+
+                  case 7:
+                    if (objects.length) {
+                      _context4.next = 11;
+                      break;
+                    }
+
+                    (0, _jqueryLib.$)('#sb-events').trigger('_closeContext');
+                    _context4.next = 35;
+                    break;
+
+                  case 11:
+                    // we're in edit mode for single object (form)
+                    object = objects[0];
+                    _context4.next = 14;
+                    return _equalServices.ApiService.update(_this4.entity, [object['id']], object);
+
+                  case 14:
+                    response = _context4.sent;
+
+                    if (!(!response || !response.hasOwnProperty('errors'))) {
+                      _context4.next = 19;
+                      break;
+                    }
+
+                    (0, _jqueryLib.$)('#sb-events').trigger('_closeContext');
+                    _context4.next = 35;
+                    break;
+
+                  case 19:
+                    errors = response['errors'];
+
+                    if (!errors.hasOwnProperty('INVALID_PARAM')) {
+                      _context4.next = 24;
+                      break;
+                    }
+
+                    for (field in errors['INVALID_PARAM']) {
+                      // for each field, we handle one error at a time (the first one)
+                      error_id = Object.keys(errors['INVALID_PARAM'][field])[0];
+                      msg = Object.values(errors['INVALID_PARAM'][field])[0]; // translate error message
+
+                      msg = _equalServices.TranslationService.resolve(_this4.translation, 'error', field, msg, error_id);
+
+                      _this4.layout.markFieldAsInvalid(object['id'], field, msg);
+                    }
+
+                    _context4.next = 35;
+                    break;
+
+                  case 24:
+                    if (!errors.hasOwnProperty('CONFLICT_OBJECT')) {
+                      _context4.next = 35;
+                      break;
+                    }
+
+                    if (!(typeof errors['CONFLICT_OBJECT'] == 'object')) {
+                      _context4.next = 29;
+                      break;
+                    }
+
+                    for (_field in errors['CONFLICT_OBJECT']) {
+                      _this4.layout.markFieldAsInvalid(object['id'], _field, _equalServices.TranslationService.instant('SB_ERROR_DUPLICATE_VALUE'));
+                    }
+
+                    _context4.next = 35;
+                    break;
+
+                  case 29:
+                    validation = false;
+                    validation = confirm(_equalServices.TranslationService.instant('SB_ACTIONS_MESSAGE_ERASE_CONUCRRENT_CHANGES'));
+
+                    if (!validation) {
+                      _context4.next = 34;
+                      break;
+                    }
+
+                    _context4.next = 34;
+                    return _equalServices.ApiService.update(_this4.entity, [object['id']], object, true);
+
+                  case 34:
+                    (0, _jqueryLib.$)('#sb-events').trigger('_closeContext');
+
+                  case 35:
                   case "end":
                     return _context4.stop();
                 }
@@ -3205,28 +3330,19 @@ var View = /*#__PURE__*/function () {
               var $td = $tr.children().first();
               var $checkbox = $td.find('.sb-checkbox').hide();
 
-              var $save_button = _materialLib.UIHelper.createButton('view-save-row', '', 'mini-fab', 'save').appendTo($td).on('click', /*#__PURE__*/function () {
+              var $save_button = _materialLib.UIHelper.createButton('view-save-row', '', 'mini-fab', 'save').addClass('sb-view-list-inline-save-button').appendTo($td).on('click', /*#__PURE__*/function () {
                 var _ref5 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee10(event) {
-                  var object_id, objects, object, response, errors, field, error_id, msg;
+                  var object_id, objects, success, object, response, errors, delay, _i, count, field, error_id, msg, title, $snack;
+
                   return _regenerator.default.wrap(function _callee10$(_context10) {
                     while (1) {
                       switch (_context10.prev = _context10.next) {
                         case 0:
                           event.stopPropagation();
                           object_id = parseInt($tr.attr('data-id'), 10);
-                          _context10.next = 4;
-                          return _this5.model.get([object_id]);
+                          objects = _this5.model.getChanges([object_id]);
 
-                        case 4:
-                          objects = _context10.sent;
-                          object = objects[0];
-                          _context10.next = 8;
-                          return _equalServices.ApiService.update(_this5.entity, [object_id], object);
-
-                        case 8:
-                          response = _context10.sent;
-
-                          if (!response || !response.hasOwnProperty('errors')) {
+                          success = function success() {
                             $save_button.remove();
                             $tr.find('.sb-widget-cell').each(function (i, cell) {
                               (0, _jqueryLib.$)(cell).trigger('_toggle_mode', 'view');
@@ -3234,10 +3350,35 @@ var View = /*#__PURE__*/function () {
                             $checkbox.show(); // restore click handling
 
                             $tr.attr('data-edit', '0');
+                          };
+
+                          if (objects.length) {
+                            _context10.next = 8;
+                            break;
+                          }
+
+                          success();
+                          _context10.next = 13;
+                          break;
+
+                        case 8:
+                          object = objects[0];
+                          _context10.next = 11;
+                          return _equalServices.ApiService.update(_this5.entity, [object_id], object);
+
+                        case 11:
+                          response = _context10.sent;
+
+                          if (!response || !response.hasOwnProperty('errors')) {
+                            success();
                           } else {
                             errors = response['errors'];
 
                             if (errors.hasOwnProperty('INVALID_PARAM')) {
+                              delay = 4000;
+                              _i = 0;
+                              count = Object.keys(errors['INVALID_PARAM']).length; // stack snackbars (LIFO: decreasing timeout)
+
                               for (field in errors['INVALID_PARAM']) {
                                 // for each field, we handle one error at a time (the first one)
                                 error_id = Object.keys(errors['INVALID_PARAM'][field])[0];
@@ -3246,11 +3387,18 @@ var View = /*#__PURE__*/function () {
                                 msg = _equalServices.TranslationService.resolve(_this5.translation, 'error', field, msg, error_id);
 
                                 _this5.layout.markFieldAsInvalid(object['id'], field, msg);
+
+                                title = _equalServices.TranslationService.resolve(_this5.translation, 'model', field, field, 'label');
+                                $snack = _materialLib.UIHelper.createSnackbar(title + ': ' + msg, '', '', delay * (count - _i));
+
+                                _this5.$container.append($snack);
+
+                                ++_i;
                               }
                             }
                           }
 
-                        case 10:
+                        case 13:
                         case "end":
                           return _context10.stop();
                       }
@@ -3419,6 +3567,8 @@ var _createClass2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtim
 
 var _Widget = _interopRequireDefault(__webpack_require__(/*! ./widgets/Widget */ "./build/widgets/Widget.js"));
 
+var _WidgetBoolean = _interopRequireDefault(__webpack_require__(/*! ./widgets/WidgetBoolean */ "./build/widgets/WidgetBoolean.js"));
+
 var _WidgetDate = _interopRequireDefault(__webpack_require__(/*! ./widgets/WidgetDate */ "./build/widgets/WidgetDate.js"));
 
 var _WidgetDateTime = _interopRequireDefault(__webpack_require__(/*! ./widgets/WidgetDateTime */ "./build/widgets/WidgetDateTime.js"));
@@ -3426,8 +3576,6 @@ var _WidgetDateTime = _interopRequireDefault(__webpack_require__(/*! ./widgets/W
 var _WidgetString = _interopRequireDefault(__webpack_require__(/*! ./widgets/WidgetString */ "./build/widgets/WidgetString.js"));
 
 var _WidgetText = _interopRequireDefault(__webpack_require__(/*! ./widgets/WidgetText */ "./build/widgets/WidgetText.js"));
-
-var _WidgetLink = _interopRequireDefault(__webpack_require__(/*! ./widgets/WidgetLink */ "./build/widgets/WidgetLink.js"));
 
 var _WidgetSelect = _interopRequireDefault(__webpack_require__(/*! ./widgets/WidgetSelect */ "./build/widgets/WidgetSelect.js"));
 
@@ -3468,6 +3616,9 @@ var WidgetFactory = /*#__PURE__*/function () {
       var config = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
 
       switch (type) {
+        case 'boolean':
+          return new _WidgetBoolean.default(label, value, config);
+
         case 'date':
           return new _WidgetDate.default(label, value, config);
 
@@ -3480,8 +3631,7 @@ var WidgetFactory = /*#__PURE__*/function () {
         case 'many2many':
           return new _WidgetMany2Many.default(label, value, config);
 
-        case 'link':
-          return new _WidgetLink.default(label, value, config);
+        case 'link': // return new WidgetLink(label, value, config);
 
         case 'text':
           return new _WidgetText.default(label, value, config);
@@ -3528,6 +3678,8 @@ var _jqueryLib = __webpack_require__(/*! ./jquery-lib */ "./build/jquery-lib.js"
 var _equalLib = __webpack_require__(/*! ./equal-lib */ "./build/equal-lib.js");
 
 var _environment = __webpack_require__(/*! ./environment */ "./build/environment.js");
+
+var _materialLib = __webpack_require__(/*! ./material-lib */ "./build/material-lib.js");
 
 var _equalServices = __webpack_require__(/*! ./equal-services */ "./build/equal-services.js");
 
@@ -3765,7 +3917,9 @@ var eQ = /*#__PURE__*/function () {
           while (1) {
             switch (_context4.prev = _context4.next) {
               case 0:
-                $elem = (0, _jqueryLib.$)('<h3 />');
+                $elem = (0, _jqueryLib.$)('<h3 />').css({
+                  display: 'flex'
+                });
                 this.$headerContainer.empty().append($elem); // use all contexts in stack...
 
                 _iterator = _createForOfIteratorHelper(this.stack);
@@ -3791,38 +3945,27 @@ var eQ = /*#__PURE__*/function () {
                           _context3.t1 = _context3.sent;
 
                           _context3.t0.text.call(_context3.t0, _context3.t1).appendTo($elem).on('click', function () {
-                            // 2) close all contexts after the one clicked
-                            console.log('clicked', _this2.stack.length, _this2.stack);
-
+                            // close all contexts after the one clicked
                             for (var i = _this2.stack.length - 1; i > 0; --i) {
-                              // unstack contexts silently (except for the last one), and ask for validation at each step
-                              if (_this2.stack[i] == context) {
-                                var validation = true;
-
-                                if (_this2.context.hasChanged()) {
-                                  validation = confirm(_equalServices.TranslationService.instant('SB_ACTIONS_MESSAGE_ABANDON_CHANGE'));
-                                }
-
+                              // unstack contexts silently (except for the targeted one), and ask for validation at each step
+                              if (_this2.context.hasChanged()) {
+                                var validation = confirm(_equalServices.TranslationService.instant('SB_ACTIONS_MESSAGE_ABANDON_CHANGE'));
                                 if (!validation) return;
 
                                 _this2.closeContext();
-
-                                break;
                               } else {
-                                var _validation = true;
-
-                                if (_this2.context.hasChanged()) {
-                                  _validation = confirm(_equalServices.TranslationService.instant('SB_ACTIONS_MESSAGE_ABANDON_CHANGE'));
+                                if (_this2.stack[i] == context) {
+                                  _this2.closeContext();
+                                } else {
+                                  _this2.closeContext(true);
                                 }
-
-                                if (!_validation) return;
-
-                                _this2.closeContext(true);
                               }
                             }
                           });
 
-                          (0, _jqueryLib.$)('<span> › </span>').appendTo($elem);
+                          (0, _jqueryLib.$)('<span> › </span>').css({
+                            'margin': '0 10px'
+                          }).appendTo($elem);
 
                         case 8:
                         case "end":
@@ -3865,7 +4008,7 @@ var eQ = /*#__PURE__*/function () {
 
               case 18:
                 if (!this.context.hasOwnProperty('$container')) {
-                  _context4.next = 24;
+                  _context4.next = 25;
                   break;
                 }
 
@@ -3878,7 +4021,25 @@ var eQ = /*#__PURE__*/function () {
 
                 _context4.t2.text.call(_context4.t2, _context4.t3).appendTo($elem);
 
-              case 24:
+                if (this.stack.length > 1) {
+                  _materialLib.UIHelper.createButton('context-close', '', 'mini-fab', 'close').css({
+                    'transform': 'scale(0.5)',
+                    'margin-top': '3px',
+                    'background': 'grey'
+                  }).appendTo($elem).on('click', function () {
+                    var validation = true;
+
+                    if (_this2.context.hasChanged()) {
+                      validation = confirm(_equalServices.TranslationService.instant('SB_ACTIONS_MESSAGE_ABANDON_CHANGE'));
+                    }
+
+                    if (!validation) return;
+
+                    _this2.closeContext();
+                  });
+                }
+
+              case 25:
               case "end":
                 return _context4.stop();
             }
@@ -4167,6 +4328,10 @@ var _menu = __webpack_require__(/*! @material/menu */ "./node_modules/@material/
 
 var _tabBar = __webpack_require__(/*! @material/tab-bar */ "./node_modules/@material/tab-bar/index.js");
 
+var _snackbar = __webpack_require__(/*! @material/snackbar */ "./node_modules/@material/snackbar/index.js");
+
+var _switch = __webpack_require__(/*! @material/switch */ "./node_modules/@material/switch/index.js");
+
 var _jqueryLib = __webpack_require__(/*! ./jquery-lib */ "./build/jquery-lib.js");
 
 function _createForOfIteratorHelper(o, allowArrayLike) { var it; if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
@@ -4236,6 +4401,25 @@ var UIHelper = /*#__PURE__*/function () {
     key: "createIcon",
     value: function createIcon(icon) {
       var $elem = (0, _jqueryLib.$)('<span class="material-icons">' + icon + '</span>');
+      return $elem;
+    }
+  }, {
+    key: "createSwitch",
+    value: function createSwitch(id, label, value) {
+      var helper = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : '';
+      var icon = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : '';
+      var disabled = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : false;
+      var $elem = (0, _jqueryLib.$)('\
+        <div class="mdc-switch"> \
+            <div class="mdc-switch__track"></div> \
+            <div class="mdc-switch__thumb-underlay"> \
+                <div class="mdc-switch__thumb"></div> \
+                <input type="checkbox" class="mdc-switch__native-control" role="switch" ' + (value ? 'checked' : '') + '> \
+            </div> \
+        </div> \
+        <label for="basic-switch">' + label + '</label> \
+        ');
+      new _switch.MDCSwitch($elem[0]);
       return $elem;
     }
   }, {
@@ -4373,20 +4557,32 @@ var UIHelper = /*#__PURE__*/function () {
     value: function createSnackbar(label) {
       var action = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
       var link = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : '';
-      var $elem = (0, _jqueryLib.$)(' \
+      var timeout = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 4000;
+      var elem = ' \
         <div class="mdc-snackbar"> \
             <div class="mdc-snackbar__surface" role="status" aria-relevant="additions"> \
                 <div class="mdc-snackbar__label" aria-atomic="false"> \
                 ' + label + ' \
                 </div> \
-                <div class="mdc-snackbar__actions" aria-atomic="true"> \
+                <div class="mdc-snackbar__actions" aria-atomic="true">';
+
+      if (action.length) {
+        elem += '\
                     <button type="button" class="mdc-button mdc-snackbar__action"> \
                         <div class="mdc-button__ripple"></div> \
                         <span class="mdc-button__label">' + action + '</span> \
-                    </button> \
+                    </button>';
+      }
+
+      elem += '\
+                    <button class="mdc-icon-button mdc-snackbar__dismiss material-icons" title="Dismiss">close</button> \
                 </div> \
             </div> \
-        </div>');
+        </div>';
+      var $elem = (0, _jqueryLib.$)(elem);
+      var snackbar = new _snackbar.MDCSnackbar($elem[0]);
+      snackbar.timeoutMs = timeout;
+      snackbar.open();
       return $elem;
     }
   }, {
@@ -4806,8 +5002,7 @@ var Widget = /*#__PURE__*/function () {
   }, {
     key: "attach",
     value: function attach() {
-      var $elem = $('<div/>');
-      $elem.addClass('sb-widget').attr('id', this.getId());
+      var $elem = $('<div/>').addClass('sb-widget').attr('id', this.getId());
       return $elem;
     }
   }]);
@@ -4815,6 +5010,86 @@ var Widget = /*#__PURE__*/function () {
 }();
 
 exports.default = Widget;
+
+/***/ }),
+
+/***/ "./build/widgets/WidgetBoolean.js":
+/*!****************************************!*\
+  !*** ./build/widgets/WidgetBoolean.js ***!
+  \****************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+var _interopRequireDefault = __webpack_require__(/*! @babel/runtime/helpers/interopRequireDefault */ "./node_modules/@babel/runtime/helpers/interopRequireDefault.js");
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.default = void 0;
+
+var _classCallCheck2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/classCallCheck */ "./node_modules/@babel/runtime/helpers/classCallCheck.js"));
+
+var _createClass2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/createClass */ "./node_modules/@babel/runtime/helpers/createClass.js"));
+
+var _inherits2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/inherits */ "./node_modules/@babel/runtime/helpers/inherits.js"));
+
+var _possibleConstructorReturn2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/possibleConstructorReturn */ "./node_modules/@babel/runtime/helpers/possibleConstructorReturn.js"));
+
+var _getPrototypeOf2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/getPrototypeOf */ "./node_modules/@babel/runtime/helpers/getPrototypeOf.js"));
+
+var _Widget2 = _interopRequireDefault(__webpack_require__(/*! ./Widget */ "./build/widgets/Widget.js"));
+
+var _materialLib = __webpack_require__(/*! ../material-lib */ "./build/material-lib.js");
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
+
+var WidgetBoolean = /*#__PURE__*/function (_Widget) {
+  (0, _inherits2.default)(WidgetBoolean, _Widget);
+
+  var _super = _createSuper(WidgetBoolean);
+
+  function WidgetBoolean(label, value, config) {
+    (0, _classCallCheck2.default)(this, WidgetBoolean);
+    return _super.call(this, 'boolean', label, value, config);
+  }
+
+  (0, _createClass2.default)(WidgetBoolean, [{
+    key: "render",
+    value: function render() {
+      var _this = this;
+
+      var $elem;
+
+      switch (this.mode) {
+        case 'edit':
+          $elem = _materialLib.UIHelper.createSwitch('', this.label, this.value, this.config.helper, '', this.readonly); // setup handler for relaying value update to parent layout
+
+          $elem.find('input').on('change', function (event) {
+            console.log('WidgetBoolean onchange');
+            var $this = $(event.currentTarget);
+            _this.value = $this.prop("checked");
+            $elem.trigger('_updatedWidget');
+          });
+          break;
+
+        case 'view':
+        default:
+          var value = this.value ? 'true' : 'false';
+          $elem = _materialLib.UIHelper.createInputView('', this.label, value);
+          break;
+      }
+
+      return $elem.addClass('sb-widget').attr('id', this.getId());
+    }
+  }]);
+  return WidgetBoolean;
+}(_Widget2.default);
+
+exports.default = WidgetBoolean;
 
 /***/ }),
 
@@ -4998,7 +5273,13 @@ var WidgetDateTime = /*#__PURE__*/function (_Widget) {
           value = (0, _moment.default)(date).format(format);
           $elem = _materialLib.UIHelper.createInput('', this.label, value, this.config.helper, 'calendar_today'); // setup handler for relaying value update to parent layout
 
-          $elem.find('input').on('change', function (event) {
+          $elem.find('input').on('keypress', function (event) {
+            if (event.which == 9) {
+              // todo: force focus to the next input                        
+              console.log('#######tab press');
+              event.preventDefault();
+            }
+          }).on('change', function (event) {
             var $this = (0, _jqueryLib.$)(event.currentTarget);
             _this.value = $this.val();
             var mdate = (0, _moment.default)(_this.value, format, true);
@@ -5052,61 +5333,6 @@ var WidgetDateTime = /*#__PURE__*/function (_Widget) {
 }(_Widget2.default);
 
 exports.default = WidgetDateTime;
-
-/***/ }),
-
-/***/ "./build/widgets/WidgetLink.js":
-/*!*************************************!*\
-  !*** ./build/widgets/WidgetLink.js ***!
-  \*************************************/
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
-
-"use strict";
-
-
-var _interopRequireDefault = __webpack_require__(/*! @babel/runtime/helpers/interopRequireDefault */ "./node_modules/@babel/runtime/helpers/interopRequireDefault.js");
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.default = void 0;
-
-var _classCallCheck2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/classCallCheck */ "./node_modules/@babel/runtime/helpers/classCallCheck.js"));
-
-var _createClass2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/createClass */ "./node_modules/@babel/runtime/helpers/createClass.js"));
-
-var _inherits2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/inherits */ "./node_modules/@babel/runtime/helpers/inherits.js"));
-
-var _possibleConstructorReturn2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/possibleConstructorReturn */ "./node_modules/@babel/runtime/helpers/possibleConstructorReturn.js"));
-
-var _getPrototypeOf2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/getPrototypeOf */ "./node_modules/@babel/runtime/helpers/getPrototypeOf.js"));
-
-var _Widget2 = _interopRequireDefault(__webpack_require__(/*! ./Widget */ "./build/widgets/Widget.js"));
-
-function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
-
-function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
-
-var WidgetLink = /*#__PURE__*/function (_Widget) {
-  (0, _inherits2.default)(WidgetLink, _Widget);
-
-  var _super = _createSuper(WidgetLink);
-
-  function WidgetLink(label, value, config) {
-    (0, _classCallCheck2.default)(this, WidgetLink);
-    return _super.call(this, 'link', label, value, config);
-  }
-
-  (0, _createClass2.default)(WidgetLink, [{
-    key: "render",
-    value: function render() {
-      return $('<a href/>').text(this.getValue());
-    }
-  }]);
-  return WidgetLink;
-}(_Widget2.default);
-
-exports.default = WidgetLink;
 
 /***/ }),
 
@@ -5171,7 +5397,7 @@ var WidgetMany2Many = /*#__PURE__*/function (_Widget) {
     var _this;
 
     (0, _classCallCheck2.default)(this, WidgetMany2Many);
-    _this = _super.call(this, 'select', label, value, config);
+    _this = _super.call(this, 'many2many', label, value, config);
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "rel_type", void 0);
     _this.rel_type = 'many2many';
     return _this;
@@ -5395,7 +5621,7 @@ var WidgetSelect = /*#__PURE__*/function (_Widget) {
     value: function render() {
       var _this = this;
 
-      console.log('WidgetSelect::render', this.config);
+      console.log('WidgetSelect::render', this.config, this.mode);
       var $elem;
       var value = this.value ? this.value : '';
       console.log(this.value, value);
@@ -5479,6 +5705,7 @@ var WidgetString = /*#__PURE__*/function (_Widget) {
     value: function render() {
       var _this = this;
 
+      console.log('WidgetString::render');
       var $elem;
       var value = this.value ? this.value : '';
 
@@ -5499,8 +5726,7 @@ var WidgetString = /*#__PURE__*/function (_Widget) {
           break;
       }
 
-      $elem.addClass('sb-widget').attr('id', this.getId());
-      return $elem;
+      return $elem.addClass('sb-widget').attr('id', this.getId());
     }
   }]);
   return WidgetString;
@@ -5557,16 +5783,30 @@ var WidgetText = /*#__PURE__*/function (_Widget) {
   (0, _createClass2.default)(WidgetText, [{
     key: "render",
     value: function render() {
+      var _this = this;
+
+      var $elem;
       var value = this.value ? this.value : '';
 
       switch (this.mode) {
         case 'edit':
-          return _materialLib.UIHelper.createInput('', this.label, value);
+          $elem = _materialLib.UIHelper.createInput('', this.label, value); // setup handler for relaying value update to parent layout
+
+          $elem.find('input').on('change', function (event) {
+            var $this = $(event.currentTarget);
+            _this.value = $this.val();
+            $elem.trigger('_updatedWidget');
+          });
+          break;
 
         case 'view':
         default:
-          return $('<span/>').text(value);
+          $elem = $('<span/>').text(value);
+          break;
       }
+
+      $elem.addClass('sb-widget').attr('id', this.getId());
+      return $elem;
     }
   }]);
   return WidgetText;
@@ -15039,6 +15279,996 @@ __webpack_require__.r(__webpack_exports__);
  */
 
 
+
+
+
+//# sourceMappingURL=index.js.map
+
+/***/ }),
+
+/***/ "./node_modules/@material/snackbar/component.js":
+/*!******************************************************!*\
+  !*** ./node_modules/@material/snackbar/component.js ***!
+  \******************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "MDCSnackbar": () => /* binding */ MDCSnackbar
+/* harmony export */ });
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! tslib */ "./node_modules/tslib/tslib.es6.js");
+/* harmony import */ var _material_base_component__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @material/base/component */ "./node_modules/@material/base/component.js");
+/* harmony import */ var _material_dom_ponyfill__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @material/dom/ponyfill */ "./node_modules/@material/dom/ponyfill.js");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./constants */ "./node_modules/@material/snackbar/constants.js");
+/* harmony import */ var _foundation__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./foundation */ "./node_modules/@material/snackbar/foundation.js");
+/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./util */ "./node_modules/@material/snackbar/util.js");
+/**
+ * @license
+ * Copyright 2018 Google Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+
+
+
+
+
+var SURFACE_SELECTOR = _constants__WEBPACK_IMPORTED_MODULE_0__.strings.SURFACE_SELECTOR, LABEL_SELECTOR = _constants__WEBPACK_IMPORTED_MODULE_0__.strings.LABEL_SELECTOR, ACTION_SELECTOR = _constants__WEBPACK_IMPORTED_MODULE_0__.strings.ACTION_SELECTOR, DISMISS_SELECTOR = _constants__WEBPACK_IMPORTED_MODULE_0__.strings.DISMISS_SELECTOR, OPENING_EVENT = _constants__WEBPACK_IMPORTED_MODULE_0__.strings.OPENING_EVENT, OPENED_EVENT = _constants__WEBPACK_IMPORTED_MODULE_0__.strings.OPENED_EVENT, CLOSING_EVENT = _constants__WEBPACK_IMPORTED_MODULE_0__.strings.CLOSING_EVENT, CLOSED_EVENT = _constants__WEBPACK_IMPORTED_MODULE_0__.strings.CLOSED_EVENT;
+var MDCSnackbar = /** @class */ (function (_super) {
+    (0,tslib__WEBPACK_IMPORTED_MODULE_1__.__extends)(MDCSnackbar, _super);
+    function MDCSnackbar() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    MDCSnackbar.attachTo = function (root) {
+        return new MDCSnackbar(root);
+    };
+    MDCSnackbar.prototype.initialize = function (announcerFactory) {
+        if (announcerFactory === void 0) { announcerFactory = function () { return _util__WEBPACK_IMPORTED_MODULE_2__.announce; }; }
+        this.announce_ = announcerFactory();
+    };
+    MDCSnackbar.prototype.initialSyncWithDOM = function () {
+        var _this = this;
+        this.surfaceEl_ = this.root.querySelector(SURFACE_SELECTOR);
+        this.labelEl_ = this.root.querySelector(LABEL_SELECTOR);
+        this.actionEl_ = this.root.querySelector(ACTION_SELECTOR);
+        this.handleKeyDown_ = function (evt) { return _this.foundation.handleKeyDown(evt); };
+        this.handleSurfaceClick_ = function (evt) {
+            var target = evt.target;
+            if (_this.isActionButton_(target)) {
+                _this.foundation.handleActionButtonClick(evt);
+            }
+            else if (_this.isActionIcon_(target)) {
+                _this.foundation.handleActionIconClick(evt);
+            }
+        };
+        this.registerKeyDownHandler_(this.handleKeyDown_);
+        this.registerSurfaceClickHandler_(this.handleSurfaceClick_);
+    };
+    MDCSnackbar.prototype.destroy = function () {
+        _super.prototype.destroy.call(this);
+        this.deregisterKeyDownHandler_(this.handleKeyDown_);
+        this.deregisterSurfaceClickHandler_(this.handleSurfaceClick_);
+    };
+    MDCSnackbar.prototype.open = function () {
+        this.foundation.open();
+    };
+    /**
+     * @param reason Why the snackbar was closed. Value will be passed to CLOSING_EVENT and CLOSED_EVENT via the
+     *     `event.detail.reason` property. Standard values are REASON_ACTION and REASON_DISMISS, but custom
+     *     client-specific values may also be used if desired.
+     */
+    MDCSnackbar.prototype.close = function (reason) {
+        if (reason === void 0) { reason = ''; }
+        this.foundation.close(reason);
+    };
+    MDCSnackbar.prototype.getDefaultFoundation = function () {
+        var _this = this;
+        // DO NOT INLINE this variable. For backward compatibility, foundations take a Partial<MDCFooAdapter>.
+        // To ensure we don't accidentally omit any methods, we need a separate, strongly typed adapter variable.
+        var adapter = {
+            addClass: function (className) { return _this.root.classList.add(className); },
+            announce: function () { return _this.announce_(_this.labelEl_); },
+            notifyClosed: function (reason) { return _this.emit(CLOSED_EVENT, reason ? { reason: reason } : {}); },
+            notifyClosing: function (reason) { return _this.emit(CLOSING_EVENT, reason ? { reason: reason } : {}); },
+            notifyOpened: function () { return _this.emit(OPENED_EVENT, {}); },
+            notifyOpening: function () { return _this.emit(OPENING_EVENT, {}); },
+            removeClass: function (className) { return _this.root.classList.remove(className); },
+        };
+        return new _foundation__WEBPACK_IMPORTED_MODULE_3__.MDCSnackbarFoundation(adapter);
+    };
+    Object.defineProperty(MDCSnackbar.prototype, "timeoutMs", {
+        get: function () {
+            return this.foundation.getTimeoutMs();
+        },
+        set: function (timeoutMs) {
+            this.foundation.setTimeoutMs(timeoutMs);
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(MDCSnackbar.prototype, "closeOnEscape", {
+        get: function () {
+            return this.foundation.getCloseOnEscape();
+        },
+        set: function (closeOnEscape) {
+            this.foundation.setCloseOnEscape(closeOnEscape);
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(MDCSnackbar.prototype, "isOpen", {
+        get: function () {
+            return this.foundation.isOpen();
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(MDCSnackbar.prototype, "labelText", {
+        get: function () {
+            // This property only returns null if the node is a document, DOCTYPE, or notation.
+            // On Element nodes, it always returns a string.
+            return this.labelEl_.textContent;
+        },
+        set: function (labelText) {
+            this.labelEl_.textContent = labelText;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(MDCSnackbar.prototype, "actionButtonText", {
+        get: function () {
+            return this.actionEl_.textContent;
+        },
+        set: function (actionButtonText) {
+            this.actionEl_.textContent = actionButtonText;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    MDCSnackbar.prototype.registerKeyDownHandler_ = function (handler) {
+        this.listen('keydown', handler);
+    };
+    MDCSnackbar.prototype.deregisterKeyDownHandler_ = function (handler) {
+        this.unlisten('keydown', handler);
+    };
+    MDCSnackbar.prototype.registerSurfaceClickHandler_ = function (handler) {
+        this.surfaceEl_.addEventListener('click', handler);
+    };
+    MDCSnackbar.prototype.deregisterSurfaceClickHandler_ = function (handler) {
+        this.surfaceEl_.removeEventListener('click', handler);
+    };
+    MDCSnackbar.prototype.isActionButton_ = function (target) {
+        return Boolean((0,_material_dom_ponyfill__WEBPACK_IMPORTED_MODULE_4__.closest)(target, ACTION_SELECTOR));
+    };
+    MDCSnackbar.prototype.isActionIcon_ = function (target) {
+        return Boolean((0,_material_dom_ponyfill__WEBPACK_IMPORTED_MODULE_4__.closest)(target, DISMISS_SELECTOR));
+    };
+    return MDCSnackbar;
+}(_material_base_component__WEBPACK_IMPORTED_MODULE_5__.MDCComponent));
+
+//# sourceMappingURL=component.js.map
+
+/***/ }),
+
+/***/ "./node_modules/@material/snackbar/constants.js":
+/*!******************************************************!*\
+  !*** ./node_modules/@material/snackbar/constants.js ***!
+  \******************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "cssClasses": () => /* binding */ cssClasses,
+/* harmony export */   "strings": () => /* binding */ strings,
+/* harmony export */   "numbers": () => /* binding */ numbers
+/* harmony export */ });
+/**
+ * @license
+ * Copyright 2018 Google Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+var cssClasses = {
+    CLOSING: 'mdc-snackbar--closing',
+    OPEN: 'mdc-snackbar--open',
+    OPENING: 'mdc-snackbar--opening',
+};
+var strings = {
+    ACTION_SELECTOR: '.mdc-snackbar__action',
+    ARIA_LIVE_LABEL_TEXT_ATTR: 'data-mdc-snackbar-label-text',
+    CLOSED_EVENT: 'MDCSnackbar:closed',
+    CLOSING_EVENT: 'MDCSnackbar:closing',
+    DISMISS_SELECTOR: '.mdc-snackbar__dismiss',
+    LABEL_SELECTOR: '.mdc-snackbar__label',
+    OPENED_EVENT: 'MDCSnackbar:opened',
+    OPENING_EVENT: 'MDCSnackbar:opening',
+    REASON_ACTION: 'action',
+    REASON_DISMISS: 'dismiss',
+    SURFACE_SELECTOR: '.mdc-snackbar__surface',
+};
+var numbers = {
+    DEFAULT_AUTO_DISMISS_TIMEOUT_MS: 5000,
+    INDETERMINATE: -1,
+    MAX_AUTO_DISMISS_TIMEOUT_MS: 10000,
+    MIN_AUTO_DISMISS_TIMEOUT_MS: 4000,
+    // These variables need to be kept in sync with the values in _variables.scss.
+    SNACKBAR_ANIMATION_CLOSE_TIME_MS: 75,
+    SNACKBAR_ANIMATION_OPEN_TIME_MS: 150,
+    /**
+     * Number of milliseconds to wait between temporarily clearing the label text
+     * in the DOM and subsequently restoring it. This is necessary to force IE 11
+     * to pick up the `aria-live` content change and announce it to the user.
+     */
+    ARIA_LIVE_DELAY_MS: 1000,
+};
+
+//# sourceMappingURL=constants.js.map
+
+/***/ }),
+
+/***/ "./node_modules/@material/snackbar/foundation.js":
+/*!*******************************************************!*\
+  !*** ./node_modules/@material/snackbar/foundation.js ***!
+  \*******************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "MDCSnackbarFoundation": () => /* binding */ MDCSnackbarFoundation,
+/* harmony export */   "default": () => __WEBPACK_DEFAULT_EXPORT__
+/* harmony export */ });
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! tslib */ "./node_modules/tslib/tslib.es6.js");
+/* harmony import */ var _material_base_foundation__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @material/base/foundation */ "./node_modules/@material/base/foundation.js");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./constants */ "./node_modules/@material/snackbar/constants.js");
+/**
+ * @license
+ * Copyright 2018 Google Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+
+
+var OPENING = _constants__WEBPACK_IMPORTED_MODULE_0__.cssClasses.OPENING, OPEN = _constants__WEBPACK_IMPORTED_MODULE_0__.cssClasses.OPEN, CLOSING = _constants__WEBPACK_IMPORTED_MODULE_0__.cssClasses.CLOSING;
+var REASON_ACTION = _constants__WEBPACK_IMPORTED_MODULE_0__.strings.REASON_ACTION, REASON_DISMISS = _constants__WEBPACK_IMPORTED_MODULE_0__.strings.REASON_DISMISS;
+var MDCSnackbarFoundation = /** @class */ (function (_super) {
+    (0,tslib__WEBPACK_IMPORTED_MODULE_1__.__extends)(MDCSnackbarFoundation, _super);
+    function MDCSnackbarFoundation(adapter) {
+        var _this = _super.call(this, (0,tslib__WEBPACK_IMPORTED_MODULE_1__.__assign)((0,tslib__WEBPACK_IMPORTED_MODULE_1__.__assign)({}, MDCSnackbarFoundation.defaultAdapter), adapter)) || this;
+        _this.isOpen_ = false;
+        _this.animationFrame_ = 0;
+        _this.animationTimer_ = 0;
+        _this.autoDismissTimer_ = 0;
+        _this.autoDismissTimeoutMs_ = _constants__WEBPACK_IMPORTED_MODULE_0__.numbers.DEFAULT_AUTO_DISMISS_TIMEOUT_MS;
+        _this.closeOnEscape_ = true;
+        return _this;
+    }
+    Object.defineProperty(MDCSnackbarFoundation, "cssClasses", {
+        get: function () {
+            return _constants__WEBPACK_IMPORTED_MODULE_0__.cssClasses;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(MDCSnackbarFoundation, "strings", {
+        get: function () {
+            return _constants__WEBPACK_IMPORTED_MODULE_0__.strings;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(MDCSnackbarFoundation, "numbers", {
+        get: function () {
+            return _constants__WEBPACK_IMPORTED_MODULE_0__.numbers;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(MDCSnackbarFoundation, "defaultAdapter", {
+        get: function () {
+            return {
+                addClass: function () { return undefined; },
+                announce: function () { return undefined; },
+                notifyClosed: function () { return undefined; },
+                notifyClosing: function () { return undefined; },
+                notifyOpened: function () { return undefined; },
+                notifyOpening: function () { return undefined; },
+                removeClass: function () { return undefined; },
+            };
+        },
+        enumerable: true,
+        configurable: true
+    });
+    MDCSnackbarFoundation.prototype.destroy = function () {
+        this.clearAutoDismissTimer_();
+        cancelAnimationFrame(this.animationFrame_);
+        this.animationFrame_ = 0;
+        clearTimeout(this.animationTimer_);
+        this.animationTimer_ = 0;
+        this.adapter.removeClass(OPENING);
+        this.adapter.removeClass(OPEN);
+        this.adapter.removeClass(CLOSING);
+    };
+    MDCSnackbarFoundation.prototype.open = function () {
+        var _this = this;
+        this.clearAutoDismissTimer_();
+        this.isOpen_ = true;
+        this.adapter.notifyOpening();
+        this.adapter.removeClass(CLOSING);
+        this.adapter.addClass(OPENING);
+        this.adapter.announce();
+        // Wait a frame once display is no longer "none", to establish basis for animation
+        this.runNextAnimationFrame_(function () {
+            _this.adapter.addClass(OPEN);
+            _this.animationTimer_ = setTimeout(function () {
+                var timeoutMs = _this.getTimeoutMs();
+                _this.handleAnimationTimerEnd_();
+                _this.adapter.notifyOpened();
+                if (timeoutMs !== _constants__WEBPACK_IMPORTED_MODULE_0__.numbers.INDETERMINATE) {
+                    _this.autoDismissTimer_ = setTimeout(function () {
+                        _this.close(REASON_DISMISS);
+                    }, timeoutMs);
+                }
+            }, _constants__WEBPACK_IMPORTED_MODULE_0__.numbers.SNACKBAR_ANIMATION_OPEN_TIME_MS);
+        });
+    };
+    /**
+     * @param reason Why the snackbar was closed. Value will be passed to CLOSING_EVENT and CLOSED_EVENT via the
+     *     `event.detail.reason` property. Standard values are REASON_ACTION and REASON_DISMISS, but custom
+     *     client-specific values may also be used if desired.
+     */
+    MDCSnackbarFoundation.prototype.close = function (reason) {
+        var _this = this;
+        if (reason === void 0) { reason = ''; }
+        if (!this.isOpen_) {
+            // Avoid redundant close calls (and events), e.g. repeated interactions as the snackbar is animating closed
+            return;
+        }
+        cancelAnimationFrame(this.animationFrame_);
+        this.animationFrame_ = 0;
+        this.clearAutoDismissTimer_();
+        this.isOpen_ = false;
+        this.adapter.notifyClosing(reason);
+        this.adapter.addClass(_constants__WEBPACK_IMPORTED_MODULE_0__.cssClasses.CLOSING);
+        this.adapter.removeClass(_constants__WEBPACK_IMPORTED_MODULE_0__.cssClasses.OPEN);
+        this.adapter.removeClass(_constants__WEBPACK_IMPORTED_MODULE_0__.cssClasses.OPENING);
+        clearTimeout(this.animationTimer_);
+        this.animationTimer_ = setTimeout(function () {
+            _this.handleAnimationTimerEnd_();
+            _this.adapter.notifyClosed(reason);
+        }, _constants__WEBPACK_IMPORTED_MODULE_0__.numbers.SNACKBAR_ANIMATION_CLOSE_TIME_MS);
+    };
+    MDCSnackbarFoundation.prototype.isOpen = function () {
+        return this.isOpen_;
+    };
+    MDCSnackbarFoundation.prototype.getTimeoutMs = function () {
+        return this.autoDismissTimeoutMs_;
+    };
+    MDCSnackbarFoundation.prototype.setTimeoutMs = function (timeoutMs) {
+        // Use shorter variable names to make the code more readable
+        var minValue = _constants__WEBPACK_IMPORTED_MODULE_0__.numbers.MIN_AUTO_DISMISS_TIMEOUT_MS;
+        var maxValue = _constants__WEBPACK_IMPORTED_MODULE_0__.numbers.MAX_AUTO_DISMISS_TIMEOUT_MS;
+        var indeterminateValue = _constants__WEBPACK_IMPORTED_MODULE_0__.numbers.INDETERMINATE;
+        if (timeoutMs === _constants__WEBPACK_IMPORTED_MODULE_0__.numbers.INDETERMINATE || (timeoutMs <= maxValue && timeoutMs >= minValue)) {
+            this.autoDismissTimeoutMs_ = timeoutMs;
+        }
+        else {
+            throw new Error("\n        timeoutMs must be an integer in the range " + minValue + "\u2013" + maxValue + "\n        (or " + indeterminateValue + " to disable), but got '" + timeoutMs + "'");
+        }
+    };
+    MDCSnackbarFoundation.prototype.getCloseOnEscape = function () {
+        return this.closeOnEscape_;
+    };
+    MDCSnackbarFoundation.prototype.setCloseOnEscape = function (closeOnEscape) {
+        this.closeOnEscape_ = closeOnEscape;
+    };
+    MDCSnackbarFoundation.prototype.handleKeyDown = function (evt) {
+        var isEscapeKey = evt.key === 'Escape' || evt.keyCode === 27;
+        if (isEscapeKey && this.getCloseOnEscape()) {
+            this.close(REASON_DISMISS);
+        }
+    };
+    MDCSnackbarFoundation.prototype.handleActionButtonClick = function (_evt) {
+        this.close(REASON_ACTION);
+    };
+    MDCSnackbarFoundation.prototype.handleActionIconClick = function (_evt) {
+        this.close(REASON_DISMISS);
+    };
+    MDCSnackbarFoundation.prototype.clearAutoDismissTimer_ = function () {
+        clearTimeout(this.autoDismissTimer_);
+        this.autoDismissTimer_ = 0;
+    };
+    MDCSnackbarFoundation.prototype.handleAnimationTimerEnd_ = function () {
+        this.animationTimer_ = 0;
+        this.adapter.removeClass(_constants__WEBPACK_IMPORTED_MODULE_0__.cssClasses.OPENING);
+        this.adapter.removeClass(_constants__WEBPACK_IMPORTED_MODULE_0__.cssClasses.CLOSING);
+    };
+    /**
+     * Runs the given logic on the next animation frame, using setTimeout to factor in Firefox reflow behavior.
+     */
+    MDCSnackbarFoundation.prototype.runNextAnimationFrame_ = function (callback) {
+        var _this = this;
+        cancelAnimationFrame(this.animationFrame_);
+        this.animationFrame_ = requestAnimationFrame(function () {
+            _this.animationFrame_ = 0;
+            clearTimeout(_this.animationTimer_);
+            _this.animationTimer_ = setTimeout(callback, 0);
+        });
+    };
+    return MDCSnackbarFoundation;
+}(_material_base_foundation__WEBPACK_IMPORTED_MODULE_2__.MDCFoundation));
+
+// tslint:disable-next-line:no-default-export Needed for backward compatibility with MDC Web v0.44.0 and earlier.
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (MDCSnackbarFoundation);
+//# sourceMappingURL=foundation.js.map
+
+/***/ }),
+
+/***/ "./node_modules/@material/snackbar/index.js":
+/*!**************************************************!*\
+  !*** ./node_modules/@material/snackbar/index.js ***!
+  \**************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "util": () => /* reexport module object */ _util__WEBPACK_IMPORTED_MODULE_0__,
+/* harmony export */   "MDCSnackbar": () => /* reexport safe */ _component__WEBPACK_IMPORTED_MODULE_1__.MDCSnackbar,
+/* harmony export */   "cssClasses": () => /* reexport safe */ _constants__WEBPACK_IMPORTED_MODULE_2__.cssClasses,
+/* harmony export */   "numbers": () => /* reexport safe */ _constants__WEBPACK_IMPORTED_MODULE_2__.numbers,
+/* harmony export */   "strings": () => /* reexport safe */ _constants__WEBPACK_IMPORTED_MODULE_2__.strings,
+/* harmony export */   "MDCSnackbarFoundation": () => /* reexport safe */ _foundation__WEBPACK_IMPORTED_MODULE_3__.MDCSnackbarFoundation
+/* harmony export */ });
+/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./util */ "./node_modules/@material/snackbar/util.js");
+/* harmony import */ var _component__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./component */ "./node_modules/@material/snackbar/component.js");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./constants */ "./node_modules/@material/snackbar/constants.js");
+/* harmony import */ var _foundation__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./foundation */ "./node_modules/@material/snackbar/foundation.js");
+/**
+ * @license
+ * Copyright 2019 Google Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+
+
+
+
+//# sourceMappingURL=index.js.map
+
+/***/ }),
+
+/***/ "./node_modules/@material/snackbar/util.js":
+/*!*************************************************!*\
+  !*** ./node_modules/@material/snackbar/util.js ***!
+  \*************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "announce": () => /* binding */ announce
+/* harmony export */ });
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./constants */ "./node_modules/@material/snackbar/constants.js");
+/**
+ * @license
+ * Copyright 2018 Google Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+var ARIA_LIVE_DELAY_MS = _constants__WEBPACK_IMPORTED_MODULE_0__.numbers.ARIA_LIVE_DELAY_MS;
+var ARIA_LIVE_LABEL_TEXT_ATTR = _constants__WEBPACK_IMPORTED_MODULE_0__.strings.ARIA_LIVE_LABEL_TEXT_ATTR;
+function announce(ariaEl, labelEl) {
+    if (labelEl === void 0) { labelEl = ariaEl; }
+    var priority = ariaEl.getAttribute('aria-live');
+    // Trim text to ignore `&nbsp;` (see below).
+    // textContent is only null if the node is a document, DOCTYPE, or notation.
+    var labelText = labelEl.textContent.trim();
+    if (!labelText || !priority) {
+        return;
+    }
+    // Temporarily disable `aria-live` to prevent JAWS+Firefox from announcing the message twice.
+    ariaEl.setAttribute('aria-live', 'off');
+    // Temporarily clear `textContent` to force a DOM mutation event that will be detected by screen readers.
+    // `aria-live` elements are only announced when the element's `textContent` *changes*, so snackbars
+    // sent to the browser in the initial HTML response won't be read unless we clear the element's `textContent` first.
+    // Similarly, displaying the same snackbar message twice in a row doesn't trigger a DOM mutation event,
+    // so screen readers won't announce the second message unless we first clear `textContent`.
+    //
+    // We have to clear the label text two different ways to make it work in all browsers and screen readers:
+    //
+    //   1. `textContent = ''` is required for IE11 + JAWS
+    //   2. `innerHTML = '&nbsp;'` is required for Chrome + JAWS and NVDA
+    //
+    // All other browser/screen reader combinations support both methods.
+    //
+    // The wrapper `<span>` visually hides the space character so that it doesn't cause jank when added/removed.
+    // N.B.: Setting `position: absolute`, `opacity: 0`, or `height: 0` prevents Chrome from detecting the DOM change.
+    //
+    // This technique has been tested in:
+    //
+    //   * JAWS 2019:
+    //       - Chrome 70
+    //       - Firefox 60 (ESR)
+    //       - IE 11
+    //   * NVDA 2018:
+    //       - Chrome 70
+    //       - Firefox 60 (ESR)
+    //       - IE 11
+    //   * ChromeVox 53
+    labelEl.textContent = '';
+    labelEl.innerHTML = '<span style="display: inline-block; width: 0; height: 1px;">&nbsp;</span>';
+    // Prevent visual jank by temporarily displaying the label text in the ::before pseudo-element.
+    // CSS generated content is normally announced by screen readers
+    // (except in IE 11; see https://tink.uk/accessibility-support-for-css-generated-content/);
+    // however, `aria-live` is turned off, so this DOM update will be ignored by screen readers.
+    labelEl.setAttribute(ARIA_LIVE_LABEL_TEXT_ATTR, labelText);
+    setTimeout(function () {
+        // Allow screen readers to announce changes to the DOM again.
+        ariaEl.setAttribute('aria-live', priority);
+        // Remove the message from the ::before pseudo-element.
+        labelEl.removeAttribute(ARIA_LIVE_LABEL_TEXT_ATTR);
+        // Restore the original label text, which will be announced by screen readers.
+        labelEl.textContent = labelText;
+    }, ARIA_LIVE_DELAY_MS);
+}
+
+//# sourceMappingURL=util.js.map
+
+/***/ }),
+
+/***/ "./node_modules/@material/switch/component.js":
+/*!****************************************************!*\
+  !*** ./node_modules/@material/switch/component.js ***!
+  \****************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "MDCSwitch": () => /* binding */ MDCSwitch
+/* harmony export */ });
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! tslib */ "./node_modules/tslib/tslib.es6.js");
+/* harmony import */ var _material_base_component__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! @material/base/component */ "./node_modules/@material/base/component.js");
+/* harmony import */ var _material_dom_events__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @material/dom/events */ "./node_modules/@material/dom/events.js");
+/* harmony import */ var _material_dom_ponyfill__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @material/dom/ponyfill */ "./node_modules/@material/dom/ponyfill.js");
+/* harmony import */ var _material_ripple_component__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @material/ripple/component */ "./node_modules/@material/ripple/component.js");
+/* harmony import */ var _material_ripple_foundation__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @material/ripple/foundation */ "./node_modules/@material/ripple/foundation.js");
+/* harmony import */ var _foundation__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./foundation */ "./node_modules/@material/switch/foundation.js");
+/**
+ * @license
+ * Copyright 2018 Google Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+
+
+
+
+
+
+var MDCSwitch = /** @class */ (function (_super) {
+    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(MDCSwitch, _super);
+    function MDCSwitch() {
+        var _this = _super !== null && _super.apply(this, arguments) || this;
+        _this.ripple_ = _this.createRipple_();
+        return _this;
+    }
+    MDCSwitch.attachTo = function (root) {
+        return new MDCSwitch(root);
+    };
+    MDCSwitch.prototype.destroy = function () {
+        _super.prototype.destroy.call(this);
+        this.ripple_.destroy();
+        this.nativeControl_.removeEventListener('change', this.changeHandler_);
+    };
+    MDCSwitch.prototype.initialSyncWithDOM = function () {
+        var _this = this;
+        this.changeHandler_ = function () {
+            var _a;
+            var args = [];
+            for (var _i = 0; _i < arguments.length; _i++) {
+                args[_i] = arguments[_i];
+            }
+            return (_a = _this.foundation).handleChange.apply(_a, (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__spread)(args));
+        };
+        this.nativeControl_.addEventListener('change', this.changeHandler_);
+        // Sometimes the checked state of the input element is saved in the history.
+        // The switch styling should match the checked state of the input element.
+        // Do an initial sync between the native control and the foundation.
+        this.checked = this.checked;
+    };
+    MDCSwitch.prototype.getDefaultFoundation = function () {
+        var _this = this;
+        // DO NOT INLINE this variable. For backward compatibility, foundations take a Partial<MDCFooAdapter>.
+        // To ensure we don't accidentally omit any methods, we need a separate, strongly typed adapter variable.
+        var adapter = {
+            addClass: function (className) { return _this.root.classList.add(className); },
+            removeClass: function (className) { return _this.root.classList.remove(className); },
+            setNativeControlChecked: function (checked) { return _this.nativeControl_.checked =
+                checked; },
+            setNativeControlDisabled: function (disabled) { return _this.nativeControl_.disabled =
+                disabled; },
+            setNativeControlAttr: function (attr, value) {
+                return _this.nativeControl_.setAttribute(attr, value);
+            },
+        };
+        return new _foundation__WEBPACK_IMPORTED_MODULE_1__.MDCSwitchFoundation(adapter);
+    };
+    Object.defineProperty(MDCSwitch.prototype, "ripple", {
+        get: function () {
+            return this.ripple_;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(MDCSwitch.prototype, "checked", {
+        get: function () {
+            return this.nativeControl_.checked;
+        },
+        set: function (checked) {
+            this.foundation.setChecked(checked);
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(MDCSwitch.prototype, "disabled", {
+        get: function () {
+            return this.nativeControl_.disabled;
+        },
+        set: function (disabled) {
+            this.foundation.setDisabled(disabled);
+        },
+        enumerable: true,
+        configurable: true
+    });
+    MDCSwitch.prototype.createRipple_ = function () {
+        var _this = this;
+        var RIPPLE_SURFACE_SELECTOR = _foundation__WEBPACK_IMPORTED_MODULE_1__.MDCSwitchFoundation.strings.RIPPLE_SURFACE_SELECTOR;
+        var rippleSurface = this.root.querySelector(RIPPLE_SURFACE_SELECTOR);
+        // DO NOT INLINE this variable. For backward compatibility, foundations take a Partial<MDCFooAdapter>.
+        // To ensure we don't accidentally omit any methods, we need a separate, strongly typed adapter variable.
+        var adapter = (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__assign)((0,tslib__WEBPACK_IMPORTED_MODULE_0__.__assign)({}, _material_ripple_component__WEBPACK_IMPORTED_MODULE_2__.MDCRipple.createAdapter(this)), { addClass: function (className) { return rippleSurface.classList.add(className); }, computeBoundingRect: function () { return rippleSurface.getBoundingClientRect(); }, deregisterInteractionHandler: function (evtType, handler) {
+                _this.nativeControl_.removeEventListener(evtType, handler, (0,_material_dom_events__WEBPACK_IMPORTED_MODULE_3__.applyPassive)());
+            }, isSurfaceActive: function () { return (0,_material_dom_ponyfill__WEBPACK_IMPORTED_MODULE_4__.matches)(_this.nativeControl_, ':active'); }, isUnbounded: function () { return true; }, registerInteractionHandler: function (evtType, handler) {
+                _this.nativeControl_.addEventListener(evtType, handler, (0,_material_dom_events__WEBPACK_IMPORTED_MODULE_3__.applyPassive)());
+            }, removeClass: function (className) {
+                rippleSurface.classList.remove(className);
+            }, updateCssVariable: function (varName, value) {
+                rippleSurface.style.setProperty(varName, value);
+            } });
+        return new _material_ripple_component__WEBPACK_IMPORTED_MODULE_2__.MDCRipple(this.root, new _material_ripple_foundation__WEBPACK_IMPORTED_MODULE_5__.MDCRippleFoundation(adapter));
+    };
+    Object.defineProperty(MDCSwitch.prototype, "nativeControl_", {
+        get: function () {
+            var NATIVE_CONTROL_SELECTOR = _foundation__WEBPACK_IMPORTED_MODULE_1__.MDCSwitchFoundation.strings.NATIVE_CONTROL_SELECTOR;
+            return this.root.querySelector(NATIVE_CONTROL_SELECTOR);
+        },
+        enumerable: true,
+        configurable: true
+    });
+    return MDCSwitch;
+}(_material_base_component__WEBPACK_IMPORTED_MODULE_6__.MDCComponent));
+
+//# sourceMappingURL=component.js.map
+
+/***/ }),
+
+/***/ "./node_modules/@material/switch/constants.js":
+/*!****************************************************!*\
+  !*** ./node_modules/@material/switch/constants.js ***!
+  \****************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "cssClasses": () => /* binding */ cssClasses,
+/* harmony export */   "strings": () => /* binding */ strings
+/* harmony export */ });
+/**
+ * @license
+ * Copyright 2018 Google Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+/** CSS classes used by the switch. */
+var cssClasses = {
+    /** Class used for a switch that is in the "checked" (on) position. */
+    CHECKED: 'mdc-switch--checked',
+    /** Class used for a switch that is disabled. */
+    DISABLED: 'mdc-switch--disabled',
+};
+/** String constants used by the switch. */
+var strings = {
+    /** Aria attribute for checked or unchecked state of switch */
+    ARIA_CHECKED_ATTR: 'aria-checked',
+    /** A CSS selector used to locate the native HTML control for the switch.  */
+    NATIVE_CONTROL_SELECTOR: '.mdc-switch__native-control',
+    /** A CSS selector used to locate the ripple surface element for the switch. */
+    RIPPLE_SURFACE_SELECTOR: '.mdc-switch__thumb-underlay',
+};
+
+//# sourceMappingURL=constants.js.map
+
+/***/ }),
+
+/***/ "./node_modules/@material/switch/foundation.js":
+/*!*****************************************************!*\
+  !*** ./node_modules/@material/switch/foundation.js ***!
+  \*****************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "MDCSwitchFoundation": () => /* binding */ MDCSwitchFoundation,
+/* harmony export */   "default": () => __WEBPACK_DEFAULT_EXPORT__
+/* harmony export */ });
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! tslib */ "./node_modules/tslib/tslib.es6.js");
+/* harmony import */ var _material_base_foundation__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @material/base/foundation */ "./node_modules/@material/base/foundation.js");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./constants */ "./node_modules/@material/switch/constants.js");
+/**
+ * @license
+ * Copyright 2018 Google Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+
+
+var MDCSwitchFoundation = /** @class */ (function (_super) {
+    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(MDCSwitchFoundation, _super);
+    function MDCSwitchFoundation(adapter) {
+        return _super.call(this, (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__assign)((0,tslib__WEBPACK_IMPORTED_MODULE_0__.__assign)({}, MDCSwitchFoundation.defaultAdapter), adapter)) || this;
+    }
+    Object.defineProperty(MDCSwitchFoundation, "strings", {
+        /** The string constants used by the switch. */
+        get: function () {
+            return _constants__WEBPACK_IMPORTED_MODULE_1__.strings;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(MDCSwitchFoundation, "cssClasses", {
+        /** The CSS classes used by the switch. */
+        get: function () {
+            return _constants__WEBPACK_IMPORTED_MODULE_1__.cssClasses;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    Object.defineProperty(MDCSwitchFoundation, "defaultAdapter", {
+        /** The default Adapter for the switch. */
+        get: function () {
+            return {
+                addClass: function () { return undefined; },
+                removeClass: function () { return undefined; },
+                setNativeControlChecked: function () { return undefined; },
+                setNativeControlDisabled: function () { return undefined; },
+                setNativeControlAttr: function () { return undefined; },
+            };
+        },
+        enumerable: true,
+        configurable: true
+    });
+    /** Sets the checked state of the switch. */
+    MDCSwitchFoundation.prototype.setChecked = function (checked) {
+        this.adapter.setNativeControlChecked(checked);
+        this.updateAriaChecked_(checked);
+        this.updateCheckedStyling_(checked);
+    };
+    /** Sets the disabled state of the switch. */
+    MDCSwitchFoundation.prototype.setDisabled = function (disabled) {
+        this.adapter.setNativeControlDisabled(disabled);
+        if (disabled) {
+            this.adapter.addClass(_constants__WEBPACK_IMPORTED_MODULE_1__.cssClasses.DISABLED);
+        }
+        else {
+            this.adapter.removeClass(_constants__WEBPACK_IMPORTED_MODULE_1__.cssClasses.DISABLED);
+        }
+    };
+    /** Handles the change event for the switch native control. */
+    MDCSwitchFoundation.prototype.handleChange = function (evt) {
+        var nativeControl = evt.target;
+        this.updateAriaChecked_(nativeControl.checked);
+        this.updateCheckedStyling_(nativeControl.checked);
+    };
+    /** Updates the styling of the switch based on its checked state. */
+    MDCSwitchFoundation.prototype.updateCheckedStyling_ = function (checked) {
+        if (checked) {
+            this.adapter.addClass(_constants__WEBPACK_IMPORTED_MODULE_1__.cssClasses.CHECKED);
+        }
+        else {
+            this.adapter.removeClass(_constants__WEBPACK_IMPORTED_MODULE_1__.cssClasses.CHECKED);
+        }
+    };
+    MDCSwitchFoundation.prototype.updateAriaChecked_ = function (checked) {
+        this.adapter.setNativeControlAttr(_constants__WEBPACK_IMPORTED_MODULE_1__.strings.ARIA_CHECKED_ATTR, "" + !!checked);
+    };
+    return MDCSwitchFoundation;
+}(_material_base_foundation__WEBPACK_IMPORTED_MODULE_2__.MDCFoundation));
+
+// tslint:disable-next-line:no-default-export Needed for backward compatibility with MDC Web v0.44.0 and earlier.
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (MDCSwitchFoundation);
+//# sourceMappingURL=foundation.js.map
+
+/***/ }),
+
+/***/ "./node_modules/@material/switch/index.js":
+/*!************************************************!*\
+  !*** ./node_modules/@material/switch/index.js ***!
+  \************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "MDCSwitch": () => /* reexport safe */ _component__WEBPACK_IMPORTED_MODULE_0__.MDCSwitch,
+/* harmony export */   "cssClasses": () => /* reexport safe */ _constants__WEBPACK_IMPORTED_MODULE_1__.cssClasses,
+/* harmony export */   "strings": () => /* reexport safe */ _constants__WEBPACK_IMPORTED_MODULE_1__.strings,
+/* harmony export */   "MDCSwitchFoundation": () => /* reexport safe */ _foundation__WEBPACK_IMPORTED_MODULE_2__.MDCSwitchFoundation
+/* harmony export */ });
+/* harmony import */ var _component__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./component */ "./node_modules/@material/switch/component.js");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./constants */ "./node_modules/@material/switch/constants.js");
+/* harmony import */ var _foundation__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./foundation */ "./node_modules/@material/switch/foundation.js");
+/**
+ * @license
+ * Copyright 2019 Google Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
 
 
 

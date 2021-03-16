@@ -12,15 +12,18 @@ export class Model {
 
     private view: View;
     
-    // Collection (map) of objects: objects ids mapping related objects
+    // Collection (array) of objects (we use array to maintain objects order)
     private objects: any[];
 
+    // Map for keeping track of the fields that have been changed, on an object basis (keys are objects ids)
+    private has_changed: any;
 
     // total objects matching the current domain on the back-end
     private total: number;
 
     private loaded_promise: any;
-    private has_changed: boolean;
+
+
     
     // Collecitons do not deal with lang: it is used in ApiService set in the environment var
     
@@ -28,8 +31,8 @@ export class Model {
         this.view = view;
 
         this.loaded_promise = $.Deferred();
-        this.has_changed = false;
-        
+
+        this.has_changed = {};
         this.objects = [];
         this.total = 0;
     }
@@ -46,8 +49,8 @@ export class Model {
         
     }
         
-    public hasChanged() {
-        return this.has_changed;
+    public hasChanged() : boolean {
+        return (Object.keys(this.has_changed).length > 0);
     }
 
     /** 
@@ -85,52 +88,90 @@ export class Model {
     }
     
     /**
-     * React to external request of Model change (one ore more objects in the collection have been updated through the Layout)
+     * React to external request of Model change (one ore more objects in the collection have been updated through the Layout).
+     * Changes are made on a field basis.
+     * 
      */
     public change(ids: Array<any>, values: any) {
-        for (let object of this.objects) {
+        console.log('Model::change', ids, values);
+        for (let index in this.objects) {
+            let object = this.objects[index];
             for (let id of ids) {
                 if(object.hasOwnProperty('id') && object.id == id) {
                     for (let field in values) {
                         if(object.hasOwnProperty(field)) {
-                            object[field] = values[field];
-                            this.has_changed = true;
+                            if(!this.has_changed.hasOwnProperty(id)) {
+                                this.has_changed[id] = [];
+                            }
+                            // update field
+                            this.objects[index][field] = values[field];
+                            // mark field as changed
+                            this.has_changed[id].push(field);
                         }
                     }    
                 }
             }
         }
+        console.log('##########################', this.objects)        ;        
     }
     
     public ids() {
-        return this.objects.map( (object:any) => object['id'] );
+        return this.objects.map( (object:any) => object.id );
     }
 
     /**
-     * Return the entire Collection
-     *
+     * Return the Collection.
+     * The result set can be limited to a subset of specific objects by specifying an array of ids.
+     * 
+     * @param ids array list of objects identifiers that must be returned
      */
     public get(ids:any[] = []) {
         let promise = $.Deferred();
-        
         this.loaded_promise.
         then( () => {
-            // return the full collection
-            if(ids.length == 0) {
-                promise.resolve(this.objects);
+            if(ids.length) {
+                // create a custom collection by filtering objects on their ids
+                promise.resolve( this.objects.filter( (object:any) => ids.indexOf(+object['id']) > -1 ) );                
             }
             else {
-                // create a custom collection by filtering objects on their ids
-                promise.resolve( this.objects.filter( (object:any) => ids.indexOf(object['id']) > -1 ) );
+                // return the full collection
+                promise.resolve(this.objects);
             }            
         })
-        .catch( () => {
-            promise.resolve({});
-        })
-        
+        .catch( () => promise.resolve({}) );
+
         return promise;
     }
-    
+
+    /**
+     * Returns a collection holding only modified objects with their modified fields.
+     * The collection will be empty if no changes occured.
+     * 
+     * @param ids array list of objects identifiers that must be returned (if changed)
+     */
+    public getChanges(ids:any[] = []) {
+        let collection = [];
+        for(let id in this.has_changed) {
+            if(ids.length && ids.indexOf(+id) < 0) continue;
+            let fields = this.has_changed[id];
+            let object = this.objects.find( (object:any) => object.id == id );
+            if(object == undefined) continue;
+            let result:any = {id: id};
+            for(let field of fields) {
+                result[field] = object[field];
+            }
+            // force appending `state`and `modified` fields (when present) for concurrency control
+            if(object.hasOwnProperty('modified')) {
+                result['modified'] = object.modified;
+            }
+            if(object.hasOwnProperty('state')) {
+                result['state'] = object.state;
+            }
+            collection.push(result);
+        }
+        return collection;
+    }
+
     public getTotal() {
         return this.total;
     }

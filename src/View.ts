@@ -1,5 +1,5 @@
 import { $ } from "./jquery-lib";
-import { UIHelper, MDCMenu } from './material-lib';
+import { UIHelper } from './material-lib';
 import { environment } from "./environment";
 
 import { ApiService, TranslationService } from "./equal-services";
@@ -567,7 +567,7 @@ export class View {
      * @param full 
      */
     private layoutListRefresh(full: boolean = false) {
-        console.log('View::layoutListRefresh#########################');
+        console.log('View::layoutListRefresh');
         // update footer indicators (total count)        
         let limit: number = this.getLimit();
         let total: number = this.getTotal();
@@ -651,22 +651,53 @@ export class View {
                 .append( 
                     UIHelper.createButton('action-save', TranslationService.instant('SB_ACTIONS_BUTTON_SAVE'), 'raised')
                     .on('click', async () => {
-                        let objects = await this.model.get();
-                        let object = objects[0];
-                        const response = await ApiService.update(this.entity, [object['id']], object);
-                        if(!response || !response.hasOwnProperty('errors')) {
+                        let objects;
+                        if(this.purpose == 'create') {
+                            // get the full collection, whatever the changes made by user
+                            objects = await this.model.get();
+                        }
+                        else {
+                            // get changed objects only 
+                            objects = this.model.getChanges();
+                        }                         
+                        if(!objects.length) {
                             $('#sb-events').trigger('_closeContext');
                         }
                         else {
-                            let errors = response['errors'];
-                            if(errors.hasOwnProperty('INVALID_PARAM')) {
-                                for(let field in errors['INVALID_PARAM']) {
-                                    // for each field, we handle one error at a time (the first one)
-                                    let error_id:string = <string>(Object.keys(errors['INVALID_PARAM'][field]))[0];
-                                    let msg:string = <string>(Object.values(errors['INVALID_PARAM'][field]))[0];
-                                    // translate error message
-                                    msg = TranslationService.resolve(this.translation, 'error', field, msg, error_id);
-                                    this.layout.markFieldAsInvalid(object['id'], field, msg);
+                            // we're in edit mode for single object (form)
+                            let object = objects[0];
+                            const response = await ApiService.update(this.entity, [object['id']], object);
+                            if(!response || !response.hasOwnProperty('errors')) {
+                                $('#sb-events').trigger('_closeContext');
+                            }
+                            else {
+                                let errors = response['errors'];
+                                if(errors.hasOwnProperty('INVALID_PARAM')) {
+                                    for(let field in errors['INVALID_PARAM']) {
+                                        // for each field, we handle one error at a time (the first one)
+                                        let error_id:string = <string>(Object.keys(errors['INVALID_PARAM'][field]))[0];
+                                        let msg:string = <string>(Object.values(errors['INVALID_PARAM'][field]))[0];
+                                        // translate error message
+                                        msg = TranslationService.resolve(this.translation, 'error', field, msg, error_id);
+                                        this.layout.markFieldAsInvalid(object['id'], field, msg);
+                                    }
+                                }
+                                else if(errors.hasOwnProperty('CONFLICT_OBJECT')) {
+                                    // some fields must violate a unique constraint
+                                    if(typeof errors['CONFLICT_OBJECT'] == 'object') {
+                                        for(let field in errors['CONFLICT_OBJECT']) {
+                                            this.layout.markFieldAsInvalid(object['id'], field, TranslationService.instant('SB_ERROR_DUPLICATE_VALUE'));
+                                        }
+                                    }
+                                    // object has been modified in the meanwhile
+                                    else {
+                                        let validation = false;
+                                        validation = confirm(TranslationService.instant('SB_ACTIONS_MESSAGE_ERASE_CONUCRRENT_CHANGES'));
+                                        if(validation) {
+                                            await ApiService.update(this.entity, [object['id']], object, true);
+                                        }
+                                        $('#sb-events').trigger('_closeContext');
+                                    }
                                 }
                             }
                         }
@@ -758,17 +789,15 @@ export class View {
                 if($tr.attr('data-edit') != '1') {
                     let $td = $tr.children().first();
                     let $checkbox = $td.find('.sb-checkbox').hide();
-                    let $save_button = UIHelper.createButton('view-save-row', '', 'mini-fab', 'save')
+                    let $save_button = UIHelper.createButton('view-save-row', '', 'mini-fab', 'save').addClass('sb-view-list-inline-save-button')
                     .appendTo($td)
                     .on('click', async (event:any) => {
                         event.stopPropagation();
     
                         let object_id = parseInt(<string>$tr.attr('data-id'), 10);
-                        let objects = await this.model.get([object_id]);
-                        let object = objects[0];
-    
-                        const response = await ApiService.update(this.entity, [object_id], object);
-                        if(!response || !response.hasOwnProperty('errors')) {
+                        let objects = this.model.getChanges([object_id]);
+
+                        let success = () => {
                             $save_button.remove();
                             $tr.find('.sb-widget-cell').each( (i: number, cell: any) => {
                                 $(cell).trigger('_toggle_mode', 'view');
@@ -776,21 +805,39 @@ export class View {
                             $checkbox.show();
                             // restore click handling
                             $tr.attr('data-edit', '0');
+                        };
+
+                        if(!objects.length) {
+                            success();
                         }
                         else {
-                            let errors = response['errors'];
-                            if(errors.hasOwnProperty('INVALID_PARAM')) {
-                                for(let field in errors['INVALID_PARAM']) {
-                                    // for each field, we handle one error at a time (the first one)
-                                    let error_id:string = <string>(Object.keys(errors['INVALID_PARAM'][field]))[0];
-                                    let msg:string = <string>(Object.values(errors['INVALID_PARAM'][field]))[0];
-                                    // translate error message
-                                    msg = TranslationService.resolve(this.translation, 'error', field, msg, error_id);
-                                    this.layout.markFieldAsInvalid(object['id'], field, msg);
-                                }
+                            let object = objects[0];
+                            const response = await ApiService.update(this.entity, [object_id], object);
+                            if(!response || !response.hasOwnProperty('errors')) {
+                                success();
                             }
-                        }
-    
+                            else {
+                                let errors = response['errors'];
+                                if(errors.hasOwnProperty('INVALID_PARAM')) {
+                                    let delay = 4000;
+                                    let i = 0;
+                                    let count = Object.keys(errors['INVALID_PARAM']).length;
+                                    // stack snackbars (LIFO: decreasing timeout)
+                                    for(let field in errors['INVALID_PARAM']) {
+                                        // for each field, we handle one error at a time (the first one)
+                                        let error_id:string = <string>(Object.keys(errors['INVALID_PARAM'][field]))[0];
+                                        let msg:string = <string>(Object.values(errors['INVALID_PARAM'][field]))[0];
+                                        // translate error message
+                                        msg = TranslationService.resolve(this.translation, 'error', field, msg, error_id);
+                                        this.layout.markFieldAsInvalid(object['id'], field, msg);
+                                        let title = TranslationService.resolve(this.translation, 'model', field, field, 'label');
+                                        let $snack = UIHelper.createSnackbar(title+': '+msg, '', '', delay * (count-i));
+                                        this.$container.append($snack);
+                                        ++i;
+                                    }
+                                }
+                            }                            
+                        }    
                     });
                     // mark row as being edited (prevent click handling)
                     $tr.attr('data-edit', '1');

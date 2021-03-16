@@ -1,5 +1,6 @@
 import Widget from "./widgets/Widget";
 
+import WidgetBoolean from "./widgets/WidgetBoolean";
 import WidgetDate from "./widgets/WidgetDate";
 import WidgetDateTime from "./widgets/WidgetDateTime";
 import WidgetString from "./widgets/WidgetString";
@@ -40,6 +41,8 @@ config: {
  */
     public static getWidget(type: string, label: string, value: any = null, config:any = {}): Widget {
         switch(type) {
+            case 'boolean':
+                return new WidgetBoolean(label, value, config);
             case 'date':
                 return new WidgetDate(label, value, config);
             case 'datetime':
@@ -49,7 +52,7 @@ config: {
             case 'many2many':
                 return new WidgetMany2Many(label, value, config);
             case 'link':
-                return new WidgetLink(label, value, config);
+                // return new WidgetLink(label, value, config);
             case 'text':
                 return new WidgetText(label, value, config);
             case 'select':

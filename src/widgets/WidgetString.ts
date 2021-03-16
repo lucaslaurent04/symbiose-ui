@@ -8,6 +8,7 @@ export default class WidgetString extends Widget {
     }
 
     public render():JQuery {
+        console.log('WidgetString::render');
         let $elem: JQuery;
         let value:string = this.value?this.value:'';
         switch(this.mode) {
@@ -25,10 +26,8 @@ export default class WidgetString extends Widget {
                 $elem = UIHelper.createInputView('', this.label, value);                
                 break;
         }
-        $elem.addClass('sb-widget').attr('id', this.getId());
 
-
-        return $elem;
+        return $elem.addClass('sb-widget').attr('id', this.getId());
     }
     
 }

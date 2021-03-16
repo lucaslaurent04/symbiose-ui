@@ -8,7 +8,7 @@ export default class WidgetSelect extends Widget {
     }
 
     public render():JQuery {
-        console.log('WidgetSelect::render', this.config);
+        console.log('WidgetSelect::render', this.config, this.mode);
         let $elem: JQuery;
         let value:string = this.value?this.value:'';
         console.log(this.value, value);

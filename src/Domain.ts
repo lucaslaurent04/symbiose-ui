@@ -1,4 +1,3 @@
-
 /**
  * Class Domain manipulations
  *
@@ -59,7 +58,6 @@ export class Domain {
         for(let clause of this.clauses) {
             clause.addCondition(condition);
         }
-
     }
 
     public evaluate(values: any) {

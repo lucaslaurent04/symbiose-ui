@@ -94,8 +94,7 @@ export default class Widget {
     }
 
     public attach(): JQuery {
-        let $elem = $('<div/>');
-        $elem.addClass('sb-widget').attr('id', this.getId());
+        let $elem = $('<div/>').addClass('sb-widget').attr('id', this.getId());
         return $elem;
     }
     

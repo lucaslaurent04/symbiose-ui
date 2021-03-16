@@ -123,6 +123,10 @@ body, html {
     height: calc(100% - 112px);
 }
 
+.sb-view-list-inline-save-button {
+    transform: scale(0.9);
+}
+
 .sb-layout {
     position: relative;
     height: 100%;
@@ -394,11 +398,27 @@ body, html {
     color: var(--mdc-theme-error, #b00020);
 }
 
+.sb-widget-cell .mdc-select {
+    position: absolute;
+    outline: solid 1px var(--mdc-theme-primary-outline);
+    margin-top: -14px;
+}
+
+.sb-widget-cell .mdc-select .mdc-select__anchor {
+    height: 100%;
+}
+
+.sb-widget-cell .mdc-switch {
+    margin-top: 4px;
+}
+
 /* make mini-fab flat (mini save buttons) */ 
 .sb-checkbox-cell .mdc-fab--mini {
     box-shadow: none !important;
     margin: 2px 0;
 }
+
+
 
 
 .mdc-menu {
@@ -496,6 +516,10 @@ body, html {
 
 .mdc-text-field--focused:not(.mdc-text-field--disabled) .mdc-floating-label {
     color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;
+}
+
+.mdc-select {
+    width: 100%;
 }
 
 .mdc-select--focused:not(.mdc-text-field--disabled) .mdc-floating-label {
