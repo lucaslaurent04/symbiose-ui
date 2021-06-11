@@ -38,17 +38,49 @@ export class Model {
     }
     
 
-    public async init() {
-        
+    public async init() {        
         try {            
             await this.refresh();
         }
         catch(err) {
             console.log('Something went wrong ', err);
-        }        
-        
+        }
     }
-        
+
+    private deepCopy(obj:any):any {
+        var copy:any;
+    
+        // Handle the 3 simple types, and null or undefined
+        if (null == obj || "object" != typeof obj) return obj;
+    
+        // Handle Date
+        if (obj instanceof Date) {
+            copy = new Date();
+            copy.setTime(obj.getTime());
+            return copy;
+        }
+    
+        // Handle Array
+        if (obj instanceof Array) {
+            copy = [];
+            for (var i = 0, len = obj.length; i < len; i++) {
+                copy[i] = this.deepCopy(obj[i]);
+            }
+            return copy;
+        }
+    
+        // Handle Object
+        if (obj instanceof Object) {
+            copy = {};
+            for (var attr in obj) {
+                if (obj.hasOwnProperty(attr)) copy[attr] = this.deepCopy(obj[attr]);
+            }
+            return copy;
+        }
+    
+        throw new Error("Unable to copy obj! Its type isn't supported.");
+    }
+
     public hasChanged() : boolean {
         return (Object.keys(this.has_changed).length > 0);
     }
@@ -112,7 +144,6 @@ export class Model {
                 }
             }
         }
-        console.log('##########################', this.objects)        ;        
     }
     
     public ids() {
@@ -144,7 +175,21 @@ export class Model {
     }
 
     /**
-     * Returns a collection holding only modified objects with their modified fields.
+     * Manually assign an object (value) to a list of ids martching objects from the current set.
+     * 
+     * @param ids 
+     * @param object 
+     */
+    public async set(ids:number[] = [], object: any) {
+        for(let id of ids) {
+            let index = this.objects.findIndex( (o:any) => o.id == id );
+            this.objects[index] = this.deepCopy(object);
+        }
+        await this.view.onchangeModel();
+    }
+
+    /**
+     * Returns a collection holding only modified objects with their modified fields (not original objects).
      * The collection will be empty if no changes occured.
      * 
      * @param ids array list of objects identifiers that must be returned (if changed)

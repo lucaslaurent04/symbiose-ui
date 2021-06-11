@@ -4,6 +4,8 @@ import { environment } from "./environment";
 
 import { ApiService, TranslationService } from "./equal-services";
 
+import Domain from "./Domain";
+
 import Layout from "./Layout";
 import Model from "./Model";
 
@@ -89,7 +91,7 @@ export class View {
                 {
                     title: 'SB_ACTIONS_BUTTON_INLINE_UPDATE',
                     icon:  'dynamic_form',
-                    handler: (event:any, selection:any) => this.actionListInlineUpdate(event, selection)
+                    handler: (event:any, selection:any) => this.actionListInlineEdit(event, selection)
                 },
                 {
                     title: 'SB_ACTIONS_BUTTON_UPDATE',
@@ -107,7 +109,7 @@ export class View {
 
                     }
                 }
-            ]
+            ]     
         };
 
         this.setConfig(config);
@@ -115,7 +117,7 @@ export class View {
         this.mode = mode;
         this.purpose = purpose;
 
-        this.domain = domain;        
+        this.domain = domain;
         this.order = 'id';
         this.sort = 'asc';
         this.start = 0;
@@ -134,15 +136,7 @@ export class View {
         this.$layoutContainer = $('<div />').addClass('sb-view-layout').appendTo(this.$container);
         this.$footerContainer = $('<div />').addClass('sb-view-footer').appendTo(this.$container);
 
-        // apend header structure
-        this.$headerContainer.append(' \
-            <div class="sb-view-header-list"> \
-                <div class="sb-view-header-list-actions"> \
-                    <div class="sb-view-header-list-actions-set"></div> \
-                </div> \
-                <div class="sb-view-header-list-navigation"></div> \
-            </div>'
-        );
+
 
         this.layout = new Layout(this);
         this.model = new Model(this);
@@ -152,10 +146,6 @@ export class View {
    
     private async init() {
         console.log('View::init');
-
-
-
-
         try {
     
             this.translation = await ApiService.getTranslation(this.entity, environment.lang);
@@ -163,9 +153,33 @@ export class View {
             this.model_schema = await ApiService.getSchema(this.entity);
             this.loadViewFields(this.view_schema);
             this.loadModelFields(this.model_schema);
+
             if(this.view_schema.hasOwnProperty("filters")) {
                 for(let filter of this.view_schema.filters) {
                     this.filters[filter.id] = filter;
+                }
+            }
+
+            // if view schema specifies a domain, merge it with domain given in constructor
+            if(this.view_schema.hasOwnProperty("domain")) {
+                // domain attribute is either a string or an array 
+                let domain = eval(this.view_schema.domain);
+                if(this.domain.length == 0) {
+                    this.domain = domain;
+                }
+                // merge domains
+                else {
+                    let normalized = new Domain(this.domain);
+                    this.domain = normalized.toArray();
+                    normalized = new Domain(domain);
+                    domain = normalized.toArray();
+                    let res_domain = new Array();
+                    for(let clause_a of domain) {
+                        for(let clause_b of this.domain) {
+                            res_domain.push(clause_a.concat(clause_b));
+                        }
+                    }
+                    this.domain = res_domain;
                 }
             }
 
@@ -193,6 +207,40 @@ export class View {
         console.log('View::init - end');
     }
 
+
+    private deepCopy(obj:any):any {
+        var copy:any;
+    
+        // Handle the 3 simple types, and null or undefined
+        if (null == obj || "object" != typeof obj) return obj;
+    
+        // Handle Date
+        if (obj instanceof Date) {
+            copy = new Date();
+            copy.setTime(obj.getTime());
+            return copy;
+        }
+    
+        // Handle Array
+        if (obj instanceof Array) {
+            copy = [];
+            for (var i = 0, len = obj.length; i < len; i++) {
+                copy[i] = this.deepCopy(obj[i]);
+            }
+            return copy;
+        }
+    
+        // Handle Object
+        if (obj instanceof Object) {
+            copy = {};
+            for (var attr in obj) {
+                if (obj.hasOwnProperty(attr)) copy[attr] = this.deepCopy(obj[attr]);
+            }
+            return copy;
+        }
+    
+        throw new Error("Unable to copy obj! Its type isn't supported.");
+    }
 
     public isReady() {
         return this.is_ready_promise;
@@ -368,6 +416,17 @@ export class View {
 
     private layoutListHeader() {
         console.log('View::layoutListHeader');
+
+        // apend header structure
+        this.$headerContainer.append(' \
+            <div class="sb-view-header-list"> \
+                <div class="sb-view-header-list-actions"> \
+                    <div class="sb-view-header-list-actions-set"></div> \
+                </div> \
+                <div class="sb-view-header-list-navigation"></div> \
+            </div>'
+        );
+        
         let $elem = this.$headerContainer.find('.sb-view-header-list');
 
         let $level1 = $elem.find('.sb-view-header-list-actions');
@@ -424,7 +483,7 @@ export class View {
         // fields toggle menu : button for displaying the filters menu
         let $filters_button = 
         $('<div/>').addClass('sb-view-header-list-filters mdc-menu-surface--anchor')        
-        .append( UIHelper.createButton('view-filters', 'filters', 'mini-fab', 'filter_list') );
+        .append( UIHelper.createButton('view-filters', 'filters', 'icon', 'filter_list') );
 
         // create floating menu for filters selection
         let $filters_menu = UIHelper.createMenu('filters-menu').addClass('sb-view-header-list-filters-menu').css({"margin-top": '48px'}).appendTo($filters_button);        
@@ -459,6 +518,14 @@ export class View {
             });
         }
 
+        // append additional option for custom filter
+        UIHelper.createListDivider().appendTo($filters_list);
+        UIHelper.createListItem('Ajouter un filtre personnalisé')
+        .appendTo($filters_list)
+        .on('click', (event) => {
+        });
+
+
         UIHelper.decorateMenu($filters_menu);
         $filters_button.find('button').on('click', () => $filters_menu.trigger('_toggle') );
 
@@ -468,7 +535,7 @@ export class View {
         // fields toggle menu : button for displaying the fields menu
         let $fields_toggle_button = 
         $('<div/>').addClass('sb-view-header-list-fields_toggle mdc-menu-surface--anchor')        
-        .append( UIHelper.createButton('view-filters', 'fields', 'mini-fab', 'more_vert') );
+        .append( UIHelper.createButton('view-filters', 'fields', 'icon', 'more_vert') );
 
         // create floating menu for fields selection
         let $fields_toggle_menu = UIHelper.createMenu('fields-menu').addClass('sb-view-header-list-fields_toggle-menu').appendTo($fields_toggle_button);
@@ -599,7 +666,7 @@ export class View {
             .append( UIHelper.createButton('action-selected', count+' '+TranslationService.instant('SB_ACTIONS_BUTTON_SELECTED'), 'outlined') );
 
             let $list = UIHelper.createList('fields-list');        
-            let $menu = UIHelper.createMenu('fields-menu').addClass('sb-view-header-list-fields_toggle-menu').css({"margin-top": '48px', "width": "100%"});
+            let $menu = UIHelper.createMenu('fields-menu').addClass('sb-view-header-list-fields_toggle-menu').css({"margin-top": '48px'});
             
             $menu.append($list);
             $fields_toggle_button.append($menu);
@@ -683,7 +750,7 @@ export class View {
                                     }
                                 }
                                 else if(errors.hasOwnProperty('CONFLICT_OBJECT')) {
-                                    // some fields must violate a unique constraint
+                                    // one or more fields violate a unique constraint
                                     if(typeof errors['CONFLICT_OBJECT'] == 'object') {
                                         for(let field in errors['CONFLICT_OBJECT']) {
                                             this.layout.markFieldAsInvalid(object['id'], field, TranslationService.instant('SB_ERROR_DUPLICATE_VALUE'));
@@ -780,65 +847,78 @@ export class View {
 
 
 
-    private actionListInlineUpdate(event:any, selection: any) {
-        for(let selected_id of selection ) {
+    private actionListInlineEdit(event:any, selection: any) {
+        for(let object_id of selection ) {
 
-            this.$layoutContainer.find('tr[data-id="'+selected_id+'"]').each( (i: number, tr: any) => {
+            this.$layoutContainer.find('tr[data-id="'+object_id+'"]').each( async (i: number, tr: any) => {
                 let $tr = $(tr);
                 // not already in edit mode
                 if($tr.attr('data-edit') != '1') {
                     let $td = $tr.children().first();
                     let $checkbox = $td.find('.sb-checkbox').hide();
-                    let $save_button = UIHelper.createButton('view-save-row', '', 'mini-fab', 'save').addClass('sb-view-list-inline-save-button')
-                    .appendTo($td)
-                    .on('click', async (event:any) => {
-                        event.stopPropagation();
-    
-                        let object_id = parseInt(<string>$tr.attr('data-id'), 10);
+
+                    let collection = await this.model.get([object_id]);
+                    let object = collection[0];
+                    let original = this.deepCopy(object);
+                    
+                    // fields toggle menu : button for displaying the filters menu
+                    let $actions_button = 
+                    $('<div/>').addClass('mdc-menu-surface--anchor')
+                    .appendTo($td)        
+                    .append( UIHelper.createButton('row-actions', '', 'mini-fab', 'more_horiz').addClass('sb-view-list-inline-actions-button') );
+
+                    // create floating menu for filters selection
+                    let $actions_menu = UIHelper.createMenu('row-actions-menu').css({"margin-top": '48px'}).appendTo($actions_button);        
+                    let $actions_list = UIHelper.createList('row-actions-list').appendTo($actions_menu);
+
+                    // generate filters list
+                    let switchToView = () => {
+                        $actions_button.remove();
+                        $tr.find('.sb-widget-cell').each( (i: number, cell: any):any => $(cell).trigger('_toggle_mode', 'view') );
+                        $checkbox.show();
+                        // restore click handling
+                        $tr.attr('data-edit', '0');
+                    };
+                    
+
+                    UIHelper.createListItem('Save', 'save')
+                    .appendTo($actions_list)
+                    .attr('id', 'save-'+object_id)
+                    .on('click', async (event) => {
+
                         let objects = this.model.getChanges([object_id]);
 
-                        let success = () => {
-                            $save_button.remove();
-                            $tr.find('.sb-widget-cell').each( (i: number, cell: any) => {
-                                $(cell).trigger('_toggle_mode', 'view');
-                            });
-                            $checkbox.show();
-                            // restore click handling
-                            $tr.attr('data-edit', '0');
-                        };
-
                         if(!objects.length) {
-                            success();
+                            switchToView();
+                            return false;
                         }
-                        else {
-                            let object = objects[0];
-                            const response = await ApiService.update(this.entity, [object_id], object);
-                            if(!response || !response.hasOwnProperty('errors')) {
-                                success();
-                            }
-                            else {
-                                let errors = response['errors'];
-                                if(errors.hasOwnProperty('INVALID_PARAM')) {
-                                    let delay = 4000;
-                                    let i = 0;
-                                    let count = Object.keys(errors['INVALID_PARAM']).length;
-                                    // stack snackbars (LIFO: decreasing timeout)
-                                    for(let field in errors['INVALID_PARAM']) {
-                                        // for each field, we handle one error at a time (the first one)
-                                        let error_id:string = <string>(Object.keys(errors['INVALID_PARAM'][field]))[0];
-                                        let msg:string = <string>(Object.values(errors['INVALID_PARAM'][field]))[0];
-                                        // translate error message
-                                        msg = TranslationService.resolve(this.translation, 'error', field, msg, error_id);
-                                        this.layout.markFieldAsInvalid(object['id'], field, msg);
-                                        let title = TranslationService.resolve(this.translation, 'model', field, field, 'label');
-                                        let $snack = UIHelper.createSnackbar(title+': '+msg, '', '', delay * (count-i));
-                                        this.$container.append($snack);
-                                        ++i;
-                                    }
-                                }
-                            }                            
-                        }    
+
+                        let object = objects[0];
+                        let result = await this.rowActionListSave(object_id, object);
+                        if(result) {
+                            switchToView();
+                        }
+                        return false;
                     });
+
+                    UIHelper.createListItem('Cancel', 'cancel')
+                    .appendTo($actions_list)
+                    .attr('id', 'cancel-'+object_id)
+                    .on('click', (event) => {
+                        // restore original values
+                        console.log('restore original');
+                        for(let field of Object.keys(original)) {
+                            object[field] = original[field];
+                            this.layout.updateFieldValue(object_id, field, original[field]);
+                        }
+                        switchToView();
+                        return false;
+                    });
+
+
+                    UIHelper.decorateMenu($actions_menu);
+                    $actions_button.find('button').on('click', () => { console.log('ok'); $actions_menu.trigger('_toggle') } );
+
                     // mark row as being edited (prevent click handling)
                     $tr.attr('data-edit', '1');
                     // for each widget of the row, switch to edit mode
@@ -849,6 +929,38 @@ export class View {
             });
         }
     }
+
+
+    private async rowActionListSave(object_id: number, object: any) {
+        const response = await ApiService.update(this.entity, [object_id], object);
+        if(!response || !response.hasOwnProperty('errors')) {
+            return true;
+        }
+        else {
+            let errors = response['errors'];
+            if(errors.hasOwnProperty('INVALID_PARAM')) {
+                let delay = 4000;
+                let i = 0;
+                let count = Object.keys(errors['INVALID_PARAM']).length;
+                // stack snackbars (LIFO: decreasing timeout)
+                for(let field in errors['INVALID_PARAM']) {
+                    // for each field, we handle one error at a time (the first one)
+                    let error_id:string = <string>(Object.keys(errors['INVALID_PARAM'][field]))[0];
+                    let msg:string = <string>(Object.values(errors['INVALID_PARAM'][field]))[0];
+                    // translate error message
+                    msg = TranslationService.resolve(this.translation, 'error', field, msg, error_id);
+                    this.layout.markFieldAsInvalid(object['id'], field, msg);
+                    let title = TranslationService.resolve(this.translation, 'model', field, field, 'label');
+                    let $snack = UIHelper.createSnackbar(title+': '+msg, '', '', delay * (count-i));
+                    this.$container.append($snack);
+                    ++i;
+                }
+            }
+        }          
+        return false;
+    }
+
+
 }
 
 export default View;

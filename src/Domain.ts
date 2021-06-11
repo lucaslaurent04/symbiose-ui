@@ -15,7 +15,7 @@ export class Domain {
             1) empty  domain : []
             2) 1 condition only : [ '{operand}', '{operator}', '{value}' ]
             3) 1 clause only (one or more conditions) : [ [ '{operand}', '{operator}', '{value}' ], [ '{operand}', '{operator}', '{value}' ] ]
-            4) mutiple clauses : [ [ [ '{operand}', '{operator}', '{value}' ], [ '{operand}', '{operator}', '{value}' ] ], [ [ '{operand}', '{operator}', '{value}' ] ] ]
+            4) multiple clauses : [ [ [ '{operand}', '{operator}', '{value}' ], [ '{operand}', '{operator}', '{value}' ] ], [ [ '{operand}', '{operator}', '{value}' ] ] ]
         */    
         domain = this.normalize(domain);
 
@@ -27,6 +27,14 @@ export class Domain {
             this.addClause(clause);
         }
 
+    }
+
+    public toArray() {
+        let domain = new Array();
+        for(let clause of this.clauses) {
+            domain.push(clause.toArray());
+        }
+        return domain;
     }
 
     private normalize(domain: Array<any>) {
@@ -60,17 +68,66 @@ export class Domain {
         }
     }
 
-    public evaluate(values: any) {
+    /**
+     * Update domain by parsing conditions and replace any occurence of `object.` and `user.` notations with related attributes of given objects.
+     * 
+     * @param values
+     * @returns Domain  Returns current instance with updated values.
+     */
+    public parse(object: any, user: any = {}) {
+        for(let clause of this.clauses) {
+            for(let condition of clause.conditions) {
+
+                if(!object.hasOwnProperty(condition.operand)) {
+                    continue;
+                }
+
+                let value = condition.value;
+
+                // handle object references as `value` part 
+                if(value.indexOf('object.')) {
+                    let target = value.substring('object.'.length);
+                    if(!object.hasOwnProperty(target)) {
+                        continue;
+                    }
+                    value = object[target];    
+                }
+                // handle user references as `value` part 
+                else if(value.indexOf('user.')) {
+                    let target = value.substring('user.'.length);
+                    if(!user.hasOwnProperty(target)) {
+                        continue;
+                    }
+                    value = user[target];    
+                }
+
+                condition.value = value;
+            }
+        }
+        return this;
+    }
+
+    /**
+     * Evaluate domain for a given object.
+     * Object structure has to comply with the operands mentionned in the conditions of the domain. If no, related conditions are ignored (skipped).
+     * 
+     * @param object 
+     * @returns boolean Return true if the object matches the domain, false otherwise.
+     */
+    public evaluate(object: any) : boolean {
         let res = false;
+        // parse any reference to object in conditions
+        this.parse(object);
+        // evaluate clauses (OR) and conditions (AND)
         for(let clause of this.clauses) {
             let c_res = true;
             for(let condition of clause.getConditions()) {
 
-                if(!values.hasOwnProperty(condition.operand)) {
+                if(!object.hasOwnProperty(condition.operand)) {
                     continue;
                 }
 
-                let operand = values[condition.operand];
+                let operand = object[condition.operand];
                 let operator = condition.operator;
                 let value = condition.value;
 
@@ -104,7 +161,7 @@ export class Domain {
 }
 
 class Clause {
-    private conditions: Array<Condition>;
+    public conditions: Array<Condition>;
 
     constructor() {
         this.conditions = new Array<Condition>();
@@ -118,6 +175,14 @@ class Clause {
     public getConditions() {
         return this.conditions;
     }
+
+    public toArray() {
+        let clause = new Array();
+        for(let condition of this.conditions) {
+            clause.push(condition.toArray());
+        }
+        return clause;
+    }
 }
 
 class Condition {
@@ -129,6 +194,14 @@ class Condition {
         this.operand = operand;
         this.operator = operator;
         this.value = value;
+    }
+
+    public toArray() {
+        let condition = new Array();
+        condition.push(this.operand);
+        condition.push(this.operator);
+        condition.push(this.value);
+        return condition;
     }
 }
 export default Domain;

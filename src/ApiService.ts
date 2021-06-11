@@ -174,11 +174,12 @@ export class _ApiService {
         return view;        
     }
 
-    public async create(entity:string) {
+    public async create(entity:string, fields:any = {}) {
         let result: any;
         try {
             let params = {
                 entity: entity,
+                fields: fields,
                 lang: environment.lang
             };
             const response = await $.get({

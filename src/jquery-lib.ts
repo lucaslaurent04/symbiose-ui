@@ -9,7 +9,7 @@ import "jquery-ui/ui/widgets/sortable";
 import "jquery-ui/ui/widgets/selectable";
 
 
-// additional depedencies widgets have to be added here
+// additional dependencies widgets have to be added here
 import "jquery-ui/ui/widgets/dialog";
 import "jquery-ui/ui/widgets/datepicker";
 

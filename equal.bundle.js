@@ -301,17 +301,23 @@ var _ApiService = /*#__PURE__*/function () {
     key: "create",
     value: function () {
       var _create = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4(entity) {
-        var result, params, response;
+        var fields,
+            result,
+            params,
+            response,
+            _args4 = arguments;
         return _regenerator.default.wrap(function _callee4$(_context4) {
           while (1) {
             switch (_context4.prev = _context4.next) {
               case 0:
-                _context4.prev = 0;
+                fields = _args4.length > 1 && _args4[1] !== undefined ? _args4[1] : {};
+                _context4.prev = 1;
                 params = {
                   entity: entity,
+                  fields: fields,
                   lang: _environment.environment.lang
                 };
-                _context4.next = 4;
+                _context4.next = 5;
                 return _jqueryLib.$.get({
                   url: _environment.environment.backend_url + '/?do=model_create',
                   dataType: 'json',
@@ -319,26 +325,26 @@ var _ApiService = /*#__PURE__*/function () {
                   contentType: 'application/x-www-form-urlencoded; charset=utf-8'
                 });
 
-              case 4:
+              case 5:
                 response = _context4.sent;
                 result = response;
-                _context4.next = 11;
+                _context4.next = 12;
                 break;
 
-              case 8:
-                _context4.prev = 8;
-                _context4.t0 = _context4["catch"](0);
+              case 9:
+                _context4.prev = 9;
+                _context4.t0 = _context4["catch"](1);
                 console.log('Error ApiService::create', _context4.t0);
 
-              case 11:
+              case 12:
                 return _context4.abrupt("return", result);
 
-              case 12:
+              case 13:
               case "end":
                 return _context4.stop();
             }
           }
-        }, _callee4, null, [[0, 8]]);
+        }, _callee4, null, [[1, 9]]);
       }));
 
       function create(_x6) {
@@ -812,7 +818,7 @@ var Domain = /*#__PURE__*/function () {
         1) empty  domain : []
         2) 1 condition only : [ '{operand}', '{operator}', '{value}' ]
         3) 1 clause only (one or more conditions) : [ [ '{operand}', '{operator}', '{value}' ], [ '{operand}', '{operator}', '{value}' ] ]
-        4) mutiple clauses : [ [ [ '{operand}', '{operator}', '{value}' ], [ '{operand}', '{operator}', '{value}' ] ], [ [ '{operand}', '{operator}', '{value}' ] ] ]
+        4) multiple clauses : [ [ [ '{operand}', '{operator}', '{value}' ], [ '{operand}', '{operator}', '{value}' ] ], [ [ '{operand}', '{operator}', '{value}' ] ] ]
     */
 
     domain = this.normalize(domain);
@@ -849,6 +855,27 @@ var Domain = /*#__PURE__*/function () {
   }
 
   (0, _createClass2.default)(Domain, [{
+    key: "toArray",
+    value: function toArray() {
+      var domain = new Array();
+
+      var _iterator3 = _createForOfIteratorHelper(this.clauses),
+          _step3;
+
+      try {
+        for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+          var clause = _step3.value;
+          domain.push(clause.toArray());
+        }
+      } catch (err) {
+        _iterator3.e(err);
+      } finally {
+        _iterator3.f();
+      }
+
+      return domain;
+    }
+  }, {
     key: "normalize",
     value: function normalize(domain) {
       if (domain.length <= 0) {
@@ -879,45 +906,122 @@ var Domain = /*#__PURE__*/function () {
   }, {
     key: "addCondition",
     value: function addCondition(condition) {
-      var _iterator3 = _createForOfIteratorHelper(this.clauses),
-          _step3;
-
-      try {
-        for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
-          var clause = _step3.value;
-          clause.addCondition(condition);
-        }
-      } catch (err) {
-        _iterator3.e(err);
-      } finally {
-        _iterator3.f();
-      }
-    }
-  }, {
-    key: "evaluate",
-    value: function evaluate(values) {
-      var res = false;
-
       var _iterator4 = _createForOfIteratorHelper(this.clauses),
           _step4;
 
       try {
         for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
           var clause = _step4.value;
-          var c_res = true;
+          clause.addCondition(condition);
+        }
+      } catch (err) {
+        _iterator4.e(err);
+      } finally {
+        _iterator4.f();
+      }
+    }
+    /**
+     * Update domain by parsing conditions and replace any occurence of `object.` and `user.` notations with related attributes of given objects.
+     * 
+     * @param values
+     * @returns Domain  Returns current instance with updated values.
+     */
 
-          var _iterator5 = _createForOfIteratorHelper(clause.getConditions()),
-              _step5;
+  }, {
+    key: "parse",
+    value: function parse(object) {
+      var user = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+      var _iterator5 = _createForOfIteratorHelper(this.clauses),
+          _step5;
+
+      try {
+        for (_iterator5.s(); !(_step5 = _iterator5.n()).done;) {
+          var clause = _step5.value;
+
+          var _iterator6 = _createForOfIteratorHelper(clause.conditions),
+              _step6;
 
           try {
-            for (_iterator5.s(); !(_step5 = _iterator5.n()).done;) {
-              var condition = _step5.value;
+            for (_iterator6.s(); !(_step6 = _iterator6.n()).done;) {
+              var condition = _step6.value;
 
-              if (!values.hasOwnProperty(condition.operand)) {
+              if (!object.hasOwnProperty(condition.operand)) {
                 continue;
               }
 
-              var operand = values[condition.operand];
+              var value = condition.value; // handle object references as `value` part 
+
+              if (value.indexOf('object.')) {
+                var target = value.substring('object.'.length);
+
+                if (!object.hasOwnProperty(target)) {
+                  continue;
+                }
+
+                value = object[target];
+              } // handle user references as `value` part 
+              else if (value.indexOf('user.')) {
+                  var _target = value.substring('user.'.length);
+
+                  if (!user.hasOwnProperty(_target)) {
+                    continue;
+                  }
+
+                  value = user[_target];
+                }
+
+              condition.value = value;
+            }
+          } catch (err) {
+            _iterator6.e(err);
+          } finally {
+            _iterator6.f();
+          }
+        }
+      } catch (err) {
+        _iterator5.e(err);
+      } finally {
+        _iterator5.f();
+      }
+
+      return this;
+    }
+    /**
+     * Evaluate domain for a given object.
+     * Object structure has to comply with the operands mentionned in the conditions of the domain. If no, related conditions are ignored (skipped).
+     * 
+     * @param object 
+     * @returns boolean Return true if the object matches the domain, false otherwise.
+     */
+
+  }, {
+    key: "evaluate",
+    value: function evaluate(object) {
+      var res = false; // parse any reference to object in conditions
+
+      this.parse(object); // evaluate clauses (OR) and conditions (AND)
+
+      var _iterator7 = _createForOfIteratorHelper(this.clauses),
+          _step7;
+
+      try {
+        for (_iterator7.s(); !(_step7 = _iterator7.n()).done;) {
+          var clause = _step7.value;
+          var c_res = true;
+
+          var _iterator8 = _createForOfIteratorHelper(clause.getConditions()),
+              _step8;
+
+          try {
+            for (_iterator8.s(); !(_step8 = _iterator8.n()).done;) {
+              var condition = _step8.value;
+
+              if (!object.hasOwnProperty(condition.operand)) {
+                continue;
+              }
+
+              var operand = object[condition.operand];
               var operator = condition.operator;
               var value = condition.value;
               var cc_res = void 0; // handle special cases
@@ -942,17 +1046,17 @@ var Domain = /*#__PURE__*/function () {
               c_res = c_res && cc_res;
             }
           } catch (err) {
-            _iterator5.e(err);
+            _iterator8.e(err);
           } finally {
-            _iterator5.f();
+            _iterator8.f();
           }
 
           res = res || c_res;
         }
       } catch (err) {
-        _iterator4.e(err);
+        _iterator7.e(err);
       } finally {
-        _iterator4.f();
+        _iterator7.f();
       }
 
       return res;
@@ -980,19 +1084,54 @@ var Clause = /*#__PURE__*/function () {
     value: function getConditions() {
       return this.conditions;
     }
+  }, {
+    key: "toArray",
+    value: function toArray() {
+      var clause = new Array();
+
+      var _iterator9 = _createForOfIteratorHelper(this.conditions),
+          _step9;
+
+      try {
+        for (_iterator9.s(); !(_step9 = _iterator9.n()).done;) {
+          var condition = _step9.value;
+          clause.push(condition.toArray());
+        }
+      } catch (err) {
+        _iterator9.e(err);
+      } finally {
+        _iterator9.f();
+      }
+
+      return clause;
+    }
   }]);
   return Clause;
 }();
 
-var Condition = function Condition(operand, operator, value) {
-  (0, _classCallCheck2.default)(this, Condition);
-  (0, _defineProperty2.default)(this, "operand", void 0);
-  (0, _defineProperty2.default)(this, "operator", void 0);
-  (0, _defineProperty2.default)(this, "value", void 0);
-  this.operand = operand;
-  this.operator = operator;
-  this.value = value;
-};
+var Condition = /*#__PURE__*/function () {
+  function Condition(operand, operator, value) {
+    (0, _classCallCheck2.default)(this, Condition);
+    (0, _defineProperty2.default)(this, "operand", void 0);
+    (0, _defineProperty2.default)(this, "operator", void 0);
+    (0, _defineProperty2.default)(this, "value", void 0);
+    this.operand = operand;
+    this.operator = operator;
+    this.value = value;
+  }
+
+  (0, _createClass2.default)(Condition, [{
+    key: "toArray",
+    value: function toArray() {
+      var condition = new Array();
+      condition.push(this.operand);
+      condition.push(this.operator);
+      condition.push(this.value);
+      return condition;
+    }
+  }]);
+  return Condition;
+}();
 
 var _default = Domain;
 exports.default = _default;
@@ -1122,6 +1261,13 @@ var Layout = /*#__PURE__*/function () {
       var $elem = this.$layout.find('#' + widget.getId());
       $elem.addClass('mdc-text-field--invalid');
       $elem.find('.mdc-text-field-helper-text').addClass('mdc-text-field-helper-text--persistent mdc-text-field-helper-text--validation-msg').text(message).attr('title', message);
+    }
+  }, {
+    key: "updateFieldValue",
+    value: function updateFieldValue(object_id, field, value) {
+      if (this.model_widgets[object_id][field]) {
+        this.model_widgets[object_id][field].setValue(value);
+      }
     } // refresh layout
     // this method is called in response to parent View `onchangeModel` method 
 
@@ -1227,8 +1373,10 @@ var Layout = /*#__PURE__*/function () {
       config.align = item.hasOwnProperty('align') ? item.align : 'left';
       config.sortable = item.hasOwnProperty('sortable') && item.sortable;
       config.visible = true;
+      config.layout = this.view.getType();
 
       if (item.hasOwnProperty('visible')) {
+        // #todo - handle domains            
         // evaluate visible attr (either a bool or a domain)
         config.visible = eval(item.visible);
       }
@@ -1336,7 +1484,11 @@ var Layout = /*#__PURE__*/function () {
 
                     _this.model_widgets[0][item.value] = widget;
                     $cell.append(widget.attach());
-                  } else if (item.type == 'label') {}
+                  } else if (item.type == 'label') {
+                    $cell.append('<span style="font-weight: 600;">' + item.value + '</span>');
+                  } else if (item.type == 'button') {
+                    $cell.append(_materialLib.UIHelper.createButton(item.action, item.value, 'raised', item.icon ? item.icon : ''));
+                  }
                 }
               });
             });
@@ -1575,6 +1727,7 @@ var Layout = /*#__PURE__*/function () {
 
               var model_def = model_schema[field];
               var type = model_def['type'];
+              var has_changed = false;
               var value = object[field];
               var config = widget.getConfig(); // for relational fields, we need to check if the Model has been fetched al
 
@@ -1598,19 +1751,24 @@ var Layout = /*#__PURE__*/function () {
                   } // defined config for Widget's view with a custom domain according to object values
 
 
+                  var view_id = config.hasOwnProperty('view') ? config.view : 'list.default';
+                  var parts = view_id.split(".", 2);
+                  var view_type = parts.length > 1 ? parts[0] : 'list';
+                  var view_name = parts.length > 1 ? parts[1] : parts[0];
                   config = _objectSpread(_objectSpread({}, config), {}, {
                     entity: model_def['foreign_object'],
-                    type: 'list',
-                    name: config.hasOwnProperty('view') ? config.view : 'default',
+                    type: view_type,
+                    name: view_name,
                     domain: ['id', 'in', target_ids],
                     lang: _this4.view.getLang()
                   });
                 }
-
-                widget.setConfig(config);
               }
 
-              widget.setMode(_this4.view.getMode()).setValue(value);
+              has_changed = $parent.data('value') != value;
+              widget.setConfig(config).setMode(_this4.view.getMode()).setValue(value); // store data to parent, for tracking changes at next refresh
+
+              $parent.data('value', value);
               var visible = true; // handle visibility tests (domain)           
 
               if (config.hasOwnProperty('visible')) {
@@ -1624,8 +1782,12 @@ var Layout = /*#__PURE__*/function () {
               }
 
               if (!visible) {
-                $parent.empty().append(widget.attach());
+                $parent.empty().append(widget.attach()); // visibility update need to trigger a redraw, whatever the value (so we change it to an arbitrary value)
+
+                $parent.data('value', null);
               } else {
+                // todo : many2one & x2many fields can have a specific domain, that might depend on current values of edited object : 
+                // we must re-evaluate the domain and set the widget config accordingly
                 var $widget = widget.render(); // Handle Widget update handler
 
                 $widget.on('_updatedWidget', function (event) {
@@ -1635,9 +1797,12 @@ var Layout = /*#__PURE__*/function () {
                   value[field] = widget.getValue();
 
                   _this4.view.onchangeViewModel([object.id], value);
-                }); // append rendered widget
+                }); // prevent refreshing objects that haven't changed (otherwise currently active widget loses the focus)
 
-                $parent.empty().append($widget);
+                if (has_changed) {
+                  // append rendered widget
+                  $parent.empty().append($widget);
+                }
               }
             };
 
@@ -1757,6 +1922,43 @@ var Model = /*#__PURE__*/function () {
       return init;
     }()
   }, {
+    key: "deepCopy",
+    value: function deepCopy(obj) {
+      var copy; // Handle the 3 simple types, and null or undefined
+
+      if (null == obj || "object" != typeof obj) return obj; // Handle Date
+
+      if (obj instanceof Date) {
+        copy = new Date();
+        copy.setTime(obj.getTime());
+        return copy;
+      } // Handle Array
+
+
+      if (obj instanceof Array) {
+        copy = [];
+
+        for (var i = 0, len = obj.length; i < len; i++) {
+          copy[i] = this.deepCopy(obj[i]);
+        }
+
+        return copy;
+      } // Handle Object
+
+
+      if (obj instanceof Object) {
+        copy = {};
+
+        for (var attr in obj) {
+          if (obj.hasOwnProperty(attr)) copy[attr] = this.deepCopy(obj[attr]);
+        }
+
+        return copy;
+      }
+
+      throw new Error("Unable to copy obj! Its type isn't supported.");
+    }
+  }, {
     key: "hasChanged",
     value: function hasChanged() {
       return Object.keys(this.has_changed).length > 0;
@@ -1864,8 +2066,6 @@ var Model = /*#__PURE__*/function () {
           _iterator.f();
         }
       }
-
-      console.log('##########################', this.objects);
     }
   }, {
     key: "ids",
@@ -1906,7 +2106,72 @@ var Model = /*#__PURE__*/function () {
       return promise;
     }
     /**
-     * Returns a collection holding only modified objects with their modified fields.
+     * Manually assign an object (value) to a list of ids martching objects from the current set.
+     * 
+     * @param ids 
+     * @param object 
+     */
+
+  }, {
+    key: "set",
+    value: function () {
+      var _set = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3() {
+        var _this2 = this;
+
+        var ids,
+            object,
+            _iterator2,
+            _step2,
+            _loop,
+            _args3 = arguments;
+
+        return _regenerator.default.wrap(function _callee3$(_context3) {
+          while (1) {
+            switch (_context3.prev = _context3.next) {
+              case 0:
+                ids = _args3.length > 0 && _args3[0] !== undefined ? _args3[0] : [];
+                object = _args3.length > 1 ? _args3[1] : undefined;
+                _iterator2 = _createForOfIteratorHelper(ids);
+
+                try {
+                  _loop = function _loop() {
+                    var id = _step2.value;
+
+                    var index = _this2.objects.findIndex(function (o) {
+                      return o.id == id;
+                    });
+
+                    _this2.objects[index] = _this2.deepCopy(object);
+                  };
+
+                  for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+                    _loop();
+                  }
+                } catch (err) {
+                  _iterator2.e(err);
+                } finally {
+                  _iterator2.f();
+                }
+
+                _context3.next = 6;
+                return this.view.onchangeModel();
+
+              case 6:
+              case "end":
+                return _context3.stop();
+            }
+          }
+        }, _callee3, this);
+      }));
+
+      function set() {
+        return _set.apply(this, arguments);
+      }
+
+      return set;
+    }()
+    /**
+     * Returns a collection holding only modified objects with their modified fields (not original objects).
      * The collection will be empty if no changes occured.
      * 
      * @param ids array list of objects identifiers that must be returned (if changed)
@@ -1915,16 +2180,16 @@ var Model = /*#__PURE__*/function () {
   }, {
     key: "getChanges",
     value: function getChanges() {
-      var _this2 = this;
+      var _this3 = this;
 
       var ids = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
       var collection = [];
 
-      var _loop = function _loop(id) {
+      var _loop2 = function _loop2(id) {
         if (ids.length && ids.indexOf(+id) < 0) return "continue";
-        var fields = _this2.has_changed[id];
+        var fields = _this3.has_changed[id];
 
-        var object = _this2.objects.find(function (object) {
+        var object = _this3.objects.find(function (object) {
           return object.id == id;
         });
 
@@ -1933,19 +2198,19 @@ var Model = /*#__PURE__*/function () {
           id: id
         };
 
-        var _iterator2 = _createForOfIteratorHelper(fields),
-            _step2;
+        var _iterator3 = _createForOfIteratorHelper(fields),
+            _step3;
 
         try {
-          for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
-            var field = _step2.value;
+          for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+            var field = _step3.value;
             result[field] = object[field];
           } // force appending `state`and `modified` fields (when present) for concurrency control
 
         } catch (err) {
-          _iterator2.e(err);
+          _iterator3.e(err);
         } finally {
-          _iterator2.f();
+          _iterator3.f();
         }
 
         if (object.hasOwnProperty('modified')) {
@@ -1960,7 +2225,7 @@ var Model = /*#__PURE__*/function () {
       };
 
       for (var id in this.has_changed) {
-        var _ret = _loop(id);
+        var _ret = _loop2(id);
 
         if (_ret === "continue") continue;
       }
@@ -2185,6 +2450,8 @@ var _environment = __webpack_require__(/*! ./environment */ "./build/environment
 
 var _equalServices = __webpack_require__(/*! ./equal-services */ "./build/equal-services.js");
 
+var _Domain = _interopRequireDefault(__webpack_require__(/*! ./Domain */ "./build/Domain.js"));
+
 var _Layout = _interopRequireDefault(__webpack_require__(/*! ./Layout */ "./build/Layout.js"));
 
 var _Model = _interopRequireDefault(__webpack_require__(/*! ./Model */ "./build/Model-exposed.js"));
@@ -2267,7 +2534,7 @@ var View = /*#__PURE__*/function () {
         title: 'SB_ACTIONS_BUTTON_INLINE_UPDATE',
         icon: 'dynamic_form',
         handler: function handler(event, selection) {
-          return _this.actionListInlineUpdate(event, selection);
+          return _this.actionListInlineEdit(event, selection);
         }
       }, {
         title: 'SB_ACTIONS_BUTTON_UPDATE',
@@ -2306,15 +2573,7 @@ var View = /*#__PURE__*/function () {
     this.$container = (0, _jqueryLib.$)('<div />').addClass('sb-view').hide();
     this.$headerContainer = (0, _jqueryLib.$)('<div />').addClass('sb-view-header').appendTo(this.$container);
     this.$layoutContainer = (0, _jqueryLib.$)('<div />').addClass('sb-view-layout').appendTo(this.$container);
-    this.$footerContainer = (0, _jqueryLib.$)('<div />').addClass('sb-view-footer').appendTo(this.$container); // apend header structure
-
-    this.$headerContainer.append(' \
-            <div class="sb-view-header-list"> \
-                <div class="sb-view-header-list-actions"> \
-                    <div class="sb-view-header-list-actions-set"></div> \
-                </div> \
-                <div class="sb-view-header-list-navigation"></div> \
-            </div>');
+    this.$footerContainer = (0, _jqueryLib.$)('<div />').addClass('sb-view-footer').appendTo(this.$container);
     this.layout = new _Layout.default(this);
     this.model = new _Model.default(this);
     this.init();
@@ -2324,7 +2583,7 @@ var View = /*#__PURE__*/function () {
     key: "init",
     value: function () {
       var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
-        var _iterator, _step, filter;
+        var _iterator, _step, filter, domain, normalized, res_domain, _iterator2, _step2, clause_a, _iterator3, _step3, clause_b;
 
         return _regenerator.default.wrap(function _callee$(_context) {
           while (1) {
@@ -2363,6 +2622,48 @@ var View = /*#__PURE__*/function () {
                   } finally {
                     _iterator.f();
                   }
+                } // if view schema specifies a domain, merge it with domain given in constructor
+
+
+                if (this.view_schema.hasOwnProperty("domain")) {
+                  // domain attribute is either a string or an array 
+                  domain = eval(this.view_schema.domain);
+
+                  if (this.domain.length == 0) {
+                    this.domain = domain;
+                  } // merge domains
+                  else {
+                      normalized = new _Domain.default(this.domain);
+                      this.domain = normalized.toArray();
+                      normalized = new _Domain.default(domain);
+                      domain = normalized.toArray();
+                      res_domain = new Array();
+                      _iterator2 = _createForOfIteratorHelper(domain);
+
+                      try {
+                        for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+                          clause_a = _step2.value;
+                          _iterator3 = _createForOfIteratorHelper(this.domain);
+
+                          try {
+                            for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+                              clause_b = _step3.value;
+                              res_domain.push(clause_a.concat(clause_b));
+                            }
+                          } catch (err) {
+                            _iterator3.e(err);
+                          } finally {
+                            _iterator3.f();
+                          }
+                        }
+                      } catch (err) {
+                        _iterator2.e(err);
+                      } finally {
+                        _iterator2.f();
+                      }
+
+                      this.domain = res_domain;
+                    }
                 }
 
                 if (['list', 'kanban'].indexOf(this.type) >= 0) {
@@ -2376,33 +2677,33 @@ var View = /*#__PURE__*/function () {
                   this.layoutFormHeader();
                 }
 
-                _context.next = 18;
+                _context.next = 19;
                 return this.layout.init();
 
-              case 18:
-                _context.next = 20;
+              case 19:
+                _context.next = 21;
                 return this.model.init();
 
-              case 20:
-                _context.next = 25;
+              case 21:
+                _context.next = 26;
                 break;
 
-              case 22:
-                _context.prev = 22;
+              case 23:
+                _context.prev = 23;
                 _context.t0 = _context["catch"](1);
                 console.log('Unable to init view (' + this.entity + '.' + this.type + '.' + this.name + ')', _context.t0);
 
-              case 25:
+              case 26:
                 this.is_ready_promise.resolve();
                 this.$container.show();
                 console.log('View::init - end');
 
-              case 28:
+              case 29:
               case "end":
                 return _context.stop();
             }
           }
-        }, _callee, this, [[1, 22]]);
+        }, _callee, this, [[1, 23]]);
       }));
 
       function init() {
@@ -2411,6 +2712,43 @@ var View = /*#__PURE__*/function () {
 
       return init;
     }()
+  }, {
+    key: "deepCopy",
+    value: function deepCopy(obj) {
+      var copy; // Handle the 3 simple types, and null or undefined
+
+      if (null == obj || "object" != typeof obj) return obj; // Handle Date
+
+      if (obj instanceof Date) {
+        copy = new Date();
+        copy.setTime(obj.getTime());
+        return copy;
+      } // Handle Array
+
+
+      if (obj instanceof Array) {
+        copy = [];
+
+        for (var i = 0, len = obj.length; i < len; i++) {
+          copy[i] = this.deepCopy(obj[i]);
+        }
+
+        return copy;
+      } // Handle Object
+
+
+      if (obj instanceof Object) {
+        copy = {};
+
+        for (var attr in obj) {
+          if (obj.hasOwnProperty(attr)) copy[attr] = this.deepCopy(obj[attr]);
+        }
+
+        return copy;
+      }
+
+      throw new Error("Unable to copy obj! Its type isn't supported.");
+    }
   }, {
     key: "isReady",
     value: function isReady() {
@@ -2506,18 +2844,18 @@ var View = /*#__PURE__*/function () {
       console.log('View::getDomain', this.domain, this.applied_filters_ids);
       var domain = (0, _toConsumableArray2.default)(this.domain);
 
-      var _iterator2 = _createForOfIteratorHelper(this.applied_filters_ids),
-          _step2;
+      var _iterator4 = _createForOfIteratorHelper(this.applied_filters_ids),
+          _step4;
 
       try {
-        for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
-          var filter_id = _step2.value;
+        for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
+          var filter_id = _step4.value;
           domain.push(this.filters[filter_id].clause);
         }
       } catch (err) {
-        _iterator2.e(err);
+        _iterator4.e(err);
       } finally {
-        _iterator2.f();
+        _iterator4.f();
       }
 
       return domain;
@@ -2606,50 +2944,50 @@ var View = /*#__PURE__*/function () {
           var elem = stack.pop();
 
           if (elem.hasOwnProperty('items')) {
-            var _iterator3 = _createForOfIteratorHelper(elem['items']),
-                _step3;
+            var _iterator5 = _createForOfIteratorHelper(elem['items']),
+                _step5;
 
             try {
-              for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
-                var item = _step3.value;
+              for (_iterator5.s(); !(_step5 = _iterator5.n()).done;) {
+                var item = _step5.value;
 
                 if (item.type == 'field' && item.hasOwnProperty('value')) {
                   this.view_fields[item.value] = item;
                 }
               }
             } catch (err) {
-              _iterator3.e(err);
+              _iterator5.e(err);
             } finally {
-              _iterator3.f();
+              _iterator5.f();
             }
           } else {
-            var _iterator4 = _createForOfIteratorHelper(path),
-                _step4;
+            var _iterator6 = _createForOfIteratorHelper(path),
+                _step6;
 
             try {
-              for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
-                var step = _step4.value;
+              for (_iterator6.s(); !(_step6 = _iterator6.n()).done;) {
+                var step = _step6.value;
 
                 if (elem.hasOwnProperty(step)) {
-                  var _iterator5 = _createForOfIteratorHelper(elem[step]),
-                      _step5;
+                  var _iterator7 = _createForOfIteratorHelper(elem[step]),
+                      _step7;
 
                   try {
-                    for (_iterator5.s(); !(_step5 = _iterator5.n()).done;) {
-                      var obj = _step5.value;
+                    for (_iterator7.s(); !(_step7 = _iterator7.n()).done;) {
+                      var obj = _step7.value;
                       stack.push(obj);
                     }
                   } catch (err) {
-                    _iterator5.e(err);
+                    _iterator7.e(err);
                   } finally {
-                    _iterator5.f();
+                    _iterator7.f();
                   }
                 }
               }
             } catch (err) {
-              _iterator4.e(err);
+              _iterator6.e(err);
             } finally {
-              _iterator4.f();
+              _iterator6.f();
             }
           }
         }
@@ -2675,7 +3013,15 @@ var View = /*#__PURE__*/function () {
     value: function layoutListHeader() {
       var _this2 = this;
 
-      console.log('View::layoutListHeader');
+      console.log('View::layoutListHeader'); // apend header structure
+
+      this.$headerContainer.append(' \
+            <div class="sb-view-header-list"> \
+                <div class="sb-view-header-list-actions"> \
+                    <div class="sb-view-header-list-actions-set"></div> \
+                </div> \
+                <div class="sb-view-header-list-navigation"></div> \
+            </div>');
       var $elem = this.$headerContainer.find('.sb-view-header-list');
       var $level1 = $elem.find('.sb-view-header-list-actions');
       var $level2 = $elem.find('.sb-view-header-list-navigation');
@@ -2742,7 +3088,7 @@ var View = /*#__PURE__*/function () {
 
       var $filters_set = (0, _jqueryLib.$)('<div />').addClass('sb-view-header-list-filters-set mdc-chip-set').attr('role', 'grid'); // fields toggle menu : button for displaying the filters menu
 
-      var $filters_button = (0, _jqueryLib.$)('<div/>').addClass('sb-view-header-list-filters mdc-menu-surface--anchor').append(_materialLib.UIHelper.createButton('view-filters', 'filters', 'mini-fab', 'filter_list')); // create floating menu for filters selection
+      var $filters_button = (0, _jqueryLib.$)('<div/>').addClass('sb-view-header-list-filters mdc-menu-surface--anchor').append(_materialLib.UIHelper.createButton('view-filters', 'filters', 'icon', 'filter_list')); // create floating menu for filters selection
 
       var $filters_menu = _materialLib.UIHelper.createMenu('filters-menu').addClass('sb-view-header-list-filters-menu').css({
         "margin-top": '48px'
@@ -2782,7 +3128,12 @@ var View = /*#__PURE__*/function () {
 
       for (var filter_id in this.filters) {
         _loop(filter_id);
-      }
+      } // append additional option for custom filter
+
+
+      _materialLib.UIHelper.createListDivider().appendTo($filters_list);
+
+      _materialLib.UIHelper.createListItem('Ajouter un filtre personnalisé').appendTo($filters_list).on('click', function (event) {});
 
       _materialLib.UIHelper.decorateMenu($filters_menu);
 
@@ -2790,18 +3141,18 @@ var View = /*#__PURE__*/function () {
         return $filters_menu.trigger('_toggle');
       }); // fields toggle menu : button for displaying the fields menu
 
-      var $fields_toggle_button = (0, _jqueryLib.$)('<div/>').addClass('sb-view-header-list-fields_toggle mdc-menu-surface--anchor').append(_materialLib.UIHelper.createButton('view-filters', 'fields', 'mini-fab', 'more_vert')); // create floating menu for fields selection
+      var $fields_toggle_button = (0, _jqueryLib.$)('<div/>').addClass('sb-view-header-list-fields_toggle mdc-menu-surface--anchor').append(_materialLib.UIHelper.createButton('view-filters', 'fields', 'icon', 'more_vert')); // create floating menu for fields selection
 
       var $fields_toggle_menu = _materialLib.UIHelper.createMenu('fields-menu').addClass('sb-view-header-list-fields_toggle-menu').appendTo($fields_toggle_button);
 
       var $fields_toggle_list = _materialLib.UIHelper.createList('fields-list').appendTo($fields_toggle_menu);
 
-      var _iterator6 = _createForOfIteratorHelper(this.getViewSchema().layout.items),
-          _step6;
+      var _iterator8 = _createForOfIteratorHelper(this.getViewSchema().layout.items),
+          _step8;
 
       try {
         var _loop2 = function _loop2() {
-          var item = _step6.value;
+          var item = _step8.value;
           var label = item.hasOwnProperty('label') ? item.label : item.value.charAt(0).toUpperCase() + item.value.slice(1);
           var visible = item.hasOwnProperty('visible') ? item.visible : true;
 
@@ -2818,13 +3169,13 @@ var View = /*#__PURE__*/function () {
           }).prop('checked', visible);
         };
 
-        for (_iterator6.s(); !(_step6 = _iterator6.n()).done;) {
+        for (_iterator8.s(); !(_step8 = _iterator8.n()).done;) {
           _loop2();
         }
       } catch (err) {
-        _iterator6.e(err);
+        _iterator8.e(err);
       } finally {
-        _iterator6.f();
+        _iterator8.f();
       }
 
       _materialLib.UIHelper.decorateMenu($fields_toggle_menu);
@@ -2920,32 +3271,31 @@ var View = /*#__PURE__*/function () {
         var $list = _materialLib.UIHelper.createList('fields-list');
 
         var $menu = _materialLib.UIHelper.createMenu('fields-menu').addClass('sb-view-header-list-fields_toggle-menu').css({
-          "margin-top": '48px',
-          "width": "100%"
+          "margin-top": '48px'
         });
 
         $menu.append($list);
         $fields_toggle_button.append($menu); // add actions defined in view
 
-        var _iterator7 = _createForOfIteratorHelper(this.config.selection_actions),
-            _step7;
+        var _iterator9 = _createForOfIteratorHelper(this.config.selection_actions),
+            _step9;
 
         try {
           var _loop3 = function _loop3() {
-            var item = _step7.value;
+            var item = _step9.value;
 
             _materialLib.UIHelper.createListItem(_equalServices.TranslationService.instant(item.title), item.icon).on('click', function (event) {
               return item.handler(event, _this3.selected_ids);
             }).appendTo($list);
           };
 
-          for (_iterator7.s(); !(_step7 = _iterator7.n()).done;) {
+          for (_iterator9.s(); !(_step9 = _iterator9.n()).done;) {
             _loop3();
           }
         } catch (err) {
-          _iterator7.e(err);
+          _iterator9.e(err);
         } finally {
-          _iterator7.f();
+          _iterator9.f();
         }
 
         _materialLib.UIHelper.decorateMenu($menu);
@@ -3313,119 +3663,214 @@ var View = /*#__PURE__*/function () {
       this.layoutListRefresh();
     }
   }, {
-    key: "actionListInlineUpdate",
-    value: function actionListInlineUpdate(event, selection) {
+    key: "actionListInlineEdit",
+    value: function actionListInlineEdit(event, selection) {
       var _this5 = this;
 
-      var _iterator8 = _createForOfIteratorHelper(selection),
-          _step8;
+      var _iterator10 = _createForOfIteratorHelper(selection),
+          _step10;
 
       try {
-        for (_iterator8.s(); !(_step8 = _iterator8.n()).done;) {
-          var selected_id = _step8.value;
-          this.$layoutContainer.find('tr[data-id="' + selected_id + '"]').each(function (i, tr) {
-            var $tr = (0, _jqueryLib.$)(tr); // not already in edit mode
+        var _loop4 = function _loop4() {
+          var object_id = _step10.value;
 
-            if ($tr.attr('data-edit') != '1') {
-              var $td = $tr.children().first();
-              var $checkbox = $td.find('.sb-checkbox').hide();
+          _this5.$layoutContainer.find('tr[data-id="' + object_id + '"]').each( /*#__PURE__*/function () {
+            var _ref5 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee11(i, tr) {
+              var $tr, $td, $checkbox, collection, object, original, $actions_button, $actions_menu, $actions_list, switchToView;
+              return _regenerator.default.wrap(function _callee11$(_context11) {
+                while (1) {
+                  switch (_context11.prev = _context11.next) {
+                    case 0:
+                      $tr = (0, _jqueryLib.$)(tr); // not already in edit mode
 
-              var $save_button = _materialLib.UIHelper.createButton('view-save-row', '', 'mini-fab', 'save').addClass('sb-view-list-inline-save-button').appendTo($td).on('click', /*#__PURE__*/function () {
-                var _ref5 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee10(event) {
-                  var object_id, objects, success, object, response, errors, delay, _i, count, field, error_id, msg, title, $snack;
+                      if (!($tr.attr('data-edit') != '1')) {
+                        _context11.next = 19;
+                        break;
+                      }
 
-                  return _regenerator.default.wrap(function _callee10$(_context10) {
-                    while (1) {
-                      switch (_context10.prev = _context10.next) {
-                        case 0:
-                          event.stopPropagation();
-                          object_id = parseInt($tr.attr('data-id'), 10);
-                          objects = _this5.model.getChanges([object_id]);
+                      $td = $tr.children().first();
+                      $checkbox = $td.find('.sb-checkbox').hide();
+                      _context11.next = 6;
+                      return _this5.model.get([object_id]);
 
-                          success = function success() {
-                            $save_button.remove();
-                            $tr.find('.sb-widget-cell').each(function (i, cell) {
-                              (0, _jqueryLib.$)(cell).trigger('_toggle_mode', 'view');
-                            });
-                            $checkbox.show(); // restore click handling
+                    case 6:
+                      collection = _context11.sent;
+                      object = collection[0];
+                      original = _this5.deepCopy(object); // fields toggle menu : button for displaying the filters menu
 
-                            $tr.attr('data-edit', '0');
-                          };
+                      $actions_button = (0, _jqueryLib.$)('<div/>').addClass('mdc-menu-surface--anchor').appendTo($td).append(_materialLib.UIHelper.createButton('row-actions', '', 'mini-fab', 'more_horiz').addClass('sb-view-list-inline-actions-button')); // create floating menu for filters selection
 
-                          if (objects.length) {
-                            _context10.next = 8;
-                            break;
-                          }
+                      $actions_menu = _materialLib.UIHelper.createMenu('row-actions-menu').css({
+                        "margin-top": '48px'
+                      }).appendTo($actions_button);
+                      $actions_list = _materialLib.UIHelper.createList('row-actions-list').appendTo($actions_menu); // generate filters list
 
-                          success();
-                          _context10.next = 13;
-                          break;
+                      switchToView = function switchToView() {
+                        $actions_button.remove();
+                        $tr.find('.sb-widget-cell').each(function (i, cell) {
+                          return (0, _jqueryLib.$)(cell).trigger('_toggle_mode', 'view');
+                        });
+                        $checkbox.show(); // restore click handling
 
-                        case 8:
-                          object = objects[0];
-                          _context10.next = 11;
-                          return _equalServices.ApiService.update(_this5.entity, [object_id], object);
+                        $tr.attr('data-edit', '0');
+                      };
 
-                        case 11:
-                          response = _context10.sent;
+                      _materialLib.UIHelper.createListItem('Save', 'save').appendTo($actions_list).attr('id', 'save-' + object_id).on('click', /*#__PURE__*/function () {
+                        var _ref6 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee10(event) {
+                          var objects, object, result;
+                          return _regenerator.default.wrap(function _callee10$(_context10) {
+                            while (1) {
+                              switch (_context10.prev = _context10.next) {
+                                case 0:
+                                  objects = _this5.model.getChanges([object_id]);
 
-                          if (!response || !response.hasOwnProperty('errors')) {
-                            success();
-                          } else {
-                            errors = response['errors'];
+                                  if (objects.length) {
+                                    _context10.next = 4;
+                                    break;
+                                  }
 
-                            if (errors.hasOwnProperty('INVALID_PARAM')) {
-                              delay = 4000;
-                              _i = 0;
-                              count = Object.keys(errors['INVALID_PARAM']).length; // stack snackbars (LIFO: decreasing timeout)
+                                  switchToView();
+                                  return _context10.abrupt("return", false);
 
-                              for (field in errors['INVALID_PARAM']) {
-                                // for each field, we handle one error at a time (the first one)
-                                error_id = Object.keys(errors['INVALID_PARAM'][field])[0];
-                                msg = Object.values(errors['INVALID_PARAM'][field])[0]; // translate error message
+                                case 4:
+                                  object = objects[0];
+                                  _context10.next = 7;
+                                  return _this5.rowActionListSave(object_id, object);
 
-                                msg = _equalServices.TranslationService.resolve(_this5.translation, 'error', field, msg, error_id);
+                                case 7:
+                                  result = _context10.sent;
 
-                                _this5.layout.markFieldAsInvalid(object['id'], field, msg);
+                                  if (result) {
+                                    switchToView();
+                                  }
 
-                                title = _equalServices.TranslationService.resolve(_this5.translation, 'model', field, field, 'label');
-                                $snack = _materialLib.UIHelper.createSnackbar(title + ': ' + msg, '', '', delay * (count - _i));
+                                  return _context10.abrupt("return", false);
 
-                                _this5.$container.append($snack);
-
-                                ++_i;
+                                case 10:
+                                case "end":
+                                  return _context10.stop();
                               }
                             }
-                          }
+                          }, _callee10);
+                        }));
 
-                        case 13:
-                        case "end":
-                          return _context10.stop();
-                      }
-                    }
-                  }, _callee10);
-                }));
+                        return function (_x5) {
+                          return _ref6.apply(this, arguments);
+                        };
+                      }());
 
-                return function (_x3) {
-                  return _ref5.apply(this, arguments);
-                };
-              }()); // mark row as being edited (prevent click handling)
+                      _materialLib.UIHelper.createListItem('Cancel', 'cancel').appendTo($actions_list).attr('id', 'cancel-' + object_id).on('click', function (event) {
+                        // restore original values
+                        console.log('restore original');
 
+                        for (var _i = 0, _Object$keys = Object.keys(original); _i < _Object$keys.length; _i++) {
+                          var field = _Object$keys[_i];
+                          object[field] = original[field];
 
-              $tr.attr('data-edit', '1'); // for each widget of the row, switch to edit mode
+                          _this5.layout.updateFieldValue(object_id, field, original[field]);
+                        }
 
-              $tr.find('.sb-widget-cell').each(function (i, cell) {
-                (0, _jqueryLib.$)(cell).trigger('_toggle_mode', 'edit');
-              });
-            }
-          });
+                        switchToView();
+                        return false;
+                      });
+
+                      _materialLib.UIHelper.decorateMenu($actions_menu);
+
+                      $actions_button.find('button').on('click', function () {
+                        console.log('ok');
+                        $actions_menu.trigger('_toggle');
+                      }); // mark row as being edited (prevent click handling)
+
+                      $tr.attr('data-edit', '1'); // for each widget of the row, switch to edit mode
+
+                      $tr.find('.sb-widget-cell').each(function (i, cell) {
+                        (0, _jqueryLib.$)(cell).trigger('_toggle_mode', 'edit');
+                      });
+
+                    case 19:
+                    case "end":
+                      return _context11.stop();
+                  }
+                }
+              }, _callee11);
+            }));
+
+            return function (_x3, _x4) {
+              return _ref5.apply(this, arguments);
+            };
+          }());
+        };
+
+        for (_iterator10.s(); !(_step10 = _iterator10.n()).done;) {
+          _loop4();
         }
       } catch (err) {
-        _iterator8.e(err);
+        _iterator10.e(err);
       } finally {
-        _iterator8.f();
+        _iterator10.f();
       }
     }
+  }, {
+    key: "rowActionListSave",
+    value: function () {
+      var _rowActionListSave = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee12(object_id, object) {
+        var response, errors, delay, i, count, field, error_id, msg, title, $snack;
+        return _regenerator.default.wrap(function _callee12$(_context12) {
+          while (1) {
+            switch (_context12.prev = _context12.next) {
+              case 0:
+                _context12.next = 2;
+                return _equalServices.ApiService.update(this.entity, [object_id], object);
+
+              case 2:
+                response = _context12.sent;
+
+                if (!(!response || !response.hasOwnProperty('errors'))) {
+                  _context12.next = 7;
+                  break;
+                }
+
+                return _context12.abrupt("return", true);
+
+              case 7:
+                errors = response['errors'];
+
+                if (errors.hasOwnProperty('INVALID_PARAM')) {
+                  delay = 4000;
+                  i = 0;
+                  count = Object.keys(errors['INVALID_PARAM']).length; // stack snackbars (LIFO: decreasing timeout)
+
+                  for (field in errors['INVALID_PARAM']) {
+                    // for each field, we handle one error at a time (the first one)
+                    error_id = Object.keys(errors['INVALID_PARAM'][field])[0];
+                    msg = Object.values(errors['INVALID_PARAM'][field])[0]; // translate error message
+
+                    msg = _equalServices.TranslationService.resolve(this.translation, 'error', field, msg, error_id);
+                    this.layout.markFieldAsInvalid(object['id'], field, msg);
+                    title = _equalServices.TranslationService.resolve(this.translation, 'model', field, field, 'label');
+                    $snack = _materialLib.UIHelper.createSnackbar(title + ': ' + msg, '', '', delay * (count - i));
+                    this.$container.append($snack);
+                    ++i;
+                  }
+                }
+
+              case 9:
+                return _context12.abrupt("return", false);
+
+              case 10:
+              case "end":
+                return _context12.stop();
+            }
+          }
+        }, _callee12, this);
+      }));
+
+      function rowActionListSave(_x6, _x7) {
+        return _rowActionListSave.apply(this, arguments);
+      }
+
+      return rowActionListSave;
+    }()
   }]);
   return View;
 }();
@@ -3685,12 +4130,6 @@ var _equalServices = __webpack_require__(/*! ./equal-services */ "./build/equal-
 
 var _moment = _interopRequireDefault(__webpack_require__(/*! moment/moment.js */ "./node_modules/moment/moment.js"));
 
-function _createForOfIteratorHelper(o, allowArrayLike) { var it; if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
-
-function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
-
-function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
-
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); keys.push.apply(keys, symbols); } return keys; }
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2.default)(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
@@ -3700,6 +4139,7 @@ function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { va
 var eQ = /*#__PURE__*/function () {
   // jquery object for components communication
   // the main container in which the Context views are injected
+  // temporary var for computing width of rendered strings
   // stack of Context (only current context is visible)
   // current context
   function eQ(entity) {
@@ -3707,12 +4147,14 @@ var eQ = /*#__PURE__*/function () {
     (0, _defineProperty2.default)(this, "$sbEvents", void 0);
     (0, _defineProperty2.default)(this, "$container", void 0);
     (0, _defineProperty2.default)(this, "$headerContainer", void 0);
+    (0, _defineProperty2.default)(this, "$canvas", void 0);
     (0, _defineProperty2.default)(this, "stack", void 0);
     (0, _defineProperty2.default)(this, "context", void 0);
     // we need to actually use the dependencies in this file in order to have them loaded in webpack
     this.$sbEvents = (0, _jqueryLib.$)(); // `#sb-container` is a convention and must be present in the DOM
 
-    this.$container = (0, _jqueryLib.$)('#sb-container');
+    this.$container = (0, _jqueryLib.$)('#sb-container'); // #sb-container-header is managed automatically and shows the breadcrumb of the stack
+
     this.$headerContainer = (0, _jqueryLib.$)('<div/>').addClass('sb-container-header').appendTo(this.$container);
     this.context = {};
     this.stack = [];
@@ -3722,17 +4164,36 @@ var eQ = /*#__PURE__*/function () {
   (0, _createClass2.default)(eQ, [{
     key: "init",
     value: function () {
-      var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
+      var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
         var _this = this;
 
-        return _regenerator.default.wrap(function _callee$(_context) {
+        var resize_debounce;
+        return _regenerator.default.wrap(function _callee2$(_context2) {
           while (1) {
-            switch (_context.prev = _context.next) {
+            switch (_context2.prev = _context2.next) {
               case 0:
                 // init locale
-                _moment.default.locale(_environment.environment.locale); // $sbEvents is a jQuery object used to communicate: it allows an both internal services and external lib to connect with eQ-UI
-                // $('#sb-events').trigger(event, data);
+                _moment.default.locale(_environment.environment.locale); // trigger header re-draw when available horizontal space changes
 
+
+                (0, _jqueryLib.$)(window).on('resize', function () {
+                  clearTimeout(resize_debounce);
+                  resize_debounce = setTimeout( /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
+                    return _regenerator.default.wrap(function _callee$(_context) {
+                      while (1) {
+                        switch (_context.prev = _context.next) {
+                          case 0:
+                            return _context.abrupt("return", _this.updateHeader());
+
+                          case 1:
+                          case "end":
+                            return _context.stop();
+                        }
+                      }
+                    }, _callee);
+                  })), 100);
+                }); // $sbEvents is a jQuery object used to communicate: it allows an both internal services and external lib to connect with eQ-UI
+                // $('#sb-events').trigger(event, data);
 
                 this.$sbEvents = (0, _jqueryLib.$)('<div/>').attr('id', 'sb-events').css('display', 'none').appendTo('body');
                 /**
@@ -3770,13 +4231,19 @@ var eQ = /*#__PURE__*/function () {
                   // close context non-silently with relayed data
                   _this.closeContext(false, data);
                 });
+                this.$sbEvents.on('_closeAll', function (event) {
+                  // close all contexts silently
+                  while (_this.stack.length) {
+                    _this.closeContext(true);
+                  }
+                });
 
-              case 4:
+              case 6:
               case "end":
-                return _context.stop();
+                return _context2.stop();
             }
           }
-        }, _callee, this);
+        }, _callee2, this);
       }));
 
       function init() {
@@ -3786,24 +4253,36 @@ var eQ = /*#__PURE__*/function () {
       return init;
     }()
   }, {
+    key: "getTextWidth",
+    value: function getTextWidth(text, font) {
+      var result = 0; // re-use canvas object for better performance
+
+      var canvas = this.$canvas || (this.$canvas = document.createElement("canvas"));
+      var context = canvas.getContext("2d");
+      context.font = font;
+      var metrics = context.measureText(text);
+      result = metrics.width;
+      return result;
+    }
+  }, {
     key: "getPurposeString",
     value: function () {
-      var _getPurposeString = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2(context) {
+      var _getPurposeString = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3(context) {
         var result, entity, type, purpose, translation, parts, purpose_const, _translation, objects, object;
 
-        return _regenerator.default.wrap(function _callee2$(_context2) {
+        return _regenerator.default.wrap(function _callee3$(_context3) {
           while (1) {
-            switch (_context2.prev = _context2.next) {
+            switch (_context3.prev = _context3.next) {
               case 0:
                 result = '';
                 entity = context.getEntity();
                 type = context.getType();
                 purpose = context.getPurpose();
-                _context2.next = 6;
+                _context3.next = 6;
                 return _equalServices.ApiService.getTranslation(entity, _environment.environment.lang);
 
               case 6:
-                translation = _context2.sent;
+                translation = _context3.sent;
 
                 if (translation.hasOwnProperty('name')) {
                   entity = translation['name'];
@@ -3815,7 +4294,7 @@ var eQ = /*#__PURE__*/function () {
                 }
 
                 if (!(purpose == 'view')) {
-                  _context2.next = 13;
+                  _context3.next = 13;
                   break;
                 }
 
@@ -3829,38 +4308,38 @@ var eQ = /*#__PURE__*/function () {
                   }
                 }
 
-                _context2.next = 29;
+                _context3.next = 29;
                 break;
 
               case 13:
                 // i18n: look in config translation file
                 purpose_const = '';
-                _context2.t0 = purpose;
-                _context2.next = _context2.t0 === 'create' ? 17 : _context2.t0 === 'update' ? 19 : _context2.t0 === 'select' ? 21 : _context2.t0 === 'add' ? 23 : 25;
+                _context3.t0 = purpose;
+                _context3.next = _context3.t0 === 'create' ? 17 : _context3.t0 === 'update' ? 19 : _context3.t0 === 'select' ? 21 : _context3.t0 === 'add' ? 23 : 25;
                 break;
 
               case 17:
                 purpose_const = 'SB_PURPOSE_CREATE';
-                return _context2.abrupt("break", 25);
+                return _context3.abrupt("break", 25);
 
               case 19:
                 purpose_const = 'SB_PURPOSE_UPDATE';
-                return _context2.abrupt("break", 25);
+                return _context3.abrupt("break", 25);
 
               case 21:
                 purpose_const = 'SB_PURPOSE_SELECT';
-                return _context2.abrupt("break", 25);
+                return _context3.abrupt("break", 25);
 
               case 23:
                 purpose_const = 'SB_PURPOSE_ADD';
-                return _context2.abrupt("break", 25);
+                return _context3.abrupt("break", 25);
 
               case 25:
-                _context2.next = 27;
+                _context3.next = 27;
                 return _equalServices.TranslationService.translate(purpose_const);
 
               case 27:
-                _translation = _context2.sent;
+                _translation = _context3.sent;
 
                 if (_translation.length) {
                   result = _translation + ' ' + entity;
@@ -3870,15 +4349,15 @@ var eQ = /*#__PURE__*/function () {
 
               case 29:
                 if (!(type == 'form')) {
-                  _context2.next = 34;
+                  _context3.next = 34;
                   break;
                 }
 
-                _context2.next = 32;
+                _context3.next = 32;
                 return context.getView().getModel().get();
 
               case 32:
-                objects = _context2.sent;
+                objects = _context3.sent;
 
                 if (objects.length) {
                   object = objects[0]; // by convention, collections should always request the `name` field
@@ -3889,14 +4368,14 @@ var eQ = /*#__PURE__*/function () {
                 }
 
               case 34:
-                return _context2.abrupt("return", result);
+                return _context3.abrupt("return", result);
 
               case 35:
               case "end":
-                return _context2.stop();
+                return _context3.stop();
             }
           }
-        }, _callee2);
+        }, _callee3);
       }));
 
       function getPurposeString(_x) {
@@ -3908,45 +4387,88 @@ var eQ = /*#__PURE__*/function () {
   }, {
     key: "updateHeader",
     value: function () {
-      var _updateHeader = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3() {
+      var _updateHeader = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
         var _this2 = this;
 
-        var $elem, _iterator, _step, _loop;
+        var $elem, $temp, current_purpose_string, available_width, font, total_text_width, prepend_contexts_count, char_width, max_chars, _loop, i, _ret;
 
-        return _regenerator.default.wrap(function _callee3$(_context4) {
+        return _regenerator.default.wrap(function _callee4$(_context5) {
           while (1) {
-            switch (_context4.prev = _context4.next) {
+            switch (_context5.prev = _context5.next) {
               case 0:
+                console.log('upadate header');
                 $elem = (0, _jqueryLib.$)('<h3 />').css({
                   display: 'flex'
-                });
-                this.$headerContainer.empty().append($elem); // use all contexts in stack...
+                }); // add temporary, invisible header for font size computations
 
-                _iterator = _createForOfIteratorHelper(this.stack);
-                _context4.prev = 3;
-                _loop = /*#__PURE__*/_regenerator.default.mark(function _loop() {
-                  var context;
-                  return _regenerator.default.wrap(function _loop$(_context3) {
+                $temp = (0, _jqueryLib.$)('<h3 />').css({
+                  visibility: 'hidden'
+                }).appendTo(this.$headerContainer);
+                _context5.next = 5;
+                return this.getPurposeString(this.context);
+
+              case 5:
+                current_purpose_string = _context5.sent;
+                available_width = this.$headerContainer[0].clientWidth * 0.8;
+                font = $temp.css("font-weight") + ' ' + $temp.css("font-size") + ' ' + $temp.css("font-family");
+                total_text_width = this.getTextWidth(current_purpose_string, font);
+                prepend_contexts_count = 0;
+
+                if (!(total_text_width > available_width)) {
+                  _context5.next = 16;
+                  break;
+                }
+
+                char_width = total_text_width / current_purpose_string.length;
+                max_chars = available_width / char_width;
+                current_purpose_string = current_purpose_string.substr(0, max_chars - 1) + '...';
+                _context5.next = 26;
+                break;
+
+              case 16:
+                _loop = /*#__PURE__*/_regenerator.default.mark(function _loop(i) {
+                  var context, context_purpose_string, text_width, overflow;
+                  return _regenerator.default.wrap(function _loop$(_context4) {
                     while (1) {
-                      switch (_context3.prev = _context3.next) {
+                      switch (_context4.prev = _context4.next) {
                         case 0:
-                          context = _step.value;
+                          context = _this2.stack[i];
 
                           if (!context.hasOwnProperty('$container')) {
-                            _context3.next = 8;
+                            _context4.next = 19;
                             break;
                           }
 
-                          _context3.t0 = (0, _jqueryLib.$)('<a />');
-                          _context3.next = 5;
+                          _context4.next = 4;
                           return _this2.getPurposeString(context);
 
-                        case 5:
-                          _context3.t1 = _context3.sent;
+                        case 4:
+                          context_purpose_string = _context4.sent;
+                          text_width = _this2.getTextWidth(context_purpose_string + ' > ', font);
+                          overflow = false;
 
-                          _context3.t0.text.call(_context3.t0, _context3.t1).appendTo($elem).on('click', function () {
+                          if (!(text_width + total_text_width >= available_width)) {
+                            _context4.next = 13;
+                            break;
+                          }
+
+                          overflow = true;
+                          context_purpose_string = '...';
+                          text_width = _this2.getTextWidth(context_purpose_string + ' > ', font);
+
+                          if (!(text_width + total_text_width >= available_width)) {
+                            _context4.next = 13;
+                            break;
+                          }
+
+                          return _context4.abrupt("return", "break");
+
+                        case 13:
+                          total_text_width += text_width;
+                          prepend_contexts_count++;
+                          (0, _jqueryLib.$)('<a />').text(context_purpose_string).prependTo($elem).on('click', function () {
                             // close all contexts after the one clicked
-                            for (var i = _this2.stack.length - 1; i > 0; --i) {
+                            for (var j = _this2.stack.length - 1; j >= i; --j) {
                               // unstack contexts silently (except for the targeted one), and ask for validation at each step
                               if (_this2.context.hasChanged()) {
                                 var validation = confirm(_equalServices.TranslationService.instant('SB_ACTIONS_MESSAGE_ABANDON_CHANGE'));
@@ -3963,88 +4485,97 @@ var eQ = /*#__PURE__*/function () {
                             }
                           });
 
-                          (0, _jqueryLib.$)('<span> › </span>').css({
-                            'margin': '0 10px'
-                          }).appendTo($elem);
+                          if (!overflow) {
+                            _context4.next = 18;
+                            break;
+                          }
 
-                        case 8:
+                          return _context4.abrupt("return", "break");
+
+                        case 18:
+                          if (i > 1) {
+                            (0, _jqueryLib.$)('<span> › </span>').css({
+                              'margin': '0 10px'
+                            }).prependTo($elem);
+                          }
+
+                        case 19:
                         case "end":
-                          return _context3.stop();
+                          return _context4.stop();
                       }
                     }
                   }, _loop);
                 });
-
-                _iterator.s();
-
-              case 6:
-                if ((_step = _iterator.n()).done) {
-                  _context4.next = 10;
-                  break;
-                }
-
-                return _context4.delegateYield(_loop(), "t0", 8);
-
-              case 8:
-                _context4.next = 6;
-                break;
-
-              case 10:
-                _context4.next = 15;
-                break;
-
-              case 12:
-                _context4.prev = 12;
-                _context4.t1 = _context4["catch"](3);
-
-                _iterator.e(_context4.t1);
-
-              case 15:
-                _context4.prev = 15;
-
-                _iterator.f();
-
-                return _context4.finish(15);
+                i = this.stack.length - 1;
 
               case 18:
-                if (!this.context.hasOwnProperty('$container')) {
-                  _context4.next = 25;
+                if (!(i >= 0)) {
+                  _context5.next = 26;
                   break;
                 }
 
-                _context4.t2 = (0, _jqueryLib.$)('<span />');
-                _context4.next = 22;
-                return this.getPurposeString(this.context);
+                return _context5.delegateYield(_loop(i), "t0", 20);
 
-              case 22:
-                _context4.t3 = _context4.sent;
+              case 20:
+                _ret = _context5.t0;
 
-                _context4.t2.text.call(_context4.t2, _context4.t3).appendTo($elem);
-
-                if (this.stack.length > 1) {
-                  _materialLib.UIHelper.createButton('context-close', '', 'mini-fab', 'close').css({
-                    'transform': 'scale(0.5)',
-                    'margin-top': '3px',
-                    'background': 'grey'
-                  }).appendTo($elem).on('click', function () {
-                    var validation = true;
-
-                    if (_this2.context.hasChanged()) {
-                      validation = confirm(_equalServices.TranslationService.instant('SB_ACTIONS_MESSAGE_ABANDON_CHANGE'));
-                    }
-
-                    if (!validation) return;
-
-                    _this2.closeContext();
-                  });
+                if (!(_ret === "break")) {
+                  _context5.next = 23;
+                  break;
                 }
 
-              case 25:
+                return _context5.abrupt("break", 26);
+
+              case 23:
+                --i;
+                _context5.next = 18;
+                break;
+
+              case 26:
+                // ... plus the active context
+                if (this.context.hasOwnProperty('$container')) {
+                  if (prepend_contexts_count > 0) {
+                    (0, _jqueryLib.$)('<span> › </span>').css({
+                      'margin': '0 10px'
+                    }).appendTo($elem);
+                  }
+
+                  (0, _jqueryLib.$)('<span />').text(current_purpose_string).appendTo($elem);
+
+                  if (this.stack.length > 1) {
+                    _materialLib.UIHelper.createButton('context-close', '', 'mini-fab', 'close').css({
+                      'transform': 'scale(0.5)',
+                      'margin-top': '3px',
+                      'background': '#bababa',
+                      'box-shadow': 'none'
+                    }).appendTo($elem).on('click', function () {
+                      var validation = true;
+
+                      if (_this2.context.hasChanged()) {
+                        validation = confirm(_equalServices.TranslationService.instant('SB_ACTIONS_MESSAGE_ABANDON_CHANGE'));
+                      }
+
+                      if (!validation) return;
+
+                      _this2.closeContext();
+                    });
+                  }
+
+                  this.$headerContainer.show().empty().append($elem);
+                } else {
+                  console.log(this.stack.length); // hide header if there is no context
+
+                  if (this.stack.length == 0) {
+                    this.$headerContainer.hide();
+                  }
+                }
+
+              case 27:
               case "end":
-                return _context4.stop();
+                return _context5.stop();
             }
           }
-        }, _callee3, this, [[3, 12, 15, 18]]);
+        }, _callee4, this);
       }));
 
       function updateHeader() {
@@ -4083,54 +4614,62 @@ var eQ = /*#__PURE__*/function () {
   }, {
     key: "closeContext",
     value: function () {
-      var _closeContext = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
+      var _closeContext = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5() {
         var silent,
             data,
             has_changed,
-            _args5 = arguments;
-        return _regenerator.default.wrap(function _callee4$(_context5) {
+            _args6 = arguments;
+        return _regenerator.default.wrap(function _callee5$(_context6) {
           while (1) {
-            switch (_context5.prev = _context5.next) {
+            switch (_context6.prev = _context6.next) {
               case 0:
-                silent = _args5.length > 0 && _args5[0] !== undefined ? _args5[0] : false;
-                data = _args5.length > 1 && _args5[1] !== undefined ? _args5[1] : null;
+                silent = _args6.length > 0 && _args6[0] !== undefined ? _args6[0] : false;
+                data = _args6.length > 1 && _args6[1] !== undefined ? _args6[1] : null;
                 console.log('closeContext', silent, data);
 
                 if (!this.stack.length) {
-                  _context5.next = 14;
+                  _context6.next = 15;
                   break;
                 }
 
                 has_changed = this.context.hasChanged(); // destroy current context and run callback, if any
 
-                this.context.close(data);
-                console.log('suite'); // restore previous context
+                this.context.close(data); // restore previous context
 
                 this.context = this.stack.pop();
 
                 if (silent) {
-                  _context5.next = 14;
+                  _context6.next = 15;
+                  break;
+                }
+
+                console.log(this.context);
+
+                if (!(this.context != undefined && this.context.hasOwnProperty('$container'))) {
+                  _context6.next = 14;
                   break;
                 }
 
                 if (!(has_changed && this.context.getMode() == 'view')) {
-                  _context5.next = 12;
+                  _context6.next = 13;
                   break;
                 }
 
-                _context5.next = 12;
+                _context6.next = 13;
                 return this.context.refresh();
 
-              case 12:
+              case 13:
                 this.context.$container.show();
-                this.updateHeader();
 
               case 14:
+                this.updateHeader();
+
+              case 15:
               case "end":
-                return _context5.stop();
+                return _context6.stop();
             }
           }
-        }, _callee4, this);
+        }, _callee5, this);
       }));
 
       function closeContext() {
@@ -4139,6 +4678,64 @@ var eQ = /*#__PURE__*/function () {
 
       return closeContext;
     }()
+    /**
+     * Generates a menu to be displayed inside the #sb-emnu container.
+     * Items of the menu trigger _openContext calls, independantly from any existing listener
+     * 
+     * @param menu Menu object (JSON structure) describing the entries of each section.
+     */
+
+  }, {
+    key: "loadMenu",
+    value: function loadMenu(menu) {
+      var _loop2 = function _loop2() {
+        item = menu[i];
+        var $link = (0, _jqueryLib.$)('<div/>').addClass('sb-menu-button mdc-menu-surface--anchor').append(_materialLib.UIHelper.createButton('view-filters', item.name, 'text')).appendTo((0, _jqueryLib.$)('#sb-menu')); // create floating menu for filters selection
+
+        var $menu = _materialLib.UIHelper.createMenu('nav-menu').addClass('sb-view-header-list-filters-menu').css({
+          "margin-top": '48px'
+        }).appendTo($link);
+
+        var $list = _materialLib.UIHelper.createList('nav-list').appendTo($menu);
+
+        for (j = 0; j < menu[i].children.length; ++j) {
+          item = menu[i].children[j];
+
+          _materialLib.UIHelper.createListItem(item.name + ' ' + item.entity).data('item', item).appendTo($list).on('click', function (event) {
+            var $this = (0, _jqueryLib.$)(event.currentTarget);
+            var item = $this.data('item');
+
+            if (!item.hasOwnProperty('domain')) {
+              item.domain = [];
+            }
+
+            (0, _jqueryLib.$)('#sb-events').trigger('_closeAll');
+            setTimeout(function () {
+              (0, _jqueryLib.$)('#sb-events').trigger('_openContext', {
+                entity: item.entity,
+                type: 'list',
+                domain: item.domain
+              });
+            });
+          });
+        }
+
+        _materialLib.UIHelper.decorateMenu($menu);
+
+        $link.find('button').on('click', function () {
+          return $menu.trigger('_toggle');
+        });
+      };
+
+      // generate a menu
+      for (var i = 0; i < menu.length; ++i) {
+        var item;
+        var j;
+        var item;
+
+        _loop2();
+      }
+    }
   }, {
     key: "test",
     value: function test() {
@@ -4410,11 +5007,11 @@ var UIHelper = /*#__PURE__*/function () {
       var icon = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : '';
       var disabled = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : false;
       var $elem = (0, _jqueryLib.$)('\
-        <div class="mdc-switch"> \
+        <div class="mdc-switch ' + (disabled ? 'mdc-switch--disabled' : '') + '"> \
             <div class="mdc-switch__track"></div> \
             <div class="mdc-switch__thumb-underlay"> \
                 <div class="mdc-switch__thumb"></div> \
-                <input type="checkbox" class="mdc-switch__native-control" role="switch" ' + (value ? 'checked' : '') + '> \
+                <input type="checkbox" class="mdc-switch__native-control" role="switch" ' + (value ? 'checked' : '') + ' ' + (disabled ? 'disabled' : '') + '> \
             </div> \
         </div> \
         <label for="basic-switch">' + label + '</label> \
@@ -4491,6 +5088,11 @@ var UIHelper = /*#__PURE__*/function () {
 
       new _ripple.MDCRipple($elem[0]);
       return $elem;
+    }
+  }, {
+    key: "createListDivider",
+    value: function createListDivider() {
+      return (0, _jqueryLib.$)('<li role="separator" class="mdc-list-divider"></li>');
     }
   }, {
     key: "createListItemCheckbox",
@@ -4605,7 +5207,7 @@ var UIHelper = /*#__PURE__*/function () {
                 </span> \
                 <span class="mdc-line-ripple"></span> \
             </div> \
-            <div class="mdc-select__menu mdc-menu mdc-menu-surface mdc-menu-surface--fullwidth" role="listbox"> \
+            <div class="mdc-select__menu mdc-menu mdc-menu-surface--fixed mdc-menu-surface " role="listbox"> \
                 <input type="text" style="display: none" /> \
                 <ul class="mdc-list"> \
                 </ul> \
@@ -4675,7 +5277,7 @@ var UIHelper = /*#__PURE__*/function () {
     value: function createMenu(id) {
       var label = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
       var values = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
-      var $elem = (0, _jqueryLib.$)('<div class="mdc-menu mdc-menu-surface"></div>');
+      var $elem = (0, _jqueryLib.$)('<div class="mdc-menu mdc-menu-surface mdc-menu-surface--fixed"></div>');
       return $elem;
     }
   }, {
@@ -5078,8 +5680,11 @@ var WidgetBoolean = /*#__PURE__*/function (_Widget) {
 
         case 'view':
         default:
-          var value = this.value ? 'true' : 'false';
-          $elem = _materialLib.UIHelper.createInputView('', this.label, value);
+          /*
+          let value:string = (this.value)?'true':'false';
+          $elem = UIHelper.createInputView('', this.label, value);
+          */
+          $elem = _materialLib.UIHelper.createSwitch('', this.label, this.value, this.config.helper, '', true);
           break;
       }
 
@@ -5452,62 +6057,64 @@ var WidgetMany2Many = /*#__PURE__*/function (_Widget) {
           }]
         };
         var view = new _View.default(this.config.entity, 'list', this.config.name, this.config.domain, this.mode, 'widget', this.config.lang, view_config);
-        var $container = view.getContainer();
+        view.isReady().then(function () {
+          var $container = view.getContainer();
 
-        if (this.mode == 'edit') {
-          $container.find('.sb-view-header-list-actions-set').append(_materialLib.UIHelper.createButton('action-edit', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_ADD'), 'raised').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
-            var purpose;
-            return _regenerator.default.wrap(function _callee$(_context) {
-              while (1) {
-                switch (_context.prev = _context.next) {
-                  case 0:
-                    purpose = _this2.rel_type == 'many2many' ? 'add' : 'select'; // request a new Context for selecting an existing object to add to current selection
+          if (_this2.mode == 'edit') {
+            $container.find('.sb-view-header-list-actions-set').append(_materialLib.UIHelper.createButton('action-edit', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_ADD'), 'raised').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
+              var purpose;
+              return _regenerator.default.wrap(function _callee$(_context) {
+                while (1) {
+                  switch (_context.prev = _context.next) {
+                    case 0:
+                      purpose = _this2.rel_type == 'many2many' ? 'add' : 'select'; // request a new Context for selecting an existing object to add to current selection
 
-                    $('#sb-events').trigger('_openContext', {
-                      entity: _this2.config.entity,
-                      type: 'list',
-                      name: 'default',
-                      domain: [],
-                      mode: 'view',
-                      purpose: purpose,
-                      callback: function callback(data) {
-                        if (data && data.selection) {
-                          var ids = _this2.value.map(function (o) {
-                            return o.id;
-                          }); // 1) remove from current selection items (+ or -) that are in returned selection
-
-
-                          for (var i = ids.length - 1; i >= 0; --i) {
-                            var item = Math.abs(ids[i]);
-
-                            if (data.selection.indexOf(item) > -1) {
-                              ids.splice(i, 1);
-                            }
-                          } // 2) append returned selection to current selection
+                      $('#sb-events').trigger('_openContext', {
+                        entity: _this2.config.entity,
+                        type: 'list',
+                        name: 'default',
+                        domain: [],
+                        mode: 'view',
+                        purpose: purpose,
+                        callback: function callback(data) {
+                          if (data && data.selection) {
+                            var ids = _this2.value.map(function (o) {
+                              return o.id;
+                            }); // 1) remove from current selection items (+ or -) that are in returned selection
 
 
-                          ids = ids.concat(data.selection);
-                          _this2.value = ids.map(function (id) {
-                            return {
-                              id: id
-                            };
-                          });
-                          $elem.trigger('_updatedWidget');
+                            for (var i = ids.length - 1; i >= 0; --i) {
+                              var item = Math.abs(ids[i]);
+
+                              if (data.selection.indexOf(item) > -1) {
+                                ids.splice(i, 1);
+                              }
+                            } // 2) append returned selection to current selection
+
+
+                            ids = ids.concat(data.selection);
+                            _this2.value = ids.map(function (id) {
+                              return {
+                                id: id
+                              };
+                            });
+                            $elem.trigger('_updatedWidget');
+                          }
                         }
-                      }
-                    });
+                      });
 
-                  case 2:
-                  case "end":
-                    return _context.stop();
+                    case 2:
+                    case "end":
+                      return _context.stop();
+                  }
                 }
-              }
-            }, _callee);
-          }))));
-        } // inject View in parent Context object
+              }, _callee);
+            }))));
+          } // inject View in parent Context object
 
 
-        $elem.append($container);
+          $elem.append($container);
+        });
       }
 
       $elem.addClass('sb-widget').attr('id', this.getId());

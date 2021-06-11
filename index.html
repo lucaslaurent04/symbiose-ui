@@ -33,9 +33,94 @@
         <script type="text/javascript" src="timepicker.js"></script>
 
 <script>
+
+var menu = [
+    {
+        name: 'Users & Groups',
+        description: '',
+        icon: '',
+        type: 'parent',
+    	children: [
+            {
+                name: 'Users',
+                description: '',
+                icon: '',
+                type: 'entry',
+                entity: 'core\\User',
+                target: 'list.default',
+                domain: ['id', '>', 2]
+            },
+            {
+                name: 'Groups',
+                description: '',
+                icon: '',
+                type: 'entry',
+                entity: 'core\\Group',                
+                target: 'list.default',
+                domain: ['id', '>', 5]
+            },
+            {
+                name: 'Permissions',
+                description: '',
+                icon: '',
+                type: 'entry',
+                entity: 'core\\Permission',                
+                target: 'list.default'             
+            }            
+
+        ]
+    },
+    {
+        name: 'Users & Groups 2',
+        description: '',
+        icon: '',
+        type: 'parent',
+    	children: [
+            {
+                name: 'Users',
+                description: '',
+                icon: '',
+                type: 'entry',
+                entity: 'core\\User',
+                target: 'list.default'             
+            },
+            {
+                name: 'Groups',
+                description: '',
+                icon: '',
+                type: 'entry',
+                entity: 'core\\Group',                
+                target: 'list.default'             
+            }            
+        ]
+    }
+
+];
+
 $(document).ready( function() {
     var eq = new eQ();
-    eq.test();   
+    // eq.test();   
+
+    eq.loadMenu(menu);
+
+/*
+for(var i = 0; i < menu.length; ++i) {
+    var item = menu[i];
+    for(var j = 0; j < menu[i].children.length; ++j) {
+        var item = menu[i].children[j];
+        (function(item) {
+            $('#sb-root').append(
+                $('<a>').html(item.name + ' ' + item.entity).on('click', () => {
+                    $('#sb-events').trigger('_openContext', {entity: item.entity, type: 'list', domain: ['id', '>', 5]} );
+                })
+            );
+        })(item);
+    }
+}
+*/
+
+    $('#sb-events').trigger('_openContext', {entity: 'core\\User', type: 'list'} );
+    // setTimeout( () => $('#sb-events').trigger('_closeContext'), 3000 );
 });
 </script>
 
@@ -77,6 +162,10 @@ body, html {
     flex-flow: column nowrap;
 }
 
+#sb-menu .sb-menu-button {
+    display: inline-block;
+}
+
 #sb-container {
     border: solid red 1px;
     width: 100%;
@@ -87,8 +176,9 @@ body, html {
 }
 
 .sb-container-header {
-    margin-left: 12px;
+    padding-left: 12px;
     height: 48px;
+    border-bottom: solid 1px lightgrey;
 }
 
 .sb-container-header h3 {
@@ -123,8 +213,8 @@ body, html {
     height: calc(100% - 112px);
 }
 
-.sb-view-list-inline-save-button {
-    transform: scale(0.9);
+.sb-view-list-inline-actions-button {
+    transform: scale(0.7);
 }
 
 .sb-layout {
@@ -132,22 +222,8 @@ body, html {
     height: 100%;
 }
 
-.mdc-data-table {
-    height: 100%;
-}
 
 
-.mdc-data-table__table-container::-webkit-scrollbar {
-    width: 4px;
-    overflow-y: scroll;
-    background: #EAEAEA;
-
-}
-
-.mdc-data-table__table-container::-webkit-scrollbar-thumb {
-    background: var(--mdc-theme-primary, #6200ee);
-    border-radius: 10px;
-}
 
 .sb-view-layout-list table th {
     cursor: pointer;
@@ -243,11 +319,6 @@ body, html {
     margin-top: 4px;
 }
 
-.sb-view-header-list-filters button {
-    background-color: white;
-    color: black;
-    box-shadow: none !important;
-}
 
 .sb-view-header-list-fields_toggle {
     /* flex-grow: 1; */
@@ -256,11 +327,6 @@ body, html {
     text-align: right;
 }
 
-.sb-view-header-list-fields_toggle button {
-    background-color: white;
-    color: black;
-    box-shadow: none !important;
-}
 
 .sb-view-header-list-fields_toggle .sb-view-header-list-fields_toggle-menu {
     min-width: 250px;
@@ -343,6 +409,7 @@ body, html {
 .sb-view-layout-list .sb-view-form-field-mode-view {
 	background-color: transparent !important;
     height: 44px !important;
+    padding: 0;
 }
 
 .sb-view-layout-list .sb-view-form-field-mode-view input {
@@ -384,6 +451,11 @@ body, html {
 
 .sb-widget-cell.sb-widget-cell--edit .mdc-text-field {
     outline: solid 1px var(--mdc-theme-primary-outline);
+    padding-left: 5px;
+}
+
+.sb-widget-cell.sb-widget-cell--edit .mdc-select__anchor {
+    padding-left: 5px;
 }
 
 .sb-widget-cell .mdc-text-field-helper-line {
@@ -399,17 +471,18 @@ body, html {
 }
 
 .sb-widget-cell .mdc-select {
-    position: absolute;
     outline: solid 1px var(--mdc-theme-primary-outline);
     margin-top: -14px;
 }
 
-.sb-widget-cell .mdc-select .mdc-select__anchor {
-    height: 100%;
+.sb-widget-cell .mdc-select {
+    outline: solid 1px var(--mdc-theme-primary-outline);
+    margin-top: -14px;
 }
 
-.sb-widget-cell .mdc-switch {
-    margin-top: 4px;
+
+.sb-widget-cell .mdc-select__anchor {
+    height: 100%;
 }
 
 /* make mini-fab flat (mini save buttons) */ 
@@ -418,11 +491,38 @@ body, html {
     margin: 2px 0;
 }
 
+.mdc-data-table {
+    height: 100%;
+}
+
+
+.mdc-data-table__table-container::-webkit-scrollbar {
+    width: 4px;
+    overflow-y: scroll;
+    background: #EAEAEA;
+
+}
+
+.mdc-data-table__table-container::-webkit-scrollbar-thumb {
+    background: var(--mdc-theme-primary, #6200ee);
+    border-radius: 10px;
+}
+
+
+
+/* custom style for special button with icon only */
+.mdc-button-icon {
+	min-width: 36px;
+}
+
+.mdc-button-icon  .mdc-button__ripple {
+	border-radius: 50%;
+    width: 36px;
+}
 
 
 
 .mdc-menu {
-    width: auto !important;
     min-width: var(--mdc-menu-min-width, 200px) !important;
     max-width: calc(100vw - 32px) !important;
 }
@@ -466,6 +566,13 @@ body, html {
 
 .mdc-list-item__graphic {
     color: rgba(0,0,0,.54) !important;
+    margin-right: 12px;
+}
+
+.mdc-list-item__text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;    
 }
 
 .mdc-chip .mdc-chip__icon {
@@ -475,11 +582,13 @@ body, html {
 
 .mdc-list-item {
     height: 44px;
+    align-items: center !important;
 }
 
 .mdc-data-table__cell {
     height: 44px;
 }
+
 
 .mdc-data-table__pagination {
     border-top: 0;
@@ -518,12 +627,12 @@ body, html {
     color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;
 }
 
-.mdc-select {
-    width: 100%;
-}
-
 .mdc-select--focused:not(.mdc-text-field--disabled) .mdc-floating-label {
     color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;
+}
+
+.mdc-select {
+    width: 100%;
 }
 
 .mdc-tab {
@@ -820,7 +929,7 @@ button.ui-state-hover {
         <div><input type="text" id="datepicker"></div>
         -->
 
-
+        <div id="sb-menu"></div>
         <div id="sb-container"></div>
     </div>
 

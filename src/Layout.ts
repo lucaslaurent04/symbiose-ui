@@ -69,12 +69,17 @@ export class Layout {
 
     }
 
+    public updateFieldValue(object_id: number, field: string, value: any) {
+        if(this.model_widgets[object_id][field]) {
+            this.model_widgets[object_id][field].setValue(value);
+        }        
+    }
 
     // refresh layout
     // this method is called in response to parent View `onchangeModel` method 
     public async refresh(full: boolean) {
         console.log('Layout::refresh');
-                     
+
         // also re-generate the layout                     
         if(full) {
             this.$layout.empty();
@@ -146,8 +151,10 @@ export class Layout {
         config.align = (item.hasOwnProperty('align'))?item.align:'left';
         config.sortable = (item.hasOwnProperty('sortable') && item.sortable);
         config.visible = true;
+        config.layout = this.view.getType();
 
         if(item.hasOwnProperty('visible')) {
+// #todo - handle domains            
             // evaluate visible attr (either a bool or a domain)
             config.visible = eval(item.visible);
         }
@@ -249,11 +256,14 @@ export class Layout {
                                         this.model_widgets[0] = {};
                                     }
                                     this.model_widgets[0][item.value] = widget;
-                                    $cell.append(widget.attach());                
+                                    $cell.append(widget.attach());
                                 }
                                 else if(item.type == 'label') {
-    
-                                }    
+                                    $cell.append('<span style="font-weight: 600;">'+item.value+'</span>');
+                                }
+                                else if(item.type == 'button') {
+                                    $cell.append(UIHelper.createButton(item.action, item.value,  'raised', (item.icon)?item.icon:''));
+                                }
                             }
                         });
                     });
@@ -445,6 +455,7 @@ export class Layout {
                 let model_def = model_schema[field];
                 let type = model_def['type'];
         
+                let has_changed = false;
                 let value = object[field];
                 let config = widget.getConfig();
 
@@ -466,19 +477,29 @@ export class Layout {
                             target_ids.push(0);
                         }
                         // defined config for Widget's view with a custom domain according to object values
+                        let view_id = (config.hasOwnProperty('view'))?config.view:'list.default';
+                        let parts = view_id.split(".", 2); 
+                        let view_type = (parts.length > 1)?parts[0]:'list';
+                        let view_name = (parts.length > 1)?parts[1]:parts[0];
+
                         config = {...config, 
                             entity: model_def['foreign_object'],
-                            type: 'list',
-                            name: (config.hasOwnProperty('view'))?config.view:'default',
+                            type: view_type,
+                            name: view_name,
                             domain: ['id','in',target_ids],
                             lang: this.view.getLang()
                         };
                     }
-
-                    widget.setConfig(config);
                 }
+                
+                has_changed = ($parent.data('value') != value);
 
-                widget.setMode(this.view.getMode()).setValue(value);
+                widget.setConfig(config)
+                .setMode(this.view.getMode())
+                .setValue(value);
+
+                // store data to parent, for tracking changes at next refresh
+                $parent.data('value', value);
 
                 let visible = true;
                 // handle visibility tests (domain)           
@@ -494,9 +515,13 @@ export class Layout {
                 }
 
                 if(!visible) {
-                    $parent.empty().append(widget.attach());                    
+                    $parent.empty().append(widget.attach());
+                    // visibility update need to trigger a redraw, whatever the value (so we change it to an arbitrary value)
+                    $parent.data('value', null);
                 }
                 else {
+// todo : many2one & x2many fields can have a specific domain, that might depend on current values of edited object : 
+// we must re-evaluate the domain and set the widget config accordingly
                     let $widget = widget.render();
                     // Handle Widget update handler
                     $widget.on('_updatedWidget', (event:any) => {
@@ -505,10 +530,12 @@ export class Layout {
                         let value:any = {};
                         value[field] = widget.getValue();
                         this.view.onchangeViewModel([object.id], value);
-                    });        
-                    // append rendered widget
-                    $parent.empty().append($widget);
-
+                    });
+                    // prevent refreshing objects that haven't changed (otherwise currently active widget loses the focus)
+                    if(has_changed) {
+                        // append rendered widget
+                        $parent.empty().append($widget);
+                    }
                 }
             }    
         }

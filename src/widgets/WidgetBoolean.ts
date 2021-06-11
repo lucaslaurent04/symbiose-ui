@@ -24,8 +24,11 @@ export default class WidgetBoolean extends Widget {
                 break;
             case 'view':
             default:
+                /*
                 let value:string = (this.value)?'true':'false';
-                $elem = UIHelper.createInputView('', this.label, value);                
+                $elem = UIHelper.createInputView('', this.label, value);
+                */
+                $elem = UIHelper.createSwitch('', this.label, this.value, this.config.helper, '', true);
                 break;
         }
         return $elem.addClass('sb-widget').attr('id', this.getId());

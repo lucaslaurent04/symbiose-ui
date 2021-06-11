@@ -45,47 +45,51 @@ export default class WidgetMany2Many extends Widget {
 
             let view = new View(this.config.entity, 'list', this.config.name, this.config.domain, this.mode, 'widget', this.config.lang, view_config);
     
-            let $container = view.getContainer();
+            view.isReady().then( () => {
+                let $container = view.getContainer();
 
 
-            if(this.mode == 'edit') {
-                $container.find('.sb-view-header-list-actions-set')
-                .append( 
-                    UIHelper.createButton('action-edit', TranslationService.instant('SB_ACTIONS_BUTTON_ADD'), 'raised')
-                    .on('click', async () => {
-                        let purpose = (this.rel_type == 'many2many')?'add':'select';
+                if(this.mode == 'edit') {
 
-                        // request a new Context for selecting an existing object to add to current selection
-                        $('#sb-events').trigger('_openContext', {
-                            entity: this.config.entity, 
-                            type: 'list', 
-                            name: 'default', 
-                            domain: [], 
-                            mode: 'view', 
-                            purpose: purpose,
-                            callback: (data:any) => {
-                                if(data && data.selection) {
-                                    let ids = this.value.map( (o:any) => o.id);
-                                    // 1) remove from current selection items (+ or -) that are in returned selection
-                                    for(let i = ids.length-1; i >= 0; --i) {
-                                        let item = Math.abs(ids[i]);
-                                        if(data.selection.indexOf(item) > -1) {
-                                            ids.splice(i, 1);
+                    $container.find('.sb-view-header-list-actions-set')
+                    .append( 
+                        UIHelper.createButton('action-edit', TranslationService.instant('SB_ACTIONS_BUTTON_ADD'), 'raised')
+                        .on('click', async () => {
+                            let purpose = (this.rel_type == 'many2many')?'add':'select';
+    
+                            // request a new Context for selecting an existing object to add to current selection
+                            $('#sb-events').trigger('_openContext', {
+                                entity: this.config.entity, 
+                                type: 'list', 
+                                name: 'default', 
+                                domain: [], 
+                                mode: 'view', 
+                                purpose: purpose,
+                                callback: (data:any) => {
+                                    if(data && data.selection) {
+                                        let ids = this.value.map( (o:any) => o.id);
+                                        // 1) remove from current selection items (+ or -) that are in returned selection
+                                        for(let i = ids.length-1; i >= 0; --i) {
+                                            let item = Math.abs(ids[i]);
+                                            if(data.selection.indexOf(item) > -1) {
+                                                ids.splice(i, 1);
+                                            }
                                         }
+                                        // 2) append returned selection to current selection
+                                        ids = ids.concat(data.selection);
+                                        this.value = ids.map( (id:number) => ({id: id}) );
+                                        $elem.trigger('_updatedWidget');
                                     }
-                                    // 2) append returned selection to current selection
-                                    ids = ids.concat(data.selection);
-                                    this.value = ids.map( (id:number) => ({id: id}) );
-                                    $elem.trigger('_updatedWidget');
                                 }
-                            }
-                        });
-                    })
-                )
-            }
-
-            // inject View in parent Context object
-            $elem.append($container);    
+                            });
+                        })
+                    )
+                }
+    
+                // inject View in parent Context object
+                $elem.append($container); 
+            });
+   
         }
 
         $elem.addClass('sb-widget').attr('id', this.getId());

@@ -68,11 +68,11 @@ class UIHelper {
 
     public static createSwitch(id:string, label:string, value:boolean, helper:string = '', icon: string = '', disabled: boolean = false) {
         let $elem = $('\
-        <div class="mdc-switch"> \
+        <div class="mdc-switch '+ ((disabled)?'mdc-switch--disabled':'') + '"> \
             <div class="mdc-switch__track"></div> \
             <div class="mdc-switch__thumb-underlay"> \
                 <div class="mdc-switch__thumb"></div> \
-                <input type="checkbox" class="mdc-switch__native-control" role="switch" '+ ((value)?'checked':'') +'> \
+                <input type="checkbox" class="mdc-switch__native-control" role="switch" '+ ((value)?'checked':'') + ' ' + ((disabled)?'disabled':'') +'> \
             </div> \
         </div> \
         <label for="basic-switch">'+label+'</label> \
@@ -145,6 +145,11 @@ class UIHelper {
         new MDCRipple($elem[0]);
         return $elem;
     }
+
+    public static createListDivider() {
+        return $('<li role="separator" class="mdc-list-divider"></li>');
+    }
+
 
     public static createListItemCheckbox(id: string, label: string) {
         let $elem = $('\
@@ -248,7 +253,7 @@ class UIHelper {
                 </span> \
                 <span class="mdc-line-ripple"></span> \
             </div> \
-            <div class="mdc-select__menu mdc-menu mdc-menu-surface mdc-menu-surface--fullwidth" role="listbox"> \
+            <div class="mdc-select__menu mdc-menu mdc-menu-surface--fixed mdc-menu-surface " role="listbox"> \
                 <input type="text" style="display: none" /> \
                 <ul class="mdc-list"> \
                 </ul> \
@@ -302,7 +307,7 @@ class UIHelper {
     }
 
     public static createMenu(id:string, label:string='', values:any=[]) {
-        let $elem = $('<div class="mdc-menu mdc-menu-surface"></div>');        
+        let $elem = $('<div class="mdc-menu mdc-menu-surface mdc-menu-surface--fixed"></div>');        
         return $elem;
     }
 
