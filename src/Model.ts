@@ -105,6 +105,8 @@ export class Model {
 
 
         try {
+// #todo : allow to fetch objects from an arbitrary controller (when domain is not enough for filtering)
+// default controller is core_model_collect
             this.objects = await ApiService.collect(this.view.getEntity(), this.view.getDomain(), fields, this.view.getOrder(), this.view.getSort(), this.view.getStart(), this.view.getLimit(), this.view.getLang());
             
             this.loaded_promise.resolve();

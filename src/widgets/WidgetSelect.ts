@@ -11,7 +11,6 @@ export default class WidgetSelect extends Widget {
         console.log('WidgetSelect::render', this.config, this.mode);
         let $elem: JQuery;
         let value:string = this.value?this.value:'';
-        console.log(this.value, value);
         switch(this.mode) {
             case 'edit':
                 $elem = UIHelper.createSelect('', this.label, this.config.values, value);
@@ -30,7 +29,6 @@ export default class WidgetSelect extends Widget {
                 break;
         }
         $elem.addClass('sb-widget').attr('id', this.getId());
-
 
         return $elem;
     }

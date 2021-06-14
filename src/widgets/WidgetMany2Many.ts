@@ -94,7 +94,6 @@ export default class WidgetMany2Many extends Widget {
 
         $elem.addClass('sb-widget').attr('id', this.getId());
 
-
         return $elem;
     }
     

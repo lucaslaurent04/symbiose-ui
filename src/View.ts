@@ -168,6 +168,7 @@ export class View {
                     this.domain = domain;
                 }
                 // merge domains
+// #todo : move this to a utiliy heper in Domain class                
                 else {
                     let normalized = new Domain(this.domain);
                     this.domain = normalized.toArray();

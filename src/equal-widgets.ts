@@ -8,6 +8,7 @@ import WidgetText from "./widgets/WidgetText";
 import WidgetLink from "./widgets/WidgetLink";
 import WidgetSelect from "./widgets/WidgetSelect";
 import WidgetOne2Many  from "./widgets/WidgetOne2Many";
+import WidgetMany2One  from "./widgets/WidgetMany2One";
 import WidgetMany2Many  from "./widgets/WidgetMany2Many";
 
 class WidgetFactory {
@@ -46,9 +47,11 @@ config: {
             case 'date':
                 return new WidgetDate(label, value, config);
             case 'datetime':
-                return new WidgetDateTime(label, value, config);    
+                return new WidgetDateTime(label, value, config);
             case 'one2many':
-                return new WidgetOne2Many(label, value, config);                
+                return new WidgetOne2Many(label, value, config);
+            case 'many2one':
+                return new WidgetMany2One(label, value, config);    
             case 'many2many':
                 return new WidgetMany2Many(label, value, config);
             case 'link':
@@ -56,8 +59,9 @@ config: {
             case 'text':
                 return new WidgetText(label, value, config);
             case 'select':
-                return new WidgetSelect(label, value, config);    
-            case 'string':    
+                return new WidgetSelect(label, value, config);
+            case 'integer':
+            case 'string':
             default:
                 return new WidgetString(label, value, config);
         }

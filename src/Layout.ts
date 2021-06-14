@@ -133,7 +133,6 @@ export class Layout {
      */
     private getWidgetConfig(item: any) {
         console.log('Layout::getWidgetConfig', item);
-        let config:any = {};
         let field = item.value;
         
         let translation = this.view.getTranslation();
@@ -144,7 +143,8 @@ export class Layout {
         let label = (item.hasOwnProperty('label'))?item.label:field;
         let helper = (item.hasOwnProperty('help'))?item.help:'';
 
-        config.type = def.type;
+        let config:any = {...def};
+        
         config.title = TranslationService.resolve(translation, 'model', field, label, 'label');
         config.helper = TranslationService.resolve(translation, 'model', field, helper, 'help');
         config.readonly = (item.hasOwnProperty('readonly'))?item.readonly:false;
@@ -492,7 +492,7 @@ export class Layout {
                     }
                 }
                 
-                has_changed = ($parent.data('value') != value);
+                has_changed = (!value || $parent.data('value') != value);
 
                 widget.setConfig(config)
                 .setMode(this.view.getMode())

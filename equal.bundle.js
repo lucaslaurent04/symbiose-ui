@@ -1359,14 +1359,15 @@ var Layout = /*#__PURE__*/function () {
     key: "getWidgetConfig",
     value: function getWidgetConfig(item) {
       console.log('Layout::getWidgetConfig', item);
-      var config = {};
       var field = item.value;
       var translation = this.view.getTranslation();
       var model_fields = this.view.getModelFields();
       var def = model_fields[field];
       var label = item.hasOwnProperty('label') ? item.label : field;
       var helper = item.hasOwnProperty('help') ? item.help : '';
-      config.type = def.type;
+
+      var config = _objectSpread({}, def);
+
       config.title = _equalServices.TranslationService.resolve(translation, 'model', field, label, 'label');
       config.helper = _equalServices.TranslationService.resolve(translation, 'model', field, helper, 'help');
       config.readonly = item.hasOwnProperty('readonly') ? item.readonly : false;
@@ -1765,7 +1766,7 @@ var Layout = /*#__PURE__*/function () {
                 }
               }
 
-              has_changed = $parent.data('value') != value;
+              has_changed = !value || $parent.data('value') != value;
               widget.setConfig(config).setMode(_this4.view.getMode()).setValue(value); // store data to parent, for tracking changes at next refresh
 
               $parent.data('value', value);
@@ -2632,6 +2633,7 @@ var View = /*#__PURE__*/function () {
                   if (this.domain.length == 0) {
                     this.domain = domain;
                   } // merge domains
+                  // #todo : move this to a utiliy heper in Domain class                
                   else {
                       normalized = new _Domain.default(this.domain);
                       this.domain = normalized.toArray();
@@ -4026,6 +4028,8 @@ var _WidgetSelect = _interopRequireDefault(__webpack_require__(/*! ./widgets/Wid
 
 var _WidgetOne2Many = _interopRequireDefault(__webpack_require__(/*! ./widgets/WidgetOne2Many */ "./build/widgets/WidgetOne2Many.js"));
 
+var _WidgetMany2One = _interopRequireDefault(__webpack_require__(/*! ./widgets/WidgetMany2One */ "./build/widgets/WidgetMany2One.js"));
+
 var _WidgetMany2Many = _interopRequireDefault(__webpack_require__(/*! ./widgets/WidgetMany2Many */ "./build/widgets/WidgetMany2Many.js"));
 
 var WidgetFactory = /*#__PURE__*/function () {
@@ -4073,6 +4077,9 @@ var WidgetFactory = /*#__PURE__*/function () {
         case 'one2many':
           return new _WidgetOne2Many.default(label, value, config);
 
+        case 'many2one':
+          return new _WidgetMany2One.default(label, value, config);
+
         case 'many2many':
           return new _WidgetMany2Many.default(label, value, config);
 
@@ -4084,6 +4091,7 @@ var WidgetFactory = /*#__PURE__*/function () {
         case 'select':
           return new _WidgetSelect.default(label, value, config);
 
+        case 'integer':
         case 'string':
         default:
           return new _WidgetString.default(label, value, config);
@@ -6128,6 +6136,90 @@ exports.default = WidgetMany2Many;
 
 /***/ }),
 
+/***/ "./build/widgets/WidgetMany2One.js":
+/*!*****************************************!*\
+  !*** ./build/widgets/WidgetMany2One.js ***!
+  \*****************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+var _interopRequireDefault = __webpack_require__(/*! @babel/runtime/helpers/interopRequireDefault */ "./node_modules/@babel/runtime/helpers/interopRequireDefault.js");
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.default = void 0;
+
+var _classCallCheck2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/classCallCheck */ "./node_modules/@babel/runtime/helpers/classCallCheck.js"));
+
+var _createClass2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/createClass */ "./node_modules/@babel/runtime/helpers/createClass.js"));
+
+var _inherits2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/inherits */ "./node_modules/@babel/runtime/helpers/inherits.js"));
+
+var _possibleConstructorReturn2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/possibleConstructorReturn */ "./node_modules/@babel/runtime/helpers/possibleConstructorReturn.js"));
+
+var _getPrototypeOf2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/getPrototypeOf */ "./node_modules/@babel/runtime/helpers/getPrototypeOf.js"));
+
+var _Widget2 = _interopRequireDefault(__webpack_require__(/*! ./Widget */ "./build/widgets/Widget.js"));
+
+var _materialLib = __webpack_require__(/*! ../material-lib */ "./build/material-lib.js");
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
+
+var WidgetMany2One = /*#__PURE__*/function (_Widget) {
+  (0, _inherits2.default)(WidgetMany2One, _Widget);
+
+  var _super = _createSuper(WidgetMany2One);
+
+  function WidgetMany2One(label, value, config) {
+    (0, _classCallCheck2.default)(this, WidgetMany2One);
+    return _super.call(this, 'many2one', label, value, config);
+  }
+
+  (0, _createClass2.default)(WidgetMany2One, [{
+    key: "render",
+    value: function render() {
+      var _this = this;
+
+      console.log('WidgetMany2One::render', this.config, this.mode);
+      var $elem;
+      var value = this.value ? this.value : '';
+      console.log(this.config);
+
+      switch (this.mode) {
+        case 'edit':
+          $elem = _materialLib.UIHelper.createSelect('', this.label, [], value); // setup handler for relaying value update to parent layout
+
+          $elem.find('input').on('change', function (event) {
+            console.log('WidgetMany2One : received change event');
+            var $this = $(event.currentTarget);
+            _this.value = $this.val();
+            $elem.trigger('_updatedWidget');
+          });
+          break;
+
+        case 'view':
+        default:
+          $elem = $('<span/>').text(value);
+          $elem = _materialLib.UIHelper.createInputView('', this.label, value);
+          break;
+      }
+
+      $elem.addClass('sb-widget').attr('id', this.getId());
+      return $elem;
+    }
+  }]);
+  return WidgetMany2One;
+}(_Widget2.default);
+
+exports.default = WidgetMany2One;
+
+/***/ }),
+
 /***/ "./build/widgets/WidgetOne2Many.js":
 /*!*****************************************!*\
   !*** ./build/widgets/WidgetOne2Many.js ***!
@@ -6231,7 +6323,6 @@ var WidgetSelect = /*#__PURE__*/function (_Widget) {
       console.log('WidgetSelect::render', this.config, this.mode);
       var $elem;
       var value = this.value ? this.value : '';
-      console.log(this.value, value);
 
       switch (this.mode) {
         case 'edit':
