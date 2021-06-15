@@ -253,7 +253,7 @@ class UIHelper {
                 </span> \
                 <span class="mdc-line-ripple"></span> \
             </div> \
-            <div class="mdc-select__menu mdc-menu mdc-menu-surface--fixed mdc-menu-surface " role="listbox"> \
+            <div class="mdc-select__menu mdc-menu mdc-menu-surface--fixed mdc-menu-surface" role="listbox"> \
                 <input type="text" style="display: none" /> \
                 <ul class="mdc-list"> \
                 </ul> \
@@ -295,6 +295,10 @@ class UIHelper {
         // make the element behave like an `input` element
         select.listen('MDCSelect:change', () => {
             $elem.find('input').val(select.value).trigger('change');
+        });
+
+        $elem.on('click', () => {
+            $elem.find('.mdc-menu-surface').width(<number>$elem.width());
         });
 
         return $elem;

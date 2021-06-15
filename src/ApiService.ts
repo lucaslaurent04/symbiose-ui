@@ -252,6 +252,18 @@ export class _ApiService {
         return result;
     }
 
+    /**
+     * 
+     * @param entity 
+     * @param domain 
+     * @param fields 
+     * @param order 
+     * @param sort 
+     * @param start 
+     * @param limit 
+     * @param lang 
+     * @returns     Promise     Upon success, the promise is resolved into an Array holding matching objects (collection).
+     */
     public async collect(entity:string, domain:any[], fields:any[], order:string, sort:string, start:number, limit:number, lang:string) {
         console.log('ApiService::collect', entity, domain, fields, order, sort, start, limit, lang);
         var result = [];

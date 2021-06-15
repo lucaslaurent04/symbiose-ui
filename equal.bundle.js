@@ -473,6 +473,19 @@ var _ApiService = /*#__PURE__*/function () {
 
       return update;
     }()
+    /**
+     * 
+     * @param entity 
+     * @param domain 
+     * @param fields 
+     * @param order 
+     * @param sort 
+     * @param start 
+     * @param limit 
+     * @param lang 
+     * @returns     Promise     Upon success, the promise is resolved into an Array holding matching objects (collection).
+     */
+
   }, {
     key: "collect",
     value: function () {
@@ -1375,6 +1388,7 @@ var Layout = /*#__PURE__*/function () {
       config.sortable = item.hasOwnProperty('sortable') && item.sortable;
       config.visible = true;
       config.layout = this.view.getType();
+      config.lang = this.view.getLang();
 
       if (item.hasOwnProperty('visible')) {
         // #todo - handle domains            
@@ -1735,9 +1749,14 @@ var Layout = /*#__PURE__*/function () {
               if (['one2many', 'many2one', 'many2many'].indexOf(type) > -1) {
                 // by convention, `name` subfield is always loaded for relational fields
                 if (type == 'many2one') {
-                  // todo : need to maintain field structure with dedicated widget
-                  value = object[field]['name'];
-                } else if (type == 'many2many') {
+                  if (_this4.view.getMode() == 'edit') {
+                    value = object[field]['id'];
+                  } else {
+                    value = object[field]['name'];
+                  }
+                }
+
+                if (type == 'many2many') {
                   // for m2m fields, the value of the field is an array of objects `{id:, name:}`
                   // by convention, when a relation is to be removed, the id field is set to its negative value
                   // select ids to load by filtering targeted objects
@@ -1760,8 +1779,7 @@ var Layout = /*#__PURE__*/function () {
                     entity: model_def['foreign_object'],
                     type: view_type,
                     name: view_name,
-                    domain: ['id', 'in', target_ids],
-                    lang: _this4.view.getLang()
+                    domain: ['id', 'in', target_ids]
                   });
                 }
               }
@@ -5215,7 +5233,7 @@ var UIHelper = /*#__PURE__*/function () {
                 </span> \
                 <span class="mdc-line-ripple"></span> \
             </div> \
-            <div class="mdc-select__menu mdc-menu mdc-menu-surface--fixed mdc-menu-surface " role="listbox"> \
+            <div class="mdc-select__menu mdc-menu mdc-menu-surface--fixed mdc-menu-surface" role="listbox"> \
                 <input type="text" style="display: none" /> \
                 <ul class="mdc-list"> \
                 </ul> \
@@ -5269,6 +5287,9 @@ var UIHelper = /*#__PURE__*/function () {
 
       select.listen('MDCSelect:change', function () {
         $elem.find('input').val(select.value).trigger('change');
+      });
+      $elem.on('click', function () {
+        $elem.find('.mdc-menu-surface').width($elem.width());
       });
       return $elem;
     }
@@ -6166,6 +6187,14 @@ var _Widget2 = _interopRequireDefault(__webpack_require__(/*! ./Widget */ "./bui
 
 var _materialLib = __webpack_require__(/*! ../material-lib */ "./build/material-lib.js");
 
+var _equalServices = __webpack_require__(/*! ../equal-services */ "./build/equal-services.js");
+
+function _createForOfIteratorHelper(o, allowArrayLike) { var it; if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = o[Symbol.iterator](); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
 function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
 
 function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Date.prototype.toString.call(Reflect.construct(Date, [], function () {})); return true; } catch (e) { return false; } }
@@ -6185,21 +6214,58 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
     value: function render() {
       var _this = this;
 
-      console.log('WidgetMany2One::render', this.config, this.mode);
+      console.log('WidgetMany2One::render', this.config, this.mode, this.value);
       var $elem;
       var value = this.value ? this.value : '';
-      console.log(this.config);
+      var domain = [];
+
+      if (this.config.hasOwnProperty('domain')) {
+        domain = this.config.domain;
+      } // todo : fetch 5 first objects from config.foreign_object (use config.domain) + add an extra line ("advanced search...")
+      // on right side of widget, add an icon to open the target object (current selection) into a new context
+
 
       switch (this.mode) {
         case 'edit':
-          $elem = _materialLib.UIHelper.createSelect('', this.label, [], value); // setup handler for relaying value update to parent layout
+          $elem = $('<div />');
 
-          $elem.find('input').on('change', function (event) {
-            console.log('WidgetMany2One : received change event');
-            var $this = $(event.currentTarget);
-            _this.value = $this.val();
-            $elem.trigger('_updatedWidget');
+          _equalServices.ApiService.collect(this.config.foreign_object, domain, ['id', 'name'], 'id', 'asc', 0, 5, this.config.lang).then(function (objects) {
+            var values = {};
+
+            var _iterator = _createForOfIteratorHelper(objects),
+                _step;
+
+            try {
+              for (_iterator.s(); !(_step = _iterator.n()).done;) {
+                var object = _step.value;
+                values[object.id] = object.name;
+              }
+            } catch (err) {
+              _iterator.e(err);
+            } finally {
+              _iterator.f();
+            }
+
+            var $select = _materialLib.UIHelper.createSelect('', _this.label, values, value); // setup handler for relaying value update to parent layout
+
+
+            $select.find('input').on('change', function (event) {
+              console.log('WidgetMany2One : received change event');
+              var $this = $(event.currentTarget);
+              _this.value = {
+                id: $this.val()
+              };
+              $elem.trigger('_updatedWidget');
+            });
+            var $list = $select.find('.mdc-list');
+
+            _materialLib.UIHelper.createListDivider().appendTo($list);
+
+            _materialLib.UIHelper.createListItem('<a href>' + _equalServices.TranslationService.instant('SB_WIDGETS_MANY2ONE_ADVANCED_SEARCH') + '</a>').appendTo($list);
+
+            $elem.append($select);
           });
+
           break;
 
         case 'view':

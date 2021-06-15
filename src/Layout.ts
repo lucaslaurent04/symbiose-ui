@@ -113,7 +113,7 @@ export class Layout {
         }
     }
 
-    private  feed(objects: []) {
+    private feed(objects: []) {
         console.log('Layout::feed');
         
         switch(this.view.getType()) {
@@ -152,6 +152,7 @@ export class Layout {
         config.sortable = (item.hasOwnProperty('sortable') && item.sortable);
         config.visible = true;
         config.layout = this.view.getType();
+        config.lang = this.view.getLang();
 
         if(item.hasOwnProperty('visible')) {
 // #todo - handle domains            
@@ -464,10 +465,14 @@ export class Layout {
 
                     // by convention, `name` subfield is always loaded for relational fields
                     if(type == 'many2one') {
-// todo : need to maintain field structure with dedicated widget
-                        value = object[field]['name'];
+                        if(this.view.getMode() == 'edit') {
+                            value = object[field]['id'];
+                        }
+                        else {
+                            value = object[field]['name'];
+                        }                        
                     }
-                    else if(type == 'many2many') {
+                    else if(type == 'many2many' || type == 'one2many') {
                         // for m2m fields, the value of the field is an array of objects `{id:, name:}`
                         // by convention, when a relation is to be removed, the id field is set to its negative value
 
@@ -486,8 +491,7 @@ export class Layout {
                             entity: model_def['foreign_object'],
                             type: view_type,
                             name: view_name,
-                            domain: ['id','in',target_ids],
-                            lang: this.view.getLang()
+                            domain: ['id','in',target_ids]
                         };
                     }
                 }
