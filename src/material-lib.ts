@@ -297,6 +297,7 @@ class UIHelper {
             $elem.find('input').val(select.value).trigger('change');
         });
 
+        // workaround for --fixed style width (mandatory to display list above inputs as sub-items)
         $elem.on('click', () => {
             $elem.find('.mdc-menu-surface').width(<number>$elem.width());
         });

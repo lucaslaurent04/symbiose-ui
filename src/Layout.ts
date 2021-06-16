@@ -95,7 +95,10 @@ export class Layout {
         var selection = <any>[];
         let $tbody = this.$layout.find("tbody");
         $tbody.find("input:checked").each( (i:number, elem:any) => {
-            selection.push( parseInt(<string>$(elem).attr('data-id'), 10) );
+            let data = $(elem).attr('data-id');
+            if(data != undefined) {
+                selection.push( parseInt(<string>data, 10) );
+            }            
         });
         return selection;
     }
