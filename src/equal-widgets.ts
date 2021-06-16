@@ -3,6 +3,8 @@ import Widget from "./widgets/Widget";
 import WidgetBoolean from "./widgets/WidgetBoolean";
 import WidgetDate from "./widgets/WidgetDate";
 import WidgetDateTime from "./widgets/WidgetDateTime";
+import WidgetInteger from "./widgets/WidgetInteger";
+import WidgetFloat from "./widgets/WidgetFloat";
 import WidgetString from "./widgets/WidgetString";
 import WidgetText from "./widgets/WidgetText";
 import WidgetLink from "./widgets/WidgetLink";
@@ -51,7 +53,7 @@ config: {
             case 'one2many':
                 return new WidgetOne2Many(label, value, config);
             case 'many2one':
-                return new WidgetMany2One(label, value, config);    
+                return new WidgetMany2One(label, value, config);
             case 'many2many':
                 return new WidgetMany2Many(label, value, config);
             case 'link':
@@ -61,6 +63,9 @@ config: {
             case 'select':
                 return new WidgetSelect(label, value, config);
             case 'integer':
+                return new WidgetInteger(label, value, config);
+            case 'float':
+                return new WidgetFloat(label, value, config);    
             case 'string':
             default:
                 return new WidgetString(label, value, config);

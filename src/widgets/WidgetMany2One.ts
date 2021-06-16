@@ -13,17 +13,17 @@ export default class WidgetMany2One extends Widget {
         console.log('WidgetMany2One::render', this.config, this.mode, this.value);
         let $elem: JQuery;
 
+        // in edit mide, we should have received an id, and in view mode, a name
         let value:string = this.value?this.value:'';
         let domain:any = [];
         if(this.config.hasOwnProperty('domain')) {
             domain = this.config.domain;
         }
-// todo : fetch 5 first objects from config.foreign_object (use config.domain) + add an extra line ("advanced search...")
-// on right side of widget, add an icon to open the target object (current selection) into a new context
 
         switch(this.mode) {
             case 'edit':
-                $elem = $('<div />');                
+                $elem = $('<div />');
+                // fetch 5 first objects from config.foreign_object (use config.domain) + add an extra line ("advanced search...")
                 ApiService.collect(this.config.foreign_object, domain, ['id', 'name'], 'id', 'asc', 0, 5, this.config.lang)
                 .then( (objects:any) => {
                     let values:any = {};
@@ -35,7 +35,8 @@ export default class WidgetMany2One extends Widget {
                     UIHelper.createListDivider().appendTo($list);
 
                     let $sublist = $('<ul>').addClass('mdc-list').appendTo($select.find('.mdc-menu'))
-                    let $link = UIHelper.createListItem('<a href="#">'+TranslationService.instant('SB_WIDGETS_MANY2ONE_ADVANCED_SEARCH')+'</a>').appendTo($sublist);        
+                    let $link = UIHelper.createListItem('<a href="#">'+TranslationService.instant('SB_WIDGETS_MANY2ONE_ADVANCED_SEARCH')+'</a>').appendTo($sublist);
+                    // on right side of widget, add an icon to open the target object (current selection) into a new context                    
                     let $button = UIHelper.createButton('m2o-actions', '', 'icon', 'open_in_new');
 
                     $elem.append($select); 
@@ -47,8 +48,8 @@ export default class WidgetMany2One extends Widget {
                     $select.find('input').on('change', (event) => {
                         console.log('WidgetMany2One : received change event');
                         let $this = $(event.currentTarget);
-                        let value = $this.val();
-                        this.value = {id: value};
+                        // m2o relations are always loaded as an object with {id:, name:}
+                        this.value = {id: $this.val()};
                         $elem.trigger('_updatedWidget');
                     });
 
@@ -64,14 +65,21 @@ export default class WidgetMany2One extends Widget {
                             callback: (data:any) => {
                                 console.log(data);
                                 if(data && data.selection) {
+                                    // m2o relations are always loaded as an object with {id:, name:}
                                     this.value = {id: data.selection[0]};
                                     $elem.trigger('_updatedWidget');
                                 }
                             }
                         });
                         return false;
-                    });                   
-                });                            
+                    });
+
+                    $button.on('click', async () => {
+                        if(this.value && this.value > 0) {
+                            $('#sb-events').trigger('_openContext', {entity: this.config.foreign_object, type: 'form', domain: ['id', '=', this.value]});                            
+                        }
+                    });
+                });
                 break;
             case 'view':
             default:                

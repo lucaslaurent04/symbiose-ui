@@ -532,7 +532,6 @@ export class Layout {
                     let $widget = widget.render();
                     // Handle Widget update handler
                     $widget.on('_updatedWidget', (event:any) => {
-                        console.log('widget _updatedWidget');
                         // update object with new value
                         let value:any = {};
                         value[field] = widget.getValue();

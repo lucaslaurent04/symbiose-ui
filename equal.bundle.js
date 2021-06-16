@@ -1812,8 +1812,7 @@ var Layout = /*#__PURE__*/function () {
                 var $widget = widget.render(); // Handle Widget update handler
 
                 $widget.on('_updatedWidget', function (event) {
-                  console.log('widget _updatedWidget'); // update object with new value
-
+                  // update object with new value
                   var value = {};
                   value[field] = widget.getValue();
 
@@ -4040,6 +4039,10 @@ var _WidgetDate = _interopRequireDefault(__webpack_require__(/*! ./widgets/Widge
 
 var _WidgetDateTime = _interopRequireDefault(__webpack_require__(/*! ./widgets/WidgetDateTime */ "./build/widgets/WidgetDateTime.js"));
 
+var _WidgetInteger = _interopRequireDefault(__webpack_require__(/*! ./widgets/WidgetInteger */ "./build/widgets/WidgetInteger.js"));
+
+var _WidgetFloat = _interopRequireDefault(__webpack_require__(/*! ./widgets/WidgetFloat */ "./build/widgets/WidgetFloat.js"));
+
 var _WidgetString = _interopRequireDefault(__webpack_require__(/*! ./widgets/WidgetString */ "./build/widgets/WidgetString.js"));
 
 var _WidgetText = _interopRequireDefault(__webpack_require__(/*! ./widgets/WidgetText */ "./build/widgets/WidgetText.js"));
@@ -4112,6 +4115,11 @@ var WidgetFactory = /*#__PURE__*/function () {
           return new _WidgetSelect.default(label, value, config);
 
         case 'integer':
+          return new _WidgetInteger.default(label, value, config);
+
+        case 'float':
+          return new _WidgetFloat.default(label, value, config);
+
         case 'string':
         default:
           return new _WidgetString.default(label, value, config);
@@ -5973,6 +5981,124 @@ exports.default = WidgetDateTime;
 
 /***/ }),
 
+/***/ "./build/widgets/WidgetFloat.js":
+/*!**************************************!*\
+  !*** ./build/widgets/WidgetFloat.js ***!
+  \**************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+var _interopRequireDefault = __webpack_require__(/*! @babel/runtime/helpers/interopRequireDefault */ "./node_modules/@babel/runtime/helpers/interopRequireDefault.js");
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.default = void 0;
+
+var _classCallCheck2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/classCallCheck */ "./node_modules/@babel/runtime/helpers/classCallCheck.js"));
+
+var _createClass2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/createClass */ "./node_modules/@babel/runtime/helpers/createClass.js"));
+
+var _get2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/get */ "./node_modules/@babel/runtime/helpers/get.js"));
+
+var _inherits2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/inherits */ "./node_modules/@babel/runtime/helpers/inherits.js"));
+
+var _possibleConstructorReturn2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/possibleConstructorReturn */ "./node_modules/@babel/runtime/helpers/possibleConstructorReturn.js"));
+
+var _getPrototypeOf2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/getPrototypeOf */ "./node_modules/@babel/runtime/helpers/getPrototypeOf.js"));
+
+var _WidgetString2 = _interopRequireDefault(__webpack_require__(/*! ./WidgetString */ "./build/widgets/WidgetString.js"));
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+
+var WidgetFloat = /*#__PURE__*/function (_WidgetString) {
+  (0, _inherits2.default)(WidgetFloat, _WidgetString);
+
+  var _super = _createSuper(WidgetFloat);
+
+  function WidgetFloat(label, value, config) {
+    (0, _classCallCheck2.default)(this, WidgetFloat);
+    return _super.call(this, label, value, config);
+  }
+
+  (0, _createClass2.default)(WidgetFloat, [{
+    key: "render",
+    value: function render() {
+      var $elem = (0, _get2.default)((0, _getPrototypeOf2.default)(WidgetFloat.prototype), "render", this).call(this);
+      $elem.find('input').attr("type", "number").attr("step", "0.01");
+      return $elem;
+    }
+  }]);
+  return WidgetFloat;
+}(_WidgetString2.default);
+
+exports.default = WidgetFloat;
+
+/***/ }),
+
+/***/ "./build/widgets/WidgetInteger.js":
+/*!****************************************!*\
+  !*** ./build/widgets/WidgetInteger.js ***!
+  \****************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+var _interopRequireDefault = __webpack_require__(/*! @babel/runtime/helpers/interopRequireDefault */ "./node_modules/@babel/runtime/helpers/interopRequireDefault.js");
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.default = void 0;
+
+var _classCallCheck2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/classCallCheck */ "./node_modules/@babel/runtime/helpers/classCallCheck.js"));
+
+var _createClass2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/createClass */ "./node_modules/@babel/runtime/helpers/createClass.js"));
+
+var _get2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/get */ "./node_modules/@babel/runtime/helpers/get.js"));
+
+var _inherits2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/inherits */ "./node_modules/@babel/runtime/helpers/inherits.js"));
+
+var _possibleConstructorReturn2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/possibleConstructorReturn */ "./node_modules/@babel/runtime/helpers/possibleConstructorReturn.js"));
+
+var _getPrototypeOf2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/getPrototypeOf */ "./node_modules/@babel/runtime/helpers/getPrototypeOf.js"));
+
+var _WidgetString2 = _interopRequireDefault(__webpack_require__(/*! ./WidgetString */ "./build/widgets/WidgetString.js"));
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+
+var WidgetInteger = /*#__PURE__*/function (_WidgetString) {
+  (0, _inherits2.default)(WidgetInteger, _WidgetString);
+
+  var _super = _createSuper(WidgetInteger);
+
+  function WidgetInteger(label, value, config) {
+    (0, _classCallCheck2.default)(this, WidgetInteger);
+    return _super.call(this, label, value, config);
+  }
+
+  (0, _createClass2.default)(WidgetInteger, [{
+    key: "render",
+    value: function render() {
+      var $elem = (0, _get2.default)((0, _getPrototypeOf2.default)(WidgetInteger.prototype), "render", this).call(this);
+      $elem.find('input').attr("type", "number").attr("step", "1");
+      return $elem;
+    }
+  }]);
+  return WidgetInteger;
+}(_WidgetString2.default);
+
+exports.default = WidgetInteger;
+
+/***/ }),
+
 /***/ "./build/widgets/WidgetMany2Many.js":
 /*!******************************************!*\
   !*** ./build/widgets/WidgetMany2Many.js ***!
@@ -6222,19 +6348,18 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
       var _this = this;
 
       console.log('WidgetMany2One::render', this.config, this.mode, this.value);
-      var $elem;
+      var $elem; // in edit mide, we should have received an id, and in view mode, a name
+
       var value = this.value ? this.value : '';
       var domain = [];
 
       if (this.config.hasOwnProperty('domain')) {
         domain = this.config.domain;
-      } // todo : fetch 5 first objects from config.foreign_object (use config.domain) + add an extra line ("advanced search...")
-      // on right side of widget, add an icon to open the target object (current selection) into a new context
-
+      }
 
       switch (this.mode) {
         case 'edit':
-          $elem = $('<div />');
+          $elem = $('<div />'); // fetch 5 first objects from config.foreign_object (use config.domain) + add an extra line ("advanced search...")
 
           _equalServices.ApiService.collect(this.config.foreign_object, domain, ['id', 'name'], 'id', 'asc', 0, 5, this.config.lang).then(function (objects) {
             var values = {};
@@ -6263,7 +6388,8 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
 
             var $sublist = $('<ul>').addClass('mdc-list').appendTo($select.find('.mdc-menu'));
 
-            var $link = _materialLib.UIHelper.createListItem('<a href="#">' + _equalServices.TranslationService.instant('SB_WIDGETS_MANY2ONE_ADVANCED_SEARCH') + '</a>').appendTo($sublist);
+            var $link = _materialLib.UIHelper.createListItem('<a href="#">' + _equalServices.TranslationService.instant('SB_WIDGETS_MANY2ONE_ADVANCED_SEARCH') + '</a>').appendTo($sublist); // on right side of widget, add an icon to open the target object (current selection) into a new context                    
+
 
             var $button = _materialLib.UIHelper.createButton('m2o-actions', '', 'icon', 'open_in_new');
 
@@ -6273,10 +6399,10 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
 
             $select.find('input').on('change', function (event) {
               console.log('WidgetMany2One : received change event');
-              var $this = $(event.currentTarget);
-              var value = $this.val();
+              var $this = $(event.currentTarget); // m2o relations are always loaded as an object with {id:, name:}
+
               _this.value = {
-                id: value
+                id: $this.val()
               };
               $elem.trigger('_updatedWidget');
             }); // upon 'advanced search' click, request a new Context for selecting an existing object to add to current selection
@@ -6297,6 +6423,7 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
                           console.log(data);
 
                           if (data && data.selection) {
+                            // m2o relations are always loaded as an object with {id:, name:}
                             _this.value = {
                               id: data.selection[0]
                             };
@@ -6312,6 +6439,26 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
                   }
                 }
               }, _callee);
+            })));
+            $button.on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
+              return _regenerator.default.wrap(function _callee2$(_context2) {
+                while (1) {
+                  switch (_context2.prev = _context2.next) {
+                    case 0:
+                      if (_this.value && _this.value > 0) {
+                        $('#sb-events').trigger('_openContext', {
+                          entity: _this.config.foreign_object,
+                          type: 'form',
+                          domain: ['id', '=', _this.value]
+                        });
+                      }
+
+                    case 1:
+                    case "end":
+                      return _context2.stop();
+                  }
+                }
+              }, _callee2);
             })));
           });
 
@@ -6803,6 +6950,42 @@ module.exports.default = module.exports, module.exports.__esModule = true;
 
 /***/ }),
 
+/***/ "./node_modules/@babel/runtime/helpers/get.js":
+/*!****************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/get.js ***!
+  \****************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var superPropBase = __webpack_require__(/*! ./superPropBase.js */ "./node_modules/@babel/runtime/helpers/superPropBase.js");
+
+function _get(target, property, receiver) {
+  if (typeof Reflect !== "undefined" && Reflect.get) {
+    module.exports = _get = Reflect.get;
+    module.exports.default = module.exports, module.exports.__esModule = true;
+  } else {
+    module.exports = _get = function _get(target, property, receiver) {
+      var base = superPropBase(target, property);
+      if (!base) return;
+      var desc = Object.getOwnPropertyDescriptor(base, property);
+
+      if (desc.get) {
+        return desc.get.call(receiver);
+      }
+
+      return desc.value;
+    };
+
+    module.exports.default = module.exports, module.exports.__esModule = true;
+  }
+
+  return _get(target, property, receiver || target);
+}
+
+module.exports = _get;
+module.exports.default = module.exports, module.exports.__esModule = true;
+
+/***/ }),
+
 /***/ "./node_modules/@babel/runtime/helpers/getPrototypeOf.js":
 /*!***************************************************************!*\
   !*** ./node_modules/@babel/runtime/helpers/getPrototypeOf.js ***!
@@ -6937,6 +7120,28 @@ function _setPrototypeOf(o, p) {
 }
 
 module.exports = _setPrototypeOf;
+module.exports.default = module.exports, module.exports.__esModule = true;
+
+/***/ }),
+
+/***/ "./node_modules/@babel/runtime/helpers/superPropBase.js":
+/*!**************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/superPropBase.js ***!
+  \**************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+var getPrototypeOf = __webpack_require__(/*! ./getPrototypeOf.js */ "./node_modules/@babel/runtime/helpers/getPrototypeOf.js");
+
+function _superPropBase(object, property) {
+  while (!Object.prototype.hasOwnProperty.call(object, property)) {
+    object = getPrototypeOf(object);
+    if (object === null) break;
+  }
+
+  return object;
+}
+
+module.exports = _superPropBase;
 module.exports.default = module.exports, module.exports.__esModule = true;
 
 /***/ }),
