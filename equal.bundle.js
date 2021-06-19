@@ -826,48 +826,55 @@ var Domain = /*#__PURE__*/function () {
     (0, _classCallCheck2.default)(this, Domain);
     (0, _defineProperty2.default)(this, "clauses", void 0);
     this.clauses = new Array();
-    /*
-        supported formats : 
-        1) empty  domain : []
-        2) 1 condition only : [ '{operand}', '{operator}', '{value}' ]
-        3) 1 clause only (one or more conditions) : [ [ '{operand}', '{operator}', '{value}' ], [ '{operand}', '{operator}', '{value}' ] ]
-        4) multiple clauses : [ [ [ '{operand}', '{operator}', '{value}' ], [ '{operand}', '{operator}', '{value}' ] ], [ [ '{operand}', '{operator}', '{value}' ] ] ]
-    */
-
-    domain = this.normalize(domain);
-
-    var _iterator = _createForOfIteratorHelper(domain),
-        _step;
-
-    try {
-      for (_iterator.s(); !(_step = _iterator.n()).done;) {
-        var d_clause = _step.value;
-        var clause = new Clause();
-
-        var _iterator2 = _createForOfIteratorHelper(d_clause),
-            _step2;
-
-        try {
-          for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
-            var d_condition = _step2.value;
-            clause.addCondition(new Condition(d_condition[0], d_condition[1], d_condition[2]));
-          }
-        } catch (err) {
-          _iterator2.e(err);
-        } finally {
-          _iterator2.f();
-        }
-
-        this.addClause(clause);
-      }
-    } catch (err) {
-      _iterator.e(err);
-    } finally {
-      _iterator.f();
-    }
+    this.fromArray(domain);
   }
 
   (0, _createClass2.default)(Domain, [{
+    key: "fromArray",
+    value: function fromArray(domain) {
+      // reset clauses
+      this.clauses.splice(0, this.clauses.length);
+      /*
+          supported formats : 
+          1) empty  domain : []
+          2) 1 condition only : [ '{operand}', '{operator}', '{value}' ]
+          3) 1 clause only (one or more conditions) : [ [ '{operand}', '{operator}', '{value}' ], [ '{operand}', '{operator}', '{value}' ] ]
+          4) multiple clauses : [ [ [ '{operand}', '{operator}', '{value}' ], [ '{operand}', '{operator}', '{value}' ] ], [ [ '{operand}', '{operator}', '{value}' ] ] ]
+      */
+
+      var normalized = Domain.normalize(domain);
+
+      var _iterator = _createForOfIteratorHelper(normalized),
+          _step;
+
+      try {
+        for (_iterator.s(); !(_step = _iterator.n()).done;) {
+          var d_clause = _step.value;
+          var clause = new Clause();
+
+          var _iterator2 = _createForOfIteratorHelper(d_clause),
+              _step2;
+
+          try {
+            for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+              var d_condition = _step2.value;
+              clause.addCondition(new Condition(d_condition[0], d_condition[1], d_condition[2]));
+            }
+          } catch (err) {
+            _iterator2.e(err);
+          } finally {
+            _iterator2.f();
+          }
+
+          this.addClause(clause);
+        }
+      } catch (err) {
+        _iterator.e(err);
+      } finally {
+        _iterator.f();
+      }
+    }
+  }, {
     key: "toArray",
     value: function toArray() {
       var domain = new Array();
@@ -889,27 +896,44 @@ var Domain = /*#__PURE__*/function () {
       return domain;
     }
   }, {
-    key: "normalize",
-    value: function normalize(domain) {
-      if (domain.length <= 0) {
-        return [];
+    key: "merge",
+    value: function merge(domain) {
+      var res_domain = new Array();
+      var domain_a = domain.toArray();
+      var domain_b = this.toArray();
+
+      if (domain_a.length <= 0) {
+        res_domain = domain_b;
+      } else if (domain_b.length > 0) {
+        var _iterator4 = _createForOfIteratorHelper(domain_a),
+            _step4;
+
+        try {
+          for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
+            var clause_a = _step4.value;
+
+            var _iterator5 = _createForOfIteratorHelper(domain_b),
+                _step5;
+
+            try {
+              for (_iterator5.s(); !(_step5 = _iterator5.n()).done;) {
+                var clause_b = _step5.value;
+                res_domain.push(clause_a.concat(clause_b));
+              }
+            } catch (err) {
+              _iterator5.e(err);
+            } finally {
+              _iterator5.f();
+            }
+          }
+        } catch (err) {
+          _iterator4.e(err);
+        } finally {
+          _iterator4.f();
+        }
       }
 
-      if (!Array.isArray(domain[0])) {
-        // single condition
-        return [[domain]];
-      } else {
-        if (domain[0].length <= 0) {
-          return [];
-        }
-
-        if (!Array.isArray(domain[0][0])) {
-          // single clause
-          return [domain];
-        }
-      }
-
-      return domain;
+      this.fromArray(res_domain);
     }
   }, {
     key: "addClause",
@@ -919,18 +943,18 @@ var Domain = /*#__PURE__*/function () {
   }, {
     key: "addCondition",
     value: function addCondition(condition) {
-      var _iterator4 = _createForOfIteratorHelper(this.clauses),
-          _step4;
+      var _iterator6 = _createForOfIteratorHelper(this.clauses),
+          _step6;
 
       try {
-        for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
-          var clause = _step4.value;
+        for (_iterator6.s(); !(_step6 = _iterator6.n()).done;) {
+          var clause = _step6.value;
           clause.addCondition(condition);
         }
       } catch (err) {
-        _iterator4.e(err);
+        _iterator6.e(err);
       } finally {
-        _iterator4.f();
+        _iterator6.f();
       }
     }
     /**
@@ -945,19 +969,19 @@ var Domain = /*#__PURE__*/function () {
     value: function parse(object) {
       var user = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
-      var _iterator5 = _createForOfIteratorHelper(this.clauses),
-          _step5;
+      var _iterator7 = _createForOfIteratorHelper(this.clauses),
+          _step7;
 
       try {
-        for (_iterator5.s(); !(_step5 = _iterator5.n()).done;) {
-          var clause = _step5.value;
+        for (_iterator7.s(); !(_step7 = _iterator7.n()).done;) {
+          var clause = _step7.value;
 
-          var _iterator6 = _createForOfIteratorHelper(clause.conditions),
-              _step6;
+          var _iterator8 = _createForOfIteratorHelper(clause.conditions),
+              _step8;
 
           try {
-            for (_iterator6.s(); !(_step6 = _iterator6.n()).done;) {
-              var condition = _step6.value;
+            for (_iterator8.s(); !(_step8 = _iterator8.n()).done;) {
+              var condition = _step8.value;
 
               if (!object.hasOwnProperty(condition.operand)) {
                 continue;
@@ -987,15 +1011,15 @@ var Domain = /*#__PURE__*/function () {
               condition.value = value;
             }
           } catch (err) {
-            _iterator6.e(err);
+            _iterator8.e(err);
           } finally {
-            _iterator6.f();
+            _iterator8.f();
           }
         }
       } catch (err) {
-        _iterator5.e(err);
+        _iterator7.e(err);
       } finally {
-        _iterator5.f();
+        _iterator7.f();
       }
 
       return this;
@@ -1015,20 +1039,20 @@ var Domain = /*#__PURE__*/function () {
 
       this.parse(object); // evaluate clauses (OR) and conditions (AND)
 
-      var _iterator7 = _createForOfIteratorHelper(this.clauses),
-          _step7;
+      var _iterator9 = _createForOfIteratorHelper(this.clauses),
+          _step9;
 
       try {
-        for (_iterator7.s(); !(_step7 = _iterator7.n()).done;) {
-          var clause = _step7.value;
+        for (_iterator9.s(); !(_step9 = _iterator9.n()).done;) {
+          var clause = _step9.value;
           var c_res = true;
 
-          var _iterator8 = _createForOfIteratorHelper(clause.getConditions()),
-              _step8;
+          var _iterator10 = _createForOfIteratorHelper(clause.getConditions()),
+              _step10;
 
           try {
-            for (_iterator8.s(); !(_step8 = _iterator8.n()).done;) {
-              var condition = _step8.value;
+            for (_iterator10.s(); !(_step10 = _iterator10.n()).done;) {
+              var condition = _step10.value;
 
               if (!object.hasOwnProperty(condition.operand)) {
                 continue;
@@ -1059,20 +1083,43 @@ var Domain = /*#__PURE__*/function () {
               c_res = c_res && cc_res;
             }
           } catch (err) {
-            _iterator8.e(err);
+            _iterator10.e(err);
           } finally {
-            _iterator8.f();
+            _iterator10.f();
           }
 
           res = res || c_res;
         }
       } catch (err) {
-        _iterator7.e(err);
+        _iterator9.e(err);
       } finally {
-        _iterator7.f();
+        _iterator9.f();
       }
 
       return res;
+    }
+  }], [{
+    key: "normalize",
+    value: function normalize(domain) {
+      if (domain.length <= 0) {
+        return [];
+      }
+
+      if (!Array.isArray(domain[0])) {
+        // single condition
+        return [[domain]];
+      } else {
+        if (domain[0].length <= 0) {
+          return [];
+        }
+
+        if (!Array.isArray(domain[0][0])) {
+          // single clause
+          return [domain];
+        }
+      }
+
+      return domain;
     }
   }]);
   return Domain;
@@ -1102,18 +1149,18 @@ var Clause = /*#__PURE__*/function () {
     value: function toArray() {
       var clause = new Array();
 
-      var _iterator9 = _createForOfIteratorHelper(this.conditions),
-          _step9;
+      var _iterator11 = _createForOfIteratorHelper(this.conditions),
+          _step11;
 
       try {
-        for (_iterator9.s(); !(_step9 = _iterator9.n()).done;) {
-          var condition = _step9.value;
+        for (_iterator11.s(); !(_step11 = _iterator11.n()).done;) {
+          var condition = _step11.value;
           clause.push(condition.toArray());
         }
       } catch (err) {
-        _iterator9.e(err);
+        _iterator11.e(err);
       } finally {
-        _iterator9.f();
+        _iterator11.f();
       }
 
       return clause;
@@ -2603,7 +2650,7 @@ var View = /*#__PURE__*/function () {
     key: "init",
     value: function () {
       var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
-        var _iterator, _step, filter, domain, normalized, res_domain, _iterator2, _step2, clause_a, _iterator3, _step3, clause_b;
+        var _iterator, _step, filter, domain, tmpDomain;
 
         return _regenerator.default.wrap(function _callee$(_context) {
           while (1) {
@@ -2647,44 +2694,11 @@ var View = /*#__PURE__*/function () {
 
                 if (this.view_schema.hasOwnProperty("domain")) {
                   // domain attribute is either a string or an array 
-                  domain = eval(this.view_schema.domain);
+                  domain = eval(this.view_schema.domain); // merge domains
 
-                  if (this.domain.length == 0) {
-                    this.domain = domain;
-                  } // merge domains
-                  // #todo : move this to a utiliy heper in Domain class                
-                  else {
-                      normalized = new _Domain.default(this.domain);
-                      this.domain = normalized.toArray();
-                      normalized = new _Domain.default(domain);
-                      domain = normalized.toArray();
-                      res_domain = new Array();
-                      _iterator2 = _createForOfIteratorHelper(domain);
-
-                      try {
-                        for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
-                          clause_a = _step2.value;
-                          _iterator3 = _createForOfIteratorHelper(this.domain);
-
-                          try {
-                            for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
-                              clause_b = _step3.value;
-                              res_domain.push(clause_a.concat(clause_b));
-                            }
-                          } catch (err) {
-                            _iterator3.e(err);
-                          } finally {
-                            _iterator3.f();
-                          }
-                        }
-                      } catch (err) {
-                        _iterator2.e(err);
-                      } finally {
-                        _iterator2.f();
-                      }
-
-                      this.domain = res_domain;
-                    }
+                  tmpDomain = new _Domain.default(this.domain);
+                  tmpDomain.merge(new _Domain.default(domain));
+                  this.domain = tmpDomain.toArray();
                 }
 
                 if (['list', 'kanban'].indexOf(this.type) >= 0) {
@@ -2865,18 +2879,18 @@ var View = /*#__PURE__*/function () {
       console.log('View::getDomain', this.domain, this.applied_filters_ids);
       var domain = (0, _toConsumableArray2.default)(this.domain);
 
-      var _iterator4 = _createForOfIteratorHelper(this.applied_filters_ids),
-          _step4;
+      var _iterator2 = _createForOfIteratorHelper(this.applied_filters_ids),
+          _step2;
 
       try {
-        for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
-          var filter_id = _step4.value;
+        for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+          var filter_id = _step2.value;
           domain.push(this.filters[filter_id].clause);
         }
       } catch (err) {
-        _iterator4.e(err);
+        _iterator2.e(err);
       } finally {
-        _iterator4.f();
+        _iterator2.f();
       }
 
       return domain;
@@ -2965,50 +2979,50 @@ var View = /*#__PURE__*/function () {
           var elem = stack.pop();
 
           if (elem.hasOwnProperty('items')) {
-            var _iterator5 = _createForOfIteratorHelper(elem['items']),
-                _step5;
+            var _iterator3 = _createForOfIteratorHelper(elem['items']),
+                _step3;
 
             try {
-              for (_iterator5.s(); !(_step5 = _iterator5.n()).done;) {
-                var item = _step5.value;
+              for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+                var item = _step3.value;
 
                 if (item.type == 'field' && item.hasOwnProperty('value')) {
                   this.view_fields[item.value] = item;
                 }
               }
             } catch (err) {
-              _iterator5.e(err);
+              _iterator3.e(err);
             } finally {
-              _iterator5.f();
+              _iterator3.f();
             }
           } else {
-            var _iterator6 = _createForOfIteratorHelper(path),
-                _step6;
+            var _iterator4 = _createForOfIteratorHelper(path),
+                _step4;
 
             try {
-              for (_iterator6.s(); !(_step6 = _iterator6.n()).done;) {
-                var step = _step6.value;
+              for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
+                var step = _step4.value;
 
                 if (elem.hasOwnProperty(step)) {
-                  var _iterator7 = _createForOfIteratorHelper(elem[step]),
-                      _step7;
+                  var _iterator5 = _createForOfIteratorHelper(elem[step]),
+                      _step5;
 
                   try {
-                    for (_iterator7.s(); !(_step7 = _iterator7.n()).done;) {
-                      var obj = _step7.value;
+                    for (_iterator5.s(); !(_step5 = _iterator5.n()).done;) {
+                      var obj = _step5.value;
                       stack.push(obj);
                     }
                   } catch (err) {
-                    _iterator7.e(err);
+                    _iterator5.e(err);
                   } finally {
-                    _iterator7.f();
+                    _iterator5.f();
                   }
                 }
               }
             } catch (err) {
-              _iterator6.e(err);
+              _iterator4.e(err);
             } finally {
-              _iterator6.f();
+              _iterator4.f();
             }
           }
         }
@@ -3168,12 +3182,12 @@ var View = /*#__PURE__*/function () {
 
       var $fields_toggle_list = _materialLib.UIHelper.createList('fields-list').appendTo($fields_toggle_menu);
 
-      var _iterator8 = _createForOfIteratorHelper(this.getViewSchema().layout.items),
-          _step8;
+      var _iterator6 = _createForOfIteratorHelper(this.getViewSchema().layout.items),
+          _step6;
 
       try {
         var _loop2 = function _loop2() {
-          var item = _step8.value;
+          var item = _step6.value;
           var label = item.hasOwnProperty('label') ? item.label : item.value.charAt(0).toUpperCase() + item.value.slice(1);
           var visible = item.hasOwnProperty('visible') ? item.visible : true;
 
@@ -3190,13 +3204,13 @@ var View = /*#__PURE__*/function () {
           }).prop('checked', visible);
         };
 
-        for (_iterator8.s(); !(_step8 = _iterator8.n()).done;) {
+        for (_iterator6.s(); !(_step6 = _iterator6.n()).done;) {
           _loop2();
         }
       } catch (err) {
-        _iterator8.e(err);
+        _iterator6.e(err);
       } finally {
-        _iterator8.f();
+        _iterator6.f();
       }
 
       _materialLib.UIHelper.decorateMenu($fields_toggle_menu);
@@ -3298,25 +3312,25 @@ var View = /*#__PURE__*/function () {
         $menu.append($list);
         $fields_toggle_button.append($menu); // add actions defined in view
 
-        var _iterator9 = _createForOfIteratorHelper(this.config.selection_actions),
-            _step9;
+        var _iterator7 = _createForOfIteratorHelper(this.config.selection_actions),
+            _step7;
 
         try {
           var _loop3 = function _loop3() {
-            var item = _step9.value;
+            var item = _step7.value;
 
             _materialLib.UIHelper.createListItem(_equalServices.TranslationService.instant(item.title), item.icon).on('click', function (event) {
               return item.handler(event, _this3.selected_ids);
             }).appendTo($list);
           };
 
-          for (_iterator9.s(); !(_step9 = _iterator9.n()).done;) {
+          for (_iterator7.s(); !(_step7 = _iterator7.n()).done;) {
             _loop3();
           }
         } catch (err) {
-          _iterator9.e(err);
+          _iterator7.e(err);
         } finally {
-          _iterator9.f();
+          _iterator7.f();
         }
 
         _materialLib.UIHelper.decorateMenu($menu);
@@ -3688,12 +3702,12 @@ var View = /*#__PURE__*/function () {
     value: function actionListInlineEdit(event, selection) {
       var _this5 = this;
 
-      var _iterator10 = _createForOfIteratorHelper(selection),
-          _step10;
+      var _iterator8 = _createForOfIteratorHelper(selection),
+          _step8;
 
       try {
         var _loop4 = function _loop4() {
-          var object_id = _step10.value;
+          var object_id = _step8.value;
 
           _this5.$layoutContainer.find('tr[data-id="' + object_id + '"]').each( /*#__PURE__*/function () {
             var _ref5 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee11(i, tr) {
@@ -3822,13 +3836,13 @@ var View = /*#__PURE__*/function () {
           }());
         };
 
-        for (_iterator10.s(); !(_step10 = _iterator10.n()).done;) {
+        for (_iterator8.s(); !(_step8 = _iterator8.n()).done;) {
           _loop4();
         }
       } catch (err) {
-        _iterator10.e(err);
+        _iterator8.e(err);
       } finally {
-        _iterator10.f();
+        _iterator8.f();
       }
     }
   }, {
@@ -6029,7 +6043,7 @@ var WidgetFloat = /*#__PURE__*/function (_WidgetString) {
     key: "render",
     value: function render() {
       var $elem = (0, _get2.default)((0, _getPrototypeOf2.default)(WidgetFloat.prototype), "render", this).call(this);
-      $elem.find('input').attr("type", "number").attr("step", "0.01");
+      $elem.find('input').attr("type", "number");
       return $elem;
     }
   }]);
@@ -6088,7 +6102,7 @@ var WidgetInteger = /*#__PURE__*/function (_WidgetString) {
     key: "render",
     value: function render() {
       var $elem = (0, _get2.default)((0, _getPrototypeOf2.default)(WidgetInteger.prototype), "render", this).call(this);
-      $elem.find('input').attr("type", "number").attr("step", "1");
+      $elem.find('input').attr("type", "number");
       return $elem;
     }
   }]);
@@ -6407,6 +6421,7 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
               $elem.trigger('_updatedWidget');
             }); // upon 'advanced search' click, request a new Context for selecting an existing object to add to current selection
 
+            console.log(domain);
             $link.on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
               return _regenerator.default.wrap(function _callee$(_context) {
                 while (1) {

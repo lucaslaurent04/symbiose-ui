@@ -164,24 +164,10 @@ export class View {
             if(this.view_schema.hasOwnProperty("domain")) {
                 // domain attribute is either a string or an array 
                 let domain = eval(this.view_schema.domain);
-                if(this.domain.length == 0) {
-                    this.domain = domain;
-                }
                 // merge domains
-// #todo : move this to a utiliy heper in Domain class                
-                else {
-                    let normalized = new Domain(this.domain);
-                    this.domain = normalized.toArray();
-                    normalized = new Domain(domain);
-                    domain = normalized.toArray();
-                    let res_domain = new Array();
-                    for(let clause_a of domain) {
-                        for(let clause_b of this.domain) {
-                            res_domain.push(clause_a.concat(clause_b));
-                        }
-                    }
-                    this.domain = res_domain;
-                }
+                let tmpDomain = new Domain(this.domain);
+                tmpDomain.merge(new Domain(domain));
+                this.domain = tmpDomain.toArray();
             }
 
             if(['list', 'kanban'].indexOf(this.type) >= 0) {

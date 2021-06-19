@@ -54,6 +54,7 @@ export default class WidgetMany2One extends Widget {
                     });
 
                     // upon 'advanced search' click, request a new Context for selecting an existing object to add to current selection
+                    console.log(domain);
                     $link.on('click', async () => {
                         $('#sb-events').trigger('_openContext', {
                             entity: this.config.foreign_object, 

@@ -5,11 +5,15 @@
 export class Domain {
 
     private clauses: Array<Clause>;
-
     
     constructor(domain:Array<any>) {
         this.clauses = new Array<Clause>();
+        this.fromArray(domain);
+    }
 
+    public fromArray(domain:Array<any>) {
+        // reset clauses
+        this.clauses.splice(0, this.clauses.length);
         /*
             supported formats : 
             1) empty  domain : []
@@ -17,16 +21,15 @@ export class Domain {
             3) 1 clause only (one or more conditions) : [ [ '{operand}', '{operator}', '{value}' ], [ '{operand}', '{operator}', '{value}' ] ]
             4) multiple clauses : [ [ [ '{operand}', '{operator}', '{value}' ], [ '{operand}', '{operator}', '{value}' ] ], [ [ '{operand}', '{operator}', '{value}' ] ] ]
         */    
-        domain = this.normalize(domain);
+        let normalized = Domain.normalize(domain);
 
-        for(let d_clause of domain) {
+        for(let d_clause of normalized) {
             let clause = new Clause();
             for(let d_condition of d_clause) {
                 clause.addCondition(new Condition(d_condition[0], d_condition[1], d_condition[2]))
             }
             this.addClause(clause);
         }
-
     }
 
     public toArray() {
@@ -37,7 +40,25 @@ export class Domain {
         return domain;
     }
 
-    private normalize(domain: Array<any>) {
+    public merge(domain:Domain) {
+        let res_domain = new Array();
+        let domain_a = domain.toArray();
+        let domain_b = this.toArray();
+
+        if(domain_a.length <= 0) {
+            res_domain = domain_b;
+        }
+        else if(domain_b.length > 0) {
+            for(let clause_a of domain_a) {
+                for(let clause_b of domain_b) {
+                    res_domain.push(clause_a.concat(clause_b));
+                }
+            }
+        }
+        this.fromArray(res_domain);
+    }
+
+    private static normalize(domain: Array<any>) {
         if(domain.length <= 0) {
             return [];
         }
