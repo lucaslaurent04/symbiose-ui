@@ -7,7 +7,6 @@ import WidgetInteger from "./widgets/WidgetInteger";
 import WidgetFloat from "./widgets/WidgetFloat";
 import WidgetString from "./widgets/WidgetString";
 import WidgetText from "./widgets/WidgetText";
-import WidgetLink from "./widgets/WidgetLink";
 import WidgetSelect from "./widgets/WidgetSelect";
 import WidgetOne2Many  from "./widgets/WidgetOne2Many";
 import WidgetMany2One  from "./widgets/WidgetMany2One";
@@ -56,8 +55,6 @@ config: {
                 return new WidgetMany2One(label, value, config);
             case 'many2many':
                 return new WidgetMany2Many(label, value, config);
-            case 'link':
-                // return new WidgetLink(label, value, config);
             case 'text':
                 return new WidgetText(label, value, config);
             case 'select':

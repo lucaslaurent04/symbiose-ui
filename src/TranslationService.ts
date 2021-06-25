@@ -70,7 +70,7 @@ export class _TranslationService {
    
 
     /**
-     * Helper method for resolution from a `transaltion` object (as provided by the ApiService)
+     * Helper method for resolution from a `translation` object (as provided by the ApiService)
      * 
      * @param translation   Object holding the translations values (as returned by `ApiService::getTranslation()`)
      * @param type          Kind of terms we want to perform ('model','view','error')
@@ -81,7 +81,7 @@ export class _TranslationService {
      * @returns The translated value, or the original value if translation fails.
      */ 
     public resolve(translation:any, type:string, id: string, value: string = '', section:string = 'label') {
-        let result = value.charAt(0).toUpperCase() + value.replace('_', ' ').slice(1);
+        let result = value.charAt(0).toUpperCase() + value.replace(/_/g, ' ').slice(1);
 
         if(translation.hasOwnProperty(type)) {
             if(translation[type].hasOwnProperty(id)) {

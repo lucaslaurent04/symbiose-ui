@@ -96,6 +96,7 @@ export class Domain {
      * @returns Domain  Returns current instance with updated values.
      */
     public parse(object: any, user: any = {}) {
+        console.log(this);
         for(let clause of this.clauses) {
             for(let condition of clause.conditions) {
 
@@ -106,7 +107,7 @@ export class Domain {
                 let value = condition.value;
 
                 // handle object references as `value` part 
-                if(value.indexOf('object.')) {
+                if(typeof value === 'string' && value.indexOf('object.')) {
                     let target = value.substring('object.'.length);
                     if(!object.hasOwnProperty(target)) {
                         continue;
@@ -114,7 +115,7 @@ export class Domain {
                     value = object[target];    
                 }
                 // handle user references as `value` part 
-                else if(value.indexOf('user.')) {
+                else if(typeof value === 'string' && value.indexOf('user.')) {
                     let target = value.substring('user.'.length);
                     if(!user.hasOwnProperty(target)) {
                         continue;

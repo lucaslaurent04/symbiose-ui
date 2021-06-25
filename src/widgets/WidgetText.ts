@@ -13,9 +13,9 @@ export default class WidgetText extends Widget {
         let value:string = this.value?this.value:'';
         switch(this.mode) {
             case 'edit':
-                $elem = UIHelper.createInput('', this.label, value);
+                $elem = UIHelper.createTextArea('', this.label, value);
                 // setup handler for relaying value update to parent layout
-                $elem.find('input').on('change', (event) => {
+                $elem.find('textarea').on('change', (event) => {
                     let $this = $(event.currentTarget);
                     this.value = $this.val();
                     $elem.trigger('_updatedWidget');
@@ -27,7 +27,7 @@ export default class WidgetText extends Widget {
                 break;
         }
 
-        $elem.addClass('sb-widget').attr('id', this.getId());
+        $elem.addClass('sb-widget').addClass('sb-widget-mode-'+this.mode).attr('id', this.getId());
         return $elem;
         
     }

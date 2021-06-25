@@ -144,30 +144,35 @@ export class Layout {
         let def = model_fields[field];
 
         let label = (item.hasOwnProperty('label'))?item.label:field;
-        let helper = (item.hasOwnProperty('help'))?item.help:'';
+        let helper = (item.hasOwnProperty('help'))?item.help:(def.hasOwnProperty('description'))?def['description']:'';
 
         let config:any = {...def};
         
+        if(config.hasOwnProperty('selection')) {
+            config.type = 'select';
+            config.values = config.selection;
+        }
         config.title = TranslationService.resolve(translation, 'model', field, label, 'label');
         config.helper = TranslationService.resolve(translation, 'model', field, helper, 'help');
-        config.readonly = (item.hasOwnProperty('readonly'))?item.readonly:false;
+        config.readonly = (item.hasOwnProperty('readonly'))?item.readonly:(def.hasOwnProperty('readonly'))?def['readonly']:false;
         config.align = (item.hasOwnProperty('align'))?item.align:'left';
         config.sortable = (item.hasOwnProperty('sortable') && item.sortable);
-        config.visible = true;
         config.layout = this.view.getType();
         config.lang = this.view.getLang();
 
-        if(item.hasOwnProperty('visible')) {
-// #todo - handle domains            
-            // evaluate visible attr (either a bool or a domain)
-            config.visible = eval(item.visible);
+        if(!config.hasOwnProperty('visible')) {
+            config.visible = true;
         }
+        if(item.hasOwnProperty('visible')) {
+            config.visible = item.visible;
+        }
+
+        config.visible = eval(config.visible);
 
         if(item.hasOwnProperty('widget')) {
             // overload config with widget config
             config = {...config, ...item.widget};
         }
-
 
         return config;
     } 
@@ -249,7 +254,6 @@ export class Layout {
 
                             if(item.hasOwnProperty('value')) {
                                 if(item.type == 'field') {
-
                                    
                                     let config = this.getWidgetConfig(item);
 
@@ -357,6 +361,7 @@ export class Layout {
         for (let object of objects) {
 
             let $row = $('<tr/>')
+            .addClass('sb-view-layout-list-row')
             .attr('data-id', object.id)
             .attr('data-edit', '0')
             .on('click', (event:any) => {
@@ -370,7 +375,7 @@ export class Layout {
             // for lists in edit mode (excepted widgets), add a checkbox
             if(this.view.getPurpose() != 'widget' || this.view.getMode() == 'edit') {
                 UIHelper.createTableCellCheckbox()
-                .addClass('sb-checkbox-cell')
+                .addClass('sb-view-layout-list-row-checkbox')
                 .appendTo($row)
                 .find('input')
                 .attr('data-id', object.id)
@@ -401,6 +406,14 @@ export class Layout {
                     }                    
                 }
 
+                if(config.type == 'select' && this.view.getMode() == 'view') {
+                    if(config.values && !Array.isArray(config.values) ) {
+                        if(config.values.hasOwnProperty(value) ) {
+                            value = config.values[value];
+                        }
+                    }
+                }
+
                 let widget:Widget = WidgetFactory.getWidget(config.type, '', value, config);
 
                 // store widget in widgets Map, using widget id as key (there are several rows for each field)
@@ -417,16 +430,12 @@ export class Layout {
                     let $widget = widget.render();
 
                     if(mode == 'edit') {
-                        $this.addClass('sb-widget-cell--edit');
                         $widget.on('_updatedWidget', (event:any) => {
                             let value:any = {};
                             value[item.value] = widget.getValue();
                             // propagate model change, without requesting a layout refresh
                             this.view.onchangeViewModel([object.id], value, false);
                         });    
-                    }
-                    else {
-                        $this.removeClass('sb-widget-cell--edit');
                     }
                     $this.empty().append($widget);
                 } );
@@ -451,6 +460,7 @@ export class Layout {
 
 
         if(objects.length > 0) {
+// todo : keep internal index of the object to display (with a prev/next navigation in the header)
             let object:any = objects[0];
             for(let field of fields) {
                 let widget = this.model_widgets[0][field];
@@ -468,12 +478,7 @@ export class Layout {
 
                     // by convention, `name` subfield is always loaded for relational fields
                     if(type == 'many2one') {
-                        if(this.view.getMode() == 'edit') {
-                            value = object[field]['id'];
-                        }
-                        else {
-                            value = object[field]['name'];
-                        }                        
+                        value = object[field]['name'];                        
                     }
                     else if(type == 'many2many' || type == 'one2many') {
                         // for m2m fields, the value of the field is an array of objects `{id:, name:}`
@@ -496,6 +501,14 @@ export class Layout {
                             name: view_name,
                             domain: ['id','in',target_ids]
                         };
+                    }
+                }
+
+                if(config.type == 'select' && this.view.getMode() == 'view') {
+                    if(config.values && !Array.isArray(config.values) ) {
+                        if(config.values.hasOwnProperty(value) ) {
+                            value = config.values[value];
+                        }
                     }
                 }
                 
@@ -522,7 +535,7 @@ export class Layout {
                 }
 
                 if(!visible) {
-                    $parent.empty().append(widget.attach());
+                    $parent.empty().append(widget.attach()).hide();
                     // visibility update need to trigger a redraw, whatever the value (so we change it to an arbitrary value)
                     $parent.data('value', null);
                 }
@@ -535,12 +548,13 @@ export class Layout {
                         // update object with new value
                         let value:any = {};
                         value[field] = widget.getValue();
+                        console.log(value);
                         this.view.onchangeViewModel([object.id], value);
                     });
                     // prevent refreshing objects that haven't changed (otherwise currently active widget loses the focus)
                     if(has_changed) {
                         // append rendered widget
-                        $parent.empty().append($widget);
+                        $parent.empty().append($widget).show();
                     }
                 }
             }    

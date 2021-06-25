@@ -23,11 +23,14 @@ export default class WidgetString extends Widget {
                 break;
             case 'view':
             default:
-                $elem = UIHelper.createInputView('', this.label, value);                
+                $elem = UIHelper.createInputView('', this.label, value);
                 break;
         }
 
-        return $elem.addClass('sb-widget').attr('id', this.getId());
+        if(this.config.hasOwnProperty('header')) {
+            $elem.addClass('title');
+        }
+        return $elem.addClass('sb-widget').addClass('sb-widget-mode-'+this.mode).addClass('sb-widget-mode-'+this.mode).attr('id', this.getId());
     }
     
 }

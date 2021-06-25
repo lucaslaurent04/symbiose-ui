@@ -85,6 +85,28 @@ export class Model {
         return (Object.keys(this.has_changed).length > 0);
     }
 
+    public export(object:any) {
+        let result:any = {};
+        let schema = this.view.getModelFields();
+        for(let field in schema) {
+            if(schema[field]['type'] == 'many2one') {
+                if(typeof object[field] == 'object') {
+                    result[field] = object[field].id;
+                }
+                else {
+                    result[field] = object[field];
+                }                
+            }
+            else if(['one2many', 'many2many'].indexOf(schema[field]['type']) > -1) {
+// #todo
+                result[field] = object[field];
+            }
+            else {
+                result[field] = object[field];
+            }
+        }
+        return result;
+    }
     /** 
      * Update model by requesting data from server using parent View parameters
     */
@@ -107,18 +129,21 @@ export class Model {
         try {
 // #todo : allow to fetch objects from an arbitrary controller (when domain is not enough for filtering)
 // default controller is core_model_collect
-            this.objects = await ApiService.collect(this.view.getEntity(), this.view.getDomain(), fields, this.view.getOrder(), this.view.getSort(), this.view.getStart(), this.view.getLimit(), this.view.getLang());
-            
+            let response = await ApiService.collect(this.view.getEntity(), this.view.getDomain(), fields, this.view.getOrder(), this.view.getSort(), this.view.getStart(), this.view.getLimit(), this.view.getLang());
+
+            this.objects = response;
             this.loaded_promise.resolve();
             this.total = ApiService.getLastCount();
 
-            // trigger model change handler in the parent View (in order to update the layout)
-            await this.view.onchangeModel();
         }
-        catch(err) {
-            console.log('Unable to fetch Collection from server', err);
+        catch(response) {
+            console.log('Unable to fetch Collection from server', response);
+            this.objects = [];
+            this.loaded_promise.resolve();
+            this.total = 0;
         }        
-        
+        // trigger model change handler in the parent View (in order to update the layout)
+        await this.view.onchangeModel();        
     }
     
     /**

@@ -72,6 +72,7 @@ export default class Widget {
     }
 
     public setMode(mode: string) {
+
         this.mode = mode;
         return this;
     }
@@ -94,7 +95,8 @@ export default class Widget {
     }
 
     public attach(): JQuery {
-        let $elem = $('<div/>').addClass('sb-widget').attr('id', this.getId());
+        
+        let $elem = $('<div/>').addClass('sb-widget').addClass('sb-widget-mode-'+this.mode).attr('id', this.getId());
         return $elem;
     }
     

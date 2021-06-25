@@ -26,6 +26,8 @@ export class _ApiService {
         $.ajaxSetup({
             cache:false,
             beforeSend: (xhr) => {
+                /*
+                // #removed for XSS protection (we use httponly cookie instead)
                 let access_token = this.getCookie('access_token');
                 if(access_token) {
                     xhr.setRequestHeader('Authorization', "Basic " + access_token); 
@@ -33,7 +35,9 @@ export class _ApiService {
                 else {
                     console.log('_ApiService: no access token found')
                 }
-            }
+                */
+            },
+            xhrFields: { withCredentials: true }
         });
         
         this.views = {};
@@ -43,16 +47,6 @@ export class _ApiService {
         this.last_count = 0;
     }
 
-    private setCookie(key: string, value: any) {
-        var expires = new Date();
-        expires.setTime(expires.getTime() + 31536000000); //1 year  
-        document.cookie = key + '=' + value + ';expires=' + expires.toUTCString();
-    }
-
-    private getCookie(key: string) {
-        var keyValue = document.cookie.match('(^|;) ?' + key + '=([^;]*)(;|$)');
-        return keyValue ? keyValue[2] : null;
-    }
     
     /**
      * ObjectManager methods
@@ -190,8 +184,8 @@ export class _ApiService {
             });
             result = response;
         }
-        catch(err) {
-            console.log('Error ApiService::create', err);
+        catch(response) {
+            throw response.responseJSON;            
         }
         return result;
     }
@@ -213,8 +207,8 @@ export class _ApiService {
             });
             result = response;
         }
-        catch(err) {
-            console.log('Error ApiService::read', err);
+        catch(response) {
+            throw response.responseJSON;
         }
         return result;
     }
@@ -229,7 +223,7 @@ export class _ApiService {
      */
     public async update(entity:string, ids:Array<number>, fields:Array<any>, force: boolean=false) {
         console.log('ApiService::update', entity, ids, fields);
-        let result: any;
+        let result: any = true;
         try {
             let params = {
                 entity: entity,
@@ -245,9 +239,10 @@ export class _ApiService {
                 contentType: 'application/x-www-form-urlencoded; charset=utf-8'
             });
             result = response;
+            
         }
         catch(response) {
-            result = response.responseJSON;
+            throw response.responseJSON;
         }
         return result;
     }
@@ -288,14 +283,14 @@ export class _ApiService {
             } );
             result = response;
         }
-        catch(err) {
-            console.log('Error ApiService::collect', err);
+        catch(response) {
+            throw response.responseJSON;
         }
         return result;
     }
 
     public async search(entity:string, domain:any[], order:string, sort:string, start:number, limit:number) {
-        var ids = [];
+        var result = [];
         try {
             let params = {
                 entity: entity,
@@ -311,12 +306,13 @@ export class _ApiService {
                 data: params,
                 contentType: 'application/x-www-form-urlencoded; charset=utf-8'
             });
-            ids = response;
+            // reponse should be an array of ids
+            result = response;
         }
-        catch(err) {
-            console.log('Error ApiService::search', err);
+        catch(response) {
+            throw response.responseJSON;
         }
-        return ids;
+        return result;
     }
     
 }

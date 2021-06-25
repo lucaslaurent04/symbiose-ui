@@ -13,6 +13,7 @@ export default class WidgetBoolean extends Widget {
         switch(this.mode) {
             case 'edit':
                 $elem = UIHelper.createSwitch('', this.label, this.value, this.config.helper, '', this.readonly);
+
                 // setup handler for relaying value update to parent layout
                 $elem.find('input')
                 .on('change', (event:any) => {
@@ -31,7 +32,7 @@ export default class WidgetBoolean extends Widget {
                 $elem = UIHelper.createSwitch('', this.label, this.value, this.config.helper, '', true);
                 break;
         }
-        return $elem.addClass('sb-widget').attr('id', this.getId());
+        return $elem.addClass('sb-widget').addClass('sb-widget-type-boolean').addClass('sb-widget-mode-'+this.mode).attr('id', this.getId());
     }
     
 }

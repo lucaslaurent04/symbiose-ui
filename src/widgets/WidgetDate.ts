@@ -47,7 +47,7 @@ export default class WidgetDate extends Widget {
                 $elem = UIHelper.createInputView('', this.label, value);
                 break;
         }
-        $elem.addClass('sb-widget').attr('id', this.getId());
+        $elem.addClass('sb-widget').addClass('sb-widget-mode-'+this.mode).attr('id', this.getId());
 
         return $elem;
     }

@@ -70,7 +70,23 @@ var menu = [
         ]
     },
     {
-        name: 'Test',
+        name: 'Identity',
+        description: '',
+        icon: '',
+        type: 'parent',
+    	children: [
+            {
+                name: 'Identities',
+                description: '',
+                icon: '',
+                type: 'entry',
+                entity: 'identity\\Identity',
+                target: 'list.default'
+            }
+        ]
+    },
+    {
+        name: 'System',
         description: '',
         icon: '',
         type: 'parent',
@@ -332,7 +348,6 @@ body, html {
     max-width: 250px;
     right: 0 !important;
     left: unset !important;
-    margin-top: 44px;
 }
 
 .sb-view-header-list-pagination {
@@ -349,17 +364,22 @@ body, html {
     user-select: none; 
 }
 
-.sb-view-form-field-mode-view input {
+
+.sb-widget-mode-view input {
     color: black !important;
     user-select: none;
 }
 
-.sb-view-form-field-mode-view .sb-view-form-field-label {
+.sb-widget-mode-view label.mdc-text-field .mdc-floating-label {
     color: rgba(0,0,0,0.8) !important;
     user-select: none;
     font-size: 16px;
     font-weight: 600;
-    transform: translateY(-106%) scale(0.8) !important;
+}
+
+.sb-widget-mode-view label.mdc-text-field .mdc-floating-label.mdc-floating-label--float-above {
+    color: rgba(0,0,0,0.6) !important;
+    font-weight: 400;
 }
 
 .sb-view-header-form {
@@ -399,19 +419,14 @@ body, html {
   border: none !important;
 }
 
-.sb-view-layout-list .sb-view-form-field-label {
+.sb-view-layout-list .sb-widget label.mdc-text-field .mdc-floating-label {
     display: none !important;
 }
-.sb-view-layout-list .sb-view-form-field-mode-view::before {
+.sb-view-layout-list .sb-widget-mode-view label.mdc-text-field::before {
     display: none !important;
-}
-.sb-view-layout-list .sb-view-form-field-mode-view {
-	background-color: transparent !important;
-    height: 44px !important;
-    padding: 0;
 }
 
-.sb-view-layout-list .sb-view-form-field-mode-view input {
+.sb-view-layout-list .sb-widget-mode-view input {
     height: 100%;
 }
 
@@ -437,23 +452,64 @@ body, html {
     position: relative;
 }
 
-.sb-checkbox {
+.sb-ui-checkbox {
     position: relative;
 }
 
+.sb-ui-menu.mdc-menu-surface--is-open-below {
+    margin-top: 48px;
+}
+
+.sb-ui-menu.mdc-menu-surface--open {
+    margin-bottom: 48px;
+}
+
+
 /* Material Components customizations */
+
+
+/* Special SB widgets customizations */
+
+/* support for title strings */
+.sb-widget.title {
+    margin-top: -15px; 
+}
+
+.sb-widget.title span.mdc-floating-label--float-above {
+    transform: translateY(-166%) !important;
+}
+.sb-widget.title label.mdc-text-field {
+  height: 70px;
+}
+.sb-widget.title input.mdc-text-field__input {
+  font-size: 30px;
+  margin-top: auto; 
+  height: 60px;
+}
+
+.sb-view-layout-form .sb-widget.sb-widget-type-boolean {
+    height: 56px;
+    vertical-align: middle;
+    display: table-cell;
+    padding-left: 16px;
+}
+
 
 /* adapt inputs for inline editing */
 .sb-widget-cell .mdc-text-field {
   height: 100%;
 }
 
-.sb-widget-cell.sb-widget-cell--edit .mdc-text-field {
+.sb-widget-cell .mdc-text-field {
+    padding-left: 0;
+}
+
+.sb-widget-cell .sb-widget-mode-edit .mdc-text-field {
     outline: solid 1px var(--mdc-theme-primary-outline);
     padding-left: 5px;
 }
 
-.sb-widget-cell.sb-widget-cell--edit .mdc-select__anchor {
+.sb-widget-cell .sb-widget-mode-edit .mdc-select__anchor {
     padding-left: 5px;
 }
 
@@ -463,6 +519,14 @@ body, html {
 
 .sb-widget-cell .mdc-text-field--filled::before {
   display: none;
+}
+
+.sb-widget-cell .mdc-text-field--filled:not(.mdc-text-field--disabled) {
+    background-color: inherit;
+}
+
+.sb-widget-cell .sb-widget-mode-edit .mdc-text-field--filled:not(.mdc-text-field--disabled) {
+    background-color: white;
 }
 
 .sb-widget-cell .mdc-text-field--invalid .mdc-text-field__input {
@@ -485,7 +549,7 @@ body, html {
 }
 
 /* make mini-fab flat (mini save buttons) */ 
-.sb-checkbox-cell .mdc-fab--mini {
+.sb-view-layout-list-row-checkbox .mdc-fab--mini {
     box-shadow: none !important;
     margin: 2px 0;
 }
@@ -546,13 +610,22 @@ body, html {
     cursor: pointer;
 }
 
+.sb-view-layout.sb-view-layout-form .mdc-text-field--filled:not(.mdc-text-field--disabled), .mdc-select--filled:not(.mdc-select--disabled) .mdc-select__anchor {
+    background: white !important;
+}
+
 .mdc-layout-grid__cell {
     position: relative;
 }
 
 .mdc-text-field-helper-line {
     position: absolute;
+    width: 100%;
+    max-width: 100%;
+    padding-left: 0 !important;    
+    padding-right: 0 !important;    
 }
+
 .mdc-data-table__header-cell--checkbox {
     width: 44px;
 }
@@ -603,20 +676,12 @@ body, html {
 }
 
 
-.mdc-text-field-helper-line {
-    max-width: 100%;
-}
-
 .mdc-text-field-helper-line .mdc-text-field-helper-text {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-
-.mdc-text-field-helper-line {
-    padding-right: 0 !important;
-}
 
 .mdc-text-field--invalid:not(.mdc-text-field--disabled) .mdc-text-field-helper-line .mdc-text-field-helper-text--validation-msg {
     color: var(--mdc-theme-error, #b00020) !important;

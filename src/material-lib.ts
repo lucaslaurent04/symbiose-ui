@@ -68,16 +68,17 @@ class UIHelper {
 
     public static createSwitch(id:string, label:string, value:boolean, helper:string = '', icon: string = '', disabled: boolean = false) {
         let $elem = $('\
-        <div class="mdc-switch '+ ((disabled)?'mdc-switch--disabled':'') + '"> \
-            <div class="mdc-switch__track"></div> \
-            <div class="mdc-switch__thumb-underlay"> \
-                <div class="mdc-switch__thumb"></div> \
-                <input type="checkbox" class="mdc-switch__native-control" role="switch" '+ ((value)?'checked':'') + ' ' + ((disabled)?'disabled':'') +'> \
+        <div> \
+            <div class="mdc-switch '+ ((disabled)?'mdc-switch--disabled':'') + '"> \
+                <div class="mdc-switch__track"></div> \
+                <div class="mdc-switch__thumb-underlay"> \
+                    <div class="mdc-switch__thumb"></div> \
+                    <input type="checkbox" class="mdc-switch__native-control" role="switch" '+ ((value)?'checked':'') + ' ' + ((disabled)?'disabled':'') +'> \
+                </div> \
             </div> \
-        </div> \
-        <label for="basic-switch">'+label+'</label> \
-        ');
-        new MDCSwitch($elem[0]);
+            <label for="basic-switch">'+label+'</label> \
+        </div>');
+        new MDCSwitch($elem.find('.mdc-switch')[0]);
         return $elem;
     }
 
@@ -101,13 +102,36 @@ class UIHelper {
         return $elem
     }
 
+    public static createTextArea(id:string, label:string, value:string, helper:string = '', icon: string = '', disabled: boolean = false) {
+        let $elem = $('\
+        <div> \
+            <label class="mdc-text-field mdc-text-field--filled mdc-text-field--textarea mdc-text-field--with-internal-counter"> \
+                <span class="mdc-text-field__ripple"></span> \
+                <span class="mdc-floating-label" id="my-label-id">'+label+'</span> \
+                <span class="mdc-text-field__resizer"> \
+                    <textarea '+( (disabled)?'disabled':'' )+'class="mdc-text-field__input" rows="8" cols="40" maxlength="255" aria-label="Label">'+value+'</textarea> \
+                </span> \
+                <span class="mdc-line-ripple"></span> \
+            </label> \
+            <div class="mdc-text-field-helper-line"> \
+              <div class="mdc-text-field-character-counter">0 / 255</div> \
+          </div> \
+        </div>');
+
+        
+        new MDCTextField($elem[0]);
+        return $elem
+    }
+
     public static createInputView(id:string, label:string, value:string) {
         let $elem = $('\
-        <label class="sb-view-form-field-mode-view mdc-text-field mdc-text-field--filled"> \
-            <span class="sb-view-form-field-label mdc-floating-label">'+label+'</span> \
+        <div> \
+        <label class="mdc-text-field mdc-text-field--filled"> \
+            <span class="mdc-floating-label">'+label+'</span> \
             <input disabled class="mdc-text-field__input" type="text" value="'+value+'"> \
             <span class="mdc-line-ripple"></span>\
-        </label>');
+        </label> \
+        </div>');
         new MDCTextField($elem[0]);
         return $elem
     }
@@ -179,7 +203,7 @@ class UIHelper {
         let suffix = (is_header)?'header-':'';
         let $elem = $('\
         <'+elem+' class="mdc-data-table__'+suffix+'cell mdc-data-table__'+suffix+'cell--checkbox"> \
-            <div class="sb-checkbox mdc-checkbox mdc-data-table__'+suffix+'row-checkbox"> \
+            <div class="sb-ui-checkbox mdc-checkbox mdc-data-table__'+suffix+'row-checkbox"> \
                 <input type="checkbox" class ="mdc-checkbox__native-control" /> \
                 <div class="mdc-checkbox__background"> \
                     <svg class="mdc-checkbox__checkmark" viewBox="0 0 24 24"><path class="mdc-checkbox__checkmark-path" fill="none" d="M1.73,12.91 8.1,19.28 22.79,4.59" /></svg> \
@@ -312,7 +336,7 @@ class UIHelper {
     }
 
     public static createMenu(id:string, label:string='', values:any=[]) {
-        let $elem = $('<div class="mdc-menu mdc-menu-surface mdc-menu-surface--fixed"></div>');        
+        let $elem = $('<div class="sb-ui-menu mdc-menu mdc-menu-surface mdc-menu-surface--fixed"></div>');        
         return $elem;
     }
 

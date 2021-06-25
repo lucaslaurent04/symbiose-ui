@@ -428,10 +428,15 @@ export class View {
                     .append( 
                         UIHelper.createButton('action-edit', TranslationService.instant('SB_ACTIONS_BUTTON_CREATE'), 'raised')
                         .on('click', async () => {
-                            // create a new object
-                            let object = await ApiService.create(this.entity);
-                            // request a new Context for editing the new object
-                            $('#sb-events').trigger('_openContext', {entity: this.entity, type: 'form', name: 'default', domain: [['id', '=', object.id], ['state', '=', 'draft']], mode: 'edit', purpose: 'create'});
+                            try {
+                                // create a new object
+                                let object = await ApiService.create(this.entity);
+                                // request a new Context for editing the new object
+                                $('#sb-events').trigger('_openContext', {entity: this.entity, type: 'form', name: 'default', domain: [['id', '=', object.id], ['state', '=', 'draft']], mode: 'edit', purpose: 'create'});
+                            }
+                            catch(response) {
+                                this.displayErrorFeedback(response);
+                            }
                         })
                     );
                     break;
@@ -439,10 +444,11 @@ export class View {
                     $actions_set
                     .append( 
                         UIHelper.createButton('action-select', TranslationService.instant('SB_ACTIONS_BUTTON_SELECT'), 'raised', 'check')
-                        .on('click', () => {
+                        .on('click', async () => {
                             // close context and relay selection, if any (mark the view as changed to force parent context update)
 // todo : only one id should be relayed                            
-                            $('#sb-events').trigger('_closeContext', {selection: this.selected_ids});
+                            let objects = await this.model.get();
+                            $('#sb-events').trigger('_closeContext', {selection: this.selected_ids, objects: objects});
                         })
                     );
                     break;
@@ -450,9 +456,10 @@ export class View {
                     $actions_set
                     .append( 
                         UIHelper.createButton('action-add', TranslationService.instant('SB_ACTIONS_BUTTON_ADD'), 'raised', 'check')
-                        .on('click', () => {
+                        .on('click', async () => {
                             // close context and relay selection, if any (mark the view as changed to force parent context update)
-                            $('#sb-events').trigger('_closeContext', {selection: this.selected_ids});
+                            let objects = await this.model.get();
+                            $('#sb-events').trigger('_closeContext', {selection: this.selected_ids, objects: objects});
                         })
                     );
                     break;
@@ -473,7 +480,7 @@ export class View {
         .append( UIHelper.createButton('view-filters', 'filters', 'icon', 'filter_list') );
 
         // create floating menu for filters selection
-        let $filters_menu = UIHelper.createMenu('filters-menu').addClass('sb-view-header-list-filters-menu').css({"margin-top": '48px'}).appendTo($filters_button);        
+        let $filters_menu = UIHelper.createMenu('filters-menu').addClass('sb-view-header-list-filters-menu').appendTo($filters_button);        
         let $filters_list = UIHelper.createList('filters-list').appendTo($filters_menu);
 
         // generate filters list
@@ -484,7 +491,7 @@ export class View {
             .appendTo($filters_list)
             .attr('id', filter_id)
             .on('click', (event) => {
-                let $this = $(event.currentTarget);                
+                let $this = $(event.currentTarget);
                 $filters_set.append(
                     UIHelper.createChip(filter.description)
                     .attr('id', filter_id)
@@ -653,7 +660,7 @@ export class View {
             .append( UIHelper.createButton('action-selected', count+' '+TranslationService.instant('SB_ACTIONS_BUTTON_SELECTED'), 'outlined') );
 
             let $list = UIHelper.createList('fields-list');        
-            let $menu = UIHelper.createMenu('fields-menu').addClass('sb-view-header-list-fields_toggle-menu').css({"margin-top": '48px'});
+            let $menu = UIHelper.createMenu('fields-menu').addClass('sb-view-header-list-fields_toggle-menu');
             
             $menu.append($list);
             $fields_toggle_button.append($menu);
@@ -693,10 +700,15 @@ export class View {
                 .append( 
                     UIHelper.createButton('action-create', TranslationService.instant('SB_ACTIONS_BUTTON_CREATE'), 'text')
                     .on('click', async () => {
-                        // create a new object
-                        let object = await ApiService.create(this.entity);
-                        // request a new Context for editing the new object
-                        $('#sb-events').trigger('_openContext', {entity: this.entity, type: 'form', name: 'default', domain: [['id', '=', object.id], ['state', '=', 'draft']], mode: 'edit', purpose: 'create'});
+                        try {
+                            // create a new object
+                            let object = await ApiService.create(this.entity);
+                            // request a new Context for editing the new object
+                            $('#sb-events').trigger('_openContext', {entity: this.entity, type: 'form', name: 'default', domain: [['id', '=', object.id], ['state', '=', 'draft']], mode: 'edit', purpose: 'create'});
+                        }
+                        catch(response) {
+                            this.displayErrorFeedback(response);
+                        }
                     })
                 );
                 break;
@@ -720,39 +732,12 @@ export class View {
                         else {
                             // we're in edit mode for single object (form)
                             let object = objects[0];
-                            const response = await ApiService.update(this.entity, [object['id']], object);
-                            if(!response || !response.hasOwnProperty('errors')) {
-                                $('#sb-events').trigger('_closeContext');
+                            try {                                
+                                const response = await ApiService.update(this.entity, [object['id']], this.model.export(object));
+                                $('#sb-events').trigger('_closeContext');    
                             }
-                            else {
-                                let errors = response['errors'];
-                                if(errors.hasOwnProperty('INVALID_PARAM')) {
-                                    for(let field in errors['INVALID_PARAM']) {
-                                        // for each field, we handle one error at a time (the first one)
-                                        let error_id:string = <string>(Object.keys(errors['INVALID_PARAM'][field]))[0];
-                                        let msg:string = <string>(Object.values(errors['INVALID_PARAM'][field]))[0];
-                                        // translate error message
-                                        msg = TranslationService.resolve(this.translation, 'error', field, msg, error_id);
-                                        this.layout.markFieldAsInvalid(object['id'], field, msg);
-                                    }
-                                }
-                                else if(errors.hasOwnProperty('CONFLICT_OBJECT')) {
-                                    // one or more fields violate a unique constraint
-                                    if(typeof errors['CONFLICT_OBJECT'] == 'object') {
-                                        for(let field in errors['CONFLICT_OBJECT']) {
-                                            this.layout.markFieldAsInvalid(object['id'], field, TranslationService.instant('SB_ERROR_DUPLICATE_VALUE'));
-                                        }
-                                    }
-                                    // object has been modified in the meanwhile
-                                    else {
-                                        let validation = false;
-                                        validation = confirm(TranslationService.instant('SB_ACTIONS_MESSAGE_ERASE_CONUCRRENT_CHANGES'));
-                                        if(validation) {
-                                            await ApiService.update(this.entity, [object['id']], object, true);
-                                        }
-                                        $('#sb-events').trigger('_closeContext');
-                                    }
-                                }
+                            catch(response) {
+                                this.displayErrorFeedback(response, object, false);
                             }
                         }
                     })
@@ -832,79 +817,91 @@ export class View {
         this.layoutListRefresh();
     }
 
+    private async actionListInlineEdit(event:any, selection: any) {
 
+        if(selection.length) {
+            let $action_set = this.$container.find('.sb-view-header-list-actions-set');
+            let $button_save = UIHelper.createButton('action-selected-edit-save', TranslationService.instant('SB_ACTIONS_BUTTON_SAVE'), 'raised')
+            let $button_cancel = UIHelper.createButton('action-selected-edit-cancel', TranslationService.instant('SB_ACTIONS_BUTTON_CANCEL'), 'outlined')
+            
+            $action_set.append($button_save);
+            $action_set.append($button_cancel);
 
-    private actionListInlineEdit(event:any, selection: any) {
+            $button_save.on('click', () => {
+                // handle changed objects
+                let objects = this.model.getChanges(selection);
+                let original_selection = [...selection];
+
+                for(let object_id of original_selection) {
+                    let object = objects.find( o => o.id == object_id );
+                    this.$layoutContainer.find('tr[data-id="'+object_id+'"]').each( async (i: number, tr: any) => {
+                        let $tr = $(tr);
+                        if(!object) {
+                            $tr.find('.sb-widget-cell').each( (i: number, cell: any):any => $(cell).trigger('_toggle_mode', 'view') );
+                            $tr.attr('data-edit', '0');
+                            selection.splice(selection.indexOf(object_id), 1);
+                        }
+                        else {
+                            try {
+                                await ApiService.update(this.entity, [object_id], this.model.export(object));
+                                $tr.find('.sb-widget-cell').each( (i: number, cell: any):any => $(cell).trigger('_toggle_mode', 'view') );
+                                $tr.attr('data-edit', '0');
+                                selection.splice(selection.indexOf(object_id), 1);
+                                if(selection.length == 0) {
+                                    $button_save.remove();
+                                    $button_cancel.remove();
+                                }
+                            }
+                            catch(response) {
+                                this.displayErrorFeedback(response, object, true);
+                            }    
+                        }
+                    });
+                }
+                if(selection.length == 0) {
+                    $button_save.remove();
+                    $button_cancel.remove();
+                }
+                return false;                
+            });
+
+            $button_cancel.on('click', () => {
+                // restore original values for changed objects
+                let objects = this.model.getChanges(selection);
+                for(let object of objects) {
+                    let object_id = object.id;
+                    this.$layoutContainer.find('tr[data-id="'+object_id+'"]').each( async (i: number, tr: any) => {
+                        let $tr = $(tr);
+                        let original = $tr.data('original');
+                        for(let field of Object.keys(original)) {
+                            this.layout.updateFieldValue(object_id, field, original[field]);
+                        }
+                    });
+                }
+                this.$layoutContainer.find('tr.sb-view-layout-list-row').each( async (i: number, tr: any) => {
+                    let $tr = $(tr);
+                    $tr.find('.sb-widget-cell').each( (i: number, cell: any):any => $(cell).trigger('_toggle_mode', 'view') );
+                    $tr.attr('data-edit', '0');    
+                });
+                $button_save.remove();
+                $button_cancel.remove();
+                return false;
+            });
+        }
+
         for(let object_id of selection ) {
 
             this.$layoutContainer.find('tr[data-id="'+object_id+'"]').each( async (i: number, tr: any) => {
                 let $tr = $(tr);
+                $tr.addClass('sb-widget');
                 // not already in edit mode
                 if($tr.attr('data-edit') != '1') {
                     let $td = $tr.children().first();
-                    let $checkbox = $td.find('.sb-checkbox').hide();
 
                     let collection = await this.model.get([object_id]);
                     let object = collection[0];
-                    let original = this.deepCopy(object);
-                    
-                    // fields toggle menu : button for displaying the filters menu
-                    let $actions_button = 
-                    $('<div/>').addClass('mdc-menu-surface--anchor')
-                    .appendTo($td)        
-                    .append( UIHelper.createButton('row-actions', '', 'mini-fab', 'more_horiz').addClass('sb-view-list-inline-actions-button') );
-
-                    // create floating menu for filters selection
-                    let $actions_menu = UIHelper.createMenu('row-actions-menu').css({"margin-top": '48px'}).appendTo($actions_button);        
-                    let $actions_list = UIHelper.createList('row-actions-list').appendTo($actions_menu);
-
-                    // generate filters list
-                    let switchToView = () => {
-                        $actions_button.remove();
-                        $tr.find('.sb-widget-cell').each( (i: number, cell: any):any => $(cell).trigger('_toggle_mode', 'view') );
-                        $checkbox.show();
-                        // restore click handling
-                        $tr.attr('data-edit', '0');
-                    };
-                    
-
-                    UIHelper.createListItem('Save', 'save')
-                    .appendTo($actions_list)
-                    .attr('id', 'save-'+object_id)
-                    .on('click', async (event) => {
-
-                        let objects = this.model.getChanges([object_id]);
-
-                        if(!objects.length) {
-                            switchToView();
-                            return false;
-                        }
-
-                        let object = objects[0];
-                        let result = await this.rowActionListSave(object_id, object);
-                        if(result) {
-                            switchToView();
-                        }
-                        return false;
-                    });
-
-                    UIHelper.createListItem('Cancel', 'cancel')
-                    .appendTo($actions_list)
-                    .attr('id', 'cancel-'+object_id)
-                    .on('click', (event) => {
-                        // restore original values
-                        console.log('restore original');
-                        for(let field of Object.keys(original)) {
-                            object[field] = original[field];
-                            this.layout.updateFieldValue(object_id, field, original[field]);
-                        }
-                        switchToView();
-                        return false;
-                    });
-
-
-                    UIHelper.decorateMenu($actions_menu);
-                    $actions_button.find('button').on('click', () => { console.log('ok'); $actions_menu.trigger('_toggle') } );
+                    // save original object in the row
+                    $tr.data('original', this.deepCopy(object));
 
                     // mark row as being edited (prevent click handling)
                     $tr.attr('data-edit', '1');
@@ -917,18 +914,13 @@ export class View {
         }
     }
 
-
-    private async rowActionListSave(object_id: number, object: any) {
-        const response = await ApiService.update(this.entity, [object_id], object);
-        if(!response || !response.hasOwnProperty('errors')) {
-            return true;
-        }
-        else {
+    private async displayErrorFeedback(response:any, object:any = null, snack:boolean = false) {
+        if(response && response.hasOwnProperty('errors')) {
             let errors = response['errors'];
+
             if(errors.hasOwnProperty('INVALID_PARAM')) {
                 let delay = 4000;
-                let i = 0;
-                let count = Object.keys(errors['INVALID_PARAM']).length;
+                let i = 0, count = Object.keys(errors['INVALID_PARAM']).length;
                 // stack snackbars (LIFO: decreasing timeout)
                 for(let field in errors['INVALID_PARAM']) {
                     // for each field, we handle one error at a time (the first one)
@@ -937,16 +929,52 @@ export class View {
                     // translate error message
                     msg = TranslationService.resolve(this.translation, 'error', field, msg, error_id);
                     this.layout.markFieldAsInvalid(object['id'], field, msg);
-                    let title = TranslationService.resolve(this.translation, 'model', field, field, 'label');
-                    let $snack = UIHelper.createSnackbar(title+': '+msg, '', '', delay * (count-i));
-                    this.$container.append($snack);
+                    if(snack) {
+                        let title = TranslationService.resolve(this.translation, 'model', field, field, 'label');
+                        let $snack = UIHelper.createSnackbar(title+': '+msg, '', '', delay * (count-i));
+                        this.$container.append($snack);
+                    }
                     ++i;
                 }
             }
-        }          
-        return false;
+            else if(errors.hasOwnProperty('NOT_ALLOWED')) {
+                let msg = TranslationService.instant('SB_ERROR_NOT_ALLOWED');
+                let $snack = UIHelper.createSnackbar(msg, '', '', 4000);
+                this.$container.append($snack);
+            }
+            else if(errors.hasOwnProperty('CONFLICT_OBJECT')) {
+                // one or more fields violate a unique constraint
+                if(typeof errors['CONFLICT_OBJECT'] == 'object') {
+                    let delay = 4000;
+                    let i = 0, count = Object.keys(errors['CONFLICT_OBJECT']).length;    
+                    for(let field in errors['CONFLICT_OBJECT']) {
+                        let msg = TranslationService.instant('SB_ERROR_DUPLICATE_VALUE');
+                        this.layout.markFieldAsInvalid(object['id'], field, msg);
+                        if(snack) {
+                            let title = TranslationService.resolve(this.translation, 'model', field, field, 'label');
+                            let $snack = UIHelper.createSnackbar(title+': '+msg, '', '', delay * (count-i));
+                            this.$container.append($snack);
+                        }
+                        ++i;    
+                    }
+                }
+                // object has been modified in the meanwhile
+                else {
+                    let validation = false;
+                    validation = confirm(TranslationService.instant('SB_ACTIONS_MESSAGE_ERASE_CONUCRRENT_CHANGES'));
+                    if(validation) {
+                        try {
+                            const response = await ApiService.update(this.entity, [object['id']], this.model.export(object), true);
+                            $('#sb-events').trigger('_closeContext');                            
+                        }
+                        catch(response) {
+                            await this.displayErrorFeedback(response, object, snack);
+                        }
+                    }
+                }
+            }
+        }    
     }
-
 
 }
 
