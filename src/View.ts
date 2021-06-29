@@ -102,11 +102,19 @@ export class View {
                     }
                 },
                 {
+                    title: 'SB_ACTIONS_BUTTON_ARCHIVE',
+                    icon:  'archive',
+                    handler: (event:any, selection:any) => {
+                        let selected_id = this.selected_ids[0];
+// #todo
+                    }
+                },
+                {
                     title: 'SB_ACTIONS_BUTTON_DELETE',
                     icon:  'delete',
                     handler: (event:any, selection:any) => {
                         let selected_id = this.selected_ids[0];
-
+// #todo
                     }
                 }
             ]     
@@ -163,7 +171,7 @@ export class View {
             // if view schema specifies a domain, merge it with domain given in constructor
             if(this.view_schema.hasOwnProperty("domain")) {
                 // domain attribute is either a string or an array 
-                let domain = eval(this.view_schema.domain);
+                let domain = eval(this.view_schema.domain);                
                 // merge domains
                 let tmpDomain = new Domain(this.domain);
                 tmpDomain.merge(new Domain(domain));
@@ -278,6 +286,10 @@ export class View {
 
     public getType() {
         return this.type;
+    }
+
+    public getName() {
+        return this.name;
     }
 
     public getTranslation() {
@@ -429,8 +441,7 @@ export class View {
                         UIHelper.createButton('action-edit', TranslationService.instant('SB_ACTIONS_BUTTON_CREATE'), 'raised')
                         .on('click', async () => {
                             try {
-                                // create a new object
-                                let object = await ApiService.create(this.entity);
+                                let object = await ApiService.create(this.entity, this.getCreationDefaults());
                                 // request a new Context for editing the new object
                                 $('#sb-events').trigger('_openContext', {entity: this.entity, type: 'form', name: 'default', domain: [['id', '=', object.id], ['state', '=', 'draft']], mode: 'edit', purpose: 'create'});
                             }
@@ -446,11 +457,25 @@ export class View {
                         UIHelper.createButton('action-select', TranslationService.instant('SB_ACTIONS_BUTTON_SELECT'), 'raised', 'check')
                         .on('click', async () => {
                             // close context and relay selection, if any (mark the view as changed to force parent context update)
-// todo : only one id should be relayed                            
-                            let objects = await this.model.get();
+                            // #todo : user should not be able to select more thant one id
+                            let objects = await this.model.get(this.selected_ids);
                             $('#sb-events').trigger('_closeContext', {selection: this.selected_ids, objects: objects});
                         })
-                    );
+                    )
+                    .append( 
+                        UIHelper.createButton('action-create', TranslationService.instant('SB_ACTIONS_BUTTON_CREATE'), 'text')
+                        .on('click', async () => {
+                            try {
+                                // create a new object
+                                let object = await ApiService.create(this.entity, this.getCreationDefaults());
+                                // request a new Context for editing the new object
+                                $('#sb-events').trigger('_openContext', {entity: this.entity, type: 'form', name: 'default', domain: [['id', '=', object.id], ['state', '=', 'draft']], mode: 'edit', purpose: 'create'});
+                            }
+                            catch(response) {
+                                this.displayErrorFeedback(response);
+                            }
+                        })
+                    );                    
                     break;
                 case 'add':
                     $actions_set
@@ -458,7 +483,7 @@ export class View {
                         UIHelper.createButton('action-add', TranslationService.instant('SB_ACTIONS_BUTTON_ADD'), 'raised', 'check')
                         .on('click', async () => {
                             // close context and relay selection, if any (mark the view as changed to force parent context update)
-                            let objects = await this.model.get();
+                            let objects = await this.model.get(this.selected_ids);
                             $('#sb-events').trigger('_closeContext', {selection: this.selected_ids, objects: objects});
                         })
                     );
@@ -491,33 +516,21 @@ export class View {
             .appendTo($filters_list)
             .attr('id', filter_id)
             .on('click', (event) => {
-                let $this = $(event.currentTarget);
-                $filters_set.append(
-                    UIHelper.createChip(filter.description)
-                    .attr('id', filter_id)
-                    .on('click', (event) => {
-                        let $this = $(event.currentTarget)
-                        let index = this.applied_filters_ids.indexOf($this.attr('id'));
-                        if (index > -1) {
-                            this.applied_filters_ids.splice(index, 1);
-                            this.setStart(0);
-                            this.onchangeView();    
-                        }        
-                        $this.remove();
-                    })
-                );
-                this.applied_filters_ids.push($this.attr('id'));
-                this.setStart(0);
-                this.onchangeView();
+                this.applyFilter(filter_id);
             });
         }
 
         // append additional option for custom filter
         UIHelper.createListDivider().appendTo($filters_list);
-        UIHelper.createListItem('Ajouter un filtre personnalisé')
+        
+        let $dialog = UIHelper.createDialog('add_custom_filter_dialog', TranslationService.instant('SB_FILTERS_ADD_CUSTOM_FILTER'));
+        $dialog.appendTo(this.$container);
+        // inject component as dialog content
+        this.decorateCustomFilterDialog($dialog);
+
+        UIHelper.createListItem(TranslationService.instant('SB_FILTERS_ADD_CUSTOM_FILTER'))
         .appendTo($filters_list)
-        .on('click', (event) => {
-        });
+        .on('click', (event) => $dialog.trigger('_open') );
 
 
         UIHelper.decorateMenu($filters_menu);
@@ -535,6 +548,7 @@ export class View {
         let $fields_toggle_menu = UIHelper.createMenu('fields-menu').addClass('sb-view-header-list-fields_toggle-menu').appendTo($fields_toggle_button);
         let $fields_toggle_list = UIHelper.createList('fields-list').appendTo($fields_toggle_menu);
 
+// #todo : translate fields names
         for(let item of this.getViewSchema().layout.items ) {
             let label = (item.hasOwnProperty('label'))?item.label:item.value.charAt(0).toUpperCase() + item.value.slice(1);
             let visible = (item.hasOwnProperty('visible'))?item.visible:true;
@@ -696,20 +710,6 @@ export class View {
                     .on('click', () => {
                         $('#sb-events').trigger('_openContext', {entity: this.entity, type: this.type, name: 'default', domain: this.domain, mode: 'edit', purpose: 'update'});
                     })
-                )
-                .append( 
-                    UIHelper.createButton('action-create', TranslationService.instant('SB_ACTIONS_BUTTON_CREATE'), 'text')
-                    .on('click', async () => {
-                        try {
-                            // create a new object
-                            let object = await ApiService.create(this.entity);
-                            // request a new Context for editing the new object
-                            $('#sb-events').trigger('_openContext', {entity: this.entity, type: 'form', name: 'default', domain: [['id', '=', object.id], ['state', '=', 'draft']], mode: 'edit', purpose: 'create'});
-                        }
-                        catch(response) {
-                            this.displayErrorFeedback(response);
-                        }
-                    })
                 );
                 break;
             case 'edit':
@@ -727,6 +727,7 @@ export class View {
                             objects = this.model.getChanges();
                         }                         
                         if(!objects.length) {
+                            // no change : close context
                             $('#sb-events').trigger('_closeContext');
                         }
                         else {
@@ -768,6 +769,89 @@ export class View {
         }
     }
     
+
+    private decorateCustomFilterDialog($dialog: JQuery) {
+        let $elem = $('<div />');
+
+        let selected_field:string = '';
+        let selected_operator:string = '';
+        let selected_value:string = '';
+
+        let fields:any = {};
+        for(let item of this.view_schema.layout.items ) {
+// #todo : translate fields names            
+            let label = (item.hasOwnProperty('label'))?item.label:item.value.charAt(0).toUpperCase() + item.value.slice(1);
+            fields[item.value] = label;
+        }        
+
+        let $select_field = UIHelper.createSelect('custom_filter_select_field', TranslationService.instant('SB_FILTERS_DIALOG_FIELD'), fields, Object.keys(fields)[0]).appendTo($elem);
+        // setup handler for relaying value update to parent layout
+        $select_field.find('input')
+        .on('change', (event) => {
+            let $this = $(event.currentTarget);
+            selected_field = <string> $this.val();
+
+            $elem.find('#custom_filter_select_operator').remove();
+            $elem.find('#custom_filter_select_value').remove();
+            
+            let field_type = this.model.getFinalType(selected_field);
+            let operators:[] = this.model.getOperators(field_type);
+            let $select_operator = UIHelper.createSelect('custom_filter_select_operator', TranslationService.instant('SB_FILTERS_DIALOG_OPERATOR'), operators);
+            // setup handler for relaying value update to parent layout
+            $select_operator.find('input').on('change', (event) => {
+                let $this = $(event.currentTarget);
+                selected_operator = <string> $this.val();
+            });
+
+            let $select_value = $();
+            
+            switch(field_type) {
+                case 'boolean':
+                    $select_value = UIHelper.createSelect('custom_filter_select_value', TranslationService.instant('SB_FILTERS_DIALOG_VALUE'), ['true', 'false']);
+                    break;
+                case 'many2one':
+                    break;
+                default:
+                    $select_value = UIHelper.createInput('custom_filter_select_value', TranslationService.instant('SB_FILTERS_DIALOG_VALUE'), '');
+            }
+            
+            // setup handler for relaying value update to parent layout
+            $select_value.find('input').on('change', (event) => {
+                let $this = $(event.currentTarget);
+                selected_value = <string> $this.val();
+            });
+
+
+            $elem.append($select_operator);
+            $elem.append($select_value);
+        })
+        // init
+        .trigger('change');
+
+
+        $dialog.find('.mdc-dialog__content').append($elem);
+
+        $dialog.on('_accept', () => {
+            console.log(selected_field, selected_operator, selected_value);
+            if(selected_operator == 'like') {
+                selected_operator = 'ilike';
+                selected_value = '%'+selected_value+'%';
+            }
+            if(selected_operator == 'in' || selected_operator == 'not in') {
+                selected_value = '['+selected_value+']';
+            }
+            let filter = {
+                "id": "custom_filter_"+(Math.random()+1).toString(36).substr(2, 7),
+                "label": "custom filter",
+                "description": selected_field + ' ' + selected_operator + ' ' + selected_value,
+                "clause": [selected_field, selected_operator, selected_value]
+            };
+            // add filter to View available filters
+            this.filters[filter.id] = filter;
+            this.applyFilter(filter.id);
+        });
+
+    }
   
     /**
      * Callback for requesting a Model update.
@@ -815,6 +899,60 @@ export class View {
         console.log('View::onchangeSelection', selection);
         this.selected_ids = selection;
         this.layoutListRefresh();
+    }
+
+    /**
+     * Generate an object mapping fields of current entity with default values, based on current domain.
+     * 
+     * @returns Object  A map of fields with their related default values
+     */
+    private getCreationDefaults() {
+        // create a new object as draft (for asynchronous creation)
+        let fields:any = {state: 'draft'};
+        // use View domain for setting default values  
+        let tmpDomain = new Domain(this.domain);
+        for(let clause of tmpDomain.getClauses()) {
+            for(let condition of clause.getConditions()) {
+                let field  = condition.getOperand();
+                if(field == 'id') continue;
+                if(['ilike', 'like', '=', 'is'].includes(condition.getOperator()) && this.model_fields.hasOwnProperty(field)) {
+                    fields[field] = condition.getValue();
+                }
+            }
+        }
+        return fields;
+    }
+
+    /** 
+     * Apply a filter on the current view, and reload the Collection with the new resulting domain.
+     * 
+     * Expected structure for `filter`: 
+     *       "id": "lang.french",
+     *       "label": "français",
+     *       "description": "Utilisateurs parlant français",
+     *       "clause": ["language", "=", "fr"] 
+     */
+    private async applyFilter(filter_id:string) {
+        let filter = this.filters[filter_id];
+        let $filters_set = this.$headerContainer.find('.sb-view-header-list-filters-set');
+        $filters_set.append(
+            UIHelper.createChip(filter.description)
+            .attr('id', filter.id)
+            .on('click', (event) => {
+                // unapply filter
+                let $this = $(event.currentTarget)
+                let index = this.applied_filters_ids.indexOf($this.attr('id'));
+                if (index > -1) {
+                    this.applied_filters_ids.splice(index, 1);
+                    this.setStart(0);
+                    this.onchangeView();    
+                }        
+                $this.remove();
+            })
+        );
+        this.applied_filters_ids.push(filter.id);
+        this.setStart(0);
+        this.onchangeView();        
     }
 
     private async actionListInlineEdit(event:any, selection: any) {

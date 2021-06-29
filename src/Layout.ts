@@ -369,7 +369,7 @@ export class Layout {
                 // discard click when row is being edited
                 if($this.attr('data-edit') == '0') {
                     $('#sb-events').trigger('_openContext', {entity: this.view.getEntity(), type: 'form', domain: ['id', '=', object.id]});
-                }                
+                }
             });
 
             // for lists in edit mode (excepted widgets), add a checkbox
@@ -458,6 +458,8 @@ export class Layout {
         let fields = Object.keys(this.view.getViewFields());
         let model_schema = this.view.getModelFields();
 
+        // remember which element has focus (DOM is going to be modified)
+        let focused_widget_id = $("input:focus").closest('.sb-widget').attr('id');
 
         if(objects.length > 0) {
 // todo : keep internal index of the object to display (with a prev/next navigation in the header)
@@ -557,7 +559,9 @@ export class Layout {
                         $parent.empty().append($widget).show();
                     }
                 }
-            }    
+            }
+            // try to give the focus back to the previously focused widget
+            $('#'+focused_widget_id).find('input').trigger('focus');
         }
     }
     

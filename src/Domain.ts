@@ -40,6 +40,10 @@ export class Domain {
         return domain;
     }
 
+    public getClauses() {
+        return this.clauses;
+    }
+
     public merge(domain:Domain) {
         let res_domain = new Array();
         let domain_a = domain.toArray();
@@ -48,7 +52,10 @@ export class Domain {
         if(domain_a.length <= 0) {
             res_domain = domain_b;
         }
-        else if(domain_b.length > 0) {
+        else if(domain_b.length <= 0) {
+            res_domain = domain_a;
+        }
+        else {
             for(let clause_a of domain_a) {
                 for(let clause_b of domain_b) {
                     res_domain.push(clause_a.concat(clause_b));
@@ -225,5 +232,18 @@ class Condition {
         condition.push(this.value);
         return condition;
     }
+
+    public getOperand() {
+        return this.operand;
+    }
+
+    public getOperator() {
+        return this.operator;
+    }
+
+    public getValue() {
+        return this.value;
+    }
+
 }
 export default Domain;

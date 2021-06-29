@@ -22,6 +22,8 @@ export default class WidgetMany2One extends Widget {
             domain = this.config.domain;
         }
 
+// #todo : display many2one as sub-forms
+
         switch(this.mode) {
             case 'edit':
                 let objects:Array<any> = [];
@@ -40,10 +42,8 @@ export default class WidgetMany2One extends Widget {
                 UIHelper.decorateMenu($menu);
 
                 let feedObjects = () => {
-                    console.log(domain);
                     let tmpDomain = new Domain(['name', 'ilike', '%'+$select.find('input').val()+'%']);
                     tmpDomain.merge(new Domain(domain));
-                    console.log(tmpDomain.toArray());
                     // fetch 5 first objects from config.foreign_object (use config.domain) + add an extra line ("advanced search...")
                     ApiService.collect(this.config.foreign_object, tmpDomain.toArray(), ['id', 'name'], 'id', 'asc', 0, 5, this.config.lang)
                     .then( (response:any) => {
@@ -107,7 +107,6 @@ export default class WidgetMany2One extends Widget {
                         mode: 'view', 
                         purpose: 'select',
                         callback: (data:any) => {
-                            console.log(data);
                             if(data && data.selection && data.objects) {
                                 // m2o relations are always loaded as an object with {id:, name:}
                                 let object = data.objects.find( (o:any) => o.id == data.selection[0] );

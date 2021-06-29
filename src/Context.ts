@@ -81,6 +81,10 @@ FORM
     public getType() {
         return this.view.type;
     }
+    
+    public getName() {
+        return this.view.name;
+    }
 
     public getPurpose() {
         return this.view.purpose;

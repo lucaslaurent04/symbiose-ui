@@ -5,9 +5,11 @@ import {MDCTextField} from '@material/textfield';
 import {MDCDataTable} from '@material/data-table';
 import {MDCSelect} from '@material/select';
 import {MDCMenu} from '@material/menu';
+import {MDCList} from '@material/list';
 import {MDCTabBar} from '@material/tab-bar';
 import {MDCSnackbar} from '@material/snackbar';
 import {MDCSwitch} from '@material/switch';
+import {MDCDialog} from '@material/dialog';
 
 import { $ } from "./jquery-lib";
 
@@ -84,7 +86,7 @@ class UIHelper {
 
     public static createInput(id:string, label:string, value:string, helper:string = '', icon: string = '', disabled: boolean = false) {
         let $elem = $('\
-        <div> \
+        <div id="'+id+'"> \
             <label class="mdc-text-field mdc-text-field--filled mdc-text-field--with-trailing-icon"> \
                 <span class="mdc-text-field__ripple"></span> \
                 <span class="mdc-floating-label">'+label+'</span> \
@@ -262,7 +264,7 @@ class UIHelper {
 
     public static createSelect(id: string, label: string, values: any, selected: any='') {
         let $elem = $('\
-        <div class="mdc-select mdc-select--filled '+( (label.length)?'':'mdc-select--no-label' )+' "> \
+        <div id="'+id+'" class="mdc-select mdc-select--filled '+( (label.length)?'':'mdc-select--no-label' )+' "> \
             <div class="mdc-select__anchor" role="button" tabindex="0"> \
                 <span class="mdc-select__ripple"></span> \
                 '+ ( (label.length)?'<span class="mdc-floating-label">'+label+'</span>':'' ) +'\
@@ -278,9 +280,8 @@ class UIHelper {
                 <span class="mdc-line-ripple"></span> \
             </div> \
             <div class="mdc-select__menu mdc-menu mdc-menu-surface--fixed mdc-menu-surface" role="listbox"> \
-                <input type="text" style="display: none" /> \
-                <ul class="mdc-list"> \
-                </ul> \
+                <input type="text" style="display: none" value="'+selected+'" /> \
+                <ul class="mdc-list"></ul> \
             </div> \
         </div>');
      
@@ -355,7 +356,6 @@ class UIHelper {
         return $elem
     }
 
-
     public static createTabButton(id:string, label:string, active:boolean) {
         let $elem = $('\
         <button class="mdc-tab '+((active)?'mdc-tab--active':'')+'" role="tab" tabindex="0"> \
@@ -390,6 +390,51 @@ class UIHelper {
         $elem.addClass('mdc-data-table__pagination-rows-per-page-select');
         return $elem;
     }
+
+
+    public static createDialog(id: string, title: string) {
+        let $elem = $('\
+        <div class="mdc-dialog" id="'+id+'"> \
+            <div class="mdc-dialog__container"> \
+                <div class="mdc-dialog__surface" role="alertdialog" aria-modal="true" style="overflow: hidden"> \
+                    <h2 class="mdc-dialog__title">'+title+'</h2> \
+                    <div class="mdc-dialog__content"></div> \
+                    <div class="mdc-dialog__actions"> \
+                        <button tabindex="0" type="button" class="mdc-button mdc-dialog__button" data-mdc-dialog-action="cancel"> \
+                            <div class="mdc-button__ripple"></div> \
+                            <span class="mdc-button__label">Cancel</span> \
+                        </button> \
+                        <button type="button" class="mdc-button mdc-dialog__button" data-mdc-dialog-action="accept"> \
+                            <div class="mdc-button__ripple"></div> \
+                            <span class="mdc-button__label">OK</span> \
+                        </button> \
+                    </div> \
+                </div> \
+            </div> \
+            <div class="mdc-dialog__scrim"></div> \
+        </div');
+
+        const dialog = new MDCDialog($elem[0]);
+
+        dialog.listen('MDCDialog:opened', () => {
+            // list.layout();
+            dialog.layout();
+        });
+
+        dialog.listen('MDCDialog:closed', (event:any) => {
+            if(event.detail.action == 'accept') {
+                $elem.trigger('_accept');
+            }
+        });
+
+
+        $elem.on('_open', () => {
+            dialog.open();
+        });
+
+        return $elem;
+    }
+
 
 
  /*

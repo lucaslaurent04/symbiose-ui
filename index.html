@@ -46,7 +46,7 @@ var menu = [
                 description: '',
                 icon: '',
                 type: 'entry',
-                entity: 'core\\User',
+                entity: 'identity\\User',
                 target: 'list.default'
             },
             {
@@ -55,8 +55,7 @@ var menu = [
                 icon: '',
                 type: 'entry',
                 entity: 'core\\Group',                
-                target: 'list.default',
-                domain: ['id', '>', 5]
+                target: 'list.default'
             },
             {
                 name: 'Permissions',
@@ -82,6 +81,30 @@ var menu = [
                 type: 'entry',
                 entity: 'identity\\Identity',
                 target: 'list.default'
+            },
+            {
+                name: 'Partners',
+                description: '',
+                icon: '',
+                type: 'entry',
+                entity: 'identity\\Partner',
+                target: 'list.default'
+            },
+            {
+                name: 'Addresses',
+                description: '',
+                icon: '',
+                type: 'entry',
+                entity: 'identity\\Address',
+                target: 'list.default',
+            },
+            {
+                name: 'Contacts',
+                description: '',
+                icon: '',
+                type: 'entry',
+                entity: 'identity\\Partner',
+                target: 'list.contact'
             }
         ]
     },
@@ -398,7 +421,7 @@ body, html {
 }
 
 .sb-view-header-form-actions button {
-    flex: 1;
+    flex: 0 1 auto;
     margin-right: 12px;
 }
 
@@ -611,7 +634,7 @@ body, html {
 }
 
 .sb-view-layout.sb-view-layout-form .mdc-text-field--filled:not(.mdc-text-field--disabled), .mdc-select--filled:not(.mdc-select--disabled) .mdc-select__anchor {
-    background: white !important;
+    background: transparent !important;
 }
 
 .mdc-layout-grid__cell {

@@ -724,6 +724,11 @@ var Context = /*#__PURE__*/function () {
       return this.view.type;
     }
   }, {
+    key: "getName",
+    value: function getName() {
+      return this.view.name;
+    }
+  }, {
     key: "getPurpose",
     value: function getPurpose() {
       return this.view.purpose;
@@ -888,6 +893,11 @@ var Domain = /*#__PURE__*/function () {
       return domain;
     }
   }, {
+    key: "getClauses",
+    value: function getClauses() {
+      return this.clauses;
+    }
+  }, {
     key: "merge",
     value: function merge(domain) {
       var res_domain = new Array();
@@ -896,7 +906,9 @@ var Domain = /*#__PURE__*/function () {
 
       if (domain_a.length <= 0) {
         res_domain = domain_b;
-      } else if (domain_b.length > 0) {
+      } else if (domain_b.length <= 0) {
+        res_domain = domain_a;
+      } else {
         var _iterator4 = _createForOfIteratorHelper(domain_a),
             _step4;
 
@@ -1181,6 +1193,21 @@ var Condition = /*#__PURE__*/function () {
       condition.push(this.operator);
       condition.push(this.value);
       return condition;
+    }
+  }, {
+    key: "getOperand",
+    value: function getOperand() {
+      return this.operand;
+    }
+  }, {
+    key: "getOperator",
+    value: function getOperator() {
+      return this.operator;
+    }
+  }, {
+    key: "getValue",
+    value: function getValue() {
+      return this.value;
     }
   }]);
   return Condition;
@@ -1781,7 +1808,9 @@ var Layout = /*#__PURE__*/function () {
       console.log('Layout::feedForm'); // display the first object from the collection
 
       var fields = Object.keys(this.view.getViewFields());
-      var model_schema = this.view.getModelFields();
+      var model_schema = this.view.getModelFields(); // remember which element has focus (DOM is going to be modified)
+
+      var focused_widget_id = (0, _jqueryLib.$)("input:focus").closest('.sb-widget').attr('id');
 
       if (objects.length > 0) {
         (function () {
@@ -1887,12 +1916,15 @@ var Layout = /*#__PURE__*/function () {
 
             for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
               _loop3();
-            }
+            } // try to give the focus back to the previously focused widget
+
           } catch (err) {
             _iterator4.e(err);
           } finally {
             _iterator4.f();
           }
+
+          (0, _jqueryLib.$)('#' + focused_widget_id).find('input').trigger('focus');
         })();
       }
     }
@@ -2036,6 +2068,56 @@ var Model = /*#__PURE__*/function () {
       }
 
       throw new Error("Unable to copy obj! Its type isn't supported.");
+    }
+    /**
+     * Resolve the final type of a given field (handling 'alias' and 'computed').
+     * 
+     * @param field 
+     * @returns string The final type. If final type cannot be resolved, the 'string' type is returned as default.
+     */
+
+  }, {
+    key: "getFinalType",
+    value: function getFinalType(field) {
+      var result = 'string';
+      var schema = this.view.getModelFields();
+
+      while (schema.hasOwnProperty(field) && schema[field].hasOwnProperty('type') && schema[field].type == 'alias' && schema[field].hasOwnProperty('alias')) {
+        field = schema[field].alias;
+      }
+
+      if (schema.hasOwnProperty(field) && schema[field].hasOwnProperty('type')) {
+        if (schema[field].type == 'computed') {
+          if (schema[field].hasOwnProperty('result_type')) {
+            result = schema[field].result_type;
+          }
+        } else {
+          result = schema[field].type;
+        }
+      }
+
+      return result;
+    }
+  }, {
+    key: "getOperators",
+    value: function getOperators(type) {
+      console.log(type);
+      var operators = {
+        'boolean': ['=', '<>'],
+        'integer': ['in', 'not in', '=', '<>', '<', '>', '<=', '>='],
+        'float': ['=', '<>', '<', '>', '<=', '>='],
+        'string': ['like', 'in', '=', '<>'],
+        'text': ['like', '='],
+        'date': ['=', '<=', '>='],
+        'time': ['=', '<=', '>='],
+        'datetime': ['=', '<=', '>='],
+        'file': ['like', '='],
+        'binary': ['like', '='],
+        'many2one': ['is', 'in', 'not in'],
+        'one2many': ['contains'],
+        'many2many': ['contains']
+      };
+      return operators[type];
     }
   }, {
     key: "hasChanged",
@@ -2656,10 +2738,16 @@ var View = /*#__PURE__*/function () {
           });
         }
       }, {
+        title: 'SB_ACTIONS_BUTTON_ARCHIVE',
+        icon: 'archive',
+        handler: function handler(event, selection) {
+          var selected_id = _this.selected_ids[0]; // #todo
+        }
+      }, {
         title: 'SB_ACTIONS_BUTTON_DELETE',
         icon: 'delete',
         handler: function handler(event, selection) {
-          var selected_id = _this.selected_ids[0];
+          var selected_id = _this.selected_ids[0]; // #todo
         }
       }]
     };
@@ -2893,6 +2981,11 @@ var View = /*#__PURE__*/function () {
       return this.type;
     }
   }, {
+    key: "getName",
+    value: function getName() {
+      return this.name;
+    }
+  }, {
     key: "getTranslation",
     value: function getTranslation() {
       return this.translation;
@@ -3111,7 +3204,7 @@ var View = /*#__PURE__*/function () {
                     case 0:
                       _context2.prev = 0;
                       _context2.next = 3;
-                      return _equalServices.ApiService.create(_this2.entity);
+                      return _equalServices.ApiService.create(_this2.entity, _this2.getCreationDefaults());
 
                     case 3:
                       object = _context2.sent;
@@ -3150,7 +3243,7 @@ var View = /*#__PURE__*/function () {
                   switch (_context3.prev = _context3.next) {
                     case 0:
                       _context3.next = 2;
-                      return _this2.model.get();
+                      return _this2.model.get(_this2.selected_ids);
 
                     case 2:
                       objects = _context3.sent;
@@ -3165,21 +3258,57 @@ var View = /*#__PURE__*/function () {
                   }
                 }
               }, _callee3);
-            }))));
-            break;
-
-          case 'add':
-            $actions_set.append(_materialLib.UIHelper.createButton('action-add', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_ADD'), 'raised', 'check').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
-              var objects;
+            })))).append(_materialLib.UIHelper.createButton('action-create', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_CREATE'), 'text').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
+              var object;
               return _regenerator.default.wrap(function _callee4$(_context4) {
                 while (1) {
                   switch (_context4.prev = _context4.next) {
                     case 0:
-                      _context4.next = 2;
-                      return _this2.model.get();
+                      _context4.prev = 0;
+                      _context4.next = 3;
+                      return _equalServices.ApiService.create(_this2.entity, _this2.getCreationDefaults());
+
+                    case 3:
+                      object = _context4.sent;
+                      // request a new Context for editing the new object
+                      (0, _jqueryLib.$)('#sb-events').trigger('_openContext', {
+                        entity: _this2.entity,
+                        type: 'form',
+                        name: 'default',
+                        domain: [['id', '=', object.id], ['state', '=', 'draft']],
+                        mode: 'edit',
+                        purpose: 'create'
+                      });
+                      _context4.next = 10;
+                      break;
+
+                    case 7:
+                      _context4.prev = 7;
+                      _context4.t0 = _context4["catch"](0);
+
+                      _this2.displayErrorFeedback(_context4.t0);
+
+                    case 10:
+                    case "end":
+                      return _context4.stop();
+                  }
+                }
+              }, _callee4, null, [[0, 7]]);
+            }))));
+            break;
+
+          case 'add':
+            $actions_set.append(_materialLib.UIHelper.createButton('action-add', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_ADD'), 'raised', 'check').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5() {
+              var objects;
+              return _regenerator.default.wrap(function _callee5$(_context5) {
+                while (1) {
+                  switch (_context5.prev = _context5.next) {
+                    case 0:
+                      _context5.next = 2;
+                      return _this2.model.get(_this2.selected_ids);
 
                     case 2:
-                      objects = _context4.sent;
+                      objects = _context5.sent;
                       (0, _jqueryLib.$)('#sb-events').trigger('_closeContext', {
                         selection: _this2.selected_ids,
                         objects: objects
@@ -3187,10 +3316,10 @@ var View = /*#__PURE__*/function () {
 
                     case 4:
                     case "end":
-                      return _context4.stop();
+                      return _context5.stop();
                   }
                 }
-              }, _callee4);
+              }, _callee5);
             }))));
             break;
 
@@ -3214,28 +3343,7 @@ var View = /*#__PURE__*/function () {
         var filter = _this2.filters[filter_id];
 
         _materialLib.UIHelper.createListItem(filter.description).appendTo($filters_list).attr('id', filter_id).on('click', function (event) {
-          var $this = (0, _jqueryLib.$)(event.currentTarget);
-          $filters_set.append(_materialLib.UIHelper.createChip(filter.description).attr('id', filter_id).on('click', function (event) {
-            var $this = (0, _jqueryLib.$)(event.currentTarget);
-
-            var index = _this2.applied_filters_ids.indexOf($this.attr('id'));
-
-            if (index > -1) {
-              _this2.applied_filters_ids.splice(index, 1);
-
-              _this2.setStart(0);
-
-              _this2.onchangeView();
-            }
-
-            $this.remove();
-          }));
-
-          _this2.applied_filters_ids.push($this.attr('id'));
-
-          _this2.setStart(0);
-
-          _this2.onchangeView();
+          _this2.applyFilter(filter_id);
         });
       };
 
@@ -3246,7 +3354,15 @@ var View = /*#__PURE__*/function () {
 
       _materialLib.UIHelper.createListDivider().appendTo($filters_list);
 
-      _materialLib.UIHelper.createListItem('Ajouter un filtre personnalisé').appendTo($filters_list).on('click', function (event) {});
+      var $dialog = _materialLib.UIHelper.createDialog('add_custom_filter_dialog', _equalServices.TranslationService.instant('SB_FILTERS_ADD_CUSTOM_FILTER'));
+
+      $dialog.appendTo(this.$container); // inject component as dialog content
+
+      this.decorateCustomFilterDialog($dialog);
+
+      _materialLib.UIHelper.createListItem(_equalServices.TranslationService.instant('SB_FILTERS_ADD_CUSTOM_FILTER')).appendTo($filters_list).on('click', function (event) {
+        return $dialog.trigger('_open');
+      });
 
       _materialLib.UIHelper.decorateMenu($filters_menu);
 
@@ -3258,7 +3374,8 @@ var View = /*#__PURE__*/function () {
 
       var $fields_toggle_menu = _materialLib.UIHelper.createMenu('fields-menu').addClass('sb-view-header-list-fields_toggle-menu').appendTo($fields_toggle_button);
 
-      var $fields_toggle_list = _materialLib.UIHelper.createList('fields-list').appendTo($fields_toggle_menu);
+      var $fields_toggle_list = _materialLib.UIHelper.createList('fields-list').appendTo($fields_toggle_menu); // #todo : translate fields names
+
 
       var _iterator6 = _createForOfIteratorHelper(this.getViewSchema().layout.items),
           _step6;
@@ -3437,43 +3554,7 @@ var View = /*#__PURE__*/function () {
               mode: 'edit',
               purpose: 'update'
             });
-          })).append(_materialLib.UIHelper.createButton('action-create', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_CREATE'), 'text').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5() {
-            var object;
-            return _regenerator.default.wrap(function _callee5$(_context5) {
-              while (1) {
-                switch (_context5.prev = _context5.next) {
-                  case 0:
-                    _context5.prev = 0;
-                    _context5.next = 3;
-                    return _equalServices.ApiService.create(_this4.entity);
-
-                  case 3:
-                    object = _context5.sent;
-                    // request a new Context for editing the new object
-                    (0, _jqueryLib.$)('#sb-events').trigger('_openContext', {
-                      entity: _this4.entity,
-                      type: 'form',
-                      name: 'default',
-                      domain: [['id', '=', object.id], ['state', '=', 'draft']],
-                      mode: 'edit',
-                      purpose: 'create'
-                    });
-                    _context5.next = 10;
-                    break;
-
-                  case 7:
-                    _context5.prev = 7;
-                    _context5.t0 = _context5["catch"](0);
-
-                    _this4.displayErrorFeedback(_context5.t0);
-
-                  case 10:
-                  case "end":
-                    return _context5.stop();
-                }
-              }
-            }, _callee5, null, [[0, 7]]);
-          }))));
+          }));
           break;
 
         case 'edit':
@@ -3506,6 +3587,7 @@ var View = /*#__PURE__*/function () {
                       break;
                     }
 
+                    // no change : close context
                     (0, _jqueryLib.$)('#sb-events').trigger('_closeContext');
                     _context6.next = 22;
                     break;
@@ -3603,6 +3685,101 @@ var View = /*#__PURE__*/function () {
 
       return layoutRefresh;
     }()
+  }, {
+    key: "decorateCustomFilterDialog",
+    value: function decorateCustomFilterDialog($dialog) {
+      var _this5 = this;
+
+      var $elem = (0, _jqueryLib.$)('<div />');
+      var selected_field = '';
+      var selected_operator = '';
+      var selected_value = '';
+      var fields = {};
+
+      var _iterator8 = _createForOfIteratorHelper(this.view_schema.layout.items),
+          _step8;
+
+      try {
+        for (_iterator8.s(); !(_step8 = _iterator8.n()).done;) {
+          var item = _step8.value;
+          // #todo : translate fields names            
+          var label = item.hasOwnProperty('label') ? item.label : item.value.charAt(0).toUpperCase() + item.value.slice(1);
+          fields[item.value] = label;
+        }
+      } catch (err) {
+        _iterator8.e(err);
+      } finally {
+        _iterator8.f();
+      }
+
+      var $select_field = _materialLib.UIHelper.createSelect('custom_filter_select_field', _equalServices.TranslationService.instant('SB_FILTERS_DIALOG_FIELD'), fields, Object.keys(fields)[0]).appendTo($elem); // setup handler for relaying value update to parent layout
+
+
+      $select_field.find('input').on('change', function (event) {
+        var $this = (0, _jqueryLib.$)(event.currentTarget);
+        selected_field = $this.val();
+        $elem.find('#custom_filter_select_operator').remove();
+        $elem.find('#custom_filter_select_value').remove();
+
+        var field_type = _this5.model.getFinalType(selected_field);
+
+        var operators = _this5.model.getOperators(field_type);
+
+        var $select_operator = _materialLib.UIHelper.createSelect('custom_filter_select_operator', _equalServices.TranslationService.instant('SB_FILTERS_DIALOG_OPERATOR'), operators); // setup handler for relaying value update to parent layout
+
+
+        $select_operator.find('input').on('change', function (event) {
+          var $this = (0, _jqueryLib.$)(event.currentTarget);
+          selected_operator = $this.val();
+        });
+        var $select_value = (0, _jqueryLib.$)();
+
+        switch (field_type) {
+          case 'boolean':
+            $select_value = _materialLib.UIHelper.createSelect('custom_filter_select_value', _equalServices.TranslationService.instant('SB_FILTERS_DIALOG_VALUE'), ['true', 'false']);
+            break;
+
+          case 'many2one':
+            break;
+
+          default:
+            $select_value = _materialLib.UIHelper.createInput('custom_filter_select_value', _equalServices.TranslationService.instant('SB_FILTERS_DIALOG_VALUE'), '');
+        } // setup handler for relaying value update to parent layout
+
+
+        $select_value.find('input').on('change', function (event) {
+          var $this = (0, _jqueryLib.$)(event.currentTarget);
+          selected_value = $this.val();
+        });
+        $elem.append($select_operator);
+        $elem.append($select_value);
+      }) // init
+      .trigger('change');
+      $dialog.find('.mdc-dialog__content').append($elem);
+      $dialog.on('_accept', function () {
+        console.log(selected_field, selected_operator, selected_value);
+
+        if (selected_operator == 'like') {
+          selected_operator = 'ilike';
+          selected_value = '%' + selected_value + '%';
+        }
+
+        if (selected_operator == 'in' || selected_operator == 'not in') {
+          selected_value = '[' + selected_value + ']';
+        }
+
+        var filter = {
+          "id": "custom_filter_" + (Math.random() + 1).toString(36).substr(2, 7),
+          "label": "custom filter",
+          "description": selected_field + ' ' + selected_operator + ' ' + selected_value,
+          "clause": [selected_field, selected_operator, selected_value]
+        }; // add filter to View available filters
+
+        _this5.filters[filter.id] = filter;
+
+        _this5.applyFilter(filter.id);
+      });
+    }
     /**
      * Callback for requesting a Model update.
      * Requested from layout when a change occured in the widgets.
@@ -3728,17 +3905,124 @@ var View = /*#__PURE__*/function () {
       this.selected_ids = selection;
       this.layoutListRefresh();
     }
+    /**
+     * Generate an object mapping fields of current entity with default values, based on current domain.
+     * 
+     * @returns Object  A map of fields with their related default values
+     */
+
+  }, {
+    key: "getCreationDefaults",
+    value: function getCreationDefaults() {
+      // create a new object as draft (for asynchronous creation)
+      var fields = {
+        state: 'draft'
+      }; // use View domain for setting default values  
+
+      var tmpDomain = new _Domain.default(this.domain);
+
+      var _iterator9 = _createForOfIteratorHelper(tmpDomain.getClauses()),
+          _step9;
+
+      try {
+        for (_iterator9.s(); !(_step9 = _iterator9.n()).done;) {
+          var clause = _step9.value;
+
+          var _iterator10 = _createForOfIteratorHelper(clause.getConditions()),
+              _step10;
+
+          try {
+            for (_iterator10.s(); !(_step10 = _iterator10.n()).done;) {
+              var condition = _step10.value;
+              var field = condition.getOperand();
+              if (field == 'id') continue;
+
+              if (['ilike', 'like', '=', 'is'].includes(condition.getOperator()) && this.model_fields.hasOwnProperty(field)) {
+                fields[field] = condition.getValue();
+              }
+            }
+          } catch (err) {
+            _iterator10.e(err);
+          } finally {
+            _iterator10.f();
+          }
+        }
+      } catch (err) {
+        _iterator9.e(err);
+      } finally {
+        _iterator9.f();
+      }
+
+      return fields;
+    }
+    /** 
+     * Apply a filter on the current view, and reload the Collection with the new resulting domain.
+     * 
+     * Expected structure for `filter`: 
+     *       "id": "lang.french",
+     *       "label": "français",
+     *       "description": "Utilisateurs parlant français",
+     *       "clause": ["language", "=", "fr"] 
+     */
+
+  }, {
+    key: "applyFilter",
+    value: function () {
+      var _applyFilter = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee12(filter_id) {
+        var _this6 = this;
+
+        var filter, $filters_set;
+        return _regenerator.default.wrap(function _callee12$(_context12) {
+          while (1) {
+            switch (_context12.prev = _context12.next) {
+              case 0:
+                filter = this.filters[filter_id];
+                $filters_set = this.$headerContainer.find('.sb-view-header-list-filters-set');
+                $filters_set.append(_materialLib.UIHelper.createChip(filter.description).attr('id', filter.id).on('click', function (event) {
+                  // unapply filter
+                  var $this = (0, _jqueryLib.$)(event.currentTarget);
+
+                  var index = _this6.applied_filters_ids.indexOf($this.attr('id'));
+
+                  if (index > -1) {
+                    _this6.applied_filters_ids.splice(index, 1);
+
+                    _this6.setStart(0);
+
+                    _this6.onchangeView();
+                  }
+
+                  $this.remove();
+                }));
+                this.applied_filters_ids.push(filter.id);
+                this.setStart(0);
+                this.onchangeView();
+
+              case 6:
+              case "end":
+                return _context12.stop();
+            }
+          }
+        }, _callee12, this);
+      }));
+
+      function applyFilter(_x3) {
+        return _applyFilter.apply(this, arguments);
+      }
+
+      return applyFilter;
+    }()
   }, {
     key: "actionListInlineEdit",
     value: function () {
-      var _actionListInlineEdit = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee16(event, selection) {
-        var _this5 = this;
+      var _actionListInlineEdit = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee17(event, selection) {
+        var _this7 = this;
 
-        var $action_set, $button_save, $button_cancel, _iterator10, _step10, _loop6;
+        var $action_set, $button_save, $button_cancel, _iterator13, _step13, _loop6;
 
-        return _regenerator.default.wrap(function _callee16$(_context16) {
+        return _regenerator.default.wrap(function _callee17$(_context17) {
           while (1) {
-            switch (_context16.prev = _context16.next) {
+            switch (_context17.prev = _context17.next) {
               case 0:
                 if (selection.length) {
                   $action_set = this.$container.find('.sb-view-header-list-actions-set');
@@ -3748,31 +4032,31 @@ var View = /*#__PURE__*/function () {
                   $action_set.append($button_cancel);
                   $button_save.on('click', function () {
                     // handle changed objects
-                    var objects = _this5.model.getChanges(selection);
+                    var objects = _this7.model.getChanges(selection);
 
                     var original_selection = (0, _toConsumableArray2.default)(selection);
 
-                    var _iterator8 = _createForOfIteratorHelper(original_selection),
-                        _step8;
+                    var _iterator11 = _createForOfIteratorHelper(original_selection),
+                        _step11;
 
                     try {
                       var _loop4 = function _loop4() {
-                        var object_id = _step8.value;
+                        var object_id = _step11.value;
                         var object = objects.find(function (o) {
                           return o.id == object_id;
                         });
 
-                        _this5.$layoutContainer.find('tr[data-id="' + object_id + '"]').each( /*#__PURE__*/function () {
-                          var _ref7 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee12(i, tr) {
+                        _this7.$layoutContainer.find('tr[data-id="' + object_id + '"]').each( /*#__PURE__*/function () {
+                          var _ref7 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee13(i, tr) {
                             var $tr;
-                            return _regenerator.default.wrap(function _callee12$(_context12) {
+                            return _regenerator.default.wrap(function _callee13$(_context13) {
                               while (1) {
-                                switch (_context12.prev = _context12.next) {
+                                switch (_context13.prev = _context13.next) {
                                   case 0:
                                     $tr = (0, _jqueryLib.$)(tr);
 
                                     if (object) {
-                                      _context12.next = 7;
+                                      _context13.next = 7;
                                       break;
                                     }
 
@@ -3781,13 +4065,13 @@ var View = /*#__PURE__*/function () {
                                     });
                                     $tr.attr('data-edit', '0');
                                     selection.splice(selection.indexOf(object_id), 1);
-                                    _context12.next = 19;
+                                    _context13.next = 19;
                                     break;
 
                                   case 7:
-                                    _context12.prev = 7;
-                                    _context12.next = 10;
-                                    return _equalServices.ApiService.update(_this5.entity, [object_id], _this5.model.export(object));
+                                    _context13.prev = 7;
+                                    _context13.next = 10;
+                                    return _equalServices.ApiService.update(_this7.entity, [object_id], _this7.model.export(object));
 
                                   case 10:
                                     $tr.find('.sb-widget-cell').each(function (i, cell) {
@@ -3801,36 +4085,36 @@ var View = /*#__PURE__*/function () {
                                       $button_cancel.remove();
                                     }
 
-                                    _context12.next = 19;
+                                    _context13.next = 19;
                                     break;
 
                                   case 16:
-                                    _context12.prev = 16;
-                                    _context12.t0 = _context12["catch"](7);
+                                    _context13.prev = 16;
+                                    _context13.t0 = _context13["catch"](7);
 
-                                    _this5.displayErrorFeedback(_context12.t0, object, true);
+                                    _this7.displayErrorFeedback(_context13.t0, object, true);
 
                                   case 19:
                                   case "end":
-                                    return _context12.stop();
+                                    return _context13.stop();
                                 }
                               }
-                            }, _callee12, null, [[7, 16]]);
+                            }, _callee13, null, [[7, 16]]);
                           }));
 
-                          return function (_x5, _x6) {
+                          return function (_x6, _x7) {
                             return _ref7.apply(this, arguments);
                           };
                         }());
                       };
 
-                      for (_iterator8.s(); !(_step8 = _iterator8.n()).done;) {
+                      for (_iterator11.s(); !(_step11 = _iterator11.n()).done;) {
                         _loop4();
                       }
                     } catch (err) {
-                      _iterator8.e(err);
+                      _iterator11.e(err);
                     } finally {
-                      _iterator8.f();
+                      _iterator11.f();
                     }
 
                     if (selection.length == 0) {
@@ -3842,23 +4126,23 @@ var View = /*#__PURE__*/function () {
                   });
                   $button_cancel.on('click', function () {
                     // restore original values for changed objects
-                    var objects = _this5.model.getChanges(selection);
+                    var objects = _this7.model.getChanges(selection);
 
-                    var _iterator9 = _createForOfIteratorHelper(objects),
-                        _step9;
+                    var _iterator12 = _createForOfIteratorHelper(objects),
+                        _step12;
 
                     try {
                       var _loop5 = function _loop5() {
-                        var object = _step9.value;
+                        var object = _step12.value;
                         var object_id = object.id;
 
-                        _this5.$layoutContainer.find('tr[data-id="' + object_id + '"]').each( /*#__PURE__*/function () {
-                          var _ref9 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee14(i, tr) {
+                        _this7.$layoutContainer.find('tr[data-id="' + object_id + '"]').each( /*#__PURE__*/function () {
+                          var _ref9 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee15(i, tr) {
                             var $tr, original, _i, _Object$keys, field;
 
-                            return _regenerator.default.wrap(function _callee14$(_context14) {
+                            return _regenerator.default.wrap(function _callee15$(_context15) {
                               while (1) {
-                                switch (_context14.prev = _context14.next) {
+                                switch (_context15.prev = _context15.next) {
                                   case 0:
                                     $tr = (0, _jqueryLib.$)(tr);
                                     original = $tr.data('original');
@@ -3866,38 +4150,38 @@ var View = /*#__PURE__*/function () {
                                     for (_i = 0, _Object$keys = Object.keys(original); _i < _Object$keys.length; _i++) {
                                       field = _Object$keys[_i];
 
-                                      _this5.layout.updateFieldValue(object_id, field, original[field]);
+                                      _this7.layout.updateFieldValue(object_id, field, original[field]);
                                     }
 
                                   case 3:
                                   case "end":
-                                    return _context14.stop();
+                                    return _context15.stop();
                                 }
                               }
-                            }, _callee14);
+                            }, _callee15);
                           }));
 
-                          return function (_x9, _x10) {
+                          return function (_x10, _x11) {
                             return _ref9.apply(this, arguments);
                           };
                         }());
                       };
 
-                      for (_iterator9.s(); !(_step9 = _iterator9.n()).done;) {
+                      for (_iterator12.s(); !(_step12 = _iterator12.n()).done;) {
                         _loop5();
                       }
                     } catch (err) {
-                      _iterator9.e(err);
+                      _iterator12.e(err);
                     } finally {
-                      _iterator9.f();
+                      _iterator12.f();
                     }
 
-                    _this5.$layoutContainer.find('tr.sb-view-layout-list-row').each( /*#__PURE__*/function () {
-                      var _ref8 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee13(i, tr) {
+                    _this7.$layoutContainer.find('tr.sb-view-layout-list-row').each( /*#__PURE__*/function () {
+                      var _ref8 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee14(i, tr) {
                         var $tr;
-                        return _regenerator.default.wrap(function _callee13$(_context13) {
+                        return _regenerator.default.wrap(function _callee14$(_context14) {
                           while (1) {
-                            switch (_context13.prev = _context13.next) {
+                            switch (_context14.prev = _context14.next) {
                               case 0:
                                 $tr = (0, _jqueryLib.$)(tr);
                                 $tr.find('.sb-widget-cell').each(function (i, cell) {
@@ -3907,13 +4191,13 @@ var View = /*#__PURE__*/function () {
 
                               case 3:
                               case "end":
-                                return _context13.stop();
+                                return _context14.stop();
                             }
                           }
-                        }, _callee13);
+                        }, _callee14);
                       }));
 
-                      return function (_x7, _x8) {
+                      return function (_x8, _x9) {
                         return _ref8.apply(this, arguments);
                       };
                     }());
@@ -3924,36 +4208,36 @@ var View = /*#__PURE__*/function () {
                   });
                 }
 
-                _iterator10 = _createForOfIteratorHelper(selection);
+                _iterator13 = _createForOfIteratorHelper(selection);
 
                 try {
                   _loop6 = function _loop6() {
-                    var object_id = _step10.value;
+                    var object_id = _step13.value;
 
-                    _this5.$layoutContainer.find('tr[data-id="' + object_id + '"]').each( /*#__PURE__*/function () {
-                      var _ref10 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee15(i, tr) {
+                    _this7.$layoutContainer.find('tr[data-id="' + object_id + '"]').each( /*#__PURE__*/function () {
+                      var _ref10 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee16(i, tr) {
                         var $tr, $td, collection, object;
-                        return _regenerator.default.wrap(function _callee15$(_context15) {
+                        return _regenerator.default.wrap(function _callee16$(_context16) {
                           while (1) {
-                            switch (_context15.prev = _context15.next) {
+                            switch (_context16.prev = _context16.next) {
                               case 0:
                                 $tr = (0, _jqueryLib.$)(tr);
                                 $tr.addClass('sb-widget'); // not already in edit mode
 
                                 if (!($tr.attr('data-edit') != '1')) {
-                                  _context15.next = 11;
+                                  _context16.next = 11;
                                   break;
                                 }
 
                                 $td = $tr.children().first();
-                                _context15.next = 6;
-                                return _this5.model.get([object_id]);
+                                _context16.next = 6;
+                                return _this7.model.get([object_id]);
 
                               case 6:
-                                collection = _context15.sent;
+                                collection = _context16.sent;
                                 object = collection[0]; // save original object in the row
 
-                                $tr.data('original', _this5.deepCopy(object)); // mark row as being edited (prevent click handling)
+                                $tr.data('original', _this7.deepCopy(object)); // mark row as being edited (prevent click handling)
 
                                 $tr.attr('data-edit', '1'); // for each widget of the row, switch to edit mode
 
@@ -3963,36 +4247,36 @@ var View = /*#__PURE__*/function () {
 
                               case 11:
                               case "end":
-                                return _context15.stop();
+                                return _context16.stop();
                             }
                           }
-                        }, _callee15);
+                        }, _callee16);
                       }));
 
-                      return function (_x11, _x12) {
+                      return function (_x12, _x13) {
                         return _ref10.apply(this, arguments);
                       };
                     }());
                   };
 
-                  for (_iterator10.s(); !(_step10 = _iterator10.n()).done;) {
+                  for (_iterator13.s(); !(_step13 = _iterator13.n()).done;) {
                     _loop6();
                   }
                 } catch (err) {
-                  _iterator10.e(err);
+                  _iterator13.e(err);
                 } finally {
-                  _iterator10.f();
+                  _iterator13.f();
                 }
 
               case 3:
               case "end":
-                return _context16.stop();
+                return _context17.stop();
             }
           }
-        }, _callee16, this);
+        }, _callee17, this);
       }));
 
-      function actionListInlineEdit(_x3, _x4) {
+      function actionListInlineEdit(_x4, _x5) {
         return _actionListInlineEdit.apply(this, arguments);
       }
 
@@ -4001,7 +4285,7 @@ var View = /*#__PURE__*/function () {
   }, {
     key: "displayErrorFeedback",
     value: function () {
-      var _displayErrorFeedback = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee17(response) {
+      var _displayErrorFeedback = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee18(response) {
         var object,
             snack,
             errors,
@@ -4024,24 +4308,24 @@ var View = /*#__PURE__*/function () {
             _$snack2,
             validation,
             _response,
-            _args17 = arguments;
+            _args18 = arguments;
 
-        return _regenerator.default.wrap(function _callee17$(_context17) {
+        return _regenerator.default.wrap(function _callee18$(_context18) {
           while (1) {
-            switch (_context17.prev = _context17.next) {
+            switch (_context18.prev = _context18.next) {
               case 0:
-                object = _args17.length > 1 && _args17[1] !== undefined ? _args17[1] : null;
-                snack = _args17.length > 2 && _args17[2] !== undefined ? _args17[2] : false;
+                object = _args18.length > 1 && _args18[1] !== undefined ? _args18[1] : null;
+                snack = _args18.length > 2 && _args18[2] !== undefined ? _args18[2] : false;
 
                 if (!(response && response.hasOwnProperty('errors'))) {
-                  _context17.next = 37;
+                  _context18.next = 37;
                   break;
                 }
 
                 errors = response['errors'];
 
                 if (!errors.hasOwnProperty('INVALID_PARAM')) {
-                  _context17.next = 10;
+                  _context18.next = 10;
                   break;
                 }
 
@@ -4065,29 +4349,29 @@ var View = /*#__PURE__*/function () {
                   ++i;
                 }
 
-                _context17.next = 37;
+                _context18.next = 37;
                 break;
 
               case 10:
                 if (!errors.hasOwnProperty('NOT_ALLOWED')) {
-                  _context17.next = 16;
+                  _context18.next = 16;
                   break;
                 }
 
                 _msg = _equalServices.TranslationService.instant('SB_ERROR_NOT_ALLOWED');
                 _$snack = _materialLib.UIHelper.createSnackbar(_msg, '', '', 4000);
                 this.$container.append(_$snack);
-                _context17.next = 37;
+                _context18.next = 37;
                 break;
 
               case 16:
                 if (!errors.hasOwnProperty('CONFLICT_OBJECT')) {
-                  _context17.next = 37;
+                  _context18.next = 37;
                   break;
                 }
 
                 if (!(typeof errors['CONFLICT_OBJECT'] == 'object')) {
-                  _context17.next = 23;
+                  _context18.next = 23;
                   break;
                 }
 
@@ -4107,7 +4391,7 @@ var View = /*#__PURE__*/function () {
                   ++_i2;
                 }
 
-                _context17.next = 37;
+                _context18.next = 37;
                 break;
 
               case 23:
@@ -4115,35 +4399,35 @@ var View = /*#__PURE__*/function () {
                 validation = confirm(_equalServices.TranslationService.instant('SB_ACTIONS_MESSAGE_ERASE_CONUCRRENT_CHANGES'));
 
                 if (!validation) {
-                  _context17.next = 37;
+                  _context18.next = 37;
                   break;
                 }
 
-                _context17.prev = 26;
-                _context17.next = 29;
+                _context18.prev = 26;
+                _context18.next = 29;
                 return _equalServices.ApiService.update(this.entity, [object['id']], this.model.export(object), true);
 
               case 29:
-                _response = _context17.sent;
+                _response = _context18.sent;
                 (0, _jqueryLib.$)('#sb-events').trigger('_closeContext');
-                _context17.next = 37;
+                _context18.next = 37;
                 break;
 
               case 33:
-                _context17.prev = 33;
-                _context17.t0 = _context17["catch"](26);
-                _context17.next = 37;
-                return this.displayErrorFeedback(_context17.t0, object, snack);
+                _context18.prev = 33;
+                _context18.t0 = _context18["catch"](26);
+                _context18.next = 37;
+                return this.displayErrorFeedback(_context18.t0, object, snack);
 
               case 37:
               case "end":
-                return _context17.stop();
+                return _context18.stop();
             }
           }
-        }, _callee17, this, [[26, 33]]);
+        }, _callee18, this, [[26, 33]]);
       }));
 
-      function displayErrorFeedback(_x13) {
+      function displayErrorFeedback(_x14) {
         return _displayErrorFeedback.apply(this, arguments);
       }
 
@@ -4559,8 +4843,7 @@ var eQ = /*#__PURE__*/function () {
     key: "getPurposeString",
     value: function () {
       var _getPurposeString = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3(context) {
-        var result, entity, type, purpose, translation, parts, purpose_const, _translation, objects, object;
-
+        var result, entity, type, name, purpose, view_schema, translation, parts, purpose_const, translated_purpose, objects, object;
         return _regenerator.default.wrap(function _callee3$(_context3) {
           while (1) {
             switch (_context3.prev = _context3.next) {
@@ -4568,15 +4851,23 @@ var eQ = /*#__PURE__*/function () {
                 result = '';
                 entity = context.getEntity();
                 type = context.getType();
+                name = context.getName();
                 purpose = context.getPurpose();
-                _context3.next = 6;
+                _context3.next = 7;
+                return _equalServices.ApiService.getView(entity, type + '.' + name);
+
+              case 7:
+                view_schema = _context3.sent;
+                _context3.next = 10;
                 return _equalServices.ApiService.getTranslation(entity, _environment.environment.lang);
 
-              case 6:
+              case 10:
                 translation = _context3.sent;
 
                 if (translation.hasOwnProperty('name')) {
                   entity = translation['name'];
+                } else if (view_schema.hasOwnProperty('name')) {
+                  entity = view_schema['name'];
                 } else {
                   parts = entity.split('\\');
                   entity = parts.pop(); // set the first letter uppercase
@@ -4585,7 +4876,7 @@ var eQ = /*#__PURE__*/function () {
                 }
 
                 if (!(purpose == 'view')) {
-                  _context3.next = 13;
+                  _context3.next = 17;
                   break;
                 }
 
@@ -4594,74 +4885,72 @@ var eQ = /*#__PURE__*/function () {
                 if (type == 'list') {
                   if (translation.hasOwnProperty('plural')) {
                     result = translation['plural'];
-                  } else {
-                    result += 's';
                   }
                 }
 
-                _context3.next = 29;
-                break;
-
-              case 13:
-                // i18n: look in config translation file
-                purpose_const = '';
-                _context3.t0 = purpose;
-                _context3.next = _context3.t0 === 'create' ? 17 : _context3.t0 === 'update' ? 19 : _context3.t0 === 'select' ? 21 : _context3.t0 === 'add' ? 23 : 25;
+                _context3.next = 33;
                 break;
 
               case 17:
-                purpose_const = 'SB_PURPOSE_CREATE';
-                return _context3.abrupt("break", 25);
-
-              case 19:
-                purpose_const = 'SB_PURPOSE_UPDATE';
-                return _context3.abrupt("break", 25);
+                // i18n: look in config translation file
+                purpose_const = '';
+                _context3.t0 = purpose;
+                _context3.next = _context3.t0 === 'create' ? 21 : _context3.t0 === 'update' ? 23 : _context3.t0 === 'select' ? 25 : _context3.t0 === 'add' ? 27 : 29;
+                break;
 
               case 21:
-                purpose_const = 'SB_PURPOSE_SELECT';
-                return _context3.abrupt("break", 25);
+                purpose_const = 'SB_PURPOSE_CREATE';
+                return _context3.abrupt("break", 29);
 
               case 23:
-                purpose_const = 'SB_PURPOSE_ADD';
-                return _context3.abrupt("break", 25);
+                purpose_const = 'SB_PURPOSE_UPDATE';
+                return _context3.abrupt("break", 29);
 
               case 25:
-                _context3.next = 27;
-                return _equalServices.TranslationService.translate(purpose_const);
+                purpose_const = 'SB_PURPOSE_SELECT';
+                return _context3.abrupt("break", 29);
 
               case 27:
-                _translation = _context3.sent;
+                purpose_const = 'SB_PURPOSE_ADD';
+                return _context3.abrupt("break", 29);
 
-                if (_translation.length) {
-                  result = _translation + ' ' + entity;
+              case 29:
+                _context3.next = 31;
+                return _equalServices.TranslationService.translate(purpose_const);
+
+              case 31:
+                translated_purpose = _context3.sent;
+
+                if (translated_purpose.length) {
+                  result = translated_purpose + ' ' + entity;
                 } else {
                   result = purpose.charAt(0).toUpperCase() + purpose.slice(1) + ' ' + entity;
                 }
 
-              case 29:
+              case 33:
                 if (!(type == 'form')) {
-                  _context3.next = 34;
+                  _context3.next = 38;
                   break;
                 }
 
-                _context3.next = 32;
+                _context3.next = 36;
                 return context.getView().getModel().get();
 
-              case 32:
+              case 36:
                 objects = _context3.sent;
 
                 if (objects.length) {
                   object = objects[0]; // by convention, collections should always request the `name` field
 
-                  if (object.hasOwnProperty('name')) {
-                    result += ' [' + object['name'] + ']';
+                  if (object.hasOwnProperty('name') && purpose != 'create') {
+                    result += ' <small>[' + object['name'] + ']</small>';
                   }
                 }
 
-              case 34:
+              case 38:
                 return _context3.abrupt("return", result);
 
-              case 35:
+              case 39:
               case "end":
                 return _context3.stop();
             }
@@ -4678,16 +4967,16 @@ var eQ = /*#__PURE__*/function () {
   }, {
     key: "updateHeader",
     value: function () {
-      var _updateHeader = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
+      var _updateHeader = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5() {
         var _this2 = this;
 
         var $elem, $temp, current_purpose_string, available_width, font, total_text_width, prepend_contexts_count, char_width, max_chars, _loop, i, _ret;
 
-        return _regenerator.default.wrap(function _callee4$(_context5) {
+        return _regenerator.default.wrap(function _callee5$(_context6) {
           while (1) {
-            switch (_context5.prev = _context5.next) {
+            switch (_context6.prev = _context6.next) {
               case 0:
-                console.log('upadate header');
+                console.log('update header');
                 $elem = (0, _jqueryLib.$)('<h3 />').css({
                   display: 'flex'
                 }); // add temporary, invisible header for font size computations
@@ -4695,51 +4984,51 @@ var eQ = /*#__PURE__*/function () {
                 $temp = (0, _jqueryLib.$)('<h3 />').css({
                   visibility: 'hidden'
                 }).appendTo(this.$headerContainer);
-                _context5.next = 5;
+                _context6.next = 5;
                 return this.getPurposeString(this.context);
 
               case 5:
-                current_purpose_string = _context5.sent;
+                current_purpose_string = _context6.sent;
                 available_width = this.$headerContainer[0].clientWidth * 0.8;
                 font = $temp.css("font-weight") + ' ' + $temp.css("font-size") + ' ' + $temp.css("font-family");
                 total_text_width = this.getTextWidth(current_purpose_string, font);
                 prepend_contexts_count = 0;
 
                 if (!(total_text_width > available_width)) {
-                  _context5.next = 16;
+                  _context6.next = 16;
                   break;
                 }
 
                 char_width = total_text_width / current_purpose_string.length;
                 max_chars = available_width / char_width;
                 current_purpose_string = current_purpose_string.substr(0, max_chars - 1) + '...';
-                _context5.next = 26;
+                _context6.next = 26;
                 break;
 
               case 16:
                 _loop = /*#__PURE__*/_regenerator.default.mark(function _loop(i) {
                   var context, context_purpose_string, text_width, overflow;
-                  return _regenerator.default.wrap(function _loop$(_context4) {
+                  return _regenerator.default.wrap(function _loop$(_context5) {
                     while (1) {
-                      switch (_context4.prev = _context4.next) {
+                      switch (_context5.prev = _context5.next) {
                         case 0:
                           context = _this2.stack[i];
 
                           if (!context.hasOwnProperty('$container')) {
-                            _context4.next = 19;
+                            _context5.next = 19;
                             break;
                           }
 
-                          _context4.next = 4;
+                          _context5.next = 4;
                           return _this2.getPurposeString(context);
 
                         case 4:
-                          context_purpose_string = _context4.sent;
+                          context_purpose_string = _context5.sent;
                           text_width = _this2.getTextWidth(context_purpose_string + ' > ', font);
                           overflow = false;
 
                           if (!(text_width + total_text_width >= available_width)) {
-                            _context4.next = 13;
+                            _context5.next = 13;
                             break;
                           }
 
@@ -4748,40 +5037,74 @@ var eQ = /*#__PURE__*/function () {
                           text_width = _this2.getTextWidth(context_purpose_string + ' > ', font);
 
                           if (!(text_width + total_text_width >= available_width)) {
-                            _context4.next = 13;
+                            _context5.next = 13;
                             break;
                           }
 
-                          return _context4.abrupt("return", "break");
+                          return _context5.abrupt("return", "break");
 
                         case 13:
                           total_text_width += text_width;
                           prepend_contexts_count++;
-                          (0, _jqueryLib.$)('<a />').text(context_purpose_string).prependTo($elem).on('click', function () {
-                            // close all contexts after the one clicked
-                            for (var j = _this2.stack.length - 1; j >= i; --j) {
-                              // unstack contexts silently (except for the targeted one), and ask for validation at each step
-                              if (_this2.context.hasChanged()) {
-                                var validation = confirm(_equalServices.TranslationService.instant('SB_ACTIONS_MESSAGE_ABANDON_CHANGE'));
-                                if (!validation) return;
+                          (0, _jqueryLib.$)('<a>' + context_purpose_string + '</a>').prependTo($elem).on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
+                            var j, validation;
+                            return _regenerator.default.wrap(function _callee4$(_context4) {
+                              while (1) {
+                                switch (_context4.prev = _context4.next) {
+                                  case 0:
+                                    j = _this2.stack.length - 1;
 
-                                _this2.closeContext();
-                              } else {
-                                if (_this2.stack[i] == context) {
-                                  _this2.closeContext();
-                                } else {
-                                  _this2.closeContext(true);
+                                  case 1:
+                                    if (!(j > i)) {
+                                      _context4.next = 13;
+                                      break;
+                                    }
+
+                                    if (!_this2.context.hasChanged()) {
+                                      _context4.next = 9;
+                                      break;
+                                    }
+
+                                    validation = confirm(_equalServices.TranslationService.instant('SB_ACTIONS_MESSAGE_ABANDON_CHANGE'));
+
+                                    if (validation) {
+                                      _context4.next = 6;
+                                      break;
+                                    }
+
+                                    return _context4.abrupt("return");
+
+                                  case 6:
+                                    _this2.closeContext(true);
+
+                                    _context4.next = 10;
+                                    break;
+
+                                  case 9:
+                                    _this2.closeContext(true);
+
+                                  case 10:
+                                    --j;
+                                    _context4.next = 1;
+                                    break;
+
+                                  case 13:
+                                    _this2.closeContext();
+
+                                  case 14:
+                                  case "end":
+                                    return _context4.stop();
                                 }
                               }
-                            }
-                          });
+                            }, _callee4);
+                          })));
 
                           if (!overflow) {
-                            _context4.next = 18;
+                            _context5.next = 18;
                             break;
                           }
 
-                          return _context4.abrupt("return", "break");
+                          return _context5.abrupt("return", "break");
 
                         case 18:
                           if (i > 1) {
@@ -4792,7 +5115,7 @@ var eQ = /*#__PURE__*/function () {
 
                         case 19:
                         case "end":
-                          return _context4.stop();
+                          return _context5.stop();
                       }
                     }
                   }, _loop);
@@ -4801,25 +5124,25 @@ var eQ = /*#__PURE__*/function () {
 
               case 18:
                 if (!(i >= 0)) {
-                  _context5.next = 26;
+                  _context6.next = 26;
                   break;
                 }
 
-                return _context5.delegateYield(_loop(i), "t0", 20);
+                return _context6.delegateYield(_loop(i), "t0", 20);
 
               case 20:
-                _ret = _context5.t0;
+                _ret = _context6.t0;
 
                 if (!(_ret === "break")) {
-                  _context5.next = 23;
+                  _context6.next = 23;
                   break;
                 }
 
-                return _context5.abrupt("break", 26);
+                return _context6.abrupt("break", 26);
 
               case 23:
                 --i;
-                _context5.next = 18;
+                _context6.next = 18;
                 break;
 
               case 26:
@@ -4831,7 +5154,7 @@ var eQ = /*#__PURE__*/function () {
                     }).appendTo($elem);
                   }
 
-                  (0, _jqueryLib.$)('<span />').text(current_purpose_string).appendTo($elem);
+                  (0, _jqueryLib.$)('<span>' + current_purpose_string + '</span>').appendTo($elem);
 
                   if (this.stack.length > 1) {
                     _materialLib.UIHelper.createButton('context-close', '', 'mini-fab', 'close').css({
@@ -4863,10 +5186,10 @@ var eQ = /*#__PURE__*/function () {
 
               case 27:
               case "end":
-                return _context5.stop();
+                return _context6.stop();
             }
           }
-        }, _callee4, this);
+        }, _callee5, this);
       }));
 
       function updateHeader() {
@@ -4905,21 +5228,21 @@ var eQ = /*#__PURE__*/function () {
   }, {
     key: "closeContext",
     value: function () {
-      var _closeContext = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5() {
+      var _closeContext = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6() {
         var silent,
             data,
             has_changed,
-            _args6 = arguments;
-        return _regenerator.default.wrap(function _callee5$(_context6) {
+            _args7 = arguments;
+        return _regenerator.default.wrap(function _callee6$(_context7) {
           while (1) {
-            switch (_context6.prev = _context6.next) {
+            switch (_context7.prev = _context7.next) {
               case 0:
-                silent = _args6.length > 0 && _args6[0] !== undefined ? _args6[0] : false;
-                data = _args6.length > 1 && _args6[1] !== undefined ? _args6[1] : null;
+                silent = _args7.length > 0 && _args7[0] !== undefined ? _args7[0] : false;
+                data = _args7.length > 1 && _args7[1] !== undefined ? _args7[1] : null;
                 console.log('closeContext', silent, data);
 
                 if (!this.stack.length) {
-                  _context6.next = 15;
+                  _context7.next = 15;
                   break;
                 }
 
@@ -4930,23 +5253,23 @@ var eQ = /*#__PURE__*/function () {
                 this.context = this.stack.pop();
 
                 if (silent) {
-                  _context6.next = 15;
+                  _context7.next = 15;
                   break;
                 }
 
                 console.log(this.context);
 
                 if (!(this.context != undefined && this.context.hasOwnProperty('$container'))) {
-                  _context6.next = 14;
+                  _context7.next = 14;
                   break;
                 }
 
                 if (!(has_changed && this.context.getMode() == 'view')) {
-                  _context6.next = 13;
+                  _context7.next = 13;
                   break;
                 }
 
-                _context6.next = 13;
+                _context7.next = 13;
                 return this.context.refresh();
 
               case 13:
@@ -4957,10 +5280,10 @@ var eQ = /*#__PURE__*/function () {
 
               case 15:
               case "end":
-                return _context6.stop();
+                return _context7.stop();
             }
           }
-        }, _callee5, this);
+        }, _callee6, this);
       }));
 
       function closeContext() {
@@ -5000,11 +5323,21 @@ var eQ = /*#__PURE__*/function () {
               item.domain = [];
             }
 
+            var type = 'list';
+            var name = 'default';
+
+            if (item.hasOwnProperty('target')) {
+              var parts = item.target.split('.');
+              if (parts.length) type = parts.shift();
+              if (parts.length) name = parts.shift();
+            }
+
             (0, _jqueryLib.$)('#sb-events').trigger('_closeAll');
             setTimeout(function () {
               (0, _jqueryLib.$)('#sb-events').trigger('_openContext', {
                 entity: item.entity,
-                type: 'list',
+                type: type,
+                name: name,
                 domain: item.domain
               });
             });
@@ -5026,28 +5359,6 @@ var eQ = /*#__PURE__*/function () {
 
         _loop2();
       }
-    }
-  }, {
-    key: "test",
-    value: function test() {
-      console.log("eQ::test");
-      (0, _jqueryLib.$)("#test").dialog();
-      (0, _jqueryLib.$)("#datepicker").daterangepicker();
-      this.$sbEvents.trigger('_openContext', {
-        entity: 'core\\User',
-        type: 'list'
-      });
-      /*
-      setTimeout( () => {
-          console.log('timeout1');
-          this.$sbEvents.trigger('_openContext', new Context('core\\Group', 'list', 'default', []));
-          setTimeout( () => {
-              console.log('timeout2');
-              this.$sbEvents.trigger('_closeContext');
-          }, 2000);
-          
-      }, 2000);
-      */
     }
   }]);
   return eQ;
@@ -5220,6 +5531,8 @@ var _snackbar = __webpack_require__(/*! @material/snackbar */ "./node_modules/@m
 
 var _switch = __webpack_require__(/*! @material/switch */ "./node_modules/@material/switch/index.js");
 
+var _dialog = __webpack_require__(/*! @material/dialog */ "./node_modules/@material/dialog/index.js");
+
 var _jqueryLib = __webpack_require__(/*! ./jquery-lib */ "./build/jquery-lib.js");
 
 function _createForOfIteratorHelper(o, allowArrayLike) { var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"]; if (!it) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = it.call(o); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
@@ -5318,7 +5631,7 @@ var UIHelper = /*#__PURE__*/function () {
       var icon = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : '';
       var disabled = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : false;
       var $elem = (0, _jqueryLib.$)('\
-        <div> \
+        <div id="' + id + '"> \
             <label class="mdc-text-field mdc-text-field--filled mdc-text-field--with-trailing-icon"> \
                 <span class="mdc-text-field__ripple"></span> \
                 <span class="mdc-floating-label">' + label + '</span> \
@@ -5509,7 +5822,7 @@ var UIHelper = /*#__PURE__*/function () {
     value: function createSelect(id, label, values) {
       var selected = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : '';
       var $elem = (0, _jqueryLib.$)('\
-        <div class="mdc-select mdc-select--filled ' + (label.length ? '' : 'mdc-select--no-label') + ' "> \
+        <div id="' + id + '" class="mdc-select mdc-select--filled ' + (label.length ? '' : 'mdc-select--no-label') + ' "> \
             <div class="mdc-select__anchor" role="button" tabindex="0"> \
                 <span class="mdc-select__ripple"></span> \
                 ' + (label.length ? '<span class="mdc-floating-label">' + label + '</span>' : '') + '\
@@ -5525,9 +5838,8 @@ var UIHelper = /*#__PURE__*/function () {
                 <span class="mdc-line-ripple"></span> \
             </div> \
             <div class="mdc-select__menu mdc-menu mdc-menu-surface--fixed mdc-menu-surface" role="listbox"> \
-                <input type="text" style="display: none" /> \
-                <ul class="mdc-list"> \
-                </ul> \
+                <input type="text" style="display: none" value="' + selected + '" /> \
+                <ul class="mdc-list"></ul> \
             </div> \
         </div>');
       var $list = $elem.find('ul.mdc-list'); // we recevied an object as param
@@ -5650,6 +5962,44 @@ var UIHelper = /*#__PURE__*/function () {
       var selected = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : '';
       var $elem = UIHelper.createSelect(id, label, values, selected);
       $elem.addClass('mdc-data-table__pagination-rows-per-page-select');
+      return $elem;
+    }
+  }, {
+    key: "createDialog",
+    value: function createDialog(id, title) {
+      var $elem = (0, _jqueryLib.$)('\
+        <div class="mdc-dialog" id="' + id + '"> \
+            <div class="mdc-dialog__container"> \
+                <div class="mdc-dialog__surface" role="alertdialog" aria-modal="true" style="overflow: hidden"> \
+                    <h2 class="mdc-dialog__title">' + title + '</h2> \
+                    <div class="mdc-dialog__content"></div> \
+                    <div class="mdc-dialog__actions"> \
+                        <button tabindex="0" type="button" class="mdc-button mdc-dialog__button" data-mdc-dialog-action="cancel"> \
+                            <div class="mdc-button__ripple"></div> \
+                            <span class="mdc-button__label">Cancel</span> \
+                        </button> \
+                        <button type="button" class="mdc-button mdc-dialog__button" data-mdc-dialog-action="accept"> \
+                            <div class="mdc-button__ripple"></div> \
+                            <span class="mdc-button__label">OK</span> \
+                        </button> \
+                    </div> \
+                </div> \
+            </div> \
+            <div class="mdc-dialog__scrim"></div> \
+        </div');
+      var dialog = new _dialog.MDCDialog($elem[0]);
+      dialog.listen('MDCDialog:opened', function () {
+        // list.layout();
+        dialog.layout();
+      });
+      dialog.listen('MDCDialog:closed', function (event) {
+        if (event.detail.action == 'accept') {
+          $elem.trigger('_accept');
+        }
+      });
+      $elem.on('_open', function () {
+        dialog.open();
+      });
       return $elem;
     }
     /*
@@ -6638,7 +6988,8 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
 
       if (this.config.hasOwnProperty('domain')) {
         domain = this.config.domain;
-      }
+      } // #todo : display many2one as sub-forms
+
 
       switch (this.mode) {
         case 'edit':
@@ -6665,10 +7016,8 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
           _materialLib.UIHelper.decorateMenu($menu);
 
           var feedObjects = function feedObjects() {
-            console.log(domain);
             var tmpDomain = new _Domain.default(['name', 'ilike', '%' + $select.find('input').val() + '%']);
-            tmpDomain.merge(new _Domain.default(domain));
-            console.log(tmpDomain.toArray()); // fetch 5 first objects from config.foreign_object (use config.domain) + add an extra line ("advanced search...")
+            tmpDomain.merge(new _Domain.default(domain)); // fetch 5 first objects from config.foreign_object (use config.domain) + add an extra line ("advanced search...")
 
             _equalServices.ApiService.collect(_this.config.foreign_object, tmpDomain.toArray(), ['id', 'name'], 'id', 'asc', 0, 5, _this.config.lang).then(function (response) {
               objects = response;
@@ -6749,8 +7098,6 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
                       mode: 'view',
                       purpose: 'select',
                       callback: function callback(data) {
-                        console.log(data);
-
                         if (data && data.selection && data.objects) {
                           // m2o relations are always loaded as an object with {id:, name:}
                           var object = data.objects.find(function (o) {
@@ -7577,6 +7924,106 @@ module.exports.default = module.exports, module.exports.__esModule = true;
 
 module.exports = __webpack_require__(/*! regenerator-runtime */ "./node_modules/regenerator-runtime/runtime.js");
 
+
+/***/ }),
+
+/***/ "./node_modules/@material/animation/animationframe.js":
+/*!************************************************************!*\
+  !*** ./node_modules/@material/animation/animationframe.js ***!
+  \************************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "AnimationFrame": () => (/* binding */ AnimationFrame)
+/* harmony export */ });
+/**
+ * @license
+ * Copyright 2020 Google Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+/**
+ * AnimationFrame provides a user-friendly abstraction around requesting
+ * and canceling animation frames.
+ */
+var AnimationFrame = /** @class */ (function () {
+    function AnimationFrame() {
+        this.rafIDs = new Map();
+    }
+    /**
+     * Requests an animation frame. Cancels any existing frame with the same key.
+     * @param {string} key The key for this callback.
+     * @param {FrameRequestCallback} callback The callback to be executed.
+     */
+    AnimationFrame.prototype.request = function (key, callback) {
+        var _this = this;
+        this.cancel(key);
+        var frameID = requestAnimationFrame(function (frame) {
+            _this.rafIDs.delete(key);
+            // Callback must come *after* the key is deleted so that nested calls to
+            // request with the same key are not deleted.
+            callback(frame);
+        });
+        this.rafIDs.set(key, frameID);
+    };
+    /**
+     * Cancels a queued callback with the given key.
+     * @param {string} key The key for this callback.
+     */
+    AnimationFrame.prototype.cancel = function (key) {
+        var rafID = this.rafIDs.get(key);
+        if (rafID) {
+            cancelAnimationFrame(rafID);
+            this.rafIDs.delete(key);
+        }
+    };
+    /**
+     * Cancels all queued callback.
+     */
+    AnimationFrame.prototype.cancelAll = function () {
+        var _this = this;
+        // Need to use forEach because it's the only iteration method supported
+        // by IE11. Suppress the underscore because we don't need it.
+        // tslint:disable-next-line:enforce-name-casing
+        this.rafIDs.forEach(function (_, key) {
+            _this.cancel(key);
+        });
+    };
+    /**
+     * Returns the queue of unexecuted callback keys.
+     */
+    AnimationFrame.prototype.getQueue = function () {
+        var queue = [];
+        // Need to use forEach because it's the only iteration method supported
+        // by IE11. Suppress the underscore because we don't need it.
+        // tslint:disable-next-line:enforce-name-casing
+        this.rafIDs.forEach(function (_, key) {
+            queue.push(key);
+        });
+        return queue;
+    };
+    return AnimationFrame;
+}());
+
+//# sourceMappingURL=animationframe.js.map
 
 /***/ }),
 
@@ -9273,6 +9720,873 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
+/***/ "./node_modules/@material/dialog/component.js":
+/*!****************************************************!*\
+  !*** ./node_modules/@material/dialog/component.js ***!
+  \****************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "MDCDialog": () => (/* binding */ MDCDialog)
+/* harmony export */ });
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! tslib */ "./node_modules/tslib/tslib.es6.js");
+/* harmony import */ var _material_base_component__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! @material/base/component */ "./node_modules/@material/base/component.js");
+/* harmony import */ var _material_dom_focus_trap__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @material/dom/focus-trap */ "./node_modules/@material/dom/focus-trap.js");
+/* harmony import */ var _material_dom_ponyfill__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @material/dom/ponyfill */ "./node_modules/@material/dom/ponyfill.js");
+/* harmony import */ var _material_ripple_component__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @material/ripple/component */ "./node_modules/@material/ripple/component.js");
+/* harmony import */ var _foundation__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./foundation */ "./node_modules/@material/dialog/foundation.js");
+/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ./util */ "./node_modules/@material/dialog/util.js");
+/**
+ * @license
+ * Copyright 2017 Google Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+
+
+
+
+
+
+var strings = _foundation__WEBPACK_IMPORTED_MODULE_0__.MDCDialogFoundation.strings;
+var MDCDialog = /** @class */ (function (_super) {
+    (0,tslib__WEBPACK_IMPORTED_MODULE_1__.__extends)(MDCDialog, _super);
+    function MDCDialog() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    Object.defineProperty(MDCDialog.prototype, "isOpen", {
+        get: function () {
+            return this.foundation.isOpen();
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(MDCDialog.prototype, "escapeKeyAction", {
+        get: function () {
+            return this.foundation.getEscapeKeyAction();
+        },
+        set: function (action) {
+            this.foundation.setEscapeKeyAction(action);
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(MDCDialog.prototype, "scrimClickAction", {
+        get: function () {
+            return this.foundation.getScrimClickAction();
+        },
+        set: function (action) {
+            this.foundation.setScrimClickAction(action);
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(MDCDialog.prototype, "autoStackButtons", {
+        get: function () {
+            return this.foundation.getAutoStackButtons();
+        },
+        set: function (autoStack) {
+            this.foundation.setAutoStackButtons(autoStack);
+        },
+        enumerable: false,
+        configurable: true
+    });
+    MDCDialog.attachTo = function (root) {
+        return new MDCDialog(root);
+    };
+    MDCDialog.prototype.initialize = function (focusTrapFactory) {
+        var e_1, _a;
+        if (focusTrapFactory === void 0) { focusTrapFactory = function (el, focusOptions) { return new _material_dom_focus_trap__WEBPACK_IMPORTED_MODULE_2__.FocusTrap(el, focusOptions); }; }
+        var container = this.root.querySelector(strings.CONTAINER_SELECTOR);
+        if (!container) {
+            throw new Error("Dialog component requires a " + strings.CONTAINER_SELECTOR + " container element");
+        }
+        this.container = container;
+        this.content =
+            this.root.querySelector(strings.CONTENT_SELECTOR);
+        this.buttons = [].slice.call(this.root.querySelectorAll(strings.BUTTON_SELECTOR));
+        this.defaultButton = this.root.querySelector("[" + strings.BUTTON_DEFAULT_ATTRIBUTE + "]");
+        this.focusTrapFactory = focusTrapFactory;
+        this.buttonRipples = [];
+        try {
+            for (var _b = (0,tslib__WEBPACK_IMPORTED_MODULE_1__.__values)(this.buttons), _c = _b.next(); !_c.done; _c = _b.next()) {
+                var buttonEl = _c.value;
+                this.buttonRipples.push(new _material_ripple_component__WEBPACK_IMPORTED_MODULE_3__.MDCRipple(buttonEl));
+            }
+        }
+        catch (e_1_1) { e_1 = { error: e_1_1 }; }
+        finally {
+            try {
+                if (_c && !_c.done && (_a = _b.return)) _a.call(_b);
+            }
+            finally { if (e_1) throw e_1.error; }
+        }
+    };
+    MDCDialog.prototype.initialSyncWithDOM = function () {
+        var _this = this;
+        this.focusTrap = _util__WEBPACK_IMPORTED_MODULE_4__.createFocusTrapInstance(this.container, this.focusTrapFactory, this.getInitialFocusEl() || undefined);
+        this.handleClick = this.foundation.handleClick.bind(this.foundation);
+        this.handleKeydown = this.foundation.handleKeydown.bind(this.foundation);
+        this.handleDocumentKeydown =
+            this.foundation.handleDocumentKeydown.bind(this.foundation);
+        // this.handleLayout = this.layout.bind(this);
+        this.handleOpening = function () {
+            document.addEventListener('keydown', _this.handleDocumentKeydown);
+        };
+        this.handleClosing = function () {
+            document.removeEventListener('keydown', _this.handleDocumentKeydown);
+        };
+        this.listen('click', this.handleClick);
+        this.listen('keydown', this.handleKeydown);
+        this.listen(strings.OPENING_EVENT, this.handleOpening);
+        this.listen(strings.CLOSING_EVENT, this.handleClosing);
+    };
+    MDCDialog.prototype.destroy = function () {
+        this.unlisten('click', this.handleClick);
+        this.unlisten('keydown', this.handleKeydown);
+        this.unlisten(strings.OPENING_EVENT, this.handleOpening);
+        this.unlisten(strings.CLOSING_EVENT, this.handleClosing);
+        this.handleClosing();
+        this.buttonRipples.forEach(function (ripple) {
+            ripple.destroy();
+        });
+        _super.prototype.destroy.call(this);
+    };
+    MDCDialog.prototype.layout = function () {
+        this.foundation.layout();
+    };
+    MDCDialog.prototype.open = function () {
+        this.foundation.open();
+    };
+    MDCDialog.prototype.close = function (action) {
+        if (action === void 0) { action = ''; }
+        this.foundation.close(action);
+    };
+    MDCDialog.prototype.getDefaultFoundation = function () {
+        var _this = this;
+        // DO NOT INLINE this variable. For backward compatibility, foundations take a Partial<MDCFooAdapter>.
+        // To ensure we don't accidentally omit any methods, we need a separate, strongly typed adapter variable.
+        var adapter = {
+            addBodyClass: function (className) { return document.body.classList.add(className); },
+            addClass: function (className) { return _this.root.classList.add(className); },
+            areButtonsStacked: function () { return _util__WEBPACK_IMPORTED_MODULE_4__.areTopsMisaligned(_this.buttons); },
+            clickDefaultButton: function () {
+                if (_this.defaultButton) {
+                    _this.defaultButton.click();
+                }
+            },
+            eventTargetMatches: function (target, selector) {
+                return target ? (0,_material_dom_ponyfill__WEBPACK_IMPORTED_MODULE_5__.matches)(target, selector) : false;
+            },
+            getActionFromEvent: function (evt) {
+                if (!evt.target) {
+                    return '';
+                }
+                var element = (0,_material_dom_ponyfill__WEBPACK_IMPORTED_MODULE_5__.closest)(evt.target, "[" + strings.ACTION_ATTRIBUTE + "]");
+                return element && element.getAttribute(strings.ACTION_ATTRIBUTE);
+            },
+            getInitialFocusEl: function () { return _this.getInitialFocusEl(); },
+            hasClass: function (className) { return _this.root.classList.contains(className); },
+            isContentScrollable: function () { return _util__WEBPACK_IMPORTED_MODULE_4__.isScrollable(_this.content); },
+            notifyClosed: function (action) { return _this.emit(strings.CLOSED_EVENT, action ? { action: action } : {}); },
+            notifyClosing: function (action) { return _this.emit(strings.CLOSING_EVENT, action ? { action: action } : {}); },
+            notifyOpened: function () { return _this.emit(strings.OPENED_EVENT, {}); },
+            notifyOpening: function () { return _this.emit(strings.OPENING_EVENT, {}); },
+            releaseFocus: function () {
+                _this.focusTrap.releaseFocus();
+            },
+            removeBodyClass: function (className) { return document.body.classList.remove(className); },
+            removeClass: function (className) { return _this.root.classList.remove(className); },
+            reverseButtons: function () {
+                _this.buttons.reverse();
+                _this.buttons.forEach(function (button) {
+                    button.parentElement.appendChild(button);
+                });
+            },
+            trapFocus: function () {
+                _this.focusTrap.trapFocus();
+            },
+            registerContentEventHandler: function (evt, handler) {
+                if (_this.content instanceof HTMLElement) {
+                    _this.content.addEventListener(evt, handler);
+                }
+            },
+            deregisterContentEventHandler: function (evt, handler) {
+                if (_this.content instanceof HTMLElement) {
+                    _this.content.removeEventListener(evt, handler);
+                }
+            },
+            isScrollableContentAtTop: function () {
+                return _util__WEBPACK_IMPORTED_MODULE_4__.isScrollAtTop(_this.content);
+            },
+            isScrollableContentAtBottom: function () {
+                return _util__WEBPACK_IMPORTED_MODULE_4__.isScrollAtBottom(_this.content);
+            },
+            registerWindowEventHandler: function (evt, handler) {
+                window.addEventListener(evt, handler);
+            },
+            deregisterWindowEventHandler: function (evt, handler) {
+                window.removeEventListener(evt, handler);
+            },
+        };
+        return new _foundation__WEBPACK_IMPORTED_MODULE_0__.MDCDialogFoundation(adapter);
+    };
+    MDCDialog.prototype.getInitialFocusEl = function () {
+        return this.root.querySelector("[" + strings.INITIAL_FOCUS_ATTRIBUTE + "]");
+    };
+    return MDCDialog;
+}(_material_base_component__WEBPACK_IMPORTED_MODULE_6__.MDCComponent));
+
+//# sourceMappingURL=component.js.map
+
+/***/ }),
+
+/***/ "./node_modules/@material/dialog/constants.js":
+/*!****************************************************!*\
+  !*** ./node_modules/@material/dialog/constants.js ***!
+  \****************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "cssClasses": () => (/* binding */ cssClasses),
+/* harmony export */   "strings": () => (/* binding */ strings),
+/* harmony export */   "numbers": () => (/* binding */ numbers)
+/* harmony export */ });
+/**
+ * @license
+ * Copyright 2016 Google Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+var cssClasses = {
+    CLOSING: 'mdc-dialog--closing',
+    OPEN: 'mdc-dialog--open',
+    OPENING: 'mdc-dialog--opening',
+    SCROLLABLE: 'mdc-dialog--scrollable',
+    SCROLL_LOCK: 'mdc-dialog-scroll-lock',
+    STACKED: 'mdc-dialog--stacked',
+    FULLSCREEN: 'mdc-dialog--fullscreen',
+    // Class for showing a scroll divider on full-screen dialog header element.
+    // Should only be displayed on scrollable content, when the dialog content is
+    // scrolled "underneath" the header.
+    SCROLL_DIVIDER_HEADER: 'mdc-dialog-scroll-divider-header',
+    // Class for showing a scroll divider on a full-screen dialog footer element.
+    // Should only be displayed on scrolalble content, when the dialog content is
+    // obscured "underneath" the footer.
+    SCROLL_DIVIDER_FOOTER: 'mdc-dialog-scroll-divider-footer',
+    // The "surface scrim" is a scrim covering only the surface of a dialog. This
+    // is used in situations where a confirmation dialog is shown over an already
+    // opened full-screen dialog. On larger screen-sizes, the full-screen dialog
+    // is sized as a modal and so in these situations we display a "surface scrim"
+    // to prevent a "double scrim" (where the scrim from the secondary
+    // confirmation dialog would overlap with the scrim from the full-screen
+    // dialog).
+    SURFACE_SCRIM_SHOWN: 'mdc-dialog__surface-scrim--shown',
+    // "Showing" animating class for the surface-scrim.
+    SURFACE_SCRIM_SHOWING: 'mdc-dialog__surface-scrim--showing',
+    // "Hiding" animating class for the surface-scrim.
+    SURFACE_SCRIM_HIDING: 'mdc-dialog__surface-scrim--hiding',
+    // Class to hide a dialog's scrim (used in conjunction with a surface-scrim).
+    // Note that we only hide the original scrim rather than removing it entirely
+    // to prevent interactions with the content behind this scrim, and to capture
+    // scrim clicks.
+    SCRIM_HIDDEN: 'mdc-dialog__scrim--hidden',
+};
+var strings = {
+    ACTION_ATTRIBUTE: 'data-mdc-dialog-action',
+    BUTTON_DEFAULT_ATTRIBUTE: 'data-mdc-dialog-button-default',
+    BUTTON_SELECTOR: '.mdc-dialog__button',
+    CLOSED_EVENT: 'MDCDialog:closed',
+    CLOSE_ACTION: 'close',
+    CLOSING_EVENT: 'MDCDialog:closing',
+    CONTAINER_SELECTOR: '.mdc-dialog__container',
+    CONTENT_SELECTOR: '.mdc-dialog__content',
+    DESTROY_ACTION: 'destroy',
+    INITIAL_FOCUS_ATTRIBUTE: 'data-mdc-dialog-initial-focus',
+    OPENED_EVENT: 'MDCDialog:opened',
+    OPENING_EVENT: 'MDCDialog:opening',
+    SCRIM_SELECTOR: '.mdc-dialog__scrim',
+    SUPPRESS_DEFAULT_PRESS_SELECTOR: [
+        'textarea',
+        '.mdc-menu .mdc-list-item',
+        '.mdc-menu .mdc-deprecated-list-item',
+    ].join(', '),
+    SURFACE_SELECTOR: '.mdc-dialog__surface',
+};
+var numbers = {
+    DIALOG_ANIMATION_CLOSE_TIME_MS: 75,
+    DIALOG_ANIMATION_OPEN_TIME_MS: 150,
+};
+//# sourceMappingURL=constants.js.map
+
+/***/ }),
+
+/***/ "./node_modules/@material/dialog/foundation.js":
+/*!*****************************************************!*\
+  !*** ./node_modules/@material/dialog/foundation.js ***!
+  \*****************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "MDCDialogFoundation": () => (/* binding */ MDCDialogFoundation),
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! tslib */ "./node_modules/tslib/tslib.es6.js");
+/* harmony import */ var _material_animation_animationframe__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @material/animation/animationframe */ "./node_modules/@material/animation/animationframe.js");
+/* harmony import */ var _material_base_foundation__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @material/base/foundation */ "./node_modules/@material/base/foundation.js");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./constants */ "./node_modules/@material/dialog/constants.js");
+/**
+ * @license
+ * Copyright 2017 Google Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+
+
+
+var AnimationKeys;
+(function (AnimationKeys) {
+    AnimationKeys["POLL_SCROLL_POS"] = "poll_scroll_position";
+    AnimationKeys["POLL_LAYOUT_CHANGE"] = "poll_layout_change";
+})(AnimationKeys || (AnimationKeys = {}));
+var MDCDialogFoundation = /** @class */ (function (_super) {
+    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(MDCDialogFoundation, _super);
+    function MDCDialogFoundation(adapter) {
+        var _this = _super.call(this, (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__assign)((0,tslib__WEBPACK_IMPORTED_MODULE_0__.__assign)({}, MDCDialogFoundation.defaultAdapter), adapter)) || this;
+        _this.dialogOpen = false;
+        _this.isFullscreen = false;
+        _this.animationFrame = 0;
+        _this.animationTimer = 0;
+        _this.escapeKeyAction = _constants__WEBPACK_IMPORTED_MODULE_1__.strings.CLOSE_ACTION;
+        _this.scrimClickAction = _constants__WEBPACK_IMPORTED_MODULE_1__.strings.CLOSE_ACTION;
+        _this.autoStackButtons = true;
+        _this.areButtonsStacked = false;
+        _this.suppressDefaultPressSelector = _constants__WEBPACK_IMPORTED_MODULE_1__.strings.SUPPRESS_DEFAULT_PRESS_SELECTOR;
+        _this.animFrame = new _material_animation_animationframe__WEBPACK_IMPORTED_MODULE_2__.AnimationFrame();
+        _this.contentScrollHandler = function () {
+            _this.handleScrollEvent();
+        };
+        _this.windowResizeHandler = function () {
+            _this.layout();
+        };
+        _this.windowOrientationChangeHandler = function () {
+            _this.layout();
+        };
+        return _this;
+    }
+    Object.defineProperty(MDCDialogFoundation, "cssClasses", {
+        get: function () {
+            return _constants__WEBPACK_IMPORTED_MODULE_1__.cssClasses;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(MDCDialogFoundation, "strings", {
+        get: function () {
+            return _constants__WEBPACK_IMPORTED_MODULE_1__.strings;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(MDCDialogFoundation, "numbers", {
+        get: function () {
+            return _constants__WEBPACK_IMPORTED_MODULE_1__.numbers;
+        },
+        enumerable: false,
+        configurable: true
+    });
+    Object.defineProperty(MDCDialogFoundation, "defaultAdapter", {
+        get: function () {
+            return {
+                addBodyClass: function () { return undefined; },
+                addClass: function () { return undefined; },
+                areButtonsStacked: function () { return false; },
+                clickDefaultButton: function () { return undefined; },
+                eventTargetMatches: function () { return false; },
+                getActionFromEvent: function () { return ''; },
+                getInitialFocusEl: function () { return null; },
+                hasClass: function () { return false; },
+                isContentScrollable: function () { return false; },
+                notifyClosed: function () { return undefined; },
+                notifyClosing: function () { return undefined; },
+                notifyOpened: function () { return undefined; },
+                notifyOpening: function () { return undefined; },
+                releaseFocus: function () { return undefined; },
+                removeBodyClass: function () { return undefined; },
+                removeClass: function () { return undefined; },
+                reverseButtons: function () { return undefined; },
+                trapFocus: function () { return undefined; },
+                registerContentEventHandler: function () { return undefined; },
+                deregisterContentEventHandler: function () { return undefined; },
+                isScrollableContentAtTop: function () { return false; },
+                isScrollableContentAtBottom: function () { return false; },
+                registerWindowEventHandler: function () { return undefined; },
+                deregisterWindowEventHandler: function () { return undefined; },
+            };
+        },
+        enumerable: false,
+        configurable: true
+    });
+    MDCDialogFoundation.prototype.init = function () {
+        if (this.adapter.hasClass(_constants__WEBPACK_IMPORTED_MODULE_1__.cssClasses.STACKED)) {
+            this.setAutoStackButtons(false);
+        }
+        this.isFullscreen = this.adapter.hasClass(_constants__WEBPACK_IMPORTED_MODULE_1__.cssClasses.FULLSCREEN);
+    };
+    MDCDialogFoundation.prototype.destroy = function () {
+        if (this.dialogOpen) {
+            this.close(_constants__WEBPACK_IMPORTED_MODULE_1__.strings.DESTROY_ACTION);
+        }
+        if (this.animationTimer) {
+            clearTimeout(this.animationTimer);
+            this.handleAnimationTimerEnd();
+        }
+        if (this.isFullscreen) {
+            this.adapter.deregisterContentEventHandler('scroll', this.contentScrollHandler);
+        }
+        this.animFrame.cancelAll();
+        this.adapter.deregisterWindowEventHandler('resize', this.windowResizeHandler);
+        this.adapter.deregisterWindowEventHandler('orientationchange', this.windowOrientationChangeHandler);
+    };
+    MDCDialogFoundation.prototype.open = function (dialogOptions) {
+        var _this = this;
+        this.dialogOpen = true;
+        this.adapter.notifyOpening();
+        this.adapter.addClass(_constants__WEBPACK_IMPORTED_MODULE_1__.cssClasses.OPENING);
+        if (this.isFullscreen) {
+            // A scroll event listener is registered even if the dialog is not
+            // scrollable on open, since the window resize event, or orientation
+            // change may make the dialog scrollable after it is opened.
+            this.adapter.registerContentEventHandler('scroll', this.contentScrollHandler);
+        }
+        if (dialogOptions && dialogOptions.isAboveFullscreenDialog) {
+            this.adapter.addClass(_constants__WEBPACK_IMPORTED_MODULE_1__.cssClasses.SCRIM_HIDDEN);
+        }
+        this.adapter.registerWindowEventHandler('resize', this.windowResizeHandler);
+        this.adapter.registerWindowEventHandler('orientationchange', this.windowOrientationChangeHandler);
+        // Wait a frame once display is no longer "none", to establish basis for
+        // animation
+        this.runNextAnimationFrame(function () {
+            _this.adapter.addClass(_constants__WEBPACK_IMPORTED_MODULE_1__.cssClasses.OPEN);
+            _this.adapter.addBodyClass(_constants__WEBPACK_IMPORTED_MODULE_1__.cssClasses.SCROLL_LOCK);
+            _this.layout();
+            _this.animationTimer = setTimeout(function () {
+                _this.handleAnimationTimerEnd();
+                _this.adapter.trapFocus(_this.adapter.getInitialFocusEl());
+                _this.adapter.notifyOpened();
+            }, _constants__WEBPACK_IMPORTED_MODULE_1__.numbers.DIALOG_ANIMATION_OPEN_TIME_MS);
+        });
+    };
+    MDCDialogFoundation.prototype.close = function (action) {
+        var _this = this;
+        if (action === void 0) { action = ''; }
+        if (!this.dialogOpen) {
+            // Avoid redundant close calls (and events), e.g. from keydown on elements
+            // that inherently emit click
+            return;
+        }
+        this.dialogOpen = false;
+        this.adapter.notifyClosing(action);
+        this.adapter.addClass(_constants__WEBPACK_IMPORTED_MODULE_1__.cssClasses.CLOSING);
+        this.adapter.removeClass(_constants__WEBPACK_IMPORTED_MODULE_1__.cssClasses.OPEN);
+        this.adapter.removeBodyClass(_constants__WEBPACK_IMPORTED_MODULE_1__.cssClasses.SCROLL_LOCK);
+        if (this.isFullscreen) {
+            this.adapter.deregisterContentEventHandler('scroll', this.contentScrollHandler);
+        }
+        this.adapter.deregisterWindowEventHandler('resize', this.windowResizeHandler);
+        this.adapter.deregisterWindowEventHandler('orientationchange', this.windowOrientationChangeHandler);
+        cancelAnimationFrame(this.animationFrame);
+        this.animationFrame = 0;
+        clearTimeout(this.animationTimer);
+        this.animationTimer = setTimeout(function () {
+            _this.adapter.releaseFocus();
+            _this.handleAnimationTimerEnd();
+            _this.adapter.notifyClosed(action);
+        }, _constants__WEBPACK_IMPORTED_MODULE_1__.numbers.DIALOG_ANIMATION_CLOSE_TIME_MS);
+    };
+    /**
+     * Used only in instances of showing a secondary dialog over a full-screen
+     * dialog. Shows the "surface scrim" displayed over the full-screen dialog.
+     */
+    MDCDialogFoundation.prototype.showSurfaceScrim = function () {
+        var _this = this;
+        this.adapter.addClass(_constants__WEBPACK_IMPORTED_MODULE_1__.cssClasses.SURFACE_SCRIM_SHOWING);
+        this.runNextAnimationFrame(function () {
+            _this.adapter.addClass(_constants__WEBPACK_IMPORTED_MODULE_1__.cssClasses.SURFACE_SCRIM_SHOWN);
+        });
+    };
+    /**
+     * Used only in instances of showing a secondary dialog over a full-screen
+     * dialog. Hides the "surface scrim" displayed over the full-screen dialog.
+     */
+    MDCDialogFoundation.prototype.hideSurfaceScrim = function () {
+        this.adapter.removeClass(_constants__WEBPACK_IMPORTED_MODULE_1__.cssClasses.SURFACE_SCRIM_SHOWN);
+        this.adapter.addClass(_constants__WEBPACK_IMPORTED_MODULE_1__.cssClasses.SURFACE_SCRIM_HIDING);
+    };
+    /**
+     * Handles `transitionend` event triggered when surface scrim animation is
+     * finished.
+     */
+    MDCDialogFoundation.prototype.handleSurfaceScrimTransitionEnd = function () {
+        this.adapter.removeClass(_constants__WEBPACK_IMPORTED_MODULE_1__.cssClasses.SURFACE_SCRIM_HIDING);
+        this.adapter.removeClass(_constants__WEBPACK_IMPORTED_MODULE_1__.cssClasses.SURFACE_SCRIM_SHOWING);
+    };
+    MDCDialogFoundation.prototype.isOpen = function () {
+        return this.dialogOpen;
+    };
+    MDCDialogFoundation.prototype.getEscapeKeyAction = function () {
+        return this.escapeKeyAction;
+    };
+    MDCDialogFoundation.prototype.setEscapeKeyAction = function (action) {
+        this.escapeKeyAction = action;
+    };
+    MDCDialogFoundation.prototype.getScrimClickAction = function () {
+        return this.scrimClickAction;
+    };
+    MDCDialogFoundation.prototype.setScrimClickAction = function (action) {
+        this.scrimClickAction = action;
+    };
+    MDCDialogFoundation.prototype.getAutoStackButtons = function () {
+        return this.autoStackButtons;
+    };
+    MDCDialogFoundation.prototype.setAutoStackButtons = function (autoStack) {
+        this.autoStackButtons = autoStack;
+    };
+    MDCDialogFoundation.prototype.getSuppressDefaultPressSelector = function () {
+        return this.suppressDefaultPressSelector;
+    };
+    MDCDialogFoundation.prototype.setSuppressDefaultPressSelector = function (selector) {
+        this.suppressDefaultPressSelector = selector;
+    };
+    MDCDialogFoundation.prototype.layout = function () {
+        var _this = this;
+        this.animFrame.request(AnimationKeys.POLL_LAYOUT_CHANGE, function () {
+            _this.layoutInternal();
+        });
+    };
+    /** Handles click on the dialog root element. */
+    MDCDialogFoundation.prototype.handleClick = function (evt) {
+        var isScrim = this.adapter.eventTargetMatches(evt.target, _constants__WEBPACK_IMPORTED_MODULE_1__.strings.SCRIM_SELECTOR);
+        // Check for scrim click first since it doesn't require querying ancestors.
+        if (isScrim && this.scrimClickAction !== '') {
+            this.close(this.scrimClickAction);
+        }
+        else {
+            var action = this.adapter.getActionFromEvent(evt);
+            if (action) {
+                this.close(action);
+            }
+        }
+    };
+    /** Handles keydown on the dialog root element. */
+    MDCDialogFoundation.prototype.handleKeydown = function (evt) {
+        var isEnter = evt.key === 'Enter' || evt.keyCode === 13;
+        if (!isEnter) {
+            return;
+        }
+        var action = this.adapter.getActionFromEvent(evt);
+        if (action) {
+            // Action button callback is handled in `handleClick`,
+            // since space/enter keydowns on buttons trigger click events.
+            return;
+        }
+        // `composedPath` is used here, when available, to account for use cases
+        // where a target meant to suppress the default press behaviour
+        // may exist in a shadow root.
+        // For example, a textarea inside a web component:
+        // <mwc-dialog>
+        //   <horizontal-layout>
+        //     #shadow-root (open)
+        //       <mwc-textarea>
+        //         #shadow-root (open)
+        //           <textarea></textarea>
+        //       </mwc-textarea>
+        //   </horizontal-layout>
+        // </mwc-dialog>
+        var target = evt.composedPath ? evt.composedPath()[0] : evt.target;
+        var isDefault = this.suppressDefaultPressSelector ?
+            !this.adapter.eventTargetMatches(target, this.suppressDefaultPressSelector) :
+            true;
+        if (isEnter && isDefault) {
+            this.adapter.clickDefaultButton();
+        }
+    };
+    /** Handles keydown on the document. */
+    MDCDialogFoundation.prototype.handleDocumentKeydown = function (evt) {
+        var isEscape = evt.key === 'Escape' || evt.keyCode === 27;
+        if (isEscape && this.escapeKeyAction !== '') {
+            this.close(this.escapeKeyAction);
+        }
+    };
+    /**
+     * Handles scroll event on the dialog's content element -- showing a scroll
+     * divider on the header or footer based on the scroll position. This handler
+     * should only be registered on full-screen dialogs with scrollable content.
+     */
+    MDCDialogFoundation.prototype.handleScrollEvent = function () {
+        var _this = this;
+        // Since scroll events can fire at a high rate, we throttle these events by
+        // using requestAnimationFrame.
+        this.animFrame.request(AnimationKeys.POLL_SCROLL_POS, function () {
+            _this.toggleScrollDividerHeader();
+            _this.toggleScrollDividerFooter();
+        });
+    };
+    MDCDialogFoundation.prototype.layoutInternal = function () {
+        if (this.autoStackButtons) {
+            this.detectStackedButtons();
+        }
+        this.toggleScrollableClasses();
+    };
+    MDCDialogFoundation.prototype.handleAnimationTimerEnd = function () {
+        this.animationTimer = 0;
+        this.adapter.removeClass(_constants__WEBPACK_IMPORTED_MODULE_1__.cssClasses.OPENING);
+        this.adapter.removeClass(_constants__WEBPACK_IMPORTED_MODULE_1__.cssClasses.CLOSING);
+    };
+    /**
+     * Runs the given logic on the next animation frame, using setTimeout to
+     * factor in Firefox reflow behavior.
+     */
+    MDCDialogFoundation.prototype.runNextAnimationFrame = function (callback) {
+        var _this = this;
+        cancelAnimationFrame(this.animationFrame);
+        this.animationFrame = requestAnimationFrame(function () {
+            _this.animationFrame = 0;
+            clearTimeout(_this.animationTimer);
+            _this.animationTimer = setTimeout(callback, 0);
+        });
+    };
+    MDCDialogFoundation.prototype.detectStackedButtons = function () {
+        // Remove the class first to let us measure the buttons' natural positions.
+        this.adapter.removeClass(_constants__WEBPACK_IMPORTED_MODULE_1__.cssClasses.STACKED);
+        var areButtonsStacked = this.adapter.areButtonsStacked();
+        if (areButtonsStacked) {
+            this.adapter.addClass(_constants__WEBPACK_IMPORTED_MODULE_1__.cssClasses.STACKED);
+        }
+        if (areButtonsStacked !== this.areButtonsStacked) {
+            this.adapter.reverseButtons();
+            this.areButtonsStacked = areButtonsStacked;
+        }
+    };
+    MDCDialogFoundation.prototype.toggleScrollableClasses = function () {
+        // Remove the class first to let us measure the natural height of the
+        // content.
+        this.adapter.removeClass(_constants__WEBPACK_IMPORTED_MODULE_1__.cssClasses.SCROLLABLE);
+        if (this.adapter.isContentScrollable()) {
+            this.adapter.addClass(_constants__WEBPACK_IMPORTED_MODULE_1__.cssClasses.SCROLLABLE);
+            if (this.isFullscreen) {
+                // If dialog is full-screen and scrollable, check if a scroll divider
+                // should be shown.
+                this.toggleScrollDividerHeader();
+                this.toggleScrollDividerFooter();
+            }
+        }
+    };
+    MDCDialogFoundation.prototype.toggleScrollDividerHeader = function () {
+        if (!this.adapter.isScrollableContentAtTop()) {
+            this.adapter.addClass(_constants__WEBPACK_IMPORTED_MODULE_1__.cssClasses.SCROLL_DIVIDER_HEADER);
+        }
+        else if (this.adapter.hasClass(_constants__WEBPACK_IMPORTED_MODULE_1__.cssClasses.SCROLL_DIVIDER_HEADER)) {
+            this.adapter.removeClass(_constants__WEBPACK_IMPORTED_MODULE_1__.cssClasses.SCROLL_DIVIDER_HEADER);
+        }
+    };
+    MDCDialogFoundation.prototype.toggleScrollDividerFooter = function () {
+        if (!this.adapter.isScrollableContentAtBottom()) {
+            this.adapter.addClass(_constants__WEBPACK_IMPORTED_MODULE_1__.cssClasses.SCROLL_DIVIDER_FOOTER);
+        }
+        else if (this.adapter.hasClass(_constants__WEBPACK_IMPORTED_MODULE_1__.cssClasses.SCROLL_DIVIDER_FOOTER)) {
+            this.adapter.removeClass(_constants__WEBPACK_IMPORTED_MODULE_1__.cssClasses.SCROLL_DIVIDER_FOOTER);
+        }
+    };
+    return MDCDialogFoundation;
+}(_material_base_foundation__WEBPACK_IMPORTED_MODULE_3__.MDCFoundation));
+
+// tslint:disable-next-line:no-default-export Needed for backward compatibility with MDC Web v0.44.0 and earlier.
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (MDCDialogFoundation);
+//# sourceMappingURL=foundation.js.map
+
+/***/ }),
+
+/***/ "./node_modules/@material/dialog/index.js":
+/*!************************************************!*\
+  !*** ./node_modules/@material/dialog/index.js ***!
+  \************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "util": () => (/* reexport module object */ _util__WEBPACK_IMPORTED_MODULE_0__),
+/* harmony export */   "MDCDialog": () => (/* reexport safe */ _component__WEBPACK_IMPORTED_MODULE_1__.MDCDialog),
+/* harmony export */   "cssClasses": () => (/* reexport safe */ _constants__WEBPACK_IMPORTED_MODULE_2__.cssClasses),
+/* harmony export */   "numbers": () => (/* reexport safe */ _constants__WEBPACK_IMPORTED_MODULE_2__.numbers),
+/* harmony export */   "strings": () => (/* reexport safe */ _constants__WEBPACK_IMPORTED_MODULE_2__.strings),
+/* harmony export */   "MDCDialogFoundation": () => (/* reexport safe */ _foundation__WEBPACK_IMPORTED_MODULE_3__.MDCDialogFoundation)
+/* harmony export */ });
+/* harmony import */ var _util__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./util */ "./node_modules/@material/dialog/util.js");
+/* harmony import */ var _component__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./component */ "./node_modules/@material/dialog/component.js");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./constants */ "./node_modules/@material/dialog/constants.js");
+/* harmony import */ var _foundation__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./foundation */ "./node_modules/@material/dialog/foundation.js");
+/**
+ * @license
+ * Copyright 2019 Google Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+
+
+
+
+
+
+//# sourceMappingURL=index.js.map
+
+/***/ }),
+
+/***/ "./node_modules/@material/dialog/util.js":
+/*!***********************************************!*\
+  !*** ./node_modules/@material/dialog/util.js ***!
+  \***********************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "createFocusTrapInstance": () => (/* binding */ createFocusTrapInstance),
+/* harmony export */   "isScrollable": () => (/* binding */ isScrollable),
+/* harmony export */   "isScrollAtTop": () => (/* binding */ isScrollAtTop),
+/* harmony export */   "isScrollAtBottom": () => (/* binding */ isScrollAtBottom),
+/* harmony export */   "areTopsMisaligned": () => (/* binding */ areTopsMisaligned)
+/* harmony export */ });
+/**
+ * @license
+ * Copyright 2016 Google Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+function createFocusTrapInstance(surfaceEl, focusTrapFactory, initialFocusEl) {
+    return focusTrapFactory(surfaceEl, { initialFocusEl: initialFocusEl });
+}
+function isScrollable(el) {
+    return el ? el.scrollHeight > el.offsetHeight : false;
+}
+/**
+ * For scrollable content, returns true if the content has not been scrolled
+ * (that is, the scroll content is as the "top"). This is used in full-screen
+ * dialogs, where the scroll divider is expected only to appear once the
+ * content has been scrolled "underneath" the header bar.
+ */
+function isScrollAtTop(el) {
+    return el ? el.scrollTop === 0 : false;
+}
+/**
+ * For scrollable content, returns true if the content has been scrolled all the
+ * way to the bottom. This is used in full-screen dialogs, where the footer
+ * scroll divider is expected only to appear when the content is "cut-off" by
+ * the footer bar.
+ */
+function isScrollAtBottom(el) {
+    return el ? Math.ceil(el.scrollHeight - el.scrollTop) === el.clientHeight :
+        false;
+}
+function areTopsMisaligned(els) {
+    var tops = new Set();
+    [].forEach.call(els, function (el) { return tops.add(el.offsetTop); });
+    return tops.size > 1;
+}
+//# sourceMappingURL=util.js.map
+
+/***/ }),
+
 /***/ "./node_modules/@material/dom/events.js":
 /*!**********************************************!*\
   !*** ./node_modules/@material/dom/events.js ***!
@@ -9340,6 +10654,153 @@ function supportsPassiveOption(globalObj) {
     return passiveSupported;
 }
 //# sourceMappingURL=events.js.map
+
+/***/ }),
+
+/***/ "./node_modules/@material/dom/focus-trap.js":
+/*!**************************************************!*\
+  !*** ./node_modules/@material/dom/focus-trap.js ***!
+  \**************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "FocusTrap": () => (/* binding */ FocusTrap)
+/* harmony export */ });
+/**
+ * @license
+ * Copyright 2020 Google Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+var FOCUS_SENTINEL_CLASS = 'mdc-dom-focus-sentinel';
+/**
+ * Utility to trap focus in a given root element, e.g. for modal components such
+ * as dialogs. The root should have at least one focusable child element,
+ * for setting initial focus when trapping focus.
+ * Also tracks the previously focused element, and restores focus to that
+ * element when releasing focus.
+ */
+var FocusTrap = /** @class */ (function () {
+    function FocusTrap(root, options) {
+        if (options === void 0) { options = {}; }
+        this.root = root;
+        this.options = options;
+        // Previously focused element before trapping focus.
+        this.elFocusedBeforeTrapFocus = null;
+    }
+    /**
+     * Traps focus in `root`. Also focuses on either `initialFocusEl` if set;
+     * otherwises sets initial focus to the first focusable child element.
+     */
+    FocusTrap.prototype.trapFocus = function () {
+        var focusableEls = this.getFocusableElements(this.root);
+        if (focusableEls.length === 0) {
+            throw new Error('FocusTrap: Element must have at least one focusable child.');
+        }
+        this.elFocusedBeforeTrapFocus =
+            document.activeElement instanceof HTMLElement ? document.activeElement :
+                null;
+        this.wrapTabFocus(this.root, focusableEls);
+        if (!this.options.skipInitialFocus) {
+            this.focusInitialElement(focusableEls, this.options.initialFocusEl);
+        }
+    };
+    /**
+     * Releases focus from `root`. Also restores focus to the previously focused
+     * element.
+     */
+    FocusTrap.prototype.releaseFocus = function () {
+        [].slice.call(this.root.querySelectorAll("." + FOCUS_SENTINEL_CLASS))
+            .forEach(function (sentinelEl) {
+            sentinelEl.parentElement.removeChild(sentinelEl);
+        });
+        if (this.elFocusedBeforeTrapFocus) {
+            this.elFocusedBeforeTrapFocus.focus();
+        }
+    };
+    /**
+     * Wraps tab focus within `el` by adding two hidden sentinel divs which are
+     * used to mark the beginning and the end of the tabbable region. When
+     * focused, these sentinel elements redirect focus to the first/last
+     * children elements of the tabbable region, ensuring that focus is trapped
+     * within that region.
+     */
+    FocusTrap.prototype.wrapTabFocus = function (el, focusableEls) {
+        var sentinelStart = this.createSentinel();
+        var sentinelEnd = this.createSentinel();
+        sentinelStart.addEventListener('focus', function () {
+            if (focusableEls.length > 0) {
+                focusableEls[focusableEls.length - 1].focus();
+            }
+        });
+        sentinelEnd.addEventListener('focus', function () {
+            if (focusableEls.length > 0) {
+                focusableEls[0].focus();
+            }
+        });
+        el.insertBefore(sentinelStart, el.children[0]);
+        el.appendChild(sentinelEnd);
+    };
+    /**
+     * Focuses on `initialFocusEl` if defined and a child of the root element.
+     * Otherwise, focuses on the first focusable child element of the root.
+     */
+    FocusTrap.prototype.focusInitialElement = function (focusableEls, initialFocusEl) {
+        var focusIndex = 0;
+        if (initialFocusEl) {
+            focusIndex = Math.max(focusableEls.indexOf(initialFocusEl), 0);
+        }
+        focusableEls[focusIndex].focus();
+    };
+    FocusTrap.prototype.getFocusableElements = function (root) {
+        var focusableEls = [].slice.call(root.querySelectorAll('[autofocus], [tabindex], a, input, textarea, select, button'));
+        return focusableEls.filter(function (el) {
+            var isDisabledOrHidden = el.getAttribute('aria-disabled') === 'true' ||
+                el.getAttribute('disabled') != null ||
+                el.getAttribute('hidden') != null ||
+                el.getAttribute('aria-hidden') === 'true';
+            var isTabbableAndVisible = el.tabIndex >= 0 &&
+                el.getBoundingClientRect().width > 0 &&
+                !el.classList.contains(FOCUS_SENTINEL_CLASS) && !isDisabledOrHidden;
+            var isProgrammaticallyHidden = false;
+            if (isTabbableAndVisible) {
+                var style = getComputedStyle(el);
+                isProgrammaticallyHidden =
+                    style.display === 'none' || style.visibility === 'hidden';
+            }
+            return isTabbableAndVisible && !isProgrammaticallyHidden;
+        });
+    };
+    FocusTrap.prototype.createSentinel = function () {
+        var sentinel = document.createElement('div');
+        sentinel.setAttribute('tabindex', '0');
+        // Don't announce in screen readers.
+        sentinel.setAttribute('aria-hidden', 'true');
+        sentinel.classList.add(FOCUS_SENTINEL_CLASS);
+        return sentinel;
+    };
+    return FocusTrap;
+}());
+
+//# sourceMappingURL=focus-trap.js.map
 
 /***/ }),
 

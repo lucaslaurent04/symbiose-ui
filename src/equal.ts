@@ -116,12 +116,17 @@ class eQ {
 
         let entity = context.getEntity();
         let type = context.getType();
+        let name = context.getName();
         let purpose = context.getPurpose();    
 
+        let view_schema = await ApiService.getView(entity, type+'.'+name);
         let translation = await ApiService.getTranslation(entity, environment.lang);
 
         if(translation.hasOwnProperty('name')) {
-            entity = translation['name'];    
+            entity = translation['name'];
+        }
+        else if(view_schema.hasOwnProperty('name')) {
+            entity = view_schema['name'];
         }
         else {
             let parts = entity.split('\\');
@@ -132,14 +137,10 @@ class eQ {
 
         if(purpose == 'view') {
             result = entity;
-            
             if(type == 'list') {
                 if(translation.hasOwnProperty('plural')) {
                     result = translation['plural'];    
                 }
-                else {
-                    result += 's';
-                }                
             }
         }
         else {
@@ -151,9 +152,9 @@ class eQ {
                 case 'select':  purpose_const = 'SB_PURPOSE_SELECT'; break;
                 case 'add':     purpose_const = 'SB_PURPOSE_ADD'; break;
             }
-            let translation = await TranslationService.translate(purpose_const);
-            if(translation.length) {
-                result = translation + ' ' + entity;
+            let translated_purpose = await TranslationService.translate(purpose_const);
+            if(translated_purpose.length) {
+                result = translated_purpose + ' ' + entity;
             }
             else {
                 result = purpose.charAt(0).toUpperCase() + purpose.slice(1) + ' ' + entity;
@@ -165,8 +166,8 @@ class eQ {
             if(objects.length) {
                 let object = objects[0];
                 // by convention, collections should always request the `name` field
-                if(object.hasOwnProperty('name')) {
-                    result += ' ['+object['name']+']';
+                if(object.hasOwnProperty('name') && purpose != 'create') {
+                    result += ' <small>['+object['name']+']</small>';
                 }    
             }
         }
@@ -175,7 +176,7 @@ class eQ {
     }
 
     private async updateHeader() {
-        console.log('upadate header');
+        console.log('update header');
         let $elem = $('<h3 />').css({display: 'flex'});
 
         // add temporary, invisible header for font size computations
@@ -216,25 +217,21 @@ class eQ {
                     prepend_contexts_count++;
 
 
-                    $('<a />').text(context_purpose_string).prependTo($elem)
-                    .on('click', () => {                    
+                    $('<a>'+context_purpose_string+'</a>').prependTo($elem)
+                    .on('click', async () => {                    
                         // close all contexts after the one clicked
-                        for(let j = this.stack.length-1; j >= i; --j) {
+                        for(let j = this.stack.length-1; j > i; --j) {
                             // unstack contexts silently (except for the targeted one), and ask for validation at each step
                             if(this.context.hasChanged()) {
                                 let validation = confirm(TranslationService.instant('SB_ACTIONS_MESSAGE_ABANDON_CHANGE'));
                                 if(!validation) return;        
-                                this.closeContext();
+                                this.closeContext(true);
                             }
                             else {
-                                if(this.stack[i] == context) {
-                                    this.closeContext();
-                                }
-                                else {
-                                    this.closeContext(true);
-                                }
+                                this.closeContext(true);
                             }
                         }
+                        this.closeContext();
                     });
                     
                     if(overflow) {
@@ -255,7 +252,7 @@ class eQ {
             if(prepend_contexts_count > 0) {
                 $('<span> › </span>').css({'margin': '0 10px'}).appendTo($elem);
             }            
-            $('<span />').text(current_purpose_string).appendTo($elem);
+            $('<span>'+current_purpose_string+'</span>').appendTo($elem);
             if(this.stack.length > 1) {
                 UIHelper.createButton('context-close', '', 'mini-fab', 'close').css({'transform': 'scale(0.5)', 'margin-top': '3px', 'background': '#bababa', 'box-shadow': 'none'}).appendTo($elem)
                 .on('click', () => {                    
@@ -314,7 +311,7 @@ class eQ {
             // restore previous context
             this.context = <Context>this.stack.pop();
 
-            if(!silent) {                
+            if(!silent) {
                 console.log(this.context);
                 if( this.context != undefined && this.context.hasOwnProperty('$container') ) {
                     if(has_changed && this.context.getMode() == 'view') {
@@ -356,12 +353,19 @@ class eQ {
                 .on('click', (event) => {
                     let $this = $(event.currentTarget);
                     let item = $this.data('item');
-                    if(! item.hasOwnProperty('domain') ) {
+                    if( !item.hasOwnProperty('domain') ) {
                         item.domain = [];
+                    }
+                    let type = 'list';
+                    let name = 'default';
+                    if( item.hasOwnProperty('target') ) {
+                        let parts = item.target.split('.');
+                        if(parts.length) type = <string>parts.shift();
+                        if(parts.length) name = <string>parts.shift();
                     }
                     $('#sb-events').trigger('_closeAll');
                     setTimeout(() => {
-                        $('#sb-events').trigger('_openContext', {entity: item.entity, type: 'list', domain: item.domain} );
+                        $('#sb-events').trigger('_openContext', {entity: item.entity, type: type, name: name, domain: item.domain} );
                     });
                 });
             }
@@ -375,28 +379,6 @@ class eQ {
     
     }
     
-    public test() {
-        console.log("eQ::test");
-        $("#test").dialog();
-        $( "#datepicker" ).daterangepicker();
-
-        
-        this.$sbEvents.trigger('_openContext', {entity: 'core\\User', type: 'list'} );
-        /*
-        setTimeout( () => {
-            console.log('timeout1');
-            this.$sbEvents.trigger('_openContext', new Context('core\\Group', 'list', 'default', []));
-            setTimeout( () => {
-                console.log('timeout2');
-                this.$sbEvents.trigger('_closeContext');
-            }, 2000);
-            
-        }, 2000);
-*/
-
-
-    }
-
 }
 
 module.exports = eQ;

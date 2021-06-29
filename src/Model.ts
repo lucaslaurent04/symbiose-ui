@@ -81,6 +81,52 @@ export class Model {
         throw new Error("Unable to copy obj! Its type isn't supported.");
     }
 
+    /**
+     * Resolve the final type of a given field (handling 'alias' and 'computed').
+     * 
+     * @param field 
+     * @returns string The final type. If final type cannot be resolved, the 'string' type is returned as default.
+     */
+    public getFinalType(field:string) {
+        let result = 'string';
+        let schema = this.view.getModelFields();
+        
+        while(schema.hasOwnProperty(field) && schema[field].hasOwnProperty('type') && schema[field].type == 'alias' && schema[field].hasOwnProperty('alias')) {
+            field = schema[field].alias;
+        }
+        if(schema.hasOwnProperty(field) && schema[field].hasOwnProperty('type')) {
+            if(schema[field].type == 'computed') {
+                if(schema[field].hasOwnProperty('result_type')) {
+                    result = schema[field].result_type;
+                }
+            }
+            else {
+                result = schema[field].type;
+            }            
+        }
+        return result;
+    }
+
+    public getOperators(type:string) {
+        console.log(type);
+        let operators:any = {
+            'boolean':      ['=', '<>'],
+            'integer':      ['in', 'not in', '=', '<>', '<', '>', '<=', '>='],
+            'float':        ['=', '<>', '<', '>', '<=', '>='],
+            'string':       ['like', 'in', '=', '<>'],
+            'text':         ['like', '='],
+            'date':         ['=', '<=', '>='],
+            'time':         ['=', '<=', '>='],
+            'datetime':     ['=', '<=', '>='],
+            'file':         ['like', '='],
+            'binary':       ['like', '='],
+            'many2one':     ['is', 'in', 'not in'],
+            'one2many':     ['contains'],
+            'many2many':    ['contains']
+        };
+        return operators[type];
+    }
+
     public hasChanged() : boolean {
         return (Object.keys(this.has_changed).length > 0);
     }
@@ -107,6 +153,7 @@ export class Model {
         }
         return result;
     }
+
     /** 
      * Update model by requesting data from server using parent View parameters
     */
