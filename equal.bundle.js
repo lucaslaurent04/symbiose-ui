@@ -1446,6 +1446,11 @@ var Layout = /*#__PURE__*/function () {
       var field = item.value;
       var translation = this.view.getTranslation();
       var model_fields = this.view.getModelFields();
+
+      if (!model_fields || !model_fields.hasOwnProperty(field)) {
+        return null;
+      }
+
       var def = model_fields[field];
       var label = item.hasOwnProperty('label') ? item.label : field;
       var helper = item.hasOwnProperty('help') ? item.help : def.hasOwnProperty('description') ? def['description'] : '';
@@ -1517,7 +1522,7 @@ var Layout = /*#__PURE__*/function () {
 
         var $tabs = _materialLib.UIHelper.createTabBar('test', '', '').addClass('sb-view-form-sections-tabbar');
 
-        if (group.sections.length > 1) {
+        if (group.sections.length > 1 || group.sections[0].hasOwnProperty('label')) {
           $group.append($tabs);
         }
 
@@ -1529,9 +1534,9 @@ var Layout = /*#__PURE__*/function () {
             $section.hide();
           }
 
-          if (group.sections.length > 1) {
+          if (group.sections.length > 1 || section.hasOwnProperty('label')) {
             // try to resolve the section title
-            var section_title = section.hasOwnProperty('label') ? section.label : '';
+            var section_title = section.hasOwnProperty('label') ? section.label : section_id;
 
             if (section.hasOwnProperty('id')) {
               section_title = _equalServices.TranslationService.resolve(translation, 'view', section.id, section_title);
@@ -1546,7 +1551,7 @@ var Layout = /*#__PURE__*/function () {
           }
 
           _jqueryLib.$.each(section.rows, function (i, row) {
-            var $row = (0, _jqueryLib.$)('<div />').addClass('mdc-layout-grid__inner').appendTo($section);
+            var $row = (0, _jqueryLib.$)('<div />').addClass('sb-view-form-row mdc-layout-grid__inner').appendTo($section);
 
             _jqueryLib.$.each(row.columns, function (i, column) {
               var $column = (0, _jqueryLib.$)('<div />').addClass('mdc-layout-grid__cell').appendTo($row);
@@ -1564,20 +1569,22 @@ var Layout = /*#__PURE__*/function () {
                 var width = item.hasOwnProperty('width') ? Math.round(parseInt(item.width, 10) / 100 * 12) : 12;
                 $cell.addClass('mdc-layout-grid__cell--span-' + width);
 
-                if (item.hasOwnProperty('value')) {
+                if (item.hasOwnProperty('type') && item.hasOwnProperty('value')) {
                   if (item.type == 'field') {
                     var config = _this.getWidgetConfig(item);
 
-                    var widget = _equalWidgets.WidgetFactory.getWidget(config.type, config.title, '', config);
+                    if (config) {
+                      var widget = _equalWidgets.WidgetFactory.getWidget(config.type, config.title, '', config);
 
-                    widget.setReadonly(config.readonly); // store widget in widgets Map, using field name as key
+                      widget.setReadonly(config.readonly); // store widget in widgets Map, using field name as key
 
-                    if (typeof _this.model_widgets[0] == 'undefined') {
-                      _this.model_widgets[0] = {};
+                      if (typeof _this.model_widgets[0] == 'undefined') {
+                        _this.model_widgets[0] = {};
+                      }
+
+                      _this.model_widgets[0][item.value] = widget;
+                      $cell.append(widget.attach());
                     }
-
-                    _this.model_widgets[0][item.value] = widget;
-                    $cell.append(widget.attach());
                   } else if (item.type == 'label') {
                     $cell.append('<span style="font-weight: 600;">' + item.value + '</span>');
                   } else if (item.type == 'button') {
@@ -3320,6 +3327,42 @@ var View = /*#__PURE__*/function () {
                   }
                 }
               }, _callee5);
+            })))).append(_materialLib.UIHelper.createButton('action-create', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_CREATE'), 'text').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6() {
+              var object;
+              return _regenerator.default.wrap(function _callee6$(_context6) {
+                while (1) {
+                  switch (_context6.prev = _context6.next) {
+                    case 0:
+                      _context6.prev = 0;
+                      _context6.next = 3;
+                      return _equalServices.ApiService.create(_this2.entity, _this2.getCreationDefaults());
+
+                    case 3:
+                      object = _context6.sent;
+                      // request a new Context for editing the new object
+                      (0, _jqueryLib.$)('#sb-events').trigger('_openContext', {
+                        entity: _this2.entity,
+                        type: 'form',
+                        name: 'default',
+                        domain: [['id', '=', object.id], ['state', '=', 'draft']],
+                        mode: 'edit',
+                        purpose: 'create'
+                      });
+                      _context6.next = 10;
+                      break;
+
+                    case 7:
+                      _context6.prev = 7;
+                      _context6.t0 = _context6["catch"](0);
+
+                      _this2.displayErrorFeedback(_context6.t0);
+
+                    case 10:
+                    case "end":
+                      return _context6.stop();
+                  }
+                }
+              }, _callee6, null, [[0, 7]]);
             }))));
             break;
 
@@ -3452,12 +3495,8 @@ var View = /*#__PURE__*/function () {
 
         _this2.onchangeView();
       }); // attach elements to header toolbar
-      // hide filter button if there are no filters available
 
-      if (Object.keys(this.filters).length) {
-        $level2.append($filters_button);
-      }
-
+      $level2.append($filters_button);
       $level2.append($filters_set);
       $level2.append($pagination);
       $level2.append($fields_toggle_button);
@@ -3558,23 +3597,23 @@ var View = /*#__PURE__*/function () {
           break;
 
         case 'edit':
-          $actions_set.append(_materialLib.UIHelper.createButton('action-save', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_SAVE'), 'raised').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6() {
+          $actions_set.append(_materialLib.UIHelper.createButton('action-save', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_SAVE'), 'raised').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7() {
             var objects, object, response;
-            return _regenerator.default.wrap(function _callee6$(_context6) {
+            return _regenerator.default.wrap(function _callee7$(_context7) {
               while (1) {
-                switch (_context6.prev = _context6.next) {
+                switch (_context7.prev = _context7.next) {
                   case 0:
                     if (!(_this4.purpose == 'create')) {
-                      _context6.next = 6;
+                      _context7.next = 6;
                       break;
                     }
 
-                    _context6.next = 3;
+                    _context7.next = 3;
                     return _this4.model.get();
 
                   case 3:
-                    objects = _context6.sent;
-                    _context6.next = 7;
+                    objects = _context7.sent;
+                    _context7.next = 7;
                     break;
 
                   case 6:
@@ -3583,45 +3622,46 @@ var View = /*#__PURE__*/function () {
 
                   case 7:
                     if (objects.length) {
-                      _context6.next = 11;
+                      _context7.next = 11;
                       break;
                     }
 
                     // no change : close context
                     (0, _jqueryLib.$)('#sb-events').trigger('_closeContext');
-                    _context6.next = 22;
+                    _context7.next = 23;
                     break;
 
                   case 11:
                     // we're in edit mode for single object (form)
                     object = objects[0];
-                    _context6.prev = 12;
-                    _context6.next = 15;
+                    _context7.prev = 12;
+                    _context7.next = 15;
                     return _equalServices.ApiService.update(_this4.entity, [object['id']], _this4.model.export(object));
 
                   case 15:
-                    response = _context6.sent;
+                    response = _context7.sent;
                     (0, _jqueryLib.$)('#sb-events').trigger('_closeContext');
-                    _context6.next = 22;
+                    _context7.next = 23;
                     break;
 
                   case 19:
-                    _context6.prev = 19;
-                    _context6.t0 = _context6["catch"](12);
+                    _context7.prev = 19;
+                    _context7.t0 = _context7["catch"](12);
+                    console.log('catched response', _context7.t0);
 
-                    _this4.displayErrorFeedback(_context6.t0, object, false);
+                    _this4.displayErrorFeedback(_context7.t0, object, false);
 
-                  case 22:
+                  case 23:
                   case "end":
-                    return _context6.stop();
+                    return _context7.stop();
                 }
               }
-            }, _callee6, null, [[12, 19]]);
-          })))).append(_materialLib.UIHelper.createButton('action-cancel', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_CANCEL'), 'outlined').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7() {
+            }, _callee7, null, [[12, 19]]);
+          })))).append(_materialLib.UIHelper.createButton('action-cancel', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_CANCEL'), 'outlined').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee8() {
             var validation;
-            return _regenerator.default.wrap(function _callee7$(_context7) {
+            return _regenerator.default.wrap(function _callee8$(_context8) {
               while (1) {
-                switch (_context7.prev = _context7.next) {
+                switch (_context8.prev = _context8.next) {
                   case 0:
                     validation = true;
 
@@ -3630,21 +3670,21 @@ var View = /*#__PURE__*/function () {
                     }
 
                     if (validation) {
-                      _context7.next = 4;
+                      _context8.next = 4;
                       break;
                     }
 
-                    return _context7.abrupt("return");
+                    return _context8.abrupt("return");
 
                   case 4:
                     (0, _jqueryLib.$)('#sb-events').trigger('_closeContext');
 
                   case 5:
                   case "end":
-                    return _context7.stop();
+                    return _context8.stop();
                 }
               }
-            }, _callee7);
+            }, _callee8);
           }))));
           break;
       } // attach elements to header toolbar
@@ -3655,15 +3695,15 @@ var View = /*#__PURE__*/function () {
   }, {
     key: "layoutRefresh",
     value: function () {
-      var _layoutRefresh = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee8() {
+      var _layoutRefresh = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee9() {
         var full,
-            _args8 = arguments;
-        return _regenerator.default.wrap(function _callee8$(_context8) {
+            _args9 = arguments;
+        return _regenerator.default.wrap(function _callee9$(_context9) {
           while (1) {
-            switch (_context8.prev = _context8.next) {
+            switch (_context9.prev = _context9.next) {
               case 0:
-                full = _args8.length > 0 && _args8[0] !== undefined ? _args8[0] : false;
-                _context8.next = 3;
+                full = _args9.length > 0 && _args9[0] !== undefined ? _args9[0] : false;
+                _context9.next = 3;
                 return this.layout.refresh(full);
 
               case 3:
@@ -3673,10 +3713,10 @@ var View = /*#__PURE__*/function () {
 
               case 4:
               case "end":
-                return _context8.stop();
+                return _context9.stop();
             }
           }
-        }, _callee8, this);
+        }, _callee9, this);
       }));
 
       function layoutRefresh() {
@@ -3791,30 +3831,30 @@ var View = /*#__PURE__*/function () {
   }, {
     key: "onchangeViewModel",
     value: function () {
-      var _onchangeViewModel = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee9(ids, values) {
+      var _onchangeViewModel = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee10(ids, values) {
         var refresh,
-            _args9 = arguments;
-        return _regenerator.default.wrap(function _callee9$(_context9) {
+            _args10 = arguments;
+        return _regenerator.default.wrap(function _callee10$(_context10) {
           while (1) {
-            switch (_context9.prev = _context9.next) {
+            switch (_context10.prev = _context10.next) {
               case 0:
-                refresh = _args9.length > 2 && _args9[2] !== undefined ? _args9[2] : true;
+                refresh = _args10.length > 2 && _args10[2] !== undefined ? _args10[2] : true;
                 this.model.change(ids, values); // model has changed : forms need to re-check the visibility attributes
 
                 if (!refresh) {
-                  _context9.next = 5;
+                  _context10.next = 5;
                   break;
                 }
 
-                _context9.next = 5;
+                _context10.next = 5;
                 return this.onchangeModel();
 
               case 5:
               case "end":
-                return _context9.stop();
+                return _context10.stop();
             }
           }
-        }, _callee9, this);
+        }, _callee10, this);
       }));
 
       function onchangeViewModel(_x, _x2) {
@@ -3833,24 +3873,24 @@ var View = /*#__PURE__*/function () {
   }, {
     key: "onchangeModel",
     value: function () {
-      var _onchangeModel = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee10() {
+      var _onchangeModel = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee11() {
         var full,
-            _args10 = arguments;
-        return _regenerator.default.wrap(function _callee10$(_context10) {
+            _args11 = arguments;
+        return _regenerator.default.wrap(function _callee11$(_context11) {
           while (1) {
-            switch (_context10.prev = _context10.next) {
+            switch (_context11.prev = _context11.next) {
               case 0:
-                full = _args10.length > 0 && _args10[0] !== undefined ? _args10[0] : false;
+                full = _args11.length > 0 && _args11[0] !== undefined ? _args11[0] : false;
                 console.log('View::onchangeModel', full);
-                _context10.next = 4;
+                _context11.next = 4;
                 return this.layoutRefresh(full);
 
               case 4:
               case "end":
-                return _context10.stop();
+                return _context11.stop();
             }
           }
-        }, _callee10, this);
+        }, _callee11, this);
       }));
 
       function onchangeModel() {
@@ -3868,22 +3908,22 @@ var View = /*#__PURE__*/function () {
   }, {
     key: "onchangeView",
     value: function () {
-      var _onchangeView = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee11() {
-        return _regenerator.default.wrap(function _callee11$(_context11) {
+      var _onchangeView = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee12() {
+        return _regenerator.default.wrap(function _callee12$(_context12) {
           while (1) {
-            switch (_context11.prev = _context11.next) {
+            switch (_context12.prev = _context12.next) {
               case 0:
                 // reset selection
                 this.onchangeSelection([]);
-                _context11.next = 3;
+                _context12.next = 3;
                 return this.model.refresh();
 
               case 3:
               case "end":
-                return _context11.stop();
+                return _context12.stop();
             }
           }
-        }, _callee11, this);
+        }, _callee12, this);
       }));
 
       function onchangeView() {
@@ -3968,13 +4008,13 @@ var View = /*#__PURE__*/function () {
   }, {
     key: "applyFilter",
     value: function () {
-      var _applyFilter = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee12(filter_id) {
+      var _applyFilter = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee13(filter_id) {
         var _this6 = this;
 
         var filter, $filters_set;
-        return _regenerator.default.wrap(function _callee12$(_context12) {
+        return _regenerator.default.wrap(function _callee13$(_context13) {
           while (1) {
-            switch (_context12.prev = _context12.next) {
+            switch (_context13.prev = _context13.next) {
               case 0:
                 filter = this.filters[filter_id];
                 $filters_set = this.$headerContainer.find('.sb-view-header-list-filters-set');
@@ -4000,10 +4040,10 @@ var View = /*#__PURE__*/function () {
 
               case 6:
               case "end":
-                return _context12.stop();
+                return _context13.stop();
             }
           }
-        }, _callee12, this);
+        }, _callee13, this);
       }));
 
       function applyFilter(_x3) {
@@ -4015,14 +4055,14 @@ var View = /*#__PURE__*/function () {
   }, {
     key: "actionListInlineEdit",
     value: function () {
-      var _actionListInlineEdit = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee17(event, selection) {
+      var _actionListInlineEdit = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee18(event, selection) {
         var _this7 = this;
 
         var $action_set, $button_save, $button_cancel, _iterator13, _step13, _loop6;
 
-        return _regenerator.default.wrap(function _callee17$(_context17) {
+        return _regenerator.default.wrap(function _callee18$(_context18) {
           while (1) {
-            switch (_context17.prev = _context17.next) {
+            switch (_context18.prev = _context18.next) {
               case 0:
                 if (selection.length) {
                   $action_set = this.$container.find('.sb-view-header-list-actions-set');
@@ -4047,16 +4087,16 @@ var View = /*#__PURE__*/function () {
                         });
 
                         _this7.$layoutContainer.find('tr[data-id="' + object_id + '"]').each( /*#__PURE__*/function () {
-                          var _ref7 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee13(i, tr) {
+                          var _ref8 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee14(i, tr) {
                             var $tr;
-                            return _regenerator.default.wrap(function _callee13$(_context13) {
+                            return _regenerator.default.wrap(function _callee14$(_context14) {
                               while (1) {
-                                switch (_context13.prev = _context13.next) {
+                                switch (_context14.prev = _context14.next) {
                                   case 0:
                                     $tr = (0, _jqueryLib.$)(tr);
 
                                     if (object) {
-                                      _context13.next = 7;
+                                      _context14.next = 7;
                                       break;
                                     }
 
@@ -4065,12 +4105,12 @@ var View = /*#__PURE__*/function () {
                                     });
                                     $tr.attr('data-edit', '0');
                                     selection.splice(selection.indexOf(object_id), 1);
-                                    _context13.next = 19;
+                                    _context14.next = 19;
                                     break;
 
                                   case 7:
-                                    _context13.prev = 7;
-                                    _context13.next = 10;
+                                    _context14.prev = 7;
+                                    _context14.next = 10;
                                     return _equalServices.ApiService.update(_this7.entity, [object_id], _this7.model.export(object));
 
                                   case 10:
@@ -4085,25 +4125,25 @@ var View = /*#__PURE__*/function () {
                                       $button_cancel.remove();
                                     }
 
-                                    _context13.next = 19;
+                                    _context14.next = 19;
                                     break;
 
                                   case 16:
-                                    _context13.prev = 16;
-                                    _context13.t0 = _context13["catch"](7);
+                                    _context14.prev = 16;
+                                    _context14.t0 = _context14["catch"](7);
 
-                                    _this7.displayErrorFeedback(_context13.t0, object, true);
+                                    _this7.displayErrorFeedback(_context14.t0, object, true);
 
                                   case 19:
                                   case "end":
-                                    return _context13.stop();
+                                    return _context14.stop();
                                 }
                               }
-                            }, _callee13, null, [[7, 16]]);
+                            }, _callee14, null, [[7, 16]]);
                           }));
 
                           return function (_x6, _x7) {
-                            return _ref7.apply(this, arguments);
+                            return _ref8.apply(this, arguments);
                           };
                         }());
                       };
@@ -4137,12 +4177,12 @@ var View = /*#__PURE__*/function () {
                         var object_id = object.id;
 
                         _this7.$layoutContainer.find('tr[data-id="' + object_id + '"]').each( /*#__PURE__*/function () {
-                          var _ref9 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee15(i, tr) {
+                          var _ref10 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee16(i, tr) {
                             var $tr, original, _i, _Object$keys, field;
 
-                            return _regenerator.default.wrap(function _callee15$(_context15) {
+                            return _regenerator.default.wrap(function _callee16$(_context16) {
                               while (1) {
-                                switch (_context15.prev = _context15.next) {
+                                switch (_context16.prev = _context16.next) {
                                   case 0:
                                     $tr = (0, _jqueryLib.$)(tr);
                                     original = $tr.data('original');
@@ -4155,14 +4195,14 @@ var View = /*#__PURE__*/function () {
 
                                   case 3:
                                   case "end":
-                                    return _context15.stop();
+                                    return _context16.stop();
                                 }
                               }
-                            }, _callee15);
+                            }, _callee16);
                           }));
 
                           return function (_x10, _x11) {
-                            return _ref9.apply(this, arguments);
+                            return _ref10.apply(this, arguments);
                           };
                         }());
                       };
@@ -4177,11 +4217,11 @@ var View = /*#__PURE__*/function () {
                     }
 
                     _this7.$layoutContainer.find('tr.sb-view-layout-list-row').each( /*#__PURE__*/function () {
-                      var _ref8 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee14(i, tr) {
+                      var _ref9 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee15(i, tr) {
                         var $tr;
-                        return _regenerator.default.wrap(function _callee14$(_context14) {
+                        return _regenerator.default.wrap(function _callee15$(_context15) {
                           while (1) {
-                            switch (_context14.prev = _context14.next) {
+                            switch (_context15.prev = _context15.next) {
                               case 0:
                                 $tr = (0, _jqueryLib.$)(tr);
                                 $tr.find('.sb-widget-cell').each(function (i, cell) {
@@ -4191,14 +4231,14 @@ var View = /*#__PURE__*/function () {
 
                               case 3:
                               case "end":
-                                return _context14.stop();
+                                return _context15.stop();
                             }
                           }
-                        }, _callee14);
+                        }, _callee15);
                       }));
 
                       return function (_x8, _x9) {
-                        return _ref8.apply(this, arguments);
+                        return _ref9.apply(this, arguments);
                       };
                     }());
 
@@ -4215,26 +4255,26 @@ var View = /*#__PURE__*/function () {
                     var object_id = _step13.value;
 
                     _this7.$layoutContainer.find('tr[data-id="' + object_id + '"]').each( /*#__PURE__*/function () {
-                      var _ref10 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee16(i, tr) {
+                      var _ref11 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee17(i, tr) {
                         var $tr, $td, collection, object;
-                        return _regenerator.default.wrap(function _callee16$(_context16) {
+                        return _regenerator.default.wrap(function _callee17$(_context17) {
                           while (1) {
-                            switch (_context16.prev = _context16.next) {
+                            switch (_context17.prev = _context17.next) {
                               case 0:
                                 $tr = (0, _jqueryLib.$)(tr);
                                 $tr.addClass('sb-widget'); // not already in edit mode
 
                                 if (!($tr.attr('data-edit') != '1')) {
-                                  _context16.next = 11;
+                                  _context17.next = 11;
                                   break;
                                 }
 
                                 $td = $tr.children().first();
-                                _context16.next = 6;
+                                _context17.next = 6;
                                 return _this7.model.get([object_id]);
 
                               case 6:
-                                collection = _context16.sent;
+                                collection = _context17.sent;
                                 object = collection[0]; // save original object in the row
 
                                 $tr.data('original', _this7.deepCopy(object)); // mark row as being edited (prevent click handling)
@@ -4247,14 +4287,14 @@ var View = /*#__PURE__*/function () {
 
                               case 11:
                               case "end":
-                                return _context16.stop();
+                                return _context17.stop();
                             }
                           }
-                        }, _callee16);
+                        }, _callee17);
                       }));
 
                       return function (_x12, _x13) {
-                        return _ref10.apply(this, arguments);
+                        return _ref11.apply(this, arguments);
                       };
                     }());
                   };
@@ -4270,10 +4310,10 @@ var View = /*#__PURE__*/function () {
 
               case 3:
               case "end":
-                return _context17.stop();
+                return _context18.stop();
             }
           }
-        }, _callee17, this);
+        }, _callee18, this);
       }));
 
       function actionListInlineEdit(_x4, _x5) {
@@ -4285,7 +4325,7 @@ var View = /*#__PURE__*/function () {
   }, {
     key: "displayErrorFeedback",
     value: function () {
-      var _displayErrorFeedback = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee18(response) {
+      var _displayErrorFeedback = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee19(response) {
         var object,
             snack,
             errors,
@@ -4308,24 +4348,24 @@ var View = /*#__PURE__*/function () {
             _$snack2,
             validation,
             _response,
-            _args18 = arguments;
+            _args19 = arguments;
 
-        return _regenerator.default.wrap(function _callee18$(_context18) {
+        return _regenerator.default.wrap(function _callee19$(_context19) {
           while (1) {
-            switch (_context18.prev = _context18.next) {
+            switch (_context19.prev = _context19.next) {
               case 0:
-                object = _args18.length > 1 && _args18[1] !== undefined ? _args18[1] : null;
-                snack = _args18.length > 2 && _args18[2] !== undefined ? _args18[2] : false;
+                object = _args19.length > 1 && _args19[1] !== undefined ? _args19[1] : null;
+                snack = _args19.length > 2 && _args19[2] !== undefined ? _args19[2] : true;
 
                 if (!(response && response.hasOwnProperty('errors'))) {
-                  _context18.next = 37;
+                  _context19.next = 37;
                   break;
                 }
 
                 errors = response['errors'];
 
                 if (!errors.hasOwnProperty('INVALID_PARAM')) {
-                  _context18.next = 10;
+                  _context19.next = 10;
                   break;
                 }
 
@@ -4349,29 +4389,29 @@ var View = /*#__PURE__*/function () {
                   ++i;
                 }
 
-                _context18.next = 37;
+                _context19.next = 37;
                 break;
 
               case 10:
                 if (!errors.hasOwnProperty('NOT_ALLOWED')) {
-                  _context18.next = 16;
+                  _context19.next = 16;
                   break;
                 }
 
                 _msg = _equalServices.TranslationService.instant('SB_ERROR_NOT_ALLOWED');
                 _$snack = _materialLib.UIHelper.createSnackbar(_msg, '', '', 4000);
                 this.$container.append(_$snack);
-                _context18.next = 37;
+                _context19.next = 37;
                 break;
 
               case 16:
                 if (!errors.hasOwnProperty('CONFLICT_OBJECT')) {
-                  _context18.next = 37;
+                  _context19.next = 37;
                   break;
                 }
 
                 if (!(typeof errors['CONFLICT_OBJECT'] == 'object')) {
-                  _context18.next = 23;
+                  _context19.next = 23;
                   break;
                 }
 
@@ -4391,7 +4431,7 @@ var View = /*#__PURE__*/function () {
                   ++_i2;
                 }
 
-                _context18.next = 37;
+                _context19.next = 37;
                 break;
 
               case 23:
@@ -4399,32 +4439,32 @@ var View = /*#__PURE__*/function () {
                 validation = confirm(_equalServices.TranslationService.instant('SB_ACTIONS_MESSAGE_ERASE_CONUCRRENT_CHANGES'));
 
                 if (!validation) {
-                  _context18.next = 37;
+                  _context19.next = 37;
                   break;
                 }
 
-                _context18.prev = 26;
-                _context18.next = 29;
+                _context19.prev = 26;
+                _context19.next = 29;
                 return _equalServices.ApiService.update(this.entity, [object['id']], this.model.export(object), true);
 
               case 29:
-                _response = _context18.sent;
+                _response = _context19.sent;
                 (0, _jqueryLib.$)('#sb-events').trigger('_closeContext');
-                _context18.next = 37;
+                _context19.next = 37;
                 break;
 
               case 33:
-                _context18.prev = 33;
-                _context18.t0 = _context18["catch"](26);
-                _context18.next = 37;
-                return this.displayErrorFeedback(_context18.t0, object, snack);
+                _context19.prev = 33;
+                _context19.t0 = _context19["catch"](26);
+                _context19.next = 37;
+                return this.displayErrorFeedback(_context19.t0, object, snack);
 
               case 37:
               case "end":
-                return _context18.stop();
+                return _context19.stop();
             }
           }
-        }, _callee18, this, [[26, 33]]);
+        }, _callee19, this, [[26, 33]]);
       }));
 
       function displayErrorFeedback(_x14) {
@@ -5304,7 +5344,7 @@ var eQ = /*#__PURE__*/function () {
     value: function loadMenu(menu) {
       var _loop2 = function _loop2() {
         item = menu[i];
-        var $link = (0, _jqueryLib.$)('<div/>').addClass('sb-menu-button mdc-menu-surface--anchor').append(_materialLib.UIHelper.createButton('view-filters', item.name, 'text')).appendTo((0, _jqueryLib.$)('#sb-menu')); // create floating menu for filters selection
+        var $link = (0, _jqueryLib.$)('<div/>').addClass('sb-menu-button mdc-menu-surface--anchor').append(_materialLib.UIHelper.createButton('menu-entry' + '-' + item.name + '-' + item.target, item.name, 'text', item.icon)).appendTo((0, _jqueryLib.$)('#sb-menu')); // create floating menu for filters selection
 
         var $menu = _materialLib.UIHelper.createMenu('nav-menu').addClass('sb-view-header-list-filters-menu').css({
           "margin-top": '48px'
@@ -5315,7 +5355,7 @@ var eQ = /*#__PURE__*/function () {
         for (j = 0; j < menu[i].children.length; ++j) {
           item = menu[i].children[j];
 
-          _materialLib.UIHelper.createListItem(item.name + ' ' + item.entity).data('item', item).appendTo($list).on('click', function (event) {
+          _materialLib.UIHelper.createListItem(item.name + ' (' + item.entity + ')', item.icon).data('item', item).appendTo($list).on('click', function (event) {
             var $this = (0, _jqueryLib.$)(event.currentTarget);
             var item = $this.data('item');
 
@@ -6998,7 +7038,7 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
 
           var $select = _materialLib.UIHelper.createInput('', this.label, value).addClass('mdc-menu-surface--anchor').css({
             "width": "calc(100% - 48px)",
-            "display": "inline-flex"
+            "display": "inline-block"
           });
 
           var $menu = _materialLib.UIHelper.createMenu('').appendTo($select);

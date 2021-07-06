@@ -486,7 +486,21 @@ export class View {
                             let objects = await this.model.get(this.selected_ids);
                             $('#sb-events').trigger('_closeContext', {selection: this.selected_ids, objects: objects});
                         })
-                    );
+                    )
+                    .append( 
+                        UIHelper.createButton('action-create', TranslationService.instant('SB_ACTIONS_BUTTON_CREATE'), 'text')
+                        .on('click', async () => {
+                            try {
+                                // create a new object
+                                let object = await ApiService.create(this.entity, this.getCreationDefaults());
+                                // request a new Context for editing the new object
+                                $('#sb-events').trigger('_openContext', {entity: this.entity, type: 'form', name: 'default', domain: [['id', '=', object.id], ['state', '=', 'draft']], mode: 'edit', purpose: 'create'});
+                            }
+                            catch(response) {
+                                this.displayErrorFeedback(response);
+                            }
+                        })
+                    );                    
                     break;
                 case 'widget':
                 default:
@@ -624,11 +638,8 @@ export class View {
         });
         
         // attach elements to header toolbar
+        $level2.append( $filters_button );
 
-        // hide filter button if there are no filters available
-        if(Object.keys(this.filters).length) {
-            $level2.append( $filters_button );
-        }
         $level2.append( $filters_set );
         $level2.append( $pagination );
         $level2.append( $fields_toggle_button );
@@ -738,6 +749,7 @@ export class View {
                                 $('#sb-events').trigger('_closeContext');    
                             }
                             catch(response) {
+                                console.log('catched response', response);
                                 this.displayErrorFeedback(response, object, false);
                             }
                         }
@@ -1052,7 +1064,7 @@ export class View {
         }
     }
 
-    private async displayErrorFeedback(response:any, object:any = null, snack:boolean = false) {
+    private async displayErrorFeedback(response:any, object:any = null, snack:boolean = true) {
         if(response && response.hasOwnProperty('errors')) {
             let errors = response['errors'];
 

@@ -141,6 +141,10 @@ export class Layout {
         let translation = this.view.getTranslation();
         let model_fields = this.view.getModelFields();
 
+        if(!model_fields || !model_fields.hasOwnProperty(field)) {
+            return null;
+        }
+
         let def = model_fields[field];
 
         let label = (item.hasOwnProperty('label'))?item.label:field;
@@ -205,7 +209,7 @@ export class Layout {
 
             let $tabs = UIHelper.createTabBar('test', '', '').addClass('sb-view-form-sections-tabbar');
 
-            if(group.sections.length > 1) {
+            if(group.sections.length > 1 ||  group.sections[0].hasOwnProperty('label')){
                 $group.append($tabs);    
             }
             
@@ -216,9 +220,9 @@ export class Layout {
                     $section.hide();
                 }
 
-                if(group.sections.length > 1) {
+                if(group.sections.length > 1 || section.hasOwnProperty('label')) {
                     // try to resolve the section title
-                    let section_title = (section.hasOwnProperty('label'))?section.label:'';
+                    let section_title = (section.hasOwnProperty('label'))?section.label:section_id;
                     if(section.hasOwnProperty('id')) {
                         section_title = TranslationService.resolve(translation, 'view', section.id, section_title);
                     }
@@ -234,7 +238,7 @@ export class Layout {
                 
 
                 $.each(section.rows, (i, row) => {
-                    let $row = $('<div />').addClass('mdc-layout-grid__inner').appendTo($section);
+                    let $row = $('<div />').addClass('sb-view-form-row mdc-layout-grid__inner').appendTo($section);
                     $.each(row.columns, (i, column) => {
                         let $column = $('<div />').addClass('mdc-layout-grid__cell').appendTo($row);
 
@@ -252,19 +256,21 @@ export class Layout {
                             
                             $cell.addClass('mdc-layout-grid__cell--span-' + width);
 
-                            if(item.hasOwnProperty('value')) {
+                            if(item.hasOwnProperty('type') && item.hasOwnProperty('value')) {
                                 if(item.type == 'field') {
                                    
                                     let config = this.getWidgetConfig(item);
 
-                                    let widget:Widget = WidgetFactory.getWidget(config.type, config.title, '', config);
-                                    widget.setReadonly(config.readonly);
-                                    // store widget in widgets Map, using field name as key
-                                    if(typeof this.model_widgets[0] == 'undefined') {
-                                        this.model_widgets[0] = {};
+                                    if(config) {
+                                        let widget:Widget = WidgetFactory.getWidget(config.type, config.title, '', config);
+                                        widget.setReadonly(config.readonly);
+                                        // store widget in widgets Map, using field name as key
+                                        if(typeof this.model_widgets[0] == 'undefined') {
+                                            this.model_widgets[0] = {};
+                                        }
+                                        this.model_widgets[0][item.value] = widget;
+                                        $cell.append(widget.attach());    
                                     }
-                                    this.model_widgets[0][item.value] = widget;
-                                    $cell.append(widget.attach());
                                 }
                                 else if(item.type == 'label') {
                                     $cell.append('<span style="font-weight: 600;">'+item.value+'</span>');

@@ -29,7 +29,7 @@ export default class WidgetMany2One extends Widget {
                 let objects:Array<any> = [];
                 $elem = $('<div />');
 
-                let $select = UIHelper.createInput('', this.label, value).addClass('mdc-menu-surface--anchor').css({"width": "calc(100% - 48px)", "display": "inline-flex"});
+                let $select = UIHelper.createInput('', this.label, value).addClass('mdc-menu-surface--anchor').css({"width": "calc(100% - 48px)", "display": "inline-block"});
                 let $menu = UIHelper.createMenu('').appendTo($select);        
                 let $menu_list = UIHelper.createList('').appendTo($menu);
                 let $link = UIHelper.createListItem('<a href="#">'+TranslationService.instant('SB_WIDGETS_MANY2ONE_ADVANCED_SEARCH')+'</a>');

@@ -35,16 +35,48 @@
 <script>
 
 var menu = [
+{
+        name: 'Booking',
+        description: '',
+        icon: 'wallet_travel',
+        type: 'parent',
+    	children: [
+            {
+                name: 'Bookings',
+                description: '',
+                icon: 'wallet_travel',
+                type: 'entry',
+                entity: 'sale\\booking\\Booking',
+                target: 'list.default'
+            },
+            {
+                name: 'Types',
+                description: '',
+                icon: '',
+                type: 'entry',
+                entity: 'sale\\booking\\Type',
+                target: 'list.default'
+            },
+            {
+                name: 'Categories',
+                description: '',
+                icon: '',
+                type: 'entry',
+                entity: 'sale\\product\\Category',
+                target: 'list.default'
+            }
+        ]
+    },    
     {
         name: 'Users & Groups',
         description: '',
-        icon: '',
+        icon: 'groups',
         type: 'parent',
     	children: [
             {
                 name: 'Users',
                 description: '',
-                icon: '',
+                icon: 'person',
                 type: 'entry',
                 entity: 'identity\\User',
                 target: 'list.default'
@@ -52,7 +84,7 @@ var menu = [
             {
                 name: 'Groups',
                 description: '',
-                icon: '',
+                icon: 'group',
                 type: 'entry',
                 entity: 'core\\Group',                
                 target: 'list.default'
@@ -60,7 +92,7 @@ var menu = [
             {
                 name: 'Permissions',
                 description: '',
-                icon: '',
+                icon: 'lock',
                 type: 'entry',
                 entity: 'core\\Permission',                
                 target: 'list.default'             
@@ -71,13 +103,13 @@ var menu = [
     {
         name: 'Identity',
         description: '',
-        icon: '',
+        icon: 'person_outline',
         type: 'parent',
     	children: [
             {
                 name: 'Identities',
                 description: '',
-                icon: '',
+                icon: 'person_outline',
                 type: 'entry',
                 entity: 'identity\\Identity',
                 target: 'list.default'
@@ -85,15 +117,23 @@ var menu = [
             {
                 name: 'Partners',
                 description: '',
-                icon: '',
+                icon: 'group_work',
                 type: 'entry',
                 entity: 'identity\\Partner',
                 target: 'list.default'
             },
             {
+                name: 'Establishments',
+                description: '',
+                icon: 'house',
+                type: 'entry',
+                entity: 'identity\\Establishment',
+                target: 'list.default',
+            },
+            {
                 name: 'Addresses',
                 description: '',
-                icon: '',
+                icon: 'import_contacts',
                 type: 'entry',
                 entity: 'identity\\Address',
                 target: 'list.default',
@@ -101,7 +141,7 @@ var menu = [
             {
                 name: 'Contacts',
                 description: '',
-                icon: '',
+                icon: 'contacts',
                 type: 'entry',
                 entity: 'identity\\Partner',
                 target: 'list.contact'
@@ -111,7 +151,7 @@ var menu = [
     {
         name: 'System',
         description: '',
-        icon: '',
+        icon: 'settings',
         type: 'parent',
     	children: [
             {
@@ -205,7 +245,7 @@ body, html {
 }
 
 #sb-container {
-    border: solid red 1px;
+
     width: 100%;
     height: 100%;
     overflow: auto;
@@ -393,17 +433,32 @@ body, html {
     user-select: none;
 }
 
-.sb-widget-mode-view label.mdc-text-field .mdc-floating-label {
-    color: rgba(0,0,0,0.8) !important;
+.sb-widget-mode-view .mdc-text-field .mdc-floating-label,
+.sb-widget-mode-view.mdc-select .mdc-floating-label {
+    color: rgba(0,0,0,0.5) !important;
     user-select: none;
     font-size: 16px;
+    font-weight: 400;
+}
+
+.sb-widget-mode-edit .mdc-text-field .mdc-floating-label, 
+.sb-widget-mode-edit.mdc-select .mdc-floating-label {
+    color: rgba(0,0,0,0.8) !important;
     font-weight: 600;
 }
 
-.sb-widget-mode-view label.mdc-text-field .mdc-floating-label.mdc-floating-label--float-above {
+.sb-widget-mode-view .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above, 
+.sb-widget-mode-view.mdc-select .mdc-floating-label.mdc-floating-label--float-above {
+    color: rgba(0,0,0,0.8) !important;
+    font-weight: 600;
+}
+
+.sb-widget-mode-edit .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above, 
+.sb-widget-mode-edit.mdc-select .mdc-floating-label.mdc-floating-label--float-above {
     color: rgba(0,0,0,0.6) !important;
     font-weight: 400;
 }
+
 
 .sb-view-header-form {
     height: 56px;
@@ -427,6 +482,10 @@ body, html {
 
 .sb-view-form-group {
     padding: 12px;
+}
+
+.sb-view-form-row:not(:first-child) {
+    padding-top: 24px;
 }
 
 .sb-view-form-group-title {
@@ -453,6 +512,12 @@ body, html {
     height: 100%;
 }
 
+.sb-view-layout-list .sb-widget-mode-edit button.mdc-icon-button {
+    padding: 0 0 0 5px;
+    height: auto;
+    width: auto;
+    position: absolute;
+}
 
 .sb-view-layout-form-input-button {
     width: 25px;
@@ -495,7 +560,7 @@ body, html {
 
 /* support for title strings */
 .sb-widget.title {
-    margin-top: -15px; 
+    margin-top: -14px; 
 }
 
 .sb-widget.title span.mdc-floating-label--float-above {
@@ -633,6 +698,10 @@ body, html {
     cursor: pointer;
 }
 
+.mdc-text-field--textarea {
+    outline: solid 1px rgba(0, 0,0,0.1);
+}
+
 .sb-view-layout.sb-view-layout-form .mdc-text-field--filled:not(.mdc-text-field--disabled), .mdc-select--filled:not(.mdc-select--disabled) .mdc-select__anchor {
     background: transparent !important;
 }
@@ -734,6 +803,10 @@ body, html {
 .mdc-tab__text-label {
     user-select: none;
 }
+.mdc-tab.mdc-tab--active .mdc-tab__ripple {
+    background-color: var(--mdc-ripple-color, var(--mdc-theme-primary, #6200ee));
+    opacity: 0.1;
+}
 
 
 
@@ -744,8 +817,6 @@ body, html {
     z-index: 3 !important;
     font-family: "Roboto";
 }
-
-
 
 .ui-datepicker {
     padding: 0;

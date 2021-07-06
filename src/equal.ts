@@ -337,7 +337,7 @@ class eQ {
             var item = menu[i];
 
             let $link = $('<div/>').addClass('sb-menu-button mdc-menu-surface--anchor')
-            .append( UIHelper.createButton('view-filters', item.name, 'text') )
+            .append( UIHelper.createButton('menu-entry'+'-'+item.name+'-'+item.target, item.name, 'text', item.icon) )
             .appendTo($('#sb-menu'));
     
             // create floating menu for filters selection
@@ -347,7 +347,7 @@ class eQ {
             for(var j = 0; j < menu[i].children.length; ++j) {
                 var item = menu[i].children[j];
 
-                UIHelper.createListItem(item.name + ' ' + item.entity)
+                UIHelper.createListItem(item.name + ' (' + item.entity + ')', item.icon)
                 .data('item', item)
                 .appendTo($list)
                 .on('click', (event) => {
