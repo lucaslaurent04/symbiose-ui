@@ -19,7 +19,7 @@ export default class WidgetMany2Many extends Widget {
         $elem = $('<div />');
 
         // make sure view is not instanciated during 'layout' phase (while config is still incomplete)
-        if(this.config.hasOwnProperty('entity') && this.config.hasOwnProperty('type') && this.config.hasOwnProperty('name')) {
+        if(this.config.hasOwnProperty('ready') && this.config.ready) {
 
             let view_config = {
                 show_actions: false,
@@ -43,7 +43,7 @@ export default class WidgetMany2Many extends Widget {
                 ]
             };
 
-            let view = new View(this.config.entity, 'list', this.config.name, this.config.domain, this.mode, 'widget', this.config.lang, view_config);
+            let view = new View(this.config.entity, this.config.view_type, this.config.view_name, this.config.domain, this.mode, 'widget', this.config.lang, view_config);
     
             view.isReady().then( () => {
                 let $container = view.getContainer();

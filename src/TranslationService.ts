@@ -1,5 +1,6 @@
 import { $ } from "./jquery-lib";
 import { environment } from "./environment";
+import { i18n } from "./i18n";
 
 /**
  * This service is in charge of loading the UI translations and provide getters to retrieve requested values
@@ -22,21 +23,13 @@ export class _TranslationService {
         this.translations = $.Deferred();
         this.resolved = false;
 
-        fetch('./i18n/'+environment.lang)
-        .then( (response:any) => {
-            response.json() 
-            .then( (json_data:any) => {
-                // keep a copy for instant translation (we have no mean to detect if)
-                this.resolved = json_data;
-                this.translations.resolve(json_data);                
-            })
-            .catch( () => {
-                this.translations.resolve({});
-            });                
-        })
-        .catch( () => {
+        if(i18n.hasOwnProperty(environment.lang)) {
+            this.resolved = (<any>i18n)[environment.lang];
+            this.translations.resolve((<any>i18n)[environment.lang]);
+        }
+        else {
             this.translations.resolve({});
-        });
+        }
 
     }
 

@@ -4,4 +4,7 @@ export const environment = {
     locale: 'fr'
 };
 
+
+
+
 export default environment;

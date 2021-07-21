@@ -1460,8 +1460,10 @@ var Layout = /*#__PURE__*/function () {
       if (config.hasOwnProperty('selection')) {
         config.type = 'select';
         config.values = config.selection;
-      }
+      } // ready property is set to true during the 'feed' phase
 
+
+      config.ready = false;
       config.title = _equalServices.TranslationService.resolve(translation, 'model', field, label, 'label');
       config.helper = _equalServices.TranslationService.resolve(translation, 'model', field, helper, 'help');
       config.readonly = item.hasOwnProperty('readonly') ? item.readonly : def.hasOwnProperty('readonly') ? def['readonly'] : false;
@@ -1483,6 +1485,21 @@ var Layout = /*#__PURE__*/function () {
       if (item.hasOwnProperty('widget')) {
         // overload config with widget config
         config = _objectSpread(_objectSpread({}, config), item.widget);
+      } // for relational fields, we need to check if the Model has been fetched al
+
+
+      if (['one2many', 'many2one', 'many2many'].indexOf(def['type']) > -1) {
+        // defined config for Widget's view with a custom domain according to object values
+        var view_id = config.hasOwnProperty('view') ? config.view : 'list.default';
+        var parts = view_id.split(".", 2);
+        var view_type = parts.length > 1 ? parts[0] : 'list';
+        var view_name = parts.length > 1 ? parts[1] : parts[0];
+        config = _objectSpread(_objectSpread({}, config), {}, {
+          entity: def['foreign_object'],
+          view_type: view_type,
+          view_name: view_name,
+          domain: def.hasOwnProperty('domain') ? def['domain'] : []
+        });
       }
 
       return config;
@@ -1856,17 +1873,10 @@ var Layout = /*#__PURE__*/function () {
 
                   if (!target_ids.length) {
                     target_ids.push(0);
-                  } // defined config for Widget's view with a custom domain according to object values
+                  }
 
-
-                  var view_id = config.hasOwnProperty('view') ? config.view : 'list.default';
-                  var parts = view_id.split(".", 2);
-                  var view_type = parts.length > 1 ? parts[0] : 'list';
-                  var view_name = parts.length > 1 ? parts[1] : parts[0];
                   config = _objectSpread(_objectSpread({}, config), {}, {
-                    entity: model_def['foreign_object'],
-                    type: view_type,
-                    name: view_name,
+                    // todo : merge domains instead of override                            
                     domain: ['id', 'in', target_ids]
                   });
                 }
@@ -1881,7 +1891,9 @@ var Layout = /*#__PURE__*/function () {
               }
 
               has_changed = !value || $parent.data('value') != value;
-              widget.setConfig(config).setMode(_this4.view.getMode()).setValue(value); // store data to parent, for tracking changes at next refresh
+              widget.setConfig(_objectSpread(_objectSpread({}, config), {}, {
+                ready: true
+              })).setMode(_this4.view.getMode()).setValue(value); // store data to parent, for tracking changes at next refresh
 
               $parent.data('value', value);
               var visible = true; // handle visibility tests (domain)           
@@ -2471,6 +2483,8 @@ var _jqueryLib = __webpack_require__(/*! ./jquery-lib */ "./build/jquery-lib.js"
 
 var _environment = __webpack_require__(/*! ./environment */ "./build/environment.js");
 
+var _i18n = __webpack_require__(/*! ./i18n */ "./build/i18n.js");
+
 /**
  * This service is in charge of loading the UI translations and provide getters to retrieve requested values
  */
@@ -2488,22 +2502,15 @@ var _TranslationService = /*#__PURE__*/function () {
   (0, _createClass2.default)(_TranslationService, [{
     key: "init",
     value: function init() {
-      var _this = this;
-
       this.translations = _jqueryLib.$.Deferred();
       this.resolved = false;
-      fetch('./i18n/' + _environment.environment.lang).then(function (response) {
-        response.json().then(function (json_data) {
-          // keep a copy for instant translation (we have no mean to detect if)
-          _this.resolved = json_data;
 
-          _this.translations.resolve(json_data);
-        }).catch(function () {
-          _this.translations.resolve({});
-        });
-      }).catch(function () {
-        _this.translations.resolve({});
-      });
+      if (_i18n.i18n.hasOwnProperty(_environment.environment.lang)) {
+        this.resolved = _i18n.i18n[_environment.environment.lang];
+        this.translations.resolve(_i18n.i18n[_environment.environment.lang]);
+      } else {
+        this.translations.resolve({});
+      }
     }
   }, {
     key: "translate",
@@ -2648,7 +2655,7 @@ var _Domain = _interopRequireDefault(__webpack_require__(/*! ./Domain */ "./buil
 
 var _Layout = _interopRequireDefault(__webpack_require__(/*! ./Layout */ "./build/Layout.js"));
 
-var _Model = _interopRequireDefault(__webpack_require__(/*! ./Model */ "./build/Model-exposed.js"));
+var _Model = _interopRequireDefault(__webpack_require__(/*! ./Model */ "./build/Model.js"));
 
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) { symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); } keys.push.apply(keys, symbols); } return keys; }
 
@@ -4550,7 +4557,7 @@ var _Context = _interopRequireDefault(__webpack_require__(/*! ./Context */ "./bu
 
 var _Layout = _interopRequireDefault(__webpack_require__(/*! ./Layout */ "./build/Layout.js"));
 
-var _Model = _interopRequireDefault(__webpack_require__(/*! ./Model */ "./build/Model-exposed.js"));
+var _Model = _interopRequireDefault(__webpack_require__(/*! ./Model */ "./build/Model.js"));
 
 var _View = _interopRequireDefault(__webpack_require__(/*! ./View */ "./build/View.js"));
 
@@ -4749,28 +4756,29 @@ function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (O
 
 function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2.default)(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
-// We use MDC (material design components)
+__webpack_require__(/*! ../datepicker-improved.js */ "./datepicker-improved.js");
+
+__webpack_require__(/*! ../timepicker.js */ "./timepicker.js");
+
+__webpack_require__(/*! ../css/material-basics.css */ "./css/material-basics.css");
+
+__webpack_require__(/*! ../css/equal.css */ "./css/equal.css"); // We use MDC (material design components)
 // @see https://github.com/material-components/material-components-web/blob/master/docs/getting-started.md
+
+
 var eQ = /*#__PURE__*/function () {
   // jquery object for components communication
-  // the main container in which the Context views are injected
   // temporary var for computing width of rendered strings
   // stack of Context (only current context is visible)
   // current context
   function eQ(entity) {
     (0, _classCallCheck2.default)(this, eQ);
     (0, _defineProperty2.default)(this, "$sbEvents", void 0);
-    (0, _defineProperty2.default)(this, "$container", void 0);
     (0, _defineProperty2.default)(this, "$headerContainer", void 0);
     (0, _defineProperty2.default)(this, "$canvas", void 0);
     (0, _defineProperty2.default)(this, "stack", void 0);
     (0, _defineProperty2.default)(this, "context", void 0);
-    // we need to actually use the dependencies in this file in order to have them loaded in webpack
-    this.$sbEvents = (0, _jqueryLib.$)(); // `#sb-container` is a convention and must be present in the DOM
-
-    this.$container = (0, _jqueryLib.$)('#sb-container'); // #sb-container-header is managed automatically and shows the breadcrumb of the stack
-
-    this.$headerContainer = (0, _jqueryLib.$)('<div/>').addClass('sb-container-header').appendTo(this.$container);
+    // `#sb-container` is a convention and must be present in the DOM
     this.context = {};
     this.stack = [];
     this.init();
@@ -5017,6 +5025,12 @@ var eQ = /*#__PURE__*/function () {
             switch (_context6.prev = _context6.next) {
               case 0:
                 console.log('update header');
+
+                if ((0, _jqueryLib.$)('.sb-container-header').length == 0) {
+                  // #sb-container-header is managed automatically and shows the breadcrumb of the stack
+                  this.$headerContainer = (0, _jqueryLib.$)('<div/>').addClass('sb-container-header').appendTo((0, _jqueryLib.$)('#sb-container'));
+                }
+
                 $elem = (0, _jqueryLib.$)('<h3 />').css({
                   display: 'flex'
                 }); // add temporary, invisible header for font size computations
@@ -5024,10 +5038,10 @@ var eQ = /*#__PURE__*/function () {
                 $temp = (0, _jqueryLib.$)('<h3 />').css({
                   visibility: 'hidden'
                 }).appendTo(this.$headerContainer);
-                _context6.next = 5;
+                _context6.next = 6;
                 return this.getPurposeString(this.context);
 
-              case 5:
+              case 6:
                 current_purpose_string = _context6.sent;
                 available_width = this.$headerContainer[0].clientWidth * 0.8;
                 font = $temp.css("font-weight") + ' ' + $temp.css("font-size") + ' ' + $temp.css("font-family");
@@ -5035,17 +5049,17 @@ var eQ = /*#__PURE__*/function () {
                 prepend_contexts_count = 0;
 
                 if (!(total_text_width > available_width)) {
-                  _context6.next = 16;
+                  _context6.next = 17;
                   break;
                 }
 
                 char_width = total_text_width / current_purpose_string.length;
                 max_chars = available_width / char_width;
                 current_purpose_string = current_purpose_string.substr(0, max_chars - 1) + '...';
-                _context6.next = 26;
+                _context6.next = 27;
                 break;
 
-              case 16:
+              case 17:
                 _loop = /*#__PURE__*/_regenerator.default.mark(function _loop(i) {
                   var context, context_purpose_string, text_width, overflow;
                   return _regenerator.default.wrap(function _loop$(_context5) {
@@ -5162,30 +5176,30 @@ var eQ = /*#__PURE__*/function () {
                 });
                 i = this.stack.length - 1;
 
-              case 18:
+              case 19:
                 if (!(i >= 0)) {
-                  _context6.next = 26;
+                  _context6.next = 27;
                   break;
                 }
 
-                return _context6.delegateYield(_loop(i), "t0", 20);
+                return _context6.delegateYield(_loop(i), "t0", 21);
 
-              case 20:
+              case 21:
                 _ret = _context6.t0;
 
                 if (!(_ret === "break")) {
-                  _context6.next = 23;
+                  _context6.next = 24;
                   break;
                 }
 
-                return _context6.abrupt("break", 26);
+                return _context6.abrupt("break", 27);
 
-              case 23:
+              case 24:
                 --i;
-                _context6.next = 18;
+                _context6.next = 19;
                 break;
 
-              case 26:
+              case 27:
                 // ... plus the active context
                 if (this.context.hasOwnProperty('$container')) {
                   if (prepend_contexts_count > 0) {
@@ -5224,7 +5238,7 @@ var eQ = /*#__PURE__*/function () {
                   }
                 }
 
-              case 27:
+              case 28:
               case "end":
                 return _context6.stop();
             }
@@ -5256,7 +5270,7 @@ var eQ = /*#__PURE__*/function () {
           prev_context.$container.hide();
         }
 
-        _this3.$container.append(_this3.context.getContainer());
+        (0, _jqueryLib.$)('#sb-container').append(_this3.context.getContainer());
       });
       this.updateHeader();
     }
@@ -5400,11 +5414,64 @@ var eQ = /*#__PURE__*/function () {
         _loop2();
       }
     }
+  }, {
+    key: "open",
+    value: function open(context) {
+      console.log("eQ::open");
+      this.$sbEvents.trigger('_openContext', context);
+    }
   }]);
   return eQ;
 }();
 
 module.exports = eQ;
+
+/***/ }),
+
+/***/ "./build/i18n.js":
+/*!***********************!*\
+  !*** ./build/i18n.js ***!
+  \***********************/
+/***/ ((__unused_webpack_module, exports) => {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.default = exports.i18n = void 0;
+var i18n = {
+  "fr": {
+    "SB_PURPOSE_CREATE": "Création",
+    "SB_PURPOSE_UPDATE": "Modification",
+    "SB_PURPOSE_SELECT": "Sélection",
+    "SB_PURPOSE_ADD": "Ajout",
+    "SB_FILTERS_ADD_CUSTOM_FILTER": "Ajouter un filtre personnalisé",
+    "SB_FILTERS_DIALOG_FIELD": "Champ",
+    "SB_FILTERS_DIALOG_OPERATOR": "Opérateur",
+    "SB_FILTERS_DIALOG_VALUE": "Valeur",
+    "SB_ACTIONS_BUTTON_CREATE": "Créer",
+    "SB_ACTIONS_BUTTON_SAVE": "Sauver",
+    "SB_ACTIONS_BUTTON_UPDATE": "Modifier",
+    "SB_ACTIONS_BUTTON_INLINE_UPDATE": "Modifier en ligne",
+    "SB_ACTIONS_BUTTON_ARCHIVE": "Archiver",
+    "SB_ACTIONS_BUTTON_DELETE": "Supprimer",
+    "SB_ACTIONS_BUTTON_CANCEL": "Annuler",
+    "SB_ACTIONS_BUTTON_SELECT": "Sélectionner",
+    "SB_ACTIONS_BUTTON_ADD": "Ajouter",
+    "SB_ACTIONS_BUTTON_REMOVE": "Retirer",
+    "SB_ACTIONS_BUTTON_SELECTED": "sélectionnés",
+    "SB_ACTIONS_MESSAGE_ABANDON_CHANGE": "Des modifications ont été apportées et vont être perdues. Voulez-vous continuer ?",
+    "SB_ACTIONS_MESSAGE_ERASE_CONUCRRENT_CHANGES": "Un autre utilisateur a apporté des modifications sur cette fiche pendant que vous l'éditiez. Ces modifications risquent d'être écrasées par les vôtres. Voulez-vous sauver tout de même ?",
+    "SB_WIDGETS_MANY2ONE_ADVANCED_SEARCH": "Recherche avancée ...",
+    "SB_ERROR_DUPLICATE_VALUE": "Cette valeur doit être unique mais existe déjà.",
+    "SB_ERROR_NOT_ALLOWED": "Vous n'avez pas les autorisations pour cette opération."
+  }
+};
+exports.i18n = i18n;
+var _default = i18n;
+exports.default = _default;
 
 /***/ }),
 
@@ -6846,7 +6913,7 @@ var WidgetMany2Many = /*#__PURE__*/function (_Widget) {
       var $elem;
       $elem = $('<div />'); // make sure view is not instanciated during 'layout' phase (while config is still incomplete)
 
-      if (this.config.hasOwnProperty('entity') && this.config.hasOwnProperty('type') && this.config.hasOwnProperty('name')) {
+      if (this.config.hasOwnProperty('ready') && this.config.ready) {
         var view_config = {
           show_actions: false,
           // update the actions of the "current selection" button
@@ -6885,7 +6952,7 @@ var WidgetMany2Many = /*#__PURE__*/function (_Widget) {
             }
           }]
         };
-        var view = new _View.default(this.config.entity, 'list', this.config.name, this.config.domain, this.mode, 'widget', this.config.lang, view_config);
+        var view = new _View.default(this.config.entity, this.config.view_type, this.config.view_name, this.config.domain, this.mode, 'widget', this.config.lang, view_config);
         view.isReady().then(function () {
           var $container = view.getContainer();
 
@@ -7132,8 +7199,8 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
                   case 0:
                     $('#sb-events').trigger('_openContext', {
                       entity: _this.config.foreign_object,
-                      type: 'list',
-                      name: 'default',
+                      type: _this.config.hasOwnProperty('view_type') ? _this.config.view_type : 'list',
+                      name: _this.config.hasOwnProperty('view_name') ? _this.config.view_name : 'default',
                       domain: domain,
                       mode: 'view',
                       purpose: 'select',
@@ -7507,6 +7574,527 @@ var WidgetText = /*#__PURE__*/function (_Widget) {
 }(_Widget2.default);
 
 exports.default = WidgetText;
+
+/***/ }),
+
+/***/ "./datepicker-improved.js":
+/*!********************************!*\
+  !*** ./datepicker-improved.js ***!
+  \********************************/
+/***/ (() => {
+
+/*
+Month and Year picker for jQuery UI Datepicker 1.8.21
+
+Written by Anton Ludescher (silverskater{at}gmail.com).
+Dual licensed under the GPL (http://dev.jquery.com/browser/trunk/jquery/GPL-LICENSE.txt) and
+MIT (http://dev.jquery.com/browser/trunk/jquery/MIT-LICENSE.txt) licenses. */
+
+
+(function($, undefined ) {
+
+	//overriding functions meant to be private (starting with an underscore)
+	$.datepicker._updateDatepicker_orig = $.datepicker._updateDatepicker;
+	$.datepicker._doKeyDown_orig = $.datepicker._doKeyDown;
+	$.datepicker._newInst_orig = $.datepicker._newInst;    
+    $.datepicker._getDateDatepicker_orig = $.datepicker._getDateDatepicker;
+    
+    
+	$.extend($.datepicker, {
+        
+        _newInst: function( target, inline ) {
+            var inst = this._newInst_orig(target, inline);
+
+            // inject additional default values
+            var today = new Date();
+            inst.settings = $.extend( {}, inst.settings, {
+                datetime: false,
+                twentyFour: false,
+                showSeconds: false
+            } );
+            this.setHours(inst, today.getHours());
+            this.setMinutes(inst, today.getMinutes());
+            this.setSeconds(inst, 0);
+            
+            return inst;
+        },
+        
+		_doKeyDown: function(event) {
+			var inst = $.datepicker._getInst(event.target);
+			var handled = true;
+			//var isRTL = inst.dpDiv.is('.ui-datepicker-rtl');
+			inst._keyEvent = true;
+			if ($.datepicker._datepickerShowing) {
+				switch (event.keyCode) {
+					case 27:
+                        if($('.ui-datepicker-select-month').is(':visible')) {
+                            $.datepicker._updateDatepicker(inst);
+                        }
+                        else if($('.ui-datepicker-select-year').is(':visible')) {
+                            $.datepicker._toggleDisplay('#'+inst.id, 2, this);
+                        }
+                        else {
+                            // hide on esc
+                            $.datepicker._hideDatepicker();
+                        }
+                        break; 
+					default:
+                        //call the original function
+                        $.datepicker._doKeyDown_orig(event);
+				}
+			}
+			else {
+				//call the original function
+				$.datepicker._doKeyDown_orig(event);
+			}
+		},
+        
+        _setDateTimeDatepicker:  function(target, date) {
+            var inst = $.datepicker._getInst(target);
+            this._setDateDatepicker(target, date);
+            this.setHours(inst, date.getHours());
+            this.setMinutes(inst, date.getMinutes());
+            this.setSeconds(inst, date.getSeconds());
+            this.setText(inst);
+        },
+
+        _getDateDatepicker: function( target, noDefault ) {
+            var date = this._getDateDatepicker_orig( target, noDefault );
+            var inst = $.datepicker._getInst(target); 
+            if(!date) date = new Date();
+
+            date = new Date(date.getFullYear(), date.getMonth(), date.getDate(), inst.selectedHour, inst.selectedMin, inst.selectedSec);
+
+            return date;
+        },
+
+		_updateDatepicker: function(inst) {
+			//call the original function
+			this._updateDatepicker_orig(inst);
+
+			//TODO: multiMonth
+			var numMonths = this._getNumberOfMonths(inst);
+			var isMultiMonth = (numMonths[0] != 1 || numMonths[1] != 1);
+			var changeMonth = this._get(inst, 'changeMonth');
+			var changeYear = this._get(inst, 'changeYear');
+			if(isMultiMonth || changeMonth || changeYear) {
+				return ;
+			}
+
+			var uidptitle = inst.dpDiv.find('.ui-datepicker-title');
+
+			inst.dpDiv.append(this._generateMonthYearPicker(inst));
+            
+            if(inst.settings.datetime) {
+                var time_button = $('<button class="mdc-button mdc-button--raised"><span class="material-icons mdc-fab__icon">access_time</span></button>');
+                uidptitle.parent().append($('<div />').addClass('ui-datepicker-header-time-switch').append(time_button));
+                
+                time_button.on('click', function() {
+                    $.datepicker._toggleDisplay('#' + inst.id, 4); return false;
+                });
+                
+                inst.dpDiv.append(this._generateTimePicker(inst));
+                this.setText(inst);                
+            }
+            
+			var uidptitle_link = uidptitle.wrapInner('<a href="#"/>');
+			uidptitle_link.on('click', function(){$.datepicker._toggleDisplay('#' + inst.id, 2); return false;});
+            
+		},
+
+		//focus the date input field
+		_instInputFocus_MYP: function(inst) {
+			//code copied from datePicker's _updateDatepicker()
+			if (inst == $.datepicker._curInst && $.datepicker._datepickerShowing && inst.input &&
+					// #6694 - don't focus the input if it's already focused
+					// this breaks the change event in IE
+					inst.input.is(':visible') && !inst.input.is(':disabled') && inst.input[0] != document.activeElement)
+				inst.input.focus();
+
+		},
+
+		_generateMonthPickerHTML_MonthYearPicker: function(inst, minDate, maxDate, drawMonth, inMinYear, inMaxYear) {
+			//TODO RTL?
+			var monthNamesShort = this._get(inst, 'monthNamesShort');
+
+			var monthPicker = '<table><tbody><tr>';
+
+			var unselectable = false;
+			for (var month = 0; month < 12; ) {
+				unselectable = 	(inMinYear && month < minDate.getMonth()) ||
+												(inMaxYear && month > maxDate.getMonth());
+				monthPicker += '<td class="' +
+					(unselectable ? ' ' + this._unselectableClass + ' ui-state-disabled': '') +  // highlight unselectable months
+					(month == drawMonth ? ' ui-datepicker-today' : '') + '"' +
+					(unselectable ? '' : ' onclick="jQuery.datepicker._pickMonthYear_MonthYearPicker(\'#' + inst.id + '\', ' + month + ', \'M\');return false;"') + '>' + // actions
+					((unselectable ? '<span class="ui-state-default">' + monthNamesShort[month] + '</span>' : '<a class="ui-state-default ' +
+					//(month == drawMonth ? ' ui-state-highlight' : '') +
+					(month == drawMonth ? ' ui-state-active' : '') + // highlight selected day
+					//(otherMonth ? ' ui-priority-secondary' : '') + // distinguish dates from other months
+					'" href="#">' + monthNamesShort[month] + '</a>')) + '</td>'; // display selectable date
+
+				if(++month % 4 === 0) {
+					monthPicker += '</tr>';
+					if(month != 12) {
+						monthPicker += '<tr>';
+					}
+				}
+			}
+			monthPicker += '</tbody></table>';
+
+			return monthPicker;
+		},
+
+        _incrementTime: function(inst, targetClass, operator) {
+            if (targetClass.endsWith('hours')) {
+                this.setHours(inst, eval(this.getHours(inst) + operator + '1'));
+            } 
+            else if (targetClass.endsWith('minutes')) {
+                this.setMinutes(inst, eval(this.getMinutes(inst) + operator + '1'));
+            } 
+            else if (targetClass.endsWith('seconds')) {
+                this.setSeconds(inst, eval(this.getSeconds(inst) + operator + '1'));
+            } 
+            else {
+                this.setMeridiem(inst);
+            }
+            this.setText(inst);
+            if(inst.input && inst.input.hasClass('hasDatepicker')) {
+                inst.input.change();
+            }            
+        },
+        
+        setText: function (inst) {
+            $(inst.dpDiv).find('.timepicker__controls__control--hours').text( this.getHours(inst).toString().padStart(2, '0') );
+            $(inst.dpDiv).find('.timepicker__controls__control--minutes').text( this.getMinutes(inst).toString().padStart(2, '0') );
+            $(inst.dpDiv).find('.timepicker__controls__control--seconds').text( this.getSeconds(inst).toString().padStart(2, '0') );
+            $(inst.dpDiv).find('.timepicker__controls__control--meridiem').text( this.getMeridiem(inst) );
+        },
+        
+        setHours: function (inst, hours) {
+            if(inst.settings.twentyFour) {
+                if(hours > 23) hours = 0;
+                if(hours < 0) hours = 23;
+            }
+            else{
+                if(hours > 11) {
+                    hours = hours % 12;
+                    inst.selectedMeridiem = 'PM';
+                }
+                if(hours < 0) hours = 11;
+            }
+            inst.selectedHour = hours;
+        },
+        
+        setMinutes: function (inst, minutes) {
+            if(minutes > 59) minutes = minutes % 60;
+            if(minutes < 0) minutes = 59;
+            
+            inst.selectedMin = minutes;
+        },
+        
+        setSeconds: function (inst, seconds) {
+            inst.selectedSec = seconds;
+        },
+
+        setMeridiem: function (inst) {
+            var inputMeridiem = 'AM';
+            if(inst.selectedMeridiem == 'AM') {
+                inputMeridiem = 'PM';
+            }
+            inst.selectedMeridiem = inputMeridiem;
+        },
+
+        getHours: function (inst) {
+            return inst.selectedHour;
+        },
+
+        getMinutes: function (inst) {
+            return inst.selectedMin;        
+        },
+
+        getSeconds: function (inst) {
+            return inst.selectedSec;
+        },
+
+        getMeridiem: function (inst) {
+            return inst.selectedMeridiem;
+        },
+      
+
+		_generateTimePicker: function(inst) {
+            var $elem = $('<div />').addClass('ui-datepicker-select-time').hide();            
+            
+            var picker = '<div class="timepicker"><ul class="timepicker__controls"><li class="timepicker__controls__control"><span class="timepicker__controls__control-up"></span><span class="timepicker__controls__control--hours" tabindex="-1">00</span><span class="timepicker__controls__control-down"></span></li><li class="timepicker__controls__control--separator"><span class="timepicker__controls__control--separator-inner">:</span></li><li class="timepicker__controls__control"><span class="timepicker__controls__control-up"></span><span class="timepicker__controls__control--minutes" tabindex="-1">00</span><span class="timepicker__controls__control-down"></span></li>';
+            if (inst.settings.showSeconds) {
+                picker += '<li class="timepicker__controls__control--separator"><span class="timepicker__controls__control--separator-inner">:</span></li><li class="timepicker__controls__control"><span class="timepicker__controls__control-up"></span><span class="timepicker__controls__control--seconds" tabindex="-1">00</span><span class="timepicker__controls__control-down"></span> </li>';
+            }
+            if (!inst.settings.twentyFour) {
+                picker += '<li class="timepicker__controls__control"><span class="timepicker__controls__control-up"></span><span class="timepicker__controls__control--meridiem" tabindex="-1">AM</span><span class="timepicker__controls__control-down"></span></li></ul></div>';
+            }
+  
+            var $picker = $(picker);
+
+            var self = this;
+            
+            var timeOut = null;
+            $picker.find('.timepicker__controls__control-up').add($picker.find('.timepicker__controls__control-down'))
+            .on('mousedown touchstart', function (event) {
+                var operator = (this.className.indexOf('up') > -1) ? '+' : '-';               
+                var $next = $(this.nextSibling);
+                var $prev = $(this.previousSibling);
+                var $target = (operator === '+') ? $next : $prev;
+                var targetClass = $target.attr('class');
+                timeOut = setInterval(function () {
+                    self._incrementTime(inst, targetClass, operator);                    
+                }, 200);
+                return false;
+            })
+            .on('mouseup touchend mouseout', function () {
+                clearInterval(timeOut);
+                return false;
+            })
+            .on('click', function () {
+                var operator = (this.className.indexOf('up') > -1) ? '+' : '-';               
+                var $next = $(this.nextSibling);
+                var $prev = $(this.previousSibling);
+                var $target = (operator === '+') ? $next : $prev;
+                var targetClass = $target.attr('class');                
+
+                self._incrementTime(inst, targetClass, operator);
+                return false;
+            });
+               
+            $elem.append($picker);
+            return $elem;
+        },
+        
+		_generateMonthYearPicker: function(inst) {
+			var minDate = this._getMinMaxDate(inst, 'min');
+			var maxDate = this._getMinMaxDate(inst, 'max');
+			var drawYear = inst.drawYear;
+			var drawMonth = inst.drawMonth;
+			var inMinYear = (minDate && minDate.getFullYear() == drawYear);
+			var inMaxYear = (maxDate && maxDate.getFullYear() == drawYear);
+
+			var monthPicker = this._generateMonthPickerHTML_MonthYearPicker(inst, minDate, maxDate, drawMonth, inMinYear, inMaxYear);
+
+			return $('<div class="ui-datepicker-select-month" style="display: none">' + monthPicker + '</div>' +
+				'<div class="ui-datepicker-select-year" style="display: none"></div>');	//yearPicker gets filled dinamically
+		},
+
+		_pickMonthYear_MonthYearPicker: function(id, valueMY, period) {
+            var target = $( id ), inst = this._getInst( target[ 0 ] );
+            // keep track of the current drawYear (will be erased by next call)
+            var drawYear = inst.drawYear;
+            
+			var dummySelect = $('<select/>').append( new Option(valueMY, valueMY, true, true) );
+			//select month/year and show datepicker
+			this._selectMonthYear(id, dummySelect[0], period);
+
+            // if a month has been selected, select tht displayed date as well
+			if(period == 'M') {                               
+                dummySelect = $('<select/>').append( new Option(drawYear, drawYear, true, true) );
+                this._selectMonthYear(id, dummySelect[0], 'Y');
+            }         
+
+            // if we selected a year, force display of the monthpicker
+			if(period == 'Y') {
+				this._toggleDisplay(id, 2);
+			}
+		},
+
+
+
+		_addHoverEvents_MonthYearPicker: function (parent) {
+			var dpMonths = parent.find('.ui-state-default');
+			dpMonths.hover(
+				function () {
+					$(this).addClass('ui-state-hover');
+				},
+				function () {
+					$(this).removeClass("ui-state-hover");
+				});
+		},
+
+		_toggleDisplay: function(id, screen, input) {
+
+            var target = $(id);
+            var inst = this._getInst(target[0]);
+
+			if (this._isDisabledDatepicker(target[0])) {
+				return;
+			}
+			//keep the focus for _doKeyDown to work
+			this._instInputFocus_MYP(inst);
+
+			var minDate = this._getMinMaxDate(inst, 'min');
+			var maxDate = this._getMinMaxDate(inst, 'max');
+			var drawYear = inst.drawYear;	//inst.drawYear = inst.selectedYear = inst.currentYear
+			var drawMonth = inst.drawMonth;
+			var minYear = minDate ? minDate.getFullYear() : 0; //TODO
+			var maxYear = maxDate ? maxDate.getFullYear() : undefined;
+			var dpHeader = inst.dpDiv.children('.ui-datepicker-header');
+			var dpPrev = dpHeader.children('a.ui-datepicker-prev');
+			var dpNext = dpHeader.children('a.ui-datepicker-next');
+			var dpTitle = dpHeader.children('.ui-datepicker-title');
+
+			var self = this;
+
+			switch (screen) {
+				case 2:
+					//month picker
+					var inMinYear = (minYear !== undefined && minYear == drawYear);
+					var inMaxYear = (maxYear !== undefined && maxYear == drawYear);
+					var _advanceYear_MYP = function(diff) {
+						drawYear += diff;
+                        inst.drawYear = drawYear;
+						dpTitle.children(':first').text(drawYear);
+						//update screen
+						if(minDate || maxDate) {
+							inMinYear = minYear == drawYear;
+							inMaxYear = maxYear == drawYear;
+							//update month selection
+							var monthPicker = self._generateMonthPickerHTML_MonthYearPicker(inst, minDate, maxDate, drawMonth, inMinYear, inMaxYear);
+							inst.dpDiv.children('.ui-datepicker-select-month').html(monthPicker);
+						}
+						_updatePrevNextYear_MYP();
+					};
+					var _updatePrevNextYear_MYP = function() {
+						dpPrev.unbind('click');
+						if(!inMinYear) {
+							dpPrev.removeClass('ui-state-disabled').on('click', function() {
+                                _advanceYear_MYP(-1); 
+                                self._instInputFocus_MYP(inst);
+                            });
+						}
+						else {
+							dpPrev.addClass('ui-state-disabled');
+						}
+						dpNext.unbind('click');
+						if(!inMaxYear) {
+							dpNext.removeClass('ui-state-disabled').on('click', function() {
+                                _advanceYear_MYP(1); 
+                                self._instInputFocus_MYP(inst);
+                            });
+						}
+						else {
+							dpNext.addClass('ui-state-disabled');
+						}
+					};
+					//change title link behaviour
+					dpTitle.html('<a href="#" class="ui-datepicker-yearpicker" onclick="jQuery.datepicker._toggleDisplay(\'#' + inst.id + '\', 3);return false;">' + drawYear +'</a>');
+					// update prev next behaviour
+					dpPrev.off('click').removeAttr('onclick');  
+					dpNext.off('click').removeAttr('onclick');
+					_updatePrevNextYear_MYP();
+
+					var dpMonthSelector = inst.dpDiv.find('.ui-datepicker-select-month table');
+					this._addHoverEvents_MonthYearPicker(dpMonthSelector);
+
+					inst.dpDiv.find('table.ui-datepicker-calendar').hide();
+                    inst.dpDiv.find('.ui-datepicker-select-time').hide();
+					inst.dpDiv.find('.ui-datepicker-select-year').hide();                                        
+					inst.dpDiv.find('.ui-datepicker-select-month').show();
+
+
+
+					break;
+				case 3:
+					//year picker
+					var year = parseInt(drawYear/10, 10) * 10;  //first year in this decade
+					//change title link behaviour
+					dpTitle.unbind('click');
+					//change prev next behaviour
+					$.backToActualMonth = function() {
+						//var d = new Date();
+						//var month = d.getMonth()+1;
+						$.datepicker._pickMonthYear_MonthYearPicker('#'+inst.id, drawMonth, 'M');
+						return false;
+					};
+					var _updateYearPicker_MYP = function(year) {
+						//TODO RTL
+						//change title html
+                        dpTitle.html('<a class="ui-datepicker-title" '+
+						'onclick="return $.backToActualMonth();" '+
+					    'href="#">'+ year + '-' + (year + 9) + '</a>');
+						//change prev next behaviour
+						dpPrev.unbind('click');
+						dpNext.unbind('click');
+						if(year > minYear) {
+							dpPrev.removeClass('ui-state-disabled').on('click', function() {
+                                _updateYearPicker_MYP(year-21); self._instInputFocus_MYP(inst);
+                            });
+						}
+						else {
+							dpPrev.addClass('ui-state-disabled');
+						}
+						if(maxYear === undefined || year+9 < maxYear) {
+							dpNext.removeClass('ui-state-disabled').on('click', function() {
+                                _updateYearPicker_MYP(year-1); self._instInputFocus_MYP(inst);
+                            });
+						}
+						else {
+							dpNext.addClass('ui-state-disabled');
+						}
+
+						//generate year picker HTML
+						var yearPicker = '<table><tbody><tr>';
+						//show years in 4x3 matrix 
+						year--; //last year of the previous decade
+						for (var i = 1; i <= 12; i++) {
+							unselectable = (minYear !== 'undefined' && year < minYear) ||
+								(maxYear !== 'undefined' && year > maxYear);
+							//html += '<span class="year'+(i == -1 || i == 10 ? ' old' : '')+(currentYear == year ? ' active' : '')+'">'+year+'</span>';
+							yearPicker += '<td class="' +
+								(unselectable ? ' ' + this._unselectableClass + ' ui-state-disabled': '') +  // highlight unselectable months
+								((!unselectable && (i==1 || i==12)) ? ' outoffocus' : '') +
+								(year == drawYear ? ' ui-datepicker-today' : '') + '"' +
+								(unselectable ? '' : ' onclick="jQuery.datepicker._pickMonthYear_MonthYearPicker(\'#' + inst.id + '\', ' + year + ', \'Y\');return false;"') + '>' + // actions
+								((unselectable ? '<span class="ui-state-default">' + year + '</span>' : '<a class="ui-state-default ' +
+								//(month == drawMonth ? ' ui-state-highlight' : '') +
+								(year == drawYear ? ' ui-state-active' : '') + // highlight selected day
+								//(otherMonth ? ' ui-priority-secondary' : '') + // distinguish dates from other months
+								'" href="#">' + year + '</a>')) + '</td>'; // display selectable date
+							if(i % 4 == 0) {
+								yearPicker += '</tr>';
+								if(i != 12) {
+									yearPicker += '<tr>';
+								}
+							}
+							year++;
+						}
+						yearPicker += '</tbody></table>';
+						$('.ui-datepicker-select-year').html(yearPicker);
+					};
+
+					_updateYearPicker_MYP(year);
+
+					var dpYearSelector = inst.dpDiv.find('.ui-datepicker-select-year table');
+					this._addHoverEvents_MonthYearPicker(dpYearSelector);
+
+					inst.dpDiv.find('table.ui-datepicker-calendar').hide();
+					inst.dpDiv.find('.ui-datepicker-select-month').hide();
+					inst.dpDiv.find('.ui-datepicker-select-time').hide();                    
+					inst.dpDiv.find('.ui-datepicker-select-year').show();
+
+					
+					break;
+                case 4:
+
+					inst.dpDiv.find('table.ui-datepicker-calendar').hide();
+					inst.dpDiv.find('.ui-datepicker-select-month').hide();
+					inst.dpDiv.find('.ui-datepicker-select-year').hide();                    
+					inst.dpDiv.find('.ui-datepicker-select-time').show();
+                    
+                    break;
+			}
+
+		}
+
+	});
+
+})(jQuery);
 
 /***/ }),
 
@@ -23617,6 +24205,182 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
+/***/ "./node_modules/css-loader/dist/cjs.js!./css/equal.css":
+/*!*************************************************************!*\
+  !*** ./node_modules/css-loader/dist/cjs.js!./css/equal.css ***!
+  \*************************************************************/
+/***/ ((module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _node_modules_css_loader_dist_runtime_cssWithMappingToString_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../node_modules/css-loader/dist/runtime/cssWithMappingToString.js */ "./node_modules/css-loader/dist/runtime/cssWithMappingToString.js");
+/* harmony import */ var _node_modules_css_loader_dist_runtime_cssWithMappingToString_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_css_loader_dist_runtime_cssWithMappingToString_js__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../node_modules/css-loader/dist/runtime/api.js */ "./node_modules/css-loader/dist/runtime/api.js");
+/* harmony import */ var _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1__);
+// Imports
+
+
+var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1___default()((_node_modules_css_loader_dist_runtime_cssWithMappingToString_js__WEBPACK_IMPORTED_MODULE_0___default()));
+// Module
+___CSS_LOADER_EXPORT___.push([module.id, ":root {\r\n    /* colored buttons */\r\n    --mdc-theme-primary: #3f51b5;\r\n    --mdc-theme-primary-hover: #4f61c5;\r\n\r\n    --mdc-theme-primary-selected: #f5f5ff;\r\n    --mdc-theme-primary-outline: #b1b1dc;\r\n\r\n    /* checkbox background */\r\n    --mdc-theme-secondary: #3f51b5;\r\n    /* menus */\r\n    --mdc-typography-subtitle1-font-size: 14px;\r\n    /* table headers */\r\n    --mdc-typography-subtitle2-font-weight: 600;\r\n\r\n\r\n    --mdc-layout-grid-margin-desktop: 12px;\r\n    --mdc-layout-grid-gutter-desktop: 24px;\r\n    --mdc-layout-grid-margin-tablet: 12px;\r\n    --mdc-layout-grid-gutter-tablet: 18px;\r\n    --mdc-layout-grid-margin-phone: 12px;\r\n    --mdc-layout-grid-gutter-phone: 16px;\r\n\r\n}\r\n    \r\nbody, html {\r\n    margin: 0;\r\n    padding: 0;\r\n    height:100%;\r\n}\r\n\r\n#sb-root {\r\n    display: flex;\r\n    height: 100%;\r\n    flex-flow: column nowrap;\r\n}\r\n\r\n#sb-menu .sb-menu-button {\r\n    display: inline-block;\r\n}\r\n\r\n#sb-container {\r\n\r\n    width: 100%;\r\n    height: 100%;\r\n    overflow: auto;\r\n    flex: 1 1 100%;\r\n    box-sizing: border-box;\r\n}\r\n\r\n.sb-container-header {\r\n    padding-left: 12px;\r\n    height: 48px;\r\n    border-bottom: solid 1px lightgrey;\r\n}\r\n\r\n.sb-container-header h3 {\r\n    line-height: 48px;\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n.sb-container-header a {\r\n    cursor: pointer;\r\n    text-decoration: none;\r\n    color: var(--mdc-theme-primary);\r\n}\r\n\r\n.sb-container-header a:hover {\r\n\r\n}\r\n\r\n.sb-context {\r\n    /* container height minus the header */\r\n    height: calc(100% - 48px);\r\n}\r\n\r\n.sb-view { \r\n    position: relative;\r\n    height: 100%;\r\n}\r\n\r\n.sb-view-layout {\r\n    /* height must be decremented by heght of other elements from parent (header and footer) */\r\n    height: calc(100% - 112px);\r\n}\r\n\r\n.sb-view-list-inline-actions-button {\r\n    transform: scale(0.7);\r\n}\r\n\r\n.sb-layout {\r\n    position: relative;\r\n    height: 100%;\r\n}\r\n\r\n\r\n\r\n\r\n.sb-view-layout-list table th {\r\n    cursor: pointer;\r\n    user-select: none;\r\n    position: sticky;\r\n    top: 0;\r\n    z-index: 3;\r\n}\r\n\r\n.sb-view-layout-list table th.sortable.hover {\r\n    background-color: #f0f0f0;\r\n}\r\n\r\n.sb-view-layout-list table th.sorted {\r\n    color: black;\r\n}\r\n\r\n.sb-view-layout-list table th.asc::after, .sb-view-layout-list table th.desc::after {\r\n    position: absolute;\r\n    margin-left: 6px;\r\n    font-family: FontAwesome;\r\n    opacity: 0.3;\r\n}\r\n\r\n.sb-view-layout-list table th.asc::after {\r\n    content: \"\\f0d7\";\r\n}\r\n\r\n.sb-view-layout-list table th.desc::after {\r\n    content: \"\\f0d8\";\r\n}\r\n\r\n.sb-view-layout-list table tr {\r\n    cursor: pointer;\r\n}\r\n\r\n.sb-view-header-list {\r\n    position: relative;\r\n    max-height: 112px;\r\n    /*\r\n    height: 112px;\r\n    line-height: 112px;\r\n    */\r\n}\r\n\r\n.sb-view-header-list-actions {\r\n    margin-left: 12px;\r\n    max-height: 56px;\r\n    line-height: 56px;\r\n}\r\n\r\n.sb-view-header-list-actions button {\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-header-list-actions-selected {\r\n    position: relative;\r\n    display: inline-block;\r\n    margin-left: 12px;\r\n}\r\n/* todo: improve this (add a custom class)*/\r\n.sb-view-header-list-actions-selected .mdc-button__label {\r\n    padding-right: 10px;\r\n}\r\n\r\n.sb-view-header-list-actions-selected .mdc-button__label::after {\r\n    content: \"\\f0d7\";\r\n}\r\n\r\n.sb-view-header-list-actions-selected .mdc-button__label::after {\r\n    position: absolute;\r\n    margin-left: 6px;\r\n    font-family: FontAwesome;\r\n    opacity: 0.5;\r\n}\r\n\r\n.sb-view-header-list-navigation {\r\n    height: 56px;\r\n    line-height: 56px;\r\n    display: flex;\r\n}\r\n\r\n.sb-view-header-list-filters {\r\n    margin-top: 4px;\r\n}\r\n\r\n.sb-view-header-list-filters .sb-view-header-list-filters-menu {\r\n    min-width: 250px;\r\n    left: 10px !important;\r\n}\r\n\r\n.sb-view-header-list-filters-set {\r\n    margin-top: 4px;\r\n}\r\n\r\n\r\n.sb-view-header-list-fields_toggle {\r\n    /* flex-grow: 1; */\r\n    margin-top: 4px;\r\n    margin-right: 10px;\r\n    text-align: right;\r\n}\r\n\r\n\r\n.sb-view-header-list-fields_toggle .sb-view-header-list-fields_toggle-menu {\r\n    min-width: 250px;\r\n    max-width: 250px;\r\n    right: 0 !important;\r\n    left: unset !important;\r\n}\r\n\r\n.sb-view-header-list-pagination {\r\n    flex: 1;\r\n    flex-grow: 1;\r\n\r\n}\r\n\r\n.sb-view-header-list-pagination-limit_select {\r\n    margin-left: 12px;\r\n}\r\n\r\n.sb-view-header-list-pagination .pagination-navigation {\r\n    user-select: none; \r\n}\r\n\r\n\r\n.sb-widget-mode-view input {\r\n    color: black !important;\r\n    user-select: none;\r\n}\r\n\r\n.sb-widget-mode-view .mdc-text-field .mdc-floating-label,\r\n.sb-widget-mode-view.mdc-select .mdc-floating-label {\r\n    color: rgba(0,0,0,0.5) !important;\r\n    user-select: none;\r\n    font-size: 16px;\r\n    font-weight: 400;\r\n}\r\n\r\n.sb-widget-mode-edit .mdc-text-field .mdc-floating-label, \r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label {\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n}\r\n\r\n.sb-widget-mode-view .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above, \r\n.sb-widget-mode-view.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n}\r\n\r\n.sb-widget-mode-edit .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above, \r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.6) !important;\r\n    font-weight: 400;\r\n}\r\n\r\n\r\n.sb-view-header-form {\r\n    height: 56px;\r\n    line-height: 56px;\r\n}\r\n\r\n.sb-view-header-form-actions {\r\n    display: flex;\r\n    flex-direction: row;\r\n    align-items: center;\r\n    margin-left: 12px;\r\n    max-width: 250px;\r\n    height: 56px;\r\n    line-height: 56px;\r\n}\r\n\r\n.sb-view-header-form-actions button {\r\n    flex: 0 1 auto;\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-form-group {\r\n    padding: 12px;\r\n}\r\n\r\n.sb-view-form-row:not(:first-child) {\r\n    padding-top: 24px;\r\n}\r\n\r\n.sb-view-form-group-title {\r\n    font-size: 20px;\r\n    margin-bottom: 12px;\r\n}\r\n\r\n.sb-view-form-sections-tabbar {\r\n    margin-bottom: 12px;\r\n}\r\n\r\n.sb-view-layout-list .mdc-line-ripple::before, .sb-view-layout-list .mdc-line-ripple::after {\r\n  border: none !important;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget label.mdc-text-field .mdc-floating-label {\r\n    display: none !important;\r\n}\r\n.sb-view-layout-list .sb-widget-mode-view label.mdc-text-field::before {\r\n    display: none !important;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget-mode-view input {\r\n    height: 100%;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget-mode-edit button.mdc-icon-button {\r\n    padding: 0 0 0 5px;\r\n    height: auto;\r\n    width: auto;\r\n    position: absolute;\r\n}\r\n\r\n.sb-view-layout-form-input-button {\r\n    width: 25px;\r\n    height: 30px;\r\n    position: absolute;\r\n    right: 12px;\r\n    top: calc(50% - 15px);\r\n}\r\n\r\n.sb-view-layout-form-input-decoy {\r\n    position: absolute;\r\n    left: 16px;\r\n    bottom: 10px;\r\n    z-index: -1;\r\n    opacity: 0;\r\n}\r\n\r\n\r\n.sb-widget {\r\n    position: relative;\r\n}\r\n\r\n.sb-ui-checkbox {\r\n    position: relative;\r\n}\r\n\r\n.sb-ui-menu.mdc-menu-surface--is-open-below {\r\n    margin-top: 48px;\r\n}\r\n\r\n.sb-ui-menu.mdc-menu-surface--open {\r\n    margin-bottom: 48px;\r\n}\r\n\r\n\r\n/* Material Components customizations */\r\n\r\n\r\n/* Special SB widgets customizations */\r\n\r\n/* support for title strings */\r\n.sb-widget.title {\r\n    margin-top: -14px; \r\n}\r\n\r\n.sb-widget.title span.mdc-floating-label--float-above {\r\n    transform: translateY(-166%) !important;\r\n}\r\n.sb-widget.title label.mdc-text-field {\r\n  height: 70px;\r\n}\r\n.sb-widget.title input.mdc-text-field__input {\r\n  font-size: 30px;\r\n  margin-top: auto; \r\n  height: 60px;\r\n}\r\n\r\n.sb-view-layout-form .sb-widget.sb-widget-type-boolean {\r\n    height: 56px;\r\n    vertical-align: middle;\r\n    display: table-cell;\r\n    padding-left: 16px;\r\n}\r\n\r\n\r\n/* adapt inputs for inline editing */\r\n.sb-widget-cell .mdc-text-field {\r\n  height: 100%;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field {\r\n    padding-left: 0;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-text-field {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    padding-left: 5px;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-select__anchor {\r\n    padding-left: 5px;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field-helper-line {\r\n  display: none;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--filled::before {\r\n  display: none;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--filled:not(.mdc-text-field--disabled) {\r\n    background-color: inherit;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-text-field--filled:not(.mdc-text-field--disabled) {\r\n    background-color: white;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--invalid .mdc-text-field__input {\r\n    color: var(--mdc-theme-error, #b00020);\r\n}\r\n\r\n.sb-widget-cell .mdc-select {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    margin-top: -14px;\r\n}\r\n\r\n.sb-widget-cell .mdc-select {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    margin-top: -14px;\r\n}\r\n\r\n\r\n.sb-widget-cell .mdc-select__anchor {\r\n    height: 100%;\r\n}\r\n\r\n/* make mini-fab flat (mini save buttons) */ \r\n.sb-view-layout-list-row-checkbox .mdc-fab--mini {\r\n    box-shadow: none !important;\r\n    margin: 2px 0;\r\n}\r\n\r\n.mdc-data-table {\r\n    height: 100%;\r\n}\r\n\r\n\r\n.mdc-data-table__table-container::-webkit-scrollbar {\r\n    width: 4px;\r\n    overflow-y: scroll;\r\n    background: #EAEAEA;\r\n\r\n}\r\n\r\n.mdc-data-table__table-container::-webkit-scrollbar-thumb {\r\n    background: var(--mdc-theme-primary, #6200ee);\r\n    border-radius: 10px;\r\n}\r\n\r\n\r\n\r\n/* custom style for special button with icon only */\r\n.mdc-button-icon {\r\n\tmin-width: 36px;\r\n}\r\n\r\n.mdc-button-icon  .mdc-button__ripple {\r\n\tborder-radius: 50%;\r\n    width: 36px;\r\n}\r\n\r\n\r\n\r\n.mdc-menu {\r\n    min-width: var(--mdc-menu-min-width, 200px) !important;\r\n    max-width: calc(100vw - 32px) !important;\r\n}\r\n\r\n.mdc-text-field:not(.mdc-text-field--disabled) .mdc-text-field__icon {\r\n    color: rgba(0,0,0,.54);\r\n}\r\n\r\n.mdc-text-field--focused .mdc-text-field-helper-line .mdc-text-field-helper-text {\r\n    opacity: 1 !important;\r\n}\r\n\r\n.mdc-text-field--with-trailing-icon .mdc-text-field__icon {\r\n    left: initial;\r\n    right: 12px;\r\n}\r\n\r\n.mdc-text-field--with-leading-icon .mdc-text-field__icon, .mdc-text-field--with-trailing-icon .mdc-text-field__icon {\r\n    position: absolute;\r\n    top: 50%;\r\n    transform: translateY(-50%);\r\n    cursor: pointer;\r\n}\r\n\r\n.mdc-text-field--textarea {\r\n    outline: solid 1px rgba(0, 0,0,0.1);\r\n}\r\n\r\n.sb-view-layout.sb-view-layout-form .mdc-text-field--filled:not(.mdc-text-field--disabled), .mdc-select--filled:not(.mdc-select--disabled) .mdc-select__anchor {\r\n    background: transparent !important;\r\n}\r\n\r\n.mdc-layout-grid__cell {\r\n    position: relative;\r\n}\r\n\r\n.mdc-text-field-helper-line {\r\n    position: absolute;\r\n    width: 100%;\r\n    max-width: 100%;\r\n    padding-left: 0 !important;    \r\n    padding-right: 0 !important;    \r\n}\r\n\r\n.mdc-data-table__header-cell--checkbox {\r\n    width: 44px;\r\n}\r\n.mdc-data-table__row--selected {\r\n    background-color: var(--mdc-theme-primary-selected) !important;\r\n}\r\n.mdc-list-item .mdc-checkbox {\r\n    margin-left: -11px;\r\n}\r\n\r\n.mdc-list-item__graphic {\r\n    color: rgba(0,0,0,.54) !important;\r\n    margin-right: 12px;\r\n}\r\n\r\n.mdc-list-item__text {\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;    \r\n}\r\n\r\n.mdc-chip .mdc-chip__icon {\r\n    font-size: 22px;\r\n    height: 22px;\r\n}\r\n\r\n.mdc-list-item {\r\n    height: 44px;\r\n    align-items: center !important;\r\n}\r\n\r\n.mdc-data-table__cell {\r\n    height: 44px;\r\n}\r\n\r\n\r\n.mdc-data-table__pagination {\r\n    border-top: 0;\r\n}\r\n\r\n.mdc-text-field {\r\n    width: 100%;\r\n}\r\n\r\n.mdc-floating-label {\r\n    font-size: 16px !important;\r\n    /* color: rgba(0, 0, 0, 0.8) !important;*/\r\n}\r\n\r\n\r\n.mdc-text-field-helper-line .mdc-text-field-helper-text {\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n\r\n.mdc-text-field--invalid:not(.mdc-text-field--disabled) .mdc-text-field-helper-line .mdc-text-field-helper-text--validation-msg {\r\n    color: var(--mdc-theme-error, #b00020) !important;\r\n}\r\n\r\n.mdc-text-field--focused:not(.mdc-text-field--disabled) .mdc-floating-label {\r\n    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;\r\n}\r\n\r\n.mdc-select--focused:not(.mdc-text-field--disabled) .mdc-floating-label {\r\n    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;\r\n}\r\n\r\n.mdc-select {\r\n    width: 100%;\r\n}\r\n\r\n.mdc-tab {\r\n    max-width: 280px;\r\n}\r\n\r\n.mdc-tab-bar {\r\n    margin-top: 12px;\r\n    border-bottom: 1px solid rgba(0, 0, 0, 0.12);\r\n}\r\n\r\n.mdc-tab__text-label {\r\n    user-select: none;\r\n}\r\n.mdc-tab.mdc-tab--active .mdc-tab__ripple {\r\n    background-color: var(--mdc-ripple-color, var(--mdc-theme-primary, #6200ee));\r\n    opacity: 0.1;\r\n}\r\n\r\n\r\n\r\n/* jqueryui datepicker material styling */\r\n\r\n\r\n.ui-datepicker {\r\n    z-index: 3 !important;\r\n    font-family: \"Roboto\";\r\n}\r\n\r\n.ui-datepicker {\r\n    padding: 0;\r\n    border: none;  \r\n    width: 325px;\r\n    box-shadow: 4px 4px 10px 2px rgba(0, 0, 0, 0.24);\r\n    margin-left: -16px;\r\n    margin-top: 6px;\r\n    font-size: 14px;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-title {\r\n    font-size: 17px;\r\n}\r\n\r\n.ui-datepicker-trigger {\r\n    position: absolute;\r\n    right: 12px;\r\n    top: 50%;\r\n    opacity: 0;\r\n    margin-top: -10px;\r\n    cursor: pointer;\r\n}\r\n\r\n.ui-corner-all {\r\n  border-radius: 0;\r\n}\r\n\r\n.ui-widget-header {\r\n  border: 0;\r\n}\r\n\r\n.ui-datepicker-header {\r\n  text-align: center;\r\n  background: white;\r\n  padding-bottom: 15px;\r\n  font-weight: 300;\r\n}\r\n.ui-datepicker-header .ui-datepicker-prev,\r\n.ui-datepicker-header .ui-datepicker-next,\r\n.ui-datepicker-header .ui-datepicker-title {\r\n  border: none;\r\n  outline: none;\r\n  margin: 5px;\r\n}\r\n\r\n.ui-datepicker-prev.ui-state-hover,\r\n.ui-datepicker-next.ui-state-hover {\r\n  border: none;\r\n  outline: none;\r\n  background: #b4cbe5;\r\n}\r\n\r\n.ui-datepicker .ui-state-default {\r\n  background: none;\r\n  border: none;\r\n  text-align: center;\r\n  height: 33px;\r\n  width: 33px;\r\n  line-height: 30px;\r\n}\r\n.ui-datepicker .ui-state-highlight {\r\n  color: var(--mdc-theme-primary);\r\n}\r\n.ui-datepicker .ui-state-active {\r\n  color: white;\r\n}\r\n\r\n\r\n\r\n.ui-datepicker-calendar thead th {\r\n    color: #999999;\r\n    font-weight: 200;\r\n}\r\n\r\n.ui-datepicker-buttonpane {\r\n  border: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-state-default {\r\n  background: white;\r\n  border: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-datepicker-close,\r\n.ui-datepicker-buttonpane .ui-datepicker-current {\r\n  background: white;\r\n  color: #284B72;\r\n  text-transform: uppercase;\r\n  border: none;\r\n  opacity: 1;\r\n  font-weight: 200;\r\n  outline: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-datepicker-close:hover,\r\n.ui-datepicker-buttonpane .ui-datepicker-current:hover {\r\n  background: #b4cbe5;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev {\r\n    text-decoration: none;\r\n    height: auto !important;\r\n    width: auto !important;\r\n\tleft: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-next {\r\n    text-decoration: none;\r\n    height: auto !important;\r\n    width: auto !important;\r\n\tright: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev .ui-icon, .ui-datepicker .ui-datepicker-next .ui-icon {\r\n    display: none !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev::after {\r\n    font-family: FontAwesome;\r\n\tcontent: \"\\f053\";\r\n\tdisplay: block;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-next::after {\r\n    font-family: FontAwesome;\r\n\tcontent: \"\\f054\";\r\n\tdisplay: block;\r\n}\r\n\r\n\r\n.ui-datepicker .ui-datepicker-prev.ui-state-hover, .ui-datepicker .ui-datepicker-next.ui-state-hover {\r\n    background: none;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev-hover {\r\n\tleft: 8px !important;\r\n    top: 8px !important;\r\n}\r\n.ui-datepicker .ui-datepicker-next-hover {\r\n\tright: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n\r\n\r\n\r\n\r\nbutton.ui-state-hover {\r\n    background: unset !important;\r\n    background-color: var(--mdc-theme-primary-hover) !important;\r\n    border: unset !important;\r\n    color: white !important;\r\n    box-shadow: 0px 3px 1px -2px rgb(0 0 0 / 20%), 0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%) !important;\r\n}\r\n\r\n\r\n\r\n/* jquery ui datepicker month year picker */\r\n.ui-datepicker .ui-datepicker-select-month td ,\r\n.ui-datepicker .ui-datepicker-select-year td {\r\n\theight: 33px;\r\n}\r\n.ui-datepicker .ui-datepicker-select-month td span,\r\n.ui-datepicker .ui-datepicker-select-month td a,\r\n.ui-datepicker .ui-datepicker-select-year td span,\r\n.ui-datepicker .ui-datepicker-select-year td a  {\r\n\ttext-align: center;\r\n}\r\n.ui-datepicker .ui-datepicker-select-year td.outoffocus {\r\n\topacity: 0.5;\r\n}\r\n\r\n.ui-datepicker-select-month .ui-state-default, .ui-datepicker-select-year .ui-state-default {\r\n    margin: auto;\r\n}\r\n\r\n.ui-datepicker td {\r\n    font-size: 14px !important;\r\n}\r\n\r\n.ui-datepicker .ui-state-default, .ui-datepicker .ui-state-active {\r\n    position: relative;\r\n    border: 0 !important;\r\n    background: none !important;\r\n}\r\n\r\n.ui-datepicker .ui-state-active::after {\r\n    position: absolute;\r\n    display: block;\r\n    content: '';\r\n    background-color:var(--mdc-theme-primary);\r\n    border-radius: 50%;\r\n    width: 34px;\r\n    height: 34px;\r\n    z-index: -1;\r\n    top: 0;\r\n    left: calc(50% - 16px)\r\n}\r\n\r\n\r\n.ui-datepicker .ui-state-default:not(.ui-state-active).ui-state-hover::after {\r\n    position: absolute;\r\n    display: block;\r\n    content: '';\r\n    background-color: rgba(0,0,0,0.05);\r\n    border-radius: 50%;\r\n    width: 34px;\r\n    height: 34px;\r\n    z-index: -1;\r\n    top: 0;\r\n    left: calc(50% - 16px)\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header {\r\n    display: flex;\r\n    align-items: center;\r\n    padding: 4px 24px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header .ui-datepicker-title {\r\n    flex: 1;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header-time-switch {\r\n    flex: 1;\r\n    line-height: 100%;\r\n    height: 100%;\r\n    align-self: center;\r\n}\r\n\r\n\r\n.timepicker{\r\n    display:block;\r\n    user-select:none;\r\n    margin:0 auto;\r\n    width:100%;\r\n    height:100%;\r\n    font-size:14px;\r\n}\r\n.timepicker__title{background-image:-webkit-linear-gradient(top,#fff 0,#f2f2f2 100%);position:relative;background:#f2f2f2;margin:0 auto;border-bottom:1px solid #e5e5e5;padding:12px 11px 10px 15px;color:#4C4C4C;font-size:inherit}\r\n.timepicker__close{-webkit-transform:translateY(-25%);-moz-transform:translateY(-25%);-ms-transform:translateY(-25%);-o-transform:translateY(-25%);transform:translateY(-25%);position:absolute;top:25%;right:10px;color:#34495e;cursor:pointer}\r\n.timepicker__close:before{content:'\\00d7'}\r\n.timepicker__controls{padding:10px 0;line-height:normal;margin:0}\r\n.timepicker__controls__control,.timepicker__controls__control--separator{vertical-align:middle;display:inline-block;font-size:inherit;margin:0 auto;width:35px;letter-spacing:1.3px}\r\n.timepicker__controls__control-down,.timepicker__controls__control-up{color:#34495e;position:relative;display:block;margin:3px auto;font-size:18px;cursor:pointer}\r\n.timepicker__controls__control-up:before{content:'\\f0d8'}\r\n.timepicker__controls__control-down:after{content:'\\f0d7'}\r\n.timepicker__controls__control--separator{width:5px}\r\n.text-center,.timepicker__controls,.timepicker__controls__control,.timepicker__controls__control--separator,.timepicker__controls__control-down,.timepicker__controls__control-up,.timepicker__title{text-align:center}\r\n.hover-state{color:#3498db}\r\n \r\n.fontello-after:after,.fontello:before,.timepicker__controls__control-down:after,.timepicker__controls__control-up:before{font-family:FontAwesome;font-style:normal;font-weight:400;display:inline-block;text-decoration:inherit;width:1em;margin-right:.2em;text-align:center;font-variant:normal;text-transform:none;line-height:1em;margin-left:.2em;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}  \r\n.clearable-picker{position:relative;display:inline-block}  \r\n.clearable-picker>.hastimepicker{padding-right:1em}  \r\n.clearable-picker>.hastimepicker::-ms-clear{display:none}  \r\n.clearable-picker>[data-clear-picker]{position:absolute;top:50%;right:0;transform:translateY(-50%);font-weight:700;font-size:.8em;padding:0 .3em .2em;line-height:1;color:#bababa;cursor:pointer}  \r\n.clearable-picker>[data-clear-picker]:hover{color:#a1a1a1}\r\n.timepicker__controls__control span {\r\n    outline: none;\r\n}", "",{"version":3,"sources":["webpack://./css/equal.css"],"names":[],"mappings":"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","sourcesContent":[":root {\r\n    /* colored buttons */\r\n    --mdc-theme-primary: #3f51b5;\r\n    --mdc-theme-primary-hover: #4f61c5;\r\n\r\n    --mdc-theme-primary-selected: #f5f5ff;\r\n    --mdc-theme-primary-outline: #b1b1dc;\r\n\r\n    /* checkbox background */\r\n    --mdc-theme-secondary: #3f51b5;\r\n    /* menus */\r\n    --mdc-typography-subtitle1-font-size: 14px;\r\n    /* table headers */\r\n    --mdc-typography-subtitle2-font-weight: 600;\r\n\r\n\r\n    --mdc-layout-grid-margin-desktop: 12px;\r\n    --mdc-layout-grid-gutter-desktop: 24px;\r\n    --mdc-layout-grid-margin-tablet: 12px;\r\n    --mdc-layout-grid-gutter-tablet: 18px;\r\n    --mdc-layout-grid-margin-phone: 12px;\r\n    --mdc-layout-grid-gutter-phone: 16px;\r\n\r\n}\r\n    \r\nbody, html {\r\n    margin: 0;\r\n    padding: 0;\r\n    height:100%;\r\n}\r\n\r\n#sb-root {\r\n    display: flex;\r\n    height: 100%;\r\n    flex-flow: column nowrap;\r\n}\r\n\r\n#sb-menu .sb-menu-button {\r\n    display: inline-block;\r\n}\r\n\r\n#sb-container {\r\n\r\n    width: 100%;\r\n    height: 100%;\r\n    overflow: auto;\r\n    flex: 1 1 100%;\r\n    box-sizing: border-box;\r\n}\r\n\r\n.sb-container-header {\r\n    padding-left: 12px;\r\n    height: 48px;\r\n    border-bottom: solid 1px lightgrey;\r\n}\r\n\r\n.sb-container-header h3 {\r\n    line-height: 48px;\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n.sb-container-header a {\r\n    cursor: pointer;\r\n    text-decoration: none;\r\n    color: var(--mdc-theme-primary);\r\n}\r\n\r\n.sb-container-header a:hover {\r\n\r\n}\r\n\r\n.sb-context {\r\n    /* container height minus the header */\r\n    height: calc(100% - 48px);\r\n}\r\n\r\n.sb-view { \r\n    position: relative;\r\n    height: 100%;\r\n}\r\n\r\n.sb-view-layout {\r\n    /* height must be decremented by heght of other elements from parent (header and footer) */\r\n    height: calc(100% - 112px);\r\n}\r\n\r\n.sb-view-list-inline-actions-button {\r\n    transform: scale(0.7);\r\n}\r\n\r\n.sb-layout {\r\n    position: relative;\r\n    height: 100%;\r\n}\r\n\r\n\r\n\r\n\r\n.sb-view-layout-list table th {\r\n    cursor: pointer;\r\n    user-select: none;\r\n    position: sticky;\r\n    top: 0;\r\n    z-index: 3;\r\n}\r\n\r\n.sb-view-layout-list table th.sortable.hover {\r\n    background-color: #f0f0f0;\r\n}\r\n\r\n.sb-view-layout-list table th.sorted {\r\n    color: black;\r\n}\r\n\r\n.sb-view-layout-list table th.asc::after, .sb-view-layout-list table th.desc::after {\r\n    position: absolute;\r\n    margin-left: 6px;\r\n    font-family: FontAwesome;\r\n    opacity: 0.3;\r\n}\r\n\r\n.sb-view-layout-list table th.asc::after {\r\n    content: \"\\f0d7\";\r\n}\r\n\r\n.sb-view-layout-list table th.desc::after {\r\n    content: \"\\f0d8\";\r\n}\r\n\r\n.sb-view-layout-list table tr {\r\n    cursor: pointer;\r\n}\r\n\r\n.sb-view-header-list {\r\n    position: relative;\r\n    max-height: 112px;\r\n    /*\r\n    height: 112px;\r\n    line-height: 112px;\r\n    */\r\n}\r\n\r\n.sb-view-header-list-actions {\r\n    margin-left: 12px;\r\n    max-height: 56px;\r\n    line-height: 56px;\r\n}\r\n\r\n.sb-view-header-list-actions button {\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-header-list-actions-selected {\r\n    position: relative;\r\n    display: inline-block;\r\n    margin-left: 12px;\r\n}\r\n/* todo: improve this (add a custom class)*/\r\n.sb-view-header-list-actions-selected .mdc-button__label {\r\n    padding-right: 10px;\r\n}\r\n\r\n.sb-view-header-list-actions-selected .mdc-button__label::after {\r\n    content: \"\\f0d7\";\r\n}\r\n\r\n.sb-view-header-list-actions-selected .mdc-button__label::after {\r\n    position: absolute;\r\n    margin-left: 6px;\r\n    font-family: FontAwesome;\r\n    opacity: 0.5;\r\n}\r\n\r\n.sb-view-header-list-navigation {\r\n    height: 56px;\r\n    line-height: 56px;\r\n    display: flex;\r\n}\r\n\r\n.sb-view-header-list-filters {\r\n    margin-top: 4px;\r\n}\r\n\r\n.sb-view-header-list-filters .sb-view-header-list-filters-menu {\r\n    min-width: 250px;\r\n    left: 10px !important;\r\n}\r\n\r\n.sb-view-header-list-filters-set {\r\n    margin-top: 4px;\r\n}\r\n\r\n\r\n.sb-view-header-list-fields_toggle {\r\n    /* flex-grow: 1; */\r\n    margin-top: 4px;\r\n    margin-right: 10px;\r\n    text-align: right;\r\n}\r\n\r\n\r\n.sb-view-header-list-fields_toggle .sb-view-header-list-fields_toggle-menu {\r\n    min-width: 250px;\r\n    max-width: 250px;\r\n    right: 0 !important;\r\n    left: unset !important;\r\n}\r\n\r\n.sb-view-header-list-pagination {\r\n    flex: 1;\r\n    flex-grow: 1;\r\n\r\n}\r\n\r\n.sb-view-header-list-pagination-limit_select {\r\n    margin-left: 12px;\r\n}\r\n\r\n.sb-view-header-list-pagination .pagination-navigation {\r\n    user-select: none; \r\n}\r\n\r\n\r\n.sb-widget-mode-view input {\r\n    color: black !important;\r\n    user-select: none;\r\n}\r\n\r\n.sb-widget-mode-view .mdc-text-field .mdc-floating-label,\r\n.sb-widget-mode-view.mdc-select .mdc-floating-label {\r\n    color: rgba(0,0,0,0.5) !important;\r\n    user-select: none;\r\n    font-size: 16px;\r\n    font-weight: 400;\r\n}\r\n\r\n.sb-widget-mode-edit .mdc-text-field .mdc-floating-label, \r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label {\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n}\r\n\r\n.sb-widget-mode-view .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above, \r\n.sb-widget-mode-view.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n}\r\n\r\n.sb-widget-mode-edit .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above, \r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.6) !important;\r\n    font-weight: 400;\r\n}\r\n\r\n\r\n.sb-view-header-form {\r\n    height: 56px;\r\n    line-height: 56px;\r\n}\r\n\r\n.sb-view-header-form-actions {\r\n    display: flex;\r\n    flex-direction: row;\r\n    align-items: center;\r\n    margin-left: 12px;\r\n    max-width: 250px;\r\n    height: 56px;\r\n    line-height: 56px;\r\n}\r\n\r\n.sb-view-header-form-actions button {\r\n    flex: 0 1 auto;\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-form-group {\r\n    padding: 12px;\r\n}\r\n\r\n.sb-view-form-row:not(:first-child) {\r\n    padding-top: 24px;\r\n}\r\n\r\n.sb-view-form-group-title {\r\n    font-size: 20px;\r\n    margin-bottom: 12px;\r\n}\r\n\r\n.sb-view-form-sections-tabbar {\r\n    margin-bottom: 12px;\r\n}\r\n\r\n.sb-view-layout-list .mdc-line-ripple::before, .sb-view-layout-list .mdc-line-ripple::after {\r\n  border: none !important;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget label.mdc-text-field .mdc-floating-label {\r\n    display: none !important;\r\n}\r\n.sb-view-layout-list .sb-widget-mode-view label.mdc-text-field::before {\r\n    display: none !important;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget-mode-view input {\r\n    height: 100%;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget-mode-edit button.mdc-icon-button {\r\n    padding: 0 0 0 5px;\r\n    height: auto;\r\n    width: auto;\r\n    position: absolute;\r\n}\r\n\r\n.sb-view-layout-form-input-button {\r\n    width: 25px;\r\n    height: 30px;\r\n    position: absolute;\r\n    right: 12px;\r\n    top: calc(50% - 15px);\r\n}\r\n\r\n.sb-view-layout-form-input-decoy {\r\n    position: absolute;\r\n    left: 16px;\r\n    bottom: 10px;\r\n    z-index: -1;\r\n    opacity: 0;\r\n}\r\n\r\n\r\n.sb-widget {\r\n    position: relative;\r\n}\r\n\r\n.sb-ui-checkbox {\r\n    position: relative;\r\n}\r\n\r\n.sb-ui-menu.mdc-menu-surface--is-open-below {\r\n    margin-top: 48px;\r\n}\r\n\r\n.sb-ui-menu.mdc-menu-surface--open {\r\n    margin-bottom: 48px;\r\n}\r\n\r\n\r\n/* Material Components customizations */\r\n\r\n\r\n/* Special SB widgets customizations */\r\n\r\n/* support for title strings */\r\n.sb-widget.title {\r\n    margin-top: -14px; \r\n}\r\n\r\n.sb-widget.title span.mdc-floating-label--float-above {\r\n    transform: translateY(-166%) !important;\r\n}\r\n.sb-widget.title label.mdc-text-field {\r\n  height: 70px;\r\n}\r\n.sb-widget.title input.mdc-text-field__input {\r\n  font-size: 30px;\r\n  margin-top: auto; \r\n  height: 60px;\r\n}\r\n\r\n.sb-view-layout-form .sb-widget.sb-widget-type-boolean {\r\n    height: 56px;\r\n    vertical-align: middle;\r\n    display: table-cell;\r\n    padding-left: 16px;\r\n}\r\n\r\n\r\n/* adapt inputs for inline editing */\r\n.sb-widget-cell .mdc-text-field {\r\n  height: 100%;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field {\r\n    padding-left: 0;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-text-field {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    padding-left: 5px;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-select__anchor {\r\n    padding-left: 5px;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field-helper-line {\r\n  display: none;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--filled::before {\r\n  display: none;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--filled:not(.mdc-text-field--disabled) {\r\n    background-color: inherit;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-text-field--filled:not(.mdc-text-field--disabled) {\r\n    background-color: white;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--invalid .mdc-text-field__input {\r\n    color: var(--mdc-theme-error, #b00020);\r\n}\r\n\r\n.sb-widget-cell .mdc-select {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    margin-top: -14px;\r\n}\r\n\r\n.sb-widget-cell .mdc-select {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    margin-top: -14px;\r\n}\r\n\r\n\r\n.sb-widget-cell .mdc-select__anchor {\r\n    height: 100%;\r\n}\r\n\r\n/* make mini-fab flat (mini save buttons) */ \r\n.sb-view-layout-list-row-checkbox .mdc-fab--mini {\r\n    box-shadow: none !important;\r\n    margin: 2px 0;\r\n}\r\n\r\n.mdc-data-table {\r\n    height: 100%;\r\n}\r\n\r\n\r\n.mdc-data-table__table-container::-webkit-scrollbar {\r\n    width: 4px;\r\n    overflow-y: scroll;\r\n    background: #EAEAEA;\r\n\r\n}\r\n\r\n.mdc-data-table__table-container::-webkit-scrollbar-thumb {\r\n    background: var(--mdc-theme-primary, #6200ee);\r\n    border-radius: 10px;\r\n}\r\n\r\n\r\n\r\n/* custom style for special button with icon only */\r\n.mdc-button-icon {\r\n\tmin-width: 36px;\r\n}\r\n\r\n.mdc-button-icon  .mdc-button__ripple {\r\n\tborder-radius: 50%;\r\n    width: 36px;\r\n}\r\n\r\n\r\n\r\n.mdc-menu {\r\n    min-width: var(--mdc-menu-min-width, 200px) !important;\r\n    max-width: calc(100vw - 32px) !important;\r\n}\r\n\r\n.mdc-text-field:not(.mdc-text-field--disabled) .mdc-text-field__icon {\r\n    color: rgba(0,0,0,.54);\r\n}\r\n\r\n.mdc-text-field--focused .mdc-text-field-helper-line .mdc-text-field-helper-text {\r\n    opacity: 1 !important;\r\n}\r\n\r\n.mdc-text-field--with-trailing-icon .mdc-text-field__icon {\r\n    left: initial;\r\n    right: 12px;\r\n}\r\n\r\n.mdc-text-field--with-leading-icon .mdc-text-field__icon, .mdc-text-field--with-trailing-icon .mdc-text-field__icon {\r\n    position: absolute;\r\n    top: 50%;\r\n    transform: translateY(-50%);\r\n    cursor: pointer;\r\n}\r\n\r\n.mdc-text-field--textarea {\r\n    outline: solid 1px rgba(0, 0,0,0.1);\r\n}\r\n\r\n.sb-view-layout.sb-view-layout-form .mdc-text-field--filled:not(.mdc-text-field--disabled), .mdc-select--filled:not(.mdc-select--disabled) .mdc-select__anchor {\r\n    background: transparent !important;\r\n}\r\n\r\n.mdc-layout-grid__cell {\r\n    position: relative;\r\n}\r\n\r\n.mdc-text-field-helper-line {\r\n    position: absolute;\r\n    width: 100%;\r\n    max-width: 100%;\r\n    padding-left: 0 !important;    \r\n    padding-right: 0 !important;    \r\n}\r\n\r\n.mdc-data-table__header-cell--checkbox {\r\n    width: 44px;\r\n}\r\n.mdc-data-table__row--selected {\r\n    background-color: var(--mdc-theme-primary-selected) !important;\r\n}\r\n.mdc-list-item .mdc-checkbox {\r\n    margin-left: -11px;\r\n}\r\n\r\n.mdc-list-item__graphic {\r\n    color: rgba(0,0,0,.54) !important;\r\n    margin-right: 12px;\r\n}\r\n\r\n.mdc-list-item__text {\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;    \r\n}\r\n\r\n.mdc-chip .mdc-chip__icon {\r\n    font-size: 22px;\r\n    height: 22px;\r\n}\r\n\r\n.mdc-list-item {\r\n    height: 44px;\r\n    align-items: center !important;\r\n}\r\n\r\n.mdc-data-table__cell {\r\n    height: 44px;\r\n}\r\n\r\n\r\n.mdc-data-table__pagination {\r\n    border-top: 0;\r\n}\r\n\r\n.mdc-text-field {\r\n    width: 100%;\r\n}\r\n\r\n.mdc-floating-label {\r\n    font-size: 16px !important;\r\n    /* color: rgba(0, 0, 0, 0.8) !important;*/\r\n}\r\n\r\n\r\n.mdc-text-field-helper-line .mdc-text-field-helper-text {\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n\r\n.mdc-text-field--invalid:not(.mdc-text-field--disabled) .mdc-text-field-helper-line .mdc-text-field-helper-text--validation-msg {\r\n    color: var(--mdc-theme-error, #b00020) !important;\r\n}\r\n\r\n.mdc-text-field--focused:not(.mdc-text-field--disabled) .mdc-floating-label {\r\n    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;\r\n}\r\n\r\n.mdc-select--focused:not(.mdc-text-field--disabled) .mdc-floating-label {\r\n    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;\r\n}\r\n\r\n.mdc-select {\r\n    width: 100%;\r\n}\r\n\r\n.mdc-tab {\r\n    max-width: 280px;\r\n}\r\n\r\n.mdc-tab-bar {\r\n    margin-top: 12px;\r\n    border-bottom: 1px solid rgba(0, 0, 0, 0.12);\r\n}\r\n\r\n.mdc-tab__text-label {\r\n    user-select: none;\r\n}\r\n.mdc-tab.mdc-tab--active .mdc-tab__ripple {\r\n    background-color: var(--mdc-ripple-color, var(--mdc-theme-primary, #6200ee));\r\n    opacity: 0.1;\r\n}\r\n\r\n\r\n\r\n/* jqueryui datepicker material styling */\r\n\r\n\r\n.ui-datepicker {\r\n    z-index: 3 !important;\r\n    font-family: \"Roboto\";\r\n}\r\n\r\n.ui-datepicker {\r\n    padding: 0;\r\n    border: none;  \r\n    width: 325px;\r\n    box-shadow: 4px 4px 10px 2px rgba(0, 0, 0, 0.24);\r\n    margin-left: -16px;\r\n    margin-top: 6px;\r\n    font-size: 14px;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-title {\r\n    font-size: 17px;\r\n}\r\n\r\n.ui-datepicker-trigger {\r\n    position: absolute;\r\n    right: 12px;\r\n    top: 50%;\r\n    opacity: 0;\r\n    margin-top: -10px;\r\n    cursor: pointer;\r\n}\r\n\r\n.ui-corner-all {\r\n  border-radius: 0;\r\n}\r\n\r\n.ui-widget-header {\r\n  border: 0;\r\n}\r\n\r\n.ui-datepicker-header {\r\n  text-align: center;\r\n  background: white;\r\n  padding-bottom: 15px;\r\n  font-weight: 300;\r\n}\r\n.ui-datepicker-header .ui-datepicker-prev,\r\n.ui-datepicker-header .ui-datepicker-next,\r\n.ui-datepicker-header .ui-datepicker-title {\r\n  border: none;\r\n  outline: none;\r\n  margin: 5px;\r\n}\r\n\r\n.ui-datepicker-prev.ui-state-hover,\r\n.ui-datepicker-next.ui-state-hover {\r\n  border: none;\r\n  outline: none;\r\n  background: #b4cbe5;\r\n}\r\n\r\n.ui-datepicker .ui-state-default {\r\n  background: none;\r\n  border: none;\r\n  text-align: center;\r\n  height: 33px;\r\n  width: 33px;\r\n  line-height: 30px;\r\n}\r\n.ui-datepicker .ui-state-highlight {\r\n  color: var(--mdc-theme-primary);\r\n}\r\n.ui-datepicker .ui-state-active {\r\n  color: white;\r\n}\r\n\r\n\r\n\r\n.ui-datepicker-calendar thead th {\r\n    color: #999999;\r\n    font-weight: 200;\r\n}\r\n\r\n.ui-datepicker-buttonpane {\r\n  border: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-state-default {\r\n  background: white;\r\n  border: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-datepicker-close,\r\n.ui-datepicker-buttonpane .ui-datepicker-current {\r\n  background: white;\r\n  color: #284B72;\r\n  text-transform: uppercase;\r\n  border: none;\r\n  opacity: 1;\r\n  font-weight: 200;\r\n  outline: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-datepicker-close:hover,\r\n.ui-datepicker-buttonpane .ui-datepicker-current:hover {\r\n  background: #b4cbe5;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev {\r\n    text-decoration: none;\r\n    height: auto !important;\r\n    width: auto !important;\r\n\tleft: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-next {\r\n    text-decoration: none;\r\n    height: auto !important;\r\n    width: auto !important;\r\n\tright: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev .ui-icon, .ui-datepicker .ui-datepicker-next .ui-icon {\r\n    display: none !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev::after {\r\n    font-family: FontAwesome;\r\n\tcontent: \"\\f053\";\r\n\tdisplay: block;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-next::after {\r\n    font-family: FontAwesome;\r\n\tcontent: \"\\f054\";\r\n\tdisplay: block;\r\n}\r\n\r\n\r\n.ui-datepicker .ui-datepicker-prev.ui-state-hover, .ui-datepicker .ui-datepicker-next.ui-state-hover {\r\n    background: none;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev-hover {\r\n\tleft: 8px !important;\r\n    top: 8px !important;\r\n}\r\n.ui-datepicker .ui-datepicker-next-hover {\r\n\tright: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n\r\n\r\n\r\n\r\nbutton.ui-state-hover {\r\n    background: unset !important;\r\n    background-color: var(--mdc-theme-primary-hover) !important;\r\n    border: unset !important;\r\n    color: white !important;\r\n    box-shadow: 0px 3px 1px -2px rgb(0 0 0 / 20%), 0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%) !important;\r\n}\r\n\r\n\r\n\r\n/* jquery ui datepicker month year picker */\r\n.ui-datepicker .ui-datepicker-select-month td ,\r\n.ui-datepicker .ui-datepicker-select-year td {\r\n\theight: 33px;\r\n}\r\n.ui-datepicker .ui-datepicker-select-month td span,\r\n.ui-datepicker .ui-datepicker-select-month td a,\r\n.ui-datepicker .ui-datepicker-select-year td span,\r\n.ui-datepicker .ui-datepicker-select-year td a  {\r\n\ttext-align: center;\r\n}\r\n.ui-datepicker .ui-datepicker-select-year td.outoffocus {\r\n\topacity: 0.5;\r\n}\r\n\r\n.ui-datepicker-select-month .ui-state-default, .ui-datepicker-select-year .ui-state-default {\r\n    margin: auto;\r\n}\r\n\r\n.ui-datepicker td {\r\n    font-size: 14px !important;\r\n}\r\n\r\n.ui-datepicker .ui-state-default, .ui-datepicker .ui-state-active {\r\n    position: relative;\r\n    border: 0 !important;\r\n    background: none !important;\r\n}\r\n\r\n.ui-datepicker .ui-state-active::after {\r\n    position: absolute;\r\n    display: block;\r\n    content: '';\r\n    background-color:var(--mdc-theme-primary);\r\n    border-radius: 50%;\r\n    width: 34px;\r\n    height: 34px;\r\n    z-index: -1;\r\n    top: 0;\r\n    left: calc(50% - 16px)\r\n}\r\n\r\n\r\n.ui-datepicker .ui-state-default:not(.ui-state-active).ui-state-hover::after {\r\n    position: absolute;\r\n    display: block;\r\n    content: '';\r\n    background-color: rgba(0,0,0,0.05);\r\n    border-radius: 50%;\r\n    width: 34px;\r\n    height: 34px;\r\n    z-index: -1;\r\n    top: 0;\r\n    left: calc(50% - 16px)\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header {\r\n    display: flex;\r\n    align-items: center;\r\n    padding: 4px 24px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header .ui-datepicker-title {\r\n    flex: 1;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header-time-switch {\r\n    flex: 1;\r\n    line-height: 100%;\r\n    height: 100%;\r\n    align-self: center;\r\n}\r\n\r\n\r\n.timepicker{\r\n    display:block;\r\n    user-select:none;\r\n    margin:0 auto;\r\n    width:100%;\r\n    height:100%;\r\n    font-size:14px;\r\n}\r\n.timepicker__title{background-image:-webkit-linear-gradient(top,#fff 0,#f2f2f2 100%);position:relative;background:#f2f2f2;margin:0 auto;border-bottom:1px solid #e5e5e5;padding:12px 11px 10px 15px;color:#4C4C4C;font-size:inherit}\r\n.timepicker__close{-webkit-transform:translateY(-25%);-moz-transform:translateY(-25%);-ms-transform:translateY(-25%);-o-transform:translateY(-25%);transform:translateY(-25%);position:absolute;top:25%;right:10px;color:#34495e;cursor:pointer}\r\n.timepicker__close:before{content:'\\00d7'}\r\n.timepicker__controls{padding:10px 0;line-height:normal;margin:0}\r\n.timepicker__controls__control,.timepicker__controls__control--separator{vertical-align:middle;display:inline-block;font-size:inherit;margin:0 auto;width:35px;letter-spacing:1.3px}\r\n.timepicker__controls__control-down,.timepicker__controls__control-up{color:#34495e;position:relative;display:block;margin:3px auto;font-size:18px;cursor:pointer}\r\n.timepicker__controls__control-up:before{content:'\\f0d8'}\r\n.timepicker__controls__control-down:after{content:'\\f0d7'}\r\n.timepicker__controls__control--separator{width:5px}\r\n.text-center,.timepicker__controls,.timepicker__controls__control,.timepicker__controls__control--separator,.timepicker__controls__control-down,.timepicker__controls__control-up,.timepicker__title{text-align:center}\r\n.hover-state{color:#3498db}\r\n \r\n.fontello-after:after,.fontello:before,.timepicker__controls__control-down:after,.timepicker__controls__control-up:before{font-family:FontAwesome;font-style:normal;font-weight:400;display:inline-block;text-decoration:inherit;width:1em;margin-right:.2em;text-align:center;font-variant:normal;text-transform:none;line-height:1em;margin-left:.2em;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}  \r\n.clearable-picker{position:relative;display:inline-block}  \r\n.clearable-picker>.hastimepicker{padding-right:1em}  \r\n.clearable-picker>.hastimepicker::-ms-clear{display:none}  \r\n.clearable-picker>[data-clear-picker]{position:absolute;top:50%;right:0;transform:translateY(-50%);font-weight:700;font-size:.8em;padding:0 .3em .2em;line-height:1;color:#bababa;cursor:pointer}  \r\n.clearable-picker>[data-clear-picker]:hover{color:#a1a1a1}\r\n.timepicker__controls__control span {\r\n    outline: none;\r\n}"],"sourceRoot":""}]);
+// Exports
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
+
+
+/***/ }),
+
+/***/ "./node_modules/css-loader/dist/cjs.js!./css/material-basics.css":
+/*!***********************************************************************!*\
+  !*** ./node_modules/css-loader/dist/cjs.js!./css/material-basics.css ***!
+  \***********************************************************************/
+/***/ ((module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _node_modules_css_loader_dist_runtime_cssWithMappingToString_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../node_modules/css-loader/dist/runtime/cssWithMappingToString.js */ "./node_modules/css-loader/dist/runtime/cssWithMappingToString.js");
+/* harmony import */ var _node_modules_css_loader_dist_runtime_cssWithMappingToString_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_css_loader_dist_runtime_cssWithMappingToString_js__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../node_modules/css-loader/dist/runtime/api.js */ "./node_modules/css-loader/dist/runtime/api.js");
+/* harmony import */ var _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1__);
+// Imports
+
+
+var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1___default()((_node_modules_css_loader_dist_runtime_cssWithMappingToString_js__WEBPACK_IMPORTED_MODULE_0___default()));
+// Module
+___CSS_LOADER_EXPORT___.push([module.id, "* {\r\n    box-sizing: border-box\r\n}\r\n\r\nbody,html {\r\n    height: 100%;\r\n    margin: 0\r\n}\r\n\r\nbody.no-scroll {\r\n    overflow: hidden\r\n}\r\n\r\nbody {\r\n    -moz-osx-font-smoothing: grayscale;\r\n    -webkit-font-smoothing: antialiased;\r\n    font-family: Roboto,sans-serif;\r\n    font-family: var(--mdc-typography-body1-font-family,var(--mdc-typography-font-family,Roboto,sans-serif));\r\n    font-size: .875rem;\r\n    font-size: var(--mdc-typography-body1-font-size,.875rem);\r\n    line-height: 1.5;\r\n    line-height: var(--mdc-typography-body1-line-height,1.5);\r\n    font-weight: 400;\r\n    font-weight: var(--mdc-typography-body1-font-weight,400);\r\n    letter-spacing: .03125em;\r\n    letter-spacing: var(--mdc-typography-body1-letter-spacing,.03125em);\r\n    text-decoration: inherit;\r\n    -webkit-text-decoration: var(--mdc-typography-body1-text-decoration,inherit);\r\n    text-decoration: var(--mdc-typography-body1-text-decoration,inherit);\r\n    text-transform: inherit;\r\n    text-transform: var(--mdc-typography-body1-text-transform,inherit);\r\n    color: #424242;\r\n    letter-spacing: normal\r\n}\r\n\r\n@media screen and (min-width: 521px) {\r\n    body {\r\n        font-size:1rem\r\n    }\r\n}\r\n\r\nh1 {\r\n    -moz-osx-font-smoothing: grayscale;\r\n    -webkit-font-smoothing: antialiased;\r\n    font-family: Roboto,sans-serif;\r\n    font-family: var(--mdc-typography-headline1-font-family,var(--mdc-typography-font-family,Roboto,sans-serif));\r\n    font-size: 2.5rem;\r\n    font-size: var(--mdc-typography-headline1-font-size,2.5rem);\r\n    line-height: 1.2;\r\n    line-height: var(--mdc-typography-headline1-line-height,1.2);\r\n    font-weight: 400;\r\n    font-weight: var(--mdc-typography-headline1-font-weight,400);\r\n    letter-spacing: 0;\r\n    letter-spacing: var(--mdc-typography-headline1-letter-spacing,0);\r\n    text-decoration: inherit;\r\n    -webkit-text-decoration: var(--mdc-typography-headline1-text-decoration,inherit);\r\n    text-decoration: var(--mdc-typography-headline1-text-decoration,inherit);\r\n    text-transform: inherit;\r\n    text-transform: var(--mdc-typography-headline1-text-transform,inherit);\r\n    color: #212121;\r\n    margin: 0\r\n}\r\n\r\n@media screen and (min-width: 521px) {\r\n    h1 {\r\n        font-size:3.125rem\r\n    }\r\n}\r\n\r\n@media screen and (min-width: 921px) {\r\n    h1 {\r\n        font-size:3.75rem\r\n    }\r\n}\r\n\r\nh2 {\r\n    -moz-osx-font-smoothing: grayscale;\r\n    -webkit-font-smoothing: antialiased;\r\n    font-family: Roboto,sans-serif;\r\n    font-family: var(--mdc-typography-headline2-font-family,var(--mdc-typography-font-family,Roboto,sans-serif));\r\n    font-size: 1.5rem;\r\n    font-size: var(--mdc-typography-headline2-font-size,1.5rem);\r\n    line-height: 1.2;\r\n    line-height: var(--mdc-typography-headline2-line-height,1.2);\r\n    font-weight: 400;\r\n    font-weight: var(--mdc-typography-headline2-font-weight,400);\r\n    letter-spacing: -.0083333333em;\r\n    letter-spacing: var(--mdc-typography-headline2-letter-spacing,-.0083333333em);\r\n    text-decoration: inherit;\r\n    -webkit-text-decoration: var(--mdc-typography-headline2-text-decoration,inherit);\r\n    text-decoration: var(--mdc-typography-headline2-text-decoration,inherit);\r\n    text-transform: inherit;\r\n    text-transform: var(--mdc-typography-headline2-text-transform,inherit);\r\n    color: #212121;\r\n    margin: 0\r\n}\r\n\r\n@media screen and (min-width: 521px) {\r\n    h2 {\r\n        font-size:1.75rem\r\n    }\r\n}\r\n\r\n@media screen and (min-width: 921px) {\r\n    h2 {\r\n        font-size:2rem\r\n    }\r\n}\r\n\r\nh3 {\r\n    -moz-osx-font-smoothing: grayscale;\r\n    -webkit-font-smoothing: antialiased;\r\n    font-family: Roboto,sans-serif;\r\n    font-family: var(--mdc-typography-headline3-font-family,var(--mdc-typography-font-family,Roboto,sans-serif));\r\n    font-size: 1.375rem;\r\n    font-size: var(--mdc-typography-headline3-font-size,1.375rem);\r\n    line-height: 3.125rem;\r\n    line-height: var(--mdc-typography-headline3-line-height,3.125rem);\r\n    font-weight: 400;\r\n    font-weight: var(--mdc-typography-headline3-font-weight,400);\r\n    letter-spacing: normal;\r\n    letter-spacing: var(--mdc-typography-headline3-letter-spacing,normal);\r\n    text-decoration: inherit;\r\n    -webkit-text-decoration: var(--mdc-typography-headline3-text-decoration,inherit);\r\n    text-decoration: var(--mdc-typography-headline3-text-decoration,inherit);\r\n    text-transform: inherit;\r\n    text-transform: var(--mdc-typography-headline3-text-transform,inherit);\r\n    color: #212121;\r\n    margin: 0;\r\n    line-height: 1.2\r\n}\r\n\r\n@media screen and (min-width: 521px) {\r\n    h3 {\r\n        font-size:1.375rem\r\n    }\r\n}\r\n\r\n@media screen and (min-width: 921px) {\r\n    h3 {\r\n        font-size:1.5rem\r\n    }\r\n}\r\n\r\nh4 {\r\n    font-family: Roboto,sans-serif;\r\n    font-family: var(--mdc-typography-headline4-font-family,var(--mdc-typography-font-family,Roboto,sans-serif));\r\n    font-size: 1.25rem;\r\n    font-size: var(--mdc-typography-headline4-font-size,1.25rem);\r\n    line-height: 1.625rem;\r\n    line-height: var(--mdc-typography-headline4-line-height,1.625rem);\r\n    font-weight: 400;\r\n    font-weight: var(--mdc-typography-headline4-font-weight,400);\r\n    letter-spacing: .0073529412em;\r\n    letter-spacing: var(--mdc-typography-headline4-letter-spacing,.0073529412em);\r\n    text-decoration: inherit;\r\n    -webkit-text-decoration: var(--mdc-typography-headline4-text-decoration,inherit);\r\n    text-decoration: var(--mdc-typography-headline4-text-decoration,inherit);\r\n    text-transform: inherit;\r\n    text-transform: var(--mdc-typography-headline4-text-transform,inherit);\r\n    color: #212121;\r\n    margin: 0\r\n}\r\n\r\nh4,h5 {\r\n    -moz-osx-font-smoothing: grayscale;\r\n    -webkit-font-smoothing: antialiased\r\n}\r\n\r\nh5 {\r\n    font-family: Roboto,sans-serif;\r\n    font-family: var(--mdc-typography-headline5-font-family,var(--mdc-typography-font-family,Roboto,sans-serif));\r\n    font-size: 1.125rem;\r\n    font-size: var(--mdc-typography-headline5-font-size,1.125rem);\r\n    line-height: 1.333;\r\n    line-height: var(--mdc-typography-headline5-line-height,1.333);\r\n    font-weight: 400;\r\n    font-weight: var(--mdc-typography-headline5-font-weight,400);\r\n    letter-spacing: normal;\r\n    letter-spacing: var(--mdc-typography-headline5-letter-spacing,normal);\r\n    text-decoration: inherit;\r\n    -webkit-text-decoration: var(--mdc-typography-headline5-text-decoration,inherit);\r\n    text-decoration: var(--mdc-typography-headline5-text-decoration,inherit);\r\n    text-transform: inherit;\r\n    text-transform: var(--mdc-typography-headline5-text-transform,inherit)\r\n}\r\n\r\nh6 {\r\n    font-family: Roboto,sans-serif;\r\n    font-family: var(--mdc-typography-headline6-font-family,var(--mdc-typography-font-family,Roboto,sans-serif));\r\n    font-size: 1rem;\r\n    font-size: var(--mdc-typography-headline6-font-size,1rem);\r\n    line-height: 2rem;\r\n    line-height: var(--mdc-typography-headline6-line-height,2rem);\r\n    font-weight: 500;\r\n    font-weight: var(--mdc-typography-headline6-font-weight,500);\r\n    letter-spacing: .0125em;\r\n    letter-spacing: var(--mdc-typography-headline6-letter-spacing,.0125em);\r\n    text-decoration: inherit;\r\n    -webkit-text-decoration: var(--mdc-typography-headline6-text-decoration,inherit);\r\n    text-decoration: var(--mdc-typography-headline6-text-decoration,inherit);\r\n    text-transform: inherit;\r\n    text-transform: var(--mdc-typography-headline6-text-transform,inherit)\r\n}\r\n\r\n.inline-code,code,h6 {\r\n    -moz-osx-font-smoothing: grayscale;\r\n    -webkit-font-smoothing: antialiased\r\n}\r\n\r\n.inline-code,code {\r\n    font-family: Roboto,sans-serif;\r\n    font-family: var(--mdc-typography-caption-font-family,var(--mdc-typography-font-family,Roboto,sans-serif));\r\n    font-size: .875rem;\r\n    font-size: var(--mdc-typography-caption-font-size,.875rem);\r\n    line-height: 1.25rem;\r\n    line-height: var(--mdc-typography-caption-line-height,1.25rem);\r\n    font-weight: 400;\r\n    font-weight: var(--mdc-typography-caption-font-weight,400);\r\n    letter-spacing: .0333333333em;\r\n    letter-spacing: var(--mdc-typography-caption-letter-spacing,.0333333333em);\r\n    -webkit-text-decoration: var(--mdc-typography-caption-text-decoration,inherit);\r\n    text-decoration: var(--mdc-typography-caption-text-decoration,inherit);\r\n    text-transform: inherit;\r\n    text-transform: var(--mdc-typography-caption-text-transform,inherit);\r\n    background-color: #f5f5f5;\r\n    font-family: Roboto Mono,monospace;\r\n    font-weight: 500;\r\n    line-height: 1.5rem;\r\n    display: inline-block;\r\n    padding: 0 4px;\r\n    border-radius: 2px;\r\n    text-decoration: inherit;\r\n    word-break: break-word\r\n}\r\n\r\na {\r\n    color: #212121;\r\n    letter-spacing: 0;\r\n    text-decoration: underline\r\n}\r\n\r\na:focus,a:hover {\r\n    opacity: .8\r\n}\r\n\r\na:visited {\r\n    color: #616161\r\n}\r\n\r\nhr {\r\n    border-color: rgba(0,0,0,.12);\r\n    margin: 0;\r\n    border-width: 1px 0 0\r\n}\r\n\r\n\r\n\r\n", "",{"version":3,"sources":["webpack://./css/material-basics.css"],"names":[],"mappings":"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","sourcesContent":["* {\r\n    box-sizing: border-box\r\n}\r\n\r\nbody,html {\r\n    height: 100%;\r\n    margin: 0\r\n}\r\n\r\nbody.no-scroll {\r\n    overflow: hidden\r\n}\r\n\r\nbody {\r\n    -moz-osx-font-smoothing: grayscale;\r\n    -webkit-font-smoothing: antialiased;\r\n    font-family: Roboto,sans-serif;\r\n    font-family: var(--mdc-typography-body1-font-family,var(--mdc-typography-font-family,Roboto,sans-serif));\r\n    font-size: .875rem;\r\n    font-size: var(--mdc-typography-body1-font-size,.875rem);\r\n    line-height: 1.5;\r\n    line-height: var(--mdc-typography-body1-line-height,1.5);\r\n    font-weight: 400;\r\n    font-weight: var(--mdc-typography-body1-font-weight,400);\r\n    letter-spacing: .03125em;\r\n    letter-spacing: var(--mdc-typography-body1-letter-spacing,.03125em);\r\n    text-decoration: inherit;\r\n    -webkit-text-decoration: var(--mdc-typography-body1-text-decoration,inherit);\r\n    text-decoration: var(--mdc-typography-body1-text-decoration,inherit);\r\n    text-transform: inherit;\r\n    text-transform: var(--mdc-typography-body1-text-transform,inherit);\r\n    color: #424242;\r\n    letter-spacing: normal\r\n}\r\n\r\n@media screen and (min-width: 521px) {\r\n    body {\r\n        font-size:1rem\r\n    }\r\n}\r\n\r\nh1 {\r\n    -moz-osx-font-smoothing: grayscale;\r\n    -webkit-font-smoothing: antialiased;\r\n    font-family: Roboto,sans-serif;\r\n    font-family: var(--mdc-typography-headline1-font-family,var(--mdc-typography-font-family,Roboto,sans-serif));\r\n    font-size: 2.5rem;\r\n    font-size: var(--mdc-typography-headline1-font-size,2.5rem);\r\n    line-height: 1.2;\r\n    line-height: var(--mdc-typography-headline1-line-height,1.2);\r\n    font-weight: 400;\r\n    font-weight: var(--mdc-typography-headline1-font-weight,400);\r\n    letter-spacing: 0;\r\n    letter-spacing: var(--mdc-typography-headline1-letter-spacing,0);\r\n    text-decoration: inherit;\r\n    -webkit-text-decoration: var(--mdc-typography-headline1-text-decoration,inherit);\r\n    text-decoration: var(--mdc-typography-headline1-text-decoration,inherit);\r\n    text-transform: inherit;\r\n    text-transform: var(--mdc-typography-headline1-text-transform,inherit);\r\n    color: #212121;\r\n    margin: 0\r\n}\r\n\r\n@media screen and (min-width: 521px) {\r\n    h1 {\r\n        font-size:3.125rem\r\n    }\r\n}\r\n\r\n@media screen and (min-width: 921px) {\r\n    h1 {\r\n        font-size:3.75rem\r\n    }\r\n}\r\n\r\nh2 {\r\n    -moz-osx-font-smoothing: grayscale;\r\n    -webkit-font-smoothing: antialiased;\r\n    font-family: Roboto,sans-serif;\r\n    font-family: var(--mdc-typography-headline2-font-family,var(--mdc-typography-font-family,Roboto,sans-serif));\r\n    font-size: 1.5rem;\r\n    font-size: var(--mdc-typography-headline2-font-size,1.5rem);\r\n    line-height: 1.2;\r\n    line-height: var(--mdc-typography-headline2-line-height,1.2);\r\n    font-weight: 400;\r\n    font-weight: var(--mdc-typography-headline2-font-weight,400);\r\n    letter-spacing: -.0083333333em;\r\n    letter-spacing: var(--mdc-typography-headline2-letter-spacing,-.0083333333em);\r\n    text-decoration: inherit;\r\n    -webkit-text-decoration: var(--mdc-typography-headline2-text-decoration,inherit);\r\n    text-decoration: var(--mdc-typography-headline2-text-decoration,inherit);\r\n    text-transform: inherit;\r\n    text-transform: var(--mdc-typography-headline2-text-transform,inherit);\r\n    color: #212121;\r\n    margin: 0\r\n}\r\n\r\n@media screen and (min-width: 521px) {\r\n    h2 {\r\n        font-size:1.75rem\r\n    }\r\n}\r\n\r\n@media screen and (min-width: 921px) {\r\n    h2 {\r\n        font-size:2rem\r\n    }\r\n}\r\n\r\nh3 {\r\n    -moz-osx-font-smoothing: grayscale;\r\n    -webkit-font-smoothing: antialiased;\r\n    font-family: Roboto,sans-serif;\r\n    font-family: var(--mdc-typography-headline3-font-family,var(--mdc-typography-font-family,Roboto,sans-serif));\r\n    font-size: 1.375rem;\r\n    font-size: var(--mdc-typography-headline3-font-size,1.375rem);\r\n    line-height: 3.125rem;\r\n    line-height: var(--mdc-typography-headline3-line-height,3.125rem);\r\n    font-weight: 400;\r\n    font-weight: var(--mdc-typography-headline3-font-weight,400);\r\n    letter-spacing: normal;\r\n    letter-spacing: var(--mdc-typography-headline3-letter-spacing,normal);\r\n    text-decoration: inherit;\r\n    -webkit-text-decoration: var(--mdc-typography-headline3-text-decoration,inherit);\r\n    text-decoration: var(--mdc-typography-headline3-text-decoration,inherit);\r\n    text-transform: inherit;\r\n    text-transform: var(--mdc-typography-headline3-text-transform,inherit);\r\n    color: #212121;\r\n    margin: 0;\r\n    line-height: 1.2\r\n}\r\n\r\n@media screen and (min-width: 521px) {\r\n    h3 {\r\n        font-size:1.375rem\r\n    }\r\n}\r\n\r\n@media screen and (min-width: 921px) {\r\n    h3 {\r\n        font-size:1.5rem\r\n    }\r\n}\r\n\r\nh4 {\r\n    font-family: Roboto,sans-serif;\r\n    font-family: var(--mdc-typography-headline4-font-family,var(--mdc-typography-font-family,Roboto,sans-serif));\r\n    font-size: 1.25rem;\r\n    font-size: var(--mdc-typography-headline4-font-size,1.25rem);\r\n    line-height: 1.625rem;\r\n    line-height: var(--mdc-typography-headline4-line-height,1.625rem);\r\n    font-weight: 400;\r\n    font-weight: var(--mdc-typography-headline4-font-weight,400);\r\n    letter-spacing: .0073529412em;\r\n    letter-spacing: var(--mdc-typography-headline4-letter-spacing,.0073529412em);\r\n    text-decoration: inherit;\r\n    -webkit-text-decoration: var(--mdc-typography-headline4-text-decoration,inherit);\r\n    text-decoration: var(--mdc-typography-headline4-text-decoration,inherit);\r\n    text-transform: inherit;\r\n    text-transform: var(--mdc-typography-headline4-text-transform,inherit);\r\n    color: #212121;\r\n    margin: 0\r\n}\r\n\r\nh4,h5 {\r\n    -moz-osx-font-smoothing: grayscale;\r\n    -webkit-font-smoothing: antialiased\r\n}\r\n\r\nh5 {\r\n    font-family: Roboto,sans-serif;\r\n    font-family: var(--mdc-typography-headline5-font-family,var(--mdc-typography-font-family,Roboto,sans-serif));\r\n    font-size: 1.125rem;\r\n    font-size: var(--mdc-typography-headline5-font-size,1.125rem);\r\n    line-height: 1.333;\r\n    line-height: var(--mdc-typography-headline5-line-height,1.333);\r\n    font-weight: 400;\r\n    font-weight: var(--mdc-typography-headline5-font-weight,400);\r\n    letter-spacing: normal;\r\n    letter-spacing: var(--mdc-typography-headline5-letter-spacing,normal);\r\n    text-decoration: inherit;\r\n    -webkit-text-decoration: var(--mdc-typography-headline5-text-decoration,inherit);\r\n    text-decoration: var(--mdc-typography-headline5-text-decoration,inherit);\r\n    text-transform: inherit;\r\n    text-transform: var(--mdc-typography-headline5-text-transform,inherit)\r\n}\r\n\r\nh6 {\r\n    font-family: Roboto,sans-serif;\r\n    font-family: var(--mdc-typography-headline6-font-family,var(--mdc-typography-font-family,Roboto,sans-serif));\r\n    font-size: 1rem;\r\n    font-size: var(--mdc-typography-headline6-font-size,1rem);\r\n    line-height: 2rem;\r\n    line-height: var(--mdc-typography-headline6-line-height,2rem);\r\n    font-weight: 500;\r\n    font-weight: var(--mdc-typography-headline6-font-weight,500);\r\n    letter-spacing: .0125em;\r\n    letter-spacing: var(--mdc-typography-headline6-letter-spacing,.0125em);\r\n    text-decoration: inherit;\r\n    -webkit-text-decoration: var(--mdc-typography-headline6-text-decoration,inherit);\r\n    text-decoration: var(--mdc-typography-headline6-text-decoration,inherit);\r\n    text-transform: inherit;\r\n    text-transform: var(--mdc-typography-headline6-text-transform,inherit)\r\n}\r\n\r\n.inline-code,code,h6 {\r\n    -moz-osx-font-smoothing: grayscale;\r\n    -webkit-font-smoothing: antialiased\r\n}\r\n\r\n.inline-code,code {\r\n    font-family: Roboto,sans-serif;\r\n    font-family: var(--mdc-typography-caption-font-family,var(--mdc-typography-font-family,Roboto,sans-serif));\r\n    font-size: .875rem;\r\n    font-size: var(--mdc-typography-caption-font-size,.875rem);\r\n    line-height: 1.25rem;\r\n    line-height: var(--mdc-typography-caption-line-height,1.25rem);\r\n    font-weight: 400;\r\n    font-weight: var(--mdc-typography-caption-font-weight,400);\r\n    letter-spacing: .0333333333em;\r\n    letter-spacing: var(--mdc-typography-caption-letter-spacing,.0333333333em);\r\n    -webkit-text-decoration: var(--mdc-typography-caption-text-decoration,inherit);\r\n    text-decoration: var(--mdc-typography-caption-text-decoration,inherit);\r\n    text-transform: inherit;\r\n    text-transform: var(--mdc-typography-caption-text-transform,inherit);\r\n    background-color: #f5f5f5;\r\n    font-family: Roboto Mono,monospace;\r\n    font-weight: 500;\r\n    line-height: 1.5rem;\r\n    display: inline-block;\r\n    padding: 0 4px;\r\n    border-radius: 2px;\r\n    text-decoration: inherit;\r\n    word-break: break-word\r\n}\r\n\r\na {\r\n    color: #212121;\r\n    letter-spacing: 0;\r\n    text-decoration: underline\r\n}\r\n\r\na:focus,a:hover {\r\n    opacity: .8\r\n}\r\n\r\na:visited {\r\n    color: #616161\r\n}\r\n\r\nhr {\r\n    border-color: rgba(0,0,0,.12);\r\n    margin: 0;\r\n    border-width: 1px 0 0\r\n}\r\n\r\n\r\n\r\n"],"sourceRoot":""}]);
+// Exports
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
+
+
+/***/ }),
+
+/***/ "./node_modules/css-loader/dist/runtime/api.js":
+/*!*****************************************************!*\
+  !*** ./node_modules/css-loader/dist/runtime/api.js ***!
+  \*****************************************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+/*
+  MIT License http://www.opensource.org/licenses/mit-license.php
+  Author Tobias Koppers @sokra
+*/
+// css base code, injected by the css-loader
+// eslint-disable-next-line func-names
+module.exports = function (cssWithMappingToString) {
+  var list = []; // return the list of modules as css string
+
+  list.toString = function toString() {
+    return this.map(function (item) {
+      var content = cssWithMappingToString(item);
+
+      if (item[2]) {
+        return "@media ".concat(item[2], " {").concat(content, "}");
+      }
+
+      return content;
+    }).join("");
+  }; // import a list of modules into the list
+  // eslint-disable-next-line func-names
+
+
+  list.i = function (modules, mediaQuery, dedupe) {
+    if (typeof modules === "string") {
+      // eslint-disable-next-line no-param-reassign
+      modules = [[null, modules, ""]];
+    }
+
+    var alreadyImportedModules = {};
+
+    if (dedupe) {
+      for (var i = 0; i < this.length; i++) {
+        // eslint-disable-next-line prefer-destructuring
+        var id = this[i][0];
+
+        if (id != null) {
+          alreadyImportedModules[id] = true;
+        }
+      }
+    }
+
+    for (var _i = 0; _i < modules.length; _i++) {
+      var item = [].concat(modules[_i]);
+
+      if (dedupe && alreadyImportedModules[item[0]]) {
+        // eslint-disable-next-line no-continue
+        continue;
+      }
+
+      if (mediaQuery) {
+        if (!item[2]) {
+          item[2] = mediaQuery;
+        } else {
+          item[2] = "".concat(mediaQuery, " and ").concat(item[2]);
+        }
+      }
+
+      list.push(item);
+    }
+  };
+
+  return list;
+};
+
+/***/ }),
+
+/***/ "./node_modules/css-loader/dist/runtime/cssWithMappingToString.js":
+/*!************************************************************************!*\
+  !*** ./node_modules/css-loader/dist/runtime/cssWithMappingToString.js ***!
+  \************************************************************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+function _slicedToArray(arr, i) { return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest(); }
+
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+function _iterableToArrayLimit(arr, i) { var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"]; if (_i == null) return; var _arr = []; var _n = true; var _d = false; var _s, _e; try { for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"] != null) _i["return"](); } finally { if (_d) throw _e; } } return _arr; }
+
+function _arrayWithHoles(arr) { if (Array.isArray(arr)) return arr; }
+
+module.exports = function cssWithMappingToString(item) {
+  var _item = _slicedToArray(item, 4),
+      content = _item[1],
+      cssMapping = _item[3];
+
+  if (!cssMapping) {
+    return content;
+  }
+
+  if (typeof btoa === "function") {
+    // eslint-disable-next-line no-undef
+    var base64 = btoa(unescape(encodeURIComponent(JSON.stringify(cssMapping))));
+    var data = "sourceMappingURL=data:application/json;charset=utf-8;base64,".concat(base64);
+    var sourceMapping = "/*# ".concat(data, " */");
+    var sourceURLs = cssMapping.sources.map(function (source) {
+      return "/*# sourceURL=".concat(cssMapping.sourceRoot || "").concat(source, " */");
+    });
+    return [content].concat(sourceURLs).concat([sourceMapping]).join("\n");
+  }
+
+  return [content].join("\n");
+};
+
+/***/ }),
+
 /***/ "./node_modules/daterangepicker/daterangepicker.js":
 /*!*********************************************************!*\
   !*** ./node_modules/daterangepicker/daterangepicker.js ***!
@@ -25206,22 +25970,6 @@ if (typeof ___EXPOSE_LOADER_GLOBAL_THIS___["$"] === 'undefined') ___EXPOSE_LOADE
 else throw new Error('[exposes-loader] The "$" value exists in the global scope, it may not be safe to overwrite it, use the "override" option')
 if (typeof ___EXPOSE_LOADER_GLOBAL_THIS___["jQuery"] === 'undefined') ___EXPOSE_LOADER_GLOBAL_THIS___["jQuery"] = ___EXPOSE_LOADER_IMPORT___;
 else throw new Error('[exposes-loader] The "jQuery" value exists in the global scope, it may not be safe to overwrite it, use the "override" option')
-module.exports = ___EXPOSE_LOADER_IMPORT___;
-
-
-/***/ }),
-
-/***/ "./build/Model-exposed.js":
-/*!********************************!*\
-  !*** ./build/Model-exposed.js ***!
-  \********************************/
-/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
-
-var ___EXPOSE_LOADER_IMPORT___ = __webpack_require__(/*! -!./Model.js */ "./build/Model.js");
-var ___EXPOSE_LOADER_GET_GLOBAL_THIS___ = __webpack_require__(/*! ../node_modules/expose-loader/dist/runtime/getGlobalThis.js */ "./node_modules/expose-loader/dist/runtime/getGlobalThis.js");
-var ___EXPOSE_LOADER_GLOBAL_THIS___ = ___EXPOSE_LOADER_GET_GLOBAL_THIS___;
-if (typeof ___EXPOSE_LOADER_GLOBAL_THIS___["Model"] === 'undefined') ___EXPOSE_LOADER_GLOBAL_THIS___["Model"] = ___EXPOSE_LOADER_IMPORT___;
-else throw new Error('[exposes-loader] The "Model" value exists in the global scope, it may not be safe to overwrite it, use the "override" option')
 module.exports = ___EXPOSE_LOADER_IMPORT___;
 
 
@@ -69574,6 +70322,399 @@ try {
 
 /***/ }),
 
+/***/ "./css/equal.css":
+/*!***********************!*\
+  !*** ./css/equal.css ***!
+  \***********************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! !../node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js */ "./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js");
+/* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _node_modules_style_loader_dist_runtime_styleDomAPI_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !../node_modules/style-loader/dist/runtime/styleDomAPI.js */ "./node_modules/style-loader/dist/runtime/styleDomAPI.js");
+/* harmony import */ var _node_modules_style_loader_dist_runtime_styleDomAPI_js__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_styleDomAPI_js__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _node_modules_style_loader_dist_runtime_insertBySelector_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! !../node_modules/style-loader/dist/runtime/insertBySelector.js */ "./node_modules/style-loader/dist/runtime/insertBySelector.js");
+/* harmony import */ var _node_modules_style_loader_dist_runtime_insertBySelector_js__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_insertBySelector_js__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _node_modules_style_loader_dist_runtime_setAttributesWithoutAttributes_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! !../node_modules/style-loader/dist/runtime/setAttributesWithoutAttributes.js */ "./node_modules/style-loader/dist/runtime/setAttributesWithoutAttributes.js");
+/* harmony import */ var _node_modules_style_loader_dist_runtime_setAttributesWithoutAttributes_js__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_setAttributesWithoutAttributes_js__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var _node_modules_style_loader_dist_runtime_insertStyleElement_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! !../node_modules/style-loader/dist/runtime/insertStyleElement.js */ "./node_modules/style-loader/dist/runtime/insertStyleElement.js");
+/* harmony import */ var _node_modules_style_loader_dist_runtime_insertStyleElement_js__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_insertStyleElement_js__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var _node_modules_style_loader_dist_runtime_styleTagTransform_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! !../node_modules/style-loader/dist/runtime/styleTagTransform.js */ "./node_modules/style-loader/dist/runtime/styleTagTransform.js");
+/* harmony import */ var _node_modules_style_loader_dist_runtime_styleTagTransform_js__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_styleTagTransform_js__WEBPACK_IMPORTED_MODULE_5__);
+/* harmony import */ var _node_modules_css_loader_dist_cjs_js_equal_css__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! !!../node_modules/css-loader/dist/cjs.js!./equal.css */ "./node_modules/css-loader/dist/cjs.js!./css/equal.css");
+
+      
+      
+      
+      
+      
+      
+      
+      
+      
+
+var options = {};
+
+options.styleTagTransform = (_node_modules_style_loader_dist_runtime_styleTagTransform_js__WEBPACK_IMPORTED_MODULE_5___default());
+options.setAttributes = (_node_modules_style_loader_dist_runtime_setAttributesWithoutAttributes_js__WEBPACK_IMPORTED_MODULE_3___default());
+
+      options.insert = _node_modules_style_loader_dist_runtime_insertBySelector_js__WEBPACK_IMPORTED_MODULE_2___default().bind(null, "head");
+    
+options.domAPI = (_node_modules_style_loader_dist_runtime_styleDomAPI_js__WEBPACK_IMPORTED_MODULE_1___default());
+options.insertStyleElement = (_node_modules_style_loader_dist_runtime_insertStyleElement_js__WEBPACK_IMPORTED_MODULE_4___default());
+
+var update = _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default()(_node_modules_css_loader_dist_cjs_js_equal_css__WEBPACK_IMPORTED_MODULE_6__.default, options);
+
+
+
+
+       /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (_node_modules_css_loader_dist_cjs_js_equal_css__WEBPACK_IMPORTED_MODULE_6__.default && _node_modules_css_loader_dist_cjs_js_equal_css__WEBPACK_IMPORTED_MODULE_6__.default.locals ? _node_modules_css_loader_dist_cjs_js_equal_css__WEBPACK_IMPORTED_MODULE_6__.default.locals : undefined);
+
+
+/***/ }),
+
+/***/ "./css/material-basics.css":
+/*!*********************************!*\
+  !*** ./css/material-basics.css ***!
+  \*********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! !../node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js */ "./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js");
+/* harmony import */ var _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _node_modules_style_loader_dist_runtime_styleDomAPI_js__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! !../node_modules/style-loader/dist/runtime/styleDomAPI.js */ "./node_modules/style-loader/dist/runtime/styleDomAPI.js");
+/* harmony import */ var _node_modules_style_loader_dist_runtime_styleDomAPI_js__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_styleDomAPI_js__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _node_modules_style_loader_dist_runtime_insertBySelector_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! !../node_modules/style-loader/dist/runtime/insertBySelector.js */ "./node_modules/style-loader/dist/runtime/insertBySelector.js");
+/* harmony import */ var _node_modules_style_loader_dist_runtime_insertBySelector_js__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_insertBySelector_js__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _node_modules_style_loader_dist_runtime_setAttributesWithoutAttributes_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! !../node_modules/style-loader/dist/runtime/setAttributesWithoutAttributes.js */ "./node_modules/style-loader/dist/runtime/setAttributesWithoutAttributes.js");
+/* harmony import */ var _node_modules_style_loader_dist_runtime_setAttributesWithoutAttributes_js__WEBPACK_IMPORTED_MODULE_3___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_setAttributesWithoutAttributes_js__WEBPACK_IMPORTED_MODULE_3__);
+/* harmony import */ var _node_modules_style_loader_dist_runtime_insertStyleElement_js__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! !../node_modules/style-loader/dist/runtime/insertStyleElement.js */ "./node_modules/style-loader/dist/runtime/insertStyleElement.js");
+/* harmony import */ var _node_modules_style_loader_dist_runtime_insertStyleElement_js__WEBPACK_IMPORTED_MODULE_4___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_insertStyleElement_js__WEBPACK_IMPORTED_MODULE_4__);
+/* harmony import */ var _node_modules_style_loader_dist_runtime_styleTagTransform_js__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! !../node_modules/style-loader/dist/runtime/styleTagTransform.js */ "./node_modules/style-loader/dist/runtime/styleTagTransform.js");
+/* harmony import */ var _node_modules_style_loader_dist_runtime_styleTagTransform_js__WEBPACK_IMPORTED_MODULE_5___default = /*#__PURE__*/__webpack_require__.n(_node_modules_style_loader_dist_runtime_styleTagTransform_js__WEBPACK_IMPORTED_MODULE_5__);
+/* harmony import */ var _node_modules_css_loader_dist_cjs_js_material_basics_css__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! !!../node_modules/css-loader/dist/cjs.js!./material-basics.css */ "./node_modules/css-loader/dist/cjs.js!./css/material-basics.css");
+
+      
+      
+      
+      
+      
+      
+      
+      
+      
+
+var options = {};
+
+options.styleTagTransform = (_node_modules_style_loader_dist_runtime_styleTagTransform_js__WEBPACK_IMPORTED_MODULE_5___default());
+options.setAttributes = (_node_modules_style_loader_dist_runtime_setAttributesWithoutAttributes_js__WEBPACK_IMPORTED_MODULE_3___default());
+
+      options.insert = _node_modules_style_loader_dist_runtime_insertBySelector_js__WEBPACK_IMPORTED_MODULE_2___default().bind(null, "head");
+    
+options.domAPI = (_node_modules_style_loader_dist_runtime_styleDomAPI_js__WEBPACK_IMPORTED_MODULE_1___default());
+options.insertStyleElement = (_node_modules_style_loader_dist_runtime_insertStyleElement_js__WEBPACK_IMPORTED_MODULE_4___default());
+
+var update = _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js__WEBPACK_IMPORTED_MODULE_0___default()(_node_modules_css_loader_dist_cjs_js_material_basics_css__WEBPACK_IMPORTED_MODULE_6__.default, options);
+
+
+
+
+       /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (_node_modules_css_loader_dist_cjs_js_material_basics_css__WEBPACK_IMPORTED_MODULE_6__.default && _node_modules_css_loader_dist_cjs_js_material_basics_css__WEBPACK_IMPORTED_MODULE_6__.default.locals ? _node_modules_css_loader_dist_cjs_js_material_basics_css__WEBPACK_IMPORTED_MODULE_6__.default.locals : undefined);
+
+
+/***/ }),
+
+/***/ "./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js":
+/*!****************************************************************************!*\
+  !*** ./node_modules/style-loader/dist/runtime/injectStylesIntoStyleTag.js ***!
+  \****************************************************************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+var stylesInDom = [];
+
+function getIndexByIdentifier(identifier) {
+  var result = -1;
+
+  for (var i = 0; i < stylesInDom.length; i++) {
+    if (stylesInDom[i].identifier === identifier) {
+      result = i;
+      break;
+    }
+  }
+
+  return result;
+}
+
+function modulesToDom(list, options) {
+  var idCountMap = {};
+  var identifiers = [];
+
+  for (var i = 0; i < list.length; i++) {
+    var item = list[i];
+    var id = options.base ? item[0] + options.base : item[0];
+    var count = idCountMap[id] || 0;
+    var identifier = "".concat(id, " ").concat(count);
+    idCountMap[id] = count + 1;
+    var index = getIndexByIdentifier(identifier);
+    var obj = {
+      css: item[1],
+      media: item[2],
+      sourceMap: item[3]
+    };
+
+    if (index !== -1) {
+      stylesInDom[index].references++;
+      stylesInDom[index].updater(obj);
+    } else {
+      stylesInDom.push({
+        identifier: identifier,
+        updater: addStyle(obj, options),
+        references: 1
+      });
+    }
+
+    identifiers.push(identifier);
+  }
+
+  return identifiers;
+}
+
+function addStyle(obj, options) {
+  var api = options.domAPI(options);
+  api.update(obj);
+  return function updateStyle(newObj) {
+    if (newObj) {
+      if (newObj.css === obj.css && newObj.media === obj.media && newObj.sourceMap === obj.sourceMap) {
+        return;
+      }
+
+      api.update(obj = newObj);
+    } else {
+      api.remove();
+    }
+  };
+}
+
+module.exports = function (list, options) {
+  options = options || {};
+  list = list || [];
+  var lastIdentifiers = modulesToDom(list, options);
+  return function update(newList) {
+    newList = newList || [];
+
+    for (var i = 0; i < lastIdentifiers.length; i++) {
+      var identifier = lastIdentifiers[i];
+      var index = getIndexByIdentifier(identifier);
+      stylesInDom[index].references--;
+    }
+
+    var newLastIdentifiers = modulesToDom(newList, options);
+
+    for (var _i = 0; _i < lastIdentifiers.length; _i++) {
+      var _identifier = lastIdentifiers[_i];
+
+      var _index = getIndexByIdentifier(_identifier);
+
+      if (stylesInDom[_index].references === 0) {
+        stylesInDom[_index].updater();
+
+        stylesInDom.splice(_index, 1);
+      }
+    }
+
+    lastIdentifiers = newLastIdentifiers;
+  };
+};
+
+/***/ }),
+
+/***/ "./node_modules/style-loader/dist/runtime/insertBySelector.js":
+/*!********************************************************************!*\
+  !*** ./node_modules/style-loader/dist/runtime/insertBySelector.js ***!
+  \********************************************************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+var memo = {};
+/* istanbul ignore next  */
+
+function getTarget(target) {
+  if (typeof memo[target] === "undefined") {
+    var styleTarget = document.querySelector(target); // Special case to return head of iframe instead of iframe itself
+
+    if (window.HTMLIFrameElement && styleTarget instanceof window.HTMLIFrameElement) {
+      try {
+        // This will throw an exception if access to iframe is blocked
+        // due to cross-origin restrictions
+        styleTarget = styleTarget.contentDocument.head;
+      } catch (e) {
+        // istanbul ignore next
+        styleTarget = null;
+      }
+    }
+
+    memo[target] = styleTarget;
+  }
+
+  return memo[target];
+}
+/* istanbul ignore next  */
+
+
+function insertBySelector(insert, style) {
+  var target = getTarget(insert);
+
+  if (!target) {
+    throw new Error("Couldn't find a style target. This probably means that the value for the 'insert' parameter is invalid.");
+  }
+
+  target.appendChild(style);
+}
+
+module.exports = insertBySelector;
+
+/***/ }),
+
+/***/ "./node_modules/style-loader/dist/runtime/insertStyleElement.js":
+/*!**********************************************************************!*\
+  !*** ./node_modules/style-loader/dist/runtime/insertStyleElement.js ***!
+  \**********************************************************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+/* istanbul ignore next  */
+function insertStyleElement(options) {
+  var style = document.createElement("style");
+  options.setAttributes(style, options.attributes);
+  options.insert(style);
+  return style;
+}
+
+module.exports = insertStyleElement;
+
+/***/ }),
+
+/***/ "./node_modules/style-loader/dist/runtime/setAttributesWithoutAttributes.js":
+/*!**********************************************************************************!*\
+  !*** ./node_modules/style-loader/dist/runtime/setAttributesWithoutAttributes.js ***!
+  \**********************************************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+/* istanbul ignore next  */
+function setAttributesWithoutAttributes(style) {
+  var nonce =  true ? __webpack_require__.nc : 0;
+
+  if (nonce) {
+    style.setAttribute("nonce", nonce);
+  }
+}
+
+module.exports = setAttributesWithoutAttributes;
+
+/***/ }),
+
+/***/ "./node_modules/style-loader/dist/runtime/styleDomAPI.js":
+/*!***************************************************************!*\
+  !*** ./node_modules/style-loader/dist/runtime/styleDomAPI.js ***!
+  \***************************************************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+/* istanbul ignore next  */
+function apply(style, options, obj) {
+  var css = obj.css;
+  var media = obj.media;
+  var sourceMap = obj.sourceMap;
+
+  if (media) {
+    style.setAttribute("media", media);
+  } else {
+    style.removeAttribute("media");
+  }
+
+  if (sourceMap && typeof btoa !== "undefined") {
+    css += "\n/*# sourceMappingURL=data:application/json;base64,".concat(btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap)))), " */");
+  } // For old IE
+
+  /* istanbul ignore if  */
+
+
+  options.styleTagTransform(css, style);
+}
+
+function removeStyleElement(style) {
+  // istanbul ignore if
+  if (style.parentNode === null) {
+    return false;
+  }
+
+  style.parentNode.removeChild(style);
+}
+/* istanbul ignore next  */
+
+
+function domAPI(options) {
+  var style = options.insertStyleElement(options);
+  return {
+    update: function update(obj) {
+      apply(style, options, obj);
+    },
+    remove: function remove() {
+      removeStyleElement(style);
+    }
+  };
+}
+
+module.exports = domAPI;
+
+/***/ }),
+
+/***/ "./node_modules/style-loader/dist/runtime/styleTagTransform.js":
+/*!*********************************************************************!*\
+  !*** ./node_modules/style-loader/dist/runtime/styleTagTransform.js ***!
+  \*********************************************************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+/* istanbul ignore next  */
+function styleTagTransform(css, style) {
+  if (style.styleSheet) {
+    style.styleSheet.cssText = css;
+  } else {
+    while (style.firstChild) {
+      style.removeChild(style.firstChild);
+    }
+
+    style.appendChild(document.createTextNode(css));
+  }
+}
+
+module.exports = styleTagTransform;
+
+/***/ }),
+
 /***/ "./node_modules/tslib/tslib.es6.js":
 /*!*****************************************!*\
   !*** ./node_modules/tslib/tslib.es6.js ***!
@@ -69827,6 +70968,626 @@ function __classPrivateFieldSet(receiver, privateMap, value) {
 }
 
 
+/***/ }),
+
+/***/ "./timepicker.js":
+/*!***********************!*\
+  !*** ./timepicker.js ***!
+  \***********************/
+/***/ (() => {
+
+
+(function ($, window, document) {
+
+    "use strict";
+
+    if (typeof String.prototype.endsWith != 'function') {
+        /*
+         * Checks if this string end ends with another string
+         *
+         * @param {string} the string to be checked
+         *
+         * @return {bool}
+         */
+        String.prototype.endsWith = function (string) {
+            return string.length > 0 && this.substring(this.length - string.length, this.length) === string;
+        }
+    }
+
+
+    var today = new Date();
+
+    var pluginName = "timepicker",
+        defaults = {
+            now: today.getHours() + ':' + today.getMinutes(),
+            twentyFour: false,
+            upArrow: 'timepicker__controls__control-up',
+            downArrow: 'timepicker__controls__control-down',
+            close: 'timepicker__close',
+            hoverState: 'hover-state',
+            title: 'Timepicker',
+            showSeconds: false,
+            timeSeparator: ' : ',
+            secondsInterval: 1,
+            minutesInterval: 1,
+            beforeShow: null,
+            afterShow: null,
+            show: null,
+            clearable: false,
+            closeOnClickOutside: true,
+            onClickOutside: function() {},
+        };
+
+    /*
+     * @param {object} The input object the timepicker is attached to.
+     * @param {object} The object containing options
+     */
+    function timepicker(element, options) {
+        this.element = $(element);
+        this.options = $.extend({}, defaults, options);
+
+        this.element.addClass('hastimepicker');
+//        this.element.attr('onkeypress', 'return false;');
+        this.element.attr('aria-showingpicker', 'false');
+        this.createPicker();
+        this.timepicker = $('.timepicker');
+        this.up = $('.' + this.options.upArrow.split(/\s+/).join('.'));
+        this.down = $('.' + this.options.downArrow.split(/\s+/).join('.'));
+        this.separator = $('.timepicker__controls__control--separator');
+        this.hoursElem = $('.timepicker__controls__control--hours');
+        this.minutesElem = $('.timepicker__controls__control--minutes');
+        this.secondsElem = $('.timepicker__controls__control--seconds');
+        this.meridiemElem = $('.timepicker__controls__control--meridiem');
+        this.close = $('.' + this.options.close.split(/\s+/).join('.'));
+
+        //Create a new Date object based on the default or passing in now value
+        var time = this.timeArrayFromString(this.options.now);
+        this.options.now = new Date(today.getFullYear(), today.getMonth(), today.getDate(), time[0], time[1], time[2]);
+        this.selectedHour = this.parseHours(this.options.now.getHours());
+        this.selectedMin = this.parseSecMin(this.options.now.getMinutes());
+        this.selectedSec = this.parseSecMin(this.options.now.getSeconds());
+        this.selectedMeridiem = this.parseMeridiem(this.options.now.getHours());
+        this.setHoverState();
+        this.attach(element);
+        this.setText(element);
+    }
+
+    $.extend(timepicker.prototype, {
+
+        /*
+         * Show given input's timepicker
+         *
+         * @param {object} The input being clicked
+         */
+        showPicker: function (element) {
+            //If there is a beforeShow function, then call it with the input calling the timepicker and the
+            // timepicker itself
+            if (typeof this.options.beforeShow === 'function') {
+                this.options.beforeShow(element, this.timepicker);
+            }
+            var timepickerPos = $(element).offset();
+
+            $(element).attr({'aria-showingpicker': 'true', 'tabindex': -1});
+            this.setText(element);
+            this.showHideMeridiemControl();
+            if (this.getText(element) !== this.getTime()) {
+
+                // Check meridiem 
+                var text = this.getText(element);
+                var re = /\s[ap]m$/i;
+                var meridiem = re.test(text) ? text.substr(-2, 2) : null;
+                var inputTime = text.replace(re, '').split(this.options.timeSeparator);
+                var newTime = {};
+                newTime.hours = inputTime[0];
+                newTime.minutes = inputTime[1];
+                newTime.meridiem = meridiem;
+                if (this.options.showSeconds) {
+                    newTime.seconds = inputTime[2];
+                }
+                this.setTime(newTime);
+            }
+            this.timepicker.css({
+                'z-index': this.element.css('z-index') + 1,
+                position: 'absolute',
+                left: timepickerPos.left,
+                top: timepickerPos.top + $(element)[0].offsetHeight
+            }).show();
+            //If there is a show function, then call it with the input calling the timepicker and the
+            // timepicker itself
+            if (typeof this.options.show === 'function') {
+                this.options.show(element, this.timepicker);
+            }
+
+            this.handleTimeAdjustments(element);
+        },
+
+        /*
+         * Hides the timepicker that is currently shown if it is not part of the timepicker
+         *
+         * @param {Object} The DOM object being clicked on the page
+         * 
+         * BeinnLora: added trigger function to call on closing/hiding timepicker. 
+         */
+        hideTimepicker: function (element) {
+            this.timepicker.hide();
+            if (typeof this.options.afterShow === 'function') {
+                this.options.afterShow(element, this.timepicker);
+            }
+            var pickerHidden = {
+                start: function () {
+                    var setShowPickerFalse = $.Deferred();
+                    $('[aria-showingpicker="true"]').attr('aria-showingpicker', 'false');
+                    return setShowPickerFalse.promise();
+                }
+            };
+
+            function setTabIndex(index) {
+                setTimeout(function () {
+                    $('[aria-showingpicker="false"]').attr('tabindex', index);
+                }, 400);
+            }
+
+            pickerHidden.start().then(setTabIndex(0));
+        },
+
+        /*
+         * Create a new timepicker. A single timepicker per page
+         */
+        createPicker: function () {
+            if ($('.timepicker').length === 0) {
+                var picker = '<div class="timepicker"><ul class="timepicker__controls"><li class="timepicker__controls__control"><span class="' + this.options.upArrow + '"></span><span class="timepicker__controls__control--hours" tabindex="-1">00</span><span class="' + this.options.downArrow + '"></span></li><li class="timepicker__controls__control--separator"><span class="timepicker__controls__control--separator-inner">:</span></li><li class="timepicker__controls__control"><span class="' + this.options.upArrow + '"></span><span class="timepicker__controls__control--minutes" tabindex="-1">00</span><span class="' + this.options.downArrow + '"></span></li>';
+                if (this.options.showSeconds) {
+                    picker += '<li class="timepicker__controls__control--separator"><span class="timepicker__controls__control--separator-inner">:</span></li><li class="timepicker__controls__control"><span class="' + this.options.upArrow + '"></span><span class="timepicker__controls__control--seconds" tabindex="-1">00</span><span class="' + this.options.downArrow + '"></span> </li>';
+                }
+                picker += '<li class="timepicker__controls__control"><span class="' + this.options.upArrow + '"></span><span class="timepicker__controls__control--meridiem" tabindex="-1">AM</span><span class="' + this.options.downArrow + '"></span></li></ul></div>';
+                $('body').append(picker);
+//                this.attachKeyboardEvents();
+            }
+        },
+
+        /*
+         * Hides the meridiem control if this timepicker is a 24 hour clock
+         */
+        showHideMeridiemControl: function () {
+            if (this.options.twentyFour === false) {
+                $(this.meridiemElem).parent().show();
+            }
+            else {
+                $(this.meridiemElem).parent().hide();
+            }
+        },
+
+        /*
+         * Hides the seconds control if this timepicker has showSeconds set to true
+         */
+        showHideSecondsControl: function () {
+            if (this.options.showSeconds) {
+                $(this.secondsElem).parent().show();
+            }
+            else {
+                $(this.secondsElem).parent().hide();
+            }
+        },
+
+        /*
+         * Bind the click events to the input
+         *
+         * @param {object} The input element
+         */
+        attach: function (element) {
+            var self = this;
+
+            if (this.options.clearable) {
+                self.makePickerInputClearable(element);
+            }
+
+            $(element).attr('tabindex', 0);
+            $(element).on('click focus', function (event) {
+                //Prevent multiple firings
+                if ($(self.timepicker).is(':hidden')) {
+                  self.showPicker($(this));
+                  window.lastTimePickerControl = $(this); //Put the reference on this timepicker into global scope for unsing that in afterShow function
+                  $(self.hoursElem).focus();
+                }
+            });
+
+
+            //Handle click events for closing timepicker
+            var clickHandler = function (event) { //TODO: Fix double firing
+                //Only fire the hide event when you have to
+                if ($(self.timepicker).is(':visible')) {
+                    //Clicking the X
+                    if ($(event.target).is(self.close)) {
+                      self.hideTimepicker(window.lastTimePickerControl);
+                    } else if ($(event.target).closest(self.timepicker).length || $(event.target).closest($('.hastimepicker')).length) { //Clicking the timepicker or one of it's inputs
+                      event.stopPropagation();
+                    } else {   //Everything else
+                      if (typeof self.options.onClickOutside === 'function') {
+                        self.options.onClickOutside();
+                      }
+                      else {
+                        console.warn("Type of onClickOutside must be a function");
+                      }
+
+                      if (!self.options.closeOnClickOutside) {
+                        return;
+                      }
+                      self.hideTimepicker(window.lastTimePickerControl);
+                    }
+                    window.lastTimePickerControl = null;
+                }
+            };
+            $(document).off('click', clickHandler).on('click', clickHandler);
+        },
+
+        /**
+         * Added keyboard functionality to improve usabil
+         */
+        attachKeyboardEvents: function () {
+            $(document).on('keydown', $.proxy(function (event) {
+                switch (event.keyCode) {
+                    case 9:
+                        if (event.target.className !== 'hastimepicker') {
+                            $(this.close).trigger('click');
+                        }
+                        break;
+                    case 27:
+                        $(this.close).trigger('click');
+                        break;
+                    case 37: //Left arrow
+                        if (event.target.className !== this.hoursElem[0].className) {
+                            $(event.target).parent().prevAll('li').not(this.separator.selector).first().children()[1].focus();
+                        } else {
+                            $(event.target).parent().siblings(':last').children()[1].focus();
+                        }
+                        break;
+                    case 39: //Right arrow
+                        if (event.target.className !== this.meridiemElem[0].className) {
+                            $(event.target).parent().nextAll('li').not(this.separator.selector).first().children()[1].focus();
+                        } else {
+                            $(event.target).parent().siblings(':first').children()[1].focus();
+                        }
+                        break;
+                    case 38: //Up arrow
+                        $(':focus').prev().trigger('click');
+                        break;
+                    case 40: //Down arrow
+                        $(':focus').next().trigger('click');
+                        break;
+                    default:
+                        break;
+                }
+            }, this));
+        },
+
+        /*
+         * Set the time on the timepicker
+         *
+         * @param {object} The date being set
+         */
+        setTime: function (time) {
+            this.setHours(time.hours);
+            this.setMinutes(time.minutes);
+            this.setMeridiem(time.meridiem);
+            if (this.options.showSeconds) {
+                this.setSeconds(time.seconds);
+            }
+        },
+
+        /*
+         * Get the time from the timepicker
+         */
+        getTime: function () {
+            return [this.formatTime(this.getHours(), this.getMinutes(), this.getMeridiem(), this.getSeconds())];
+        },
+
+        /*
+         * Set the timpicker's hour(s) value
+         *
+         * @param {string} hours
+         */
+        setHours: function (hours) {
+            var hour = new Date();
+            hour.setHours(hours);
+            var hoursText = this.parseHours(hour.getHours());
+            this.hoursElem.text(hoursText);
+            this.selectedHour = hoursText;
+        },
+
+        /*
+         * Get the hour(s) value from the timepicker
+         *
+         * @return {integer}
+         */
+        getHours: function () {
+            var hours = new Date();
+            hours.setHours(this.hoursElem.text());
+            return hours.getHours();
+        },
+
+        /*
+         * Returns the correct hour value based on the type of clock, 12 or 24 hour
+         *
+         * @param {integer} The hours value before parsing
+         *
+         * @return {string|integer}
+         */
+        parseHours: function (hours) {
+            return (this.options.twentyFour === false) ? ((hours + 11) % 12) + 1 : (hours < 10) ? '0' + hours : hours;
+        },
+
+        /*
+         * Sets the timpicker's minutes value
+         *
+         * @param {string} minutes
+         */
+        setMinutes: function (minutes) {
+            var minute = new Date();
+            minute.setMinutes(minutes);
+            var minutesText = minute.getMinutes();
+            var min = this.parseSecMin(minutesText);
+            this.minutesElem.text(min);
+            this.selectedMin = min;
+        },
+
+        /*
+         * Get the minutes value from the timepicker
+         *
+         * @return {integer}
+         */
+        getMinutes: function () {
+            var minutes = new Date();
+            minutes.setMinutes(this.minutesElem.text());
+            return minutes.getMinutes();
+        },
+
+
+        /*
+         * Return a human-readable minutes/seconds value
+         *
+         * @param {string} value seconds or minutes
+         *
+         * @return {string|integer}
+         */
+        parseSecMin: function (value) {
+            return ((value < 10) ? '0' : '') + value;
+        },
+
+        /*
+         * Set the timepicker's meridiem value, AM or PM
+         *
+         * @param {string} The new meridiem
+         */
+        setMeridiem: function (inputMeridiem) {
+            var newMeridiem = '';
+            if (inputMeridiem === undefined) {
+                var meridiem = this.getMeridiem();
+                newMeridiem = (meridiem === 'PM') ? 'AM' : 'PM';
+            } else {
+                newMeridiem = inputMeridiem;
+            }
+            this.meridiemElem.text(newMeridiem);
+            this.selectedMeridiem = newMeridiem;
+        },
+
+        /*
+         * Get the timepicker's meridiem value, AM or PM
+         *
+         * @return {string}
+         */
+        getMeridiem: function () {
+            return this.meridiemElem.text();
+        },
+
+        /*
+         * Set the timepicker's seconds value
+         *
+         * @param {string} seconds
+         */
+        setSeconds: function (seconds) {
+            var second = new Date();
+            second.setSeconds(seconds);
+            var secondsText = second.getSeconds();
+            var sec = this.parseSecMin(secondsText);
+            this.secondsElem.text(sec);
+            this.selectedSec = sec;
+        },
+
+        /*
+         * Get the timepicker's seconds value
+         *
+         * return {string}
+         */
+        getSeconds: function () {
+            var seconds = new Date();
+            seconds.setSeconds(this.secondsElem.text());
+            return seconds.getSeconds();
+        },
+
+        /*
+         * Get the correct meridiem based on the hours given
+         *
+         * @param {string|integer} hours
+         *
+         * @return {string}
+         */
+        parseMeridiem: function (hours) {
+            return (hours > 11) ? 'PM' : 'AM';
+        },
+
+        /*
+         * Handles time incrementing and decrementing and passes
+         * the operator, '+' or '-', the input to be set after the change
+         * and the current arrow clicked, to decipher if hours, ninutes, or meridiem.
+         *
+         * @param {object} The input element
+         */
+        handleTimeAdjustments: function (element) {
+            var timeOut = 0;
+            //Click and click and hold timepicker incrementer and decrementer
+            $(this.up).add(this.down).off('mousedown click touchstart').on('mousedown click', {
+                'timepicker': this,
+                'input': element
+            }, function (event) {
+                if(event.which!=1) return false;
+                var operator = (this.className.indexOf('up') > -1) ? '+' : '-';
+                var passedData = event.data;
+                if (event.type == 'mousedown') {
+                    timeOut = setInterval($.proxy(function (args) {
+                        args.timepicker.changeValue(operator, args.input, this);
+                    }, this, {'timepicker': passedData.timepicker, 'input': passedData.input}), 200);
+                } else {
+                    passedData.timepicker.changeValue(operator, passedData.input, this);
+                }
+            }).bind('mouseup touchend', function () {
+                clearInterval(timeOut);
+            });
+        },
+
+        /*
+         * Change the timepicker's time base on what is clicked
+         *
+         * @param {string} The + or - operator
+         * @param {object} The timepicker's associated input to be set post change
+         * @param {object} The DOM arrow object clicked, determines if it is hours,
+         * minutes, or meridiem base on the operator and its siblings
+         */
+        changeValue: function (operator, input, clicked) {
+            var target = (operator === '+') ? clicked.nextSibling : clicked.previousSibling;
+            var targetClass = $(target).attr('class');
+            if (targetClass.endsWith('hours')) {
+                this.setHours(eval(this.getHours() + operator + 1));
+            } else if (targetClass.endsWith('minutes')) {
+                this.setMinutes(eval(this.getMinutes() + operator + this.options.minutesInterval));
+            } else if (targetClass.endsWith('seconds')) {
+                this.setSeconds(eval(this.getSeconds() + operator + this.options.secondsInterval));
+            } else {
+                this.setMeridiem();
+            }
+            this.setText(input);
+        },
+
+
+        /*
+         * Sets the give input's text to the current timepicker's time
+         *
+         * @param {object} The input element
+         */
+        setText: function (input) {
+            $(input).val(this.formatTime(this.selectedHour, this.selectedMin, this.selectedMeridiem, this.selectedSec)).change();
+        },
+
+        /*
+         * Get the given input's value
+         *
+         * @param {object} The input element
+         *
+         * @return {string}
+         */
+        getText: function (input) {
+            return $(input).val();
+        },
+
+        /*
+         * Returns the correct time format as a string
+         *
+         * @param {string} hour
+         * @param {string} minutes
+         * @param {string} meridiem
+         *
+         * @return {string}
+         */
+        formatTime: function (hour, min, meridiem, seconds) {
+            var formattedTime = hour + this.options.timeSeparator + min;
+            if (this.options.showSeconds) {
+                formattedTime += this.options.timeSeparator  + seconds;
+            }
+            if (this.options.twentyFour === false) {
+                formattedTime += ' ' + meridiem;
+            }
+            return formattedTime;
+        },
+
+        /**
+         *  Apply the hover class to the arrows and close icon fonts
+         */
+        setHoverState: function () {
+            var self = this;
+
+            $(this.up).add(this.down).add(this.close).hover(function () {
+                $(this).toggleClass(self.options.hoverState);
+            });
+
+        },
+
+        /**
+         * Wrapping the given input field with the clearable container
+         * , add a span that will contain the x, and bind the clear
+         * input event to the span
+         *
+         * @param input
+         */
+        makePickerInputClearable: function(input) {
+            $(input).wrap('<div class="clearable-picker"></div>').after('<span data-clear-picker>&times;</span>');
+
+            //When the x is clicked, clear its sibling input field
+            $('[data-clear-picker]').on('click', function(event) {
+               $(this).siblings('.hastimepicker').val('');
+            });
+        },
+
+        /**
+         * Convert the options time string format
+         * to an array
+         *
+         * returns => [hours, minutes, seconds]
+         *
+         * @param stringTime
+         * @returns {*}
+         */
+        timeArrayFromString: function (stringTime) {
+            if (stringTime.length) {
+                var time = stringTime.split(':');
+                time[2] = (time.length < 3) ? '00' : time[2];
+                return time;
+            }
+            return false;
+        },
+
+        //public functions
+        /*
+         * Returns the requested input element's value
+         */
+        _time: function () {
+            var inputValue = $(this.element).val();
+            return (inputValue === '') ? this.formatTime(this.selectedHour, this.selectedMin, this.selectedMeridiem, this.selectedSec) : inputValue;
+        },
+        _hide: function() {
+            this.hideTimepicker(this.element);
+        }
+    });
+
+    //optional index if multiple inputs share the same class
+    $.fn[pluginName] = function (options, index) {
+        if (!$.isFunction(timepicker.prototype['_' + options])) {
+            return this.each(function () {
+                if (!$.data(this, "plugin_" + pluginName)) {
+                    $.data(this, "plugin_" + pluginName, new timepicker(this, options));
+                }
+            });
+        }
+        else if ($(this).hasClass('hastimepicker')) {
+            if (index !== undefined) {
+                return $.data($(this)[index], 'plugin_' + pluginName)['_' + options]();
+            }
+            else {
+                return $.data($(this)[0], 'plugin_' + pluginName)['_' + options]();
+            }
+        }
+    };
+
+})(jQuery, window, document);
+
 /***/ })
 
 /******/ 	});
@@ -69859,6 +71620,18 @@ function __classPrivateFieldSet(receiver, privateMap, value) {
 /******/ 	}
 /******/ 	
 /************************************************************************/
+/******/ 	/* webpack/runtime/compat get default export */
+/******/ 	(() => {
+/******/ 		// getDefaultExport function for compatibility with non-harmony modules
+/******/ 		__webpack_require__.n = (module) => {
+/******/ 			var getter = module && module.__esModule ?
+/******/ 				() => (module['default']) :
+/******/ 				() => (module);
+/******/ 			__webpack_require__.d(getter, { a: getter });
+/******/ 			return getter;
+/******/ 		};
+/******/ 	})();
+/******/ 	
 /******/ 	/* webpack/runtime/define property getters */
 /******/ 	(() => {
 /******/ 		// define getter functions for harmony exports

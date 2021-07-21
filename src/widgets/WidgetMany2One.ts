@@ -101,8 +101,8 @@ export default class WidgetMany2One extends Widget {
                 $link.on('click', async () => {
                     $('#sb-events').trigger('_openContext', {
                         entity: this.config.foreign_object, 
-                        type: 'list', 
-                        name: 'default', 
+                        type: (this.config.hasOwnProperty('view_type'))?this.config.view_type:'list',
+                        name: (this.config.hasOwnProperty('view_name'))?this.config.view_name:'default',
                         domain: domain, 
                         mode: 'view', 
                         purpose: 'select',

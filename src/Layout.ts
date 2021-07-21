@@ -156,6 +156,8 @@ export class Layout {
             config.type = 'select';
             config.values = config.selection;
         }
+        // ready property is set to true during the 'feed' phase
+        config.ready = false;
         config.title = TranslationService.resolve(translation, 'model', field, label, 'label');
         config.helper = TranslationService.resolve(translation, 'model', field, helper, 'help');
         config.readonly = (item.hasOwnProperty('readonly'))?item.readonly:(def.hasOwnProperty('readonly'))?def['readonly']:false;
@@ -176,6 +178,24 @@ export class Layout {
         if(item.hasOwnProperty('widget')) {
             // overload config with widget config
             config = {...config, ...item.widget};
+        }
+
+        // for relational fields, we need to check if the Model has been fetched al
+        if(['one2many', 'many2one', 'many2many'].indexOf(def['type']) > -1) {
+
+            // defined config for Widget's view with a custom domain according to object values
+            let view_id = (config.hasOwnProperty('view'))?config.view:'list.default';
+            let parts = view_id.split(".", 2); 
+            let view_type = (parts.length > 1)?parts[0]:'list';
+            let view_name = (parts.length > 1)?parts[1]:parts[0];
+
+            config = {...config, 
+                entity: def['foreign_object'],
+                view_type: view_type,
+                view_name: view_name,
+                domain: (def.hasOwnProperty('domain'))?def['domain']:[]
+            };
+
         }
 
         return config;
@@ -497,16 +517,9 @@ export class Layout {
                         if(!target_ids.length) {
                             target_ids.push(0);
                         }
-                        // defined config for Widget's view with a custom domain according to object values
-                        let view_id = (config.hasOwnProperty('view'))?config.view:'list.default';
-                        let parts = view_id.split(".", 2); 
-                        let view_type = (parts.length > 1)?parts[0]:'list';
-                        let view_name = (parts.length > 1)?parts[1]:parts[0];
 
                         config = {...config, 
-                            entity: model_def['foreign_object'],
-                            type: view_type,
-                            name: view_name,
+// todo : merge domains instead of override                            
                             domain: ['id','in',target_ids]
                         };
                     }
@@ -522,7 +535,7 @@ export class Layout {
                 
                 has_changed = (!value || $parent.data('value') != value);
 
-                widget.setConfig(config)
+                widget.setConfig({...config, ready: true})
                 .setMode(this.view.getMode())
                 .setValue(value);
 

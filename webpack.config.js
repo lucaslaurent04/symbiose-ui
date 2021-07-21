@@ -32,13 +32,12 @@
                 }
             },
             {
-                test: require.resolve("./build/Model.js"),
-                loader: "expose-loader",
-                options: {
-                    exposes: ["Model"],
-                }
-            }
-            
+                test: /\.css$/,
+                use: [
+                'style-loader',
+                'css-loader',
+                ],
+            }            
         ]
     },
     optimization: {

@@ -5,6 +5,12 @@ import { UIHelper } from './material-lib';
 import { ApiService, TranslationService } from "./equal-services";
 import moment from 'moment/moment.js';
 
+require('../datepicker-improved.js');
+require('../timepicker.js');
+
+require("../css/material-basics.css");
+require("../css/equal.css");
+
 // We use MDC (material design components)
 // @see https://github.com/material-components/material-components-web/blob/master/docs/getting-started.md
 
@@ -13,9 +19,6 @@ class eQ {
     // jquery object for components communication
     private $sbEvents:any;
     
-    // the main container in which the Context views are injected
-    private $container: any;
-
     private $headerContainer: any;
 
     // temporary var for computing width of rendered strings
@@ -28,13 +31,10 @@ class eQ {
     private context:Context;
     
     constructor(entity:string) {
-        // we need to actually use the dependencies in this file in order to have them loaded in webpack
-        this.$sbEvents = $();
         
         // `#sb-container` is a convention and must be present in the DOM
-        this.$container = $('#sb-container');
-        // #sb-container-header is managed automatically and shows the breadcrumb of the stack
-        this.$headerContainer = $('<div/>').addClass('sb-container-header').appendTo(this.$container);
+
+        
         
         this.context = <Context>{};
         this.stack = [];
@@ -177,6 +177,12 @@ class eQ {
 
     private async updateHeader() {
         console.log('update header');
+
+        if($('.sb-container-header').length == 0) {
+            // #sb-container-header is managed automatically and shows the breadcrumb of the stack
+            this.$headerContainer = $('<div/>').addClass('sb-container-header').appendTo($('#sb-container'));
+        }
+
         let $elem = $('<h3 />').css({display: 'flex'});
 
         // add temporary, invisible header for font size computations
@@ -289,7 +295,7 @@ class eQ {
                 // conainers are hidden and not detached in order to maintain the listeners
                 prev_context.$container.hide();
             }
-            this.$container.append(this.context.getContainer());
+            $('#sb-container').append(this.context.getContainer());
         });
         
         
@@ -373,11 +379,13 @@ class eQ {
             UIHelper.decorateMenu($menu);
             $link.find('button').on('click', () => $menu.trigger('_toggle') );
         }
-
-
-
-    
+   
     }
+
+    public open(context: any) {
+        console.log("eQ::open");
+        this.$sbEvents.trigger('_openContext', context);
+    }    
     
 }
 
