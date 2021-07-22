@@ -1648,18 +1648,70 @@ var Layout = /*#__PURE__*/function () {
       } // create other columns, based on the col_model given in the configuration
 
 
-      var schema = this.view.getViewSchema();
+      var schema = this.view.getViewSchema(); // pre-processing: check columns width consistency
+
+      var item_width_total = 0; // 1) csum total width and items with null width
 
       var _iterator = _createForOfIteratorHelper(schema.layout.items),
           _step;
 
       try {
         for (_iterator.s(); !(_step = _iterator.n()).done;) {
-          var item = _step.value;
-          var config = this.getWidgetConfig(item);
+          var _item = _step.value;
+
+          if (!_item.hasOwnProperty('visible') || _item.visible == true) {
+            // set minimum width to 10%
+            var width = 10;
+
+            if (_item.hasOwnProperty('width')) {
+              width = Math.round(parseInt(_item.width, 10) * 100) / 100.0;
+              if (width < 10) width = 10;
+            }
+
+            _item.width = width;
+            item_width_total += width;
+          }
+        } // 2) normalize columns widths (to be exactly 100%)
+
+      } catch (err) {
+        _iterator.e(err);
+      } finally {
+        _iterator.f();
+      }
+
+      if (item_width_total != 100) {
+        var ratio = 100.0 / item_width_total;
+
+        var _iterator2 = _createForOfIteratorHelper(schema.layout.items),
+            _step2;
+
+        try {
+          for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+            var item = _step2.value;
+
+            if ((!item.hasOwnProperty('visible') || item.visible == true) && item.hasOwnProperty('width')) {
+              item.width *= ratio;
+            }
+          }
+        } catch (err) {
+          _iterator2.e(err);
+        } finally {
+          _iterator2.f();
+        }
+      }
+
+      var _iterator3 = _createForOfIteratorHelper(schema.layout.items),
+          _step3;
+
+      try {
+        for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+          var _item2 = _step3.value;
+          var config = this.getWidgetConfig(_item2);
 
           if (config.visible) {
-            var $cell = (0, _jqueryLib.$)('<th/>').attr('name', item.value).append(config.title).on('click', function (event) {
+            var _width = Math.floor(10 * _item2.width) / 10;
+
+            var $cell = (0, _jqueryLib.$)('<th/>').attr('name', _item2.value).attr('width', _width + '%').append(config.title).on('click', function (event) {
               var $this = (0, _jqueryLib.$)(event.currentTarget);
 
               if ($this.hasClass('sortable')) {
@@ -1688,9 +1740,9 @@ var Layout = /*#__PURE__*/function () {
           }
         }
       } catch (err) {
-        _iterator.e(err);
+        _iterator3.e(err);
       } finally {
-        _iterator.f();
+        _iterator3.f();
       }
 
       $thead.append($hrow);
@@ -1709,12 +1761,12 @@ var Layout = /*#__PURE__*/function () {
       $elem.find('tbody').remove();
       var $tbody = (0, _jqueryLib.$)('<tbody/>');
 
-      var _iterator2 = _createForOfIteratorHelper(objects),
-          _step2;
+      var _iterator4 = _createForOfIteratorHelper(objects),
+          _step4;
 
       try {
         var _loop = function _loop() {
-          var object = _step2.value;
+          var object = _step4.value;
           var $row = (0, _jqueryLib.$)('<tr/>').addClass('sb-view-layout-list-row').attr('data-id', object.id).attr('data-edit', '0').on('click', function (event) {
             var $this = (0, _jqueryLib.$)(event.currentTarget); // discard click when row is being edited
 
@@ -1738,12 +1790,12 @@ var Layout = /*#__PURE__*/function () {
             });
           }
 
-          var _iterator3 = _createForOfIteratorHelper(schema.layout.items),
-              _step3;
+          var _iterator5 = _createForOfIteratorHelper(schema.layout.items),
+              _step5;
 
           try {
             var _loop2 = function _loop2() {
-              var item = _step3.value;
+              var item = _step5.value;
 
               var config = _this3.getWidgetConfig(item);
 
@@ -1797,27 +1849,27 @@ var Layout = /*#__PURE__*/function () {
               $row.append($cell);
             };
 
-            for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+            for (_iterator5.s(); !(_step5 = _iterator5.n()).done;) {
               var _ret = _loop2();
 
               if (_ret === "continue") continue;
             }
           } catch (err) {
-            _iterator3.e(err);
+            _iterator5.e(err);
           } finally {
-            _iterator3.f();
+            _iterator5.f();
           }
 
           $tbody.append($row);
         };
 
-        for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+        for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
           _loop();
         }
       } catch (err) {
-        _iterator2.e(err);
+        _iterator4.e(err);
       } finally {
-        _iterator2.f();
+        _iterator4.f();
       }
 
       $elem.find('table').append($tbody);
@@ -1841,12 +1893,12 @@ var Layout = /*#__PURE__*/function () {
           // todo : keep internal index of the object to display (with a prev/next navigation in the header)
           var object = objects[0];
 
-          var _iterator4 = _createForOfIteratorHelper(fields),
-              _step4;
+          var _iterator6 = _createForOfIteratorHelper(fields),
+              _step6;
 
           try {
             var _loop3 = function _loop3() {
-              var field = _step4.value;
+              var field = _step6.value;
               var widget = _this4.model_widgets[0][field];
 
               var $parent = _this4.$layout.find('#' + widget.getId()).parent();
@@ -1933,14 +1985,14 @@ var Layout = /*#__PURE__*/function () {
               }
             };
 
-            for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
+            for (_iterator6.s(); !(_step6 = _iterator6.n()).done;) {
               _loop3();
             } // try to give the focus back to the previously focused widget
 
           } catch (err) {
-            _iterator4.e(err);
+            _iterator6.e(err);
           } finally {
-            _iterator4.f();
+            _iterator6.f();
           }
 
           (0, _jqueryLib.$)('#' + focused_widget_id).find('input').trigger('focus');

@@ -334,11 +334,40 @@ export class Layout {
         // create other columns, based on the col_model given in the configuration
         let schema = this.view.getViewSchema();
 
-        for(let item of schema.layout.items) {            
+        // pre-processing: check columns width consistency
+        let item_width_total = 0;
+
+        // 1) sum total width and items with null width
+        for(let item of schema.layout.items) {
+            if(!item.hasOwnProperty('visible') || item.visible == true) {
+                // set minimum width to 10%
+                let width = 10;
+                if(item.hasOwnProperty('width')) {
+                    width = Math.round(parseInt(item.width, 10) * 100) / 100.0;
+                    if(width < 10) width = 10;
+                }
+                item.width = width;
+                item_width_total += width;
+            }
+        }
+        // 2) normalize columns widths (to be exactly 100%)
+        if(item_width_total != 100) {
+            let ratio = 100.0 / item_width_total;
+            for(let item of schema.layout.items) {
+                if( (!item.hasOwnProperty('visible') || item.visible == true) && item.hasOwnProperty('width')) {
+                    item.width *= ratio;
+                }
+            }
+        }
+
+        for(let item of schema.layout.items) {
             let config = this.getWidgetConfig(item);
 
             if(config.visible) {
-                let $cell = $('<th/>').attr('name', item.value).append(config.title)
+                let width = Math.floor(10 * item.width) / 10;
+                let $cell = $('<th/>').attr('name', item.value)
+                .attr('width', width+'%')
+                .append(config.title)
                 .on('click', (event:any) => {
                     let $this = $(event.currentTarget);
                     if($this.hasClass('sortable')) {
@@ -351,8 +380,7 @@ export class Layout {
                             // unselect all lines
                             this.$layout.find('input[type="checkbox"]').each( (i:number, elem:any) => {
                                 $(elem).prop('checked', false).prop('indeterminate', false);
-                            });
-                    
+                            });                    
                         }, 100);
                     }
                 });
