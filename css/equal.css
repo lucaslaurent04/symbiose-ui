@@ -185,7 +185,6 @@ body, html {
 
 .sb-view-header-list-filters .sb-view-header-list-filters-menu {
     min-width: 250px;
-    left: 10px !important;
 }
 
 .sb-view-header-list-filters-set {
@@ -475,6 +474,7 @@ body, html {
 
 .mdc-text-field:not(.mdc-text-field--disabled) .mdc-text-field__icon {
     color: rgba(0,0,0,.54);
+    background-color: white;
 }
 
 .mdc-text-field--focused .mdc-text-field-helper-line .mdc-text-field-helper-text {

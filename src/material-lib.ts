@@ -374,7 +374,7 @@ class UIHelper {
     public static createPagination() {
         let $elem = $(' \
         <div class="mdc-data-table__pagination"> \
-            <div class="mdc-data-table__pagination-trailing"> \
+            <div class="pagination-container mdc-data-table__pagination-trailing"> \
                 <div class="pagination-rows-per-page mdc-data-table__pagination-rows-per-page"></div> \
                 <div class="pagination-navigation mdc-data-table__pagination-navigation"> \
                     <div class="pagination-total mdc-data-table__pagination-total"></div> \

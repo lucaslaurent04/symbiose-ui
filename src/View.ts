@@ -98,7 +98,21 @@ export class View {
                     icon:  'edit',
                     handler: (event:any, selection:any) => {
                         let selected_id = selection[0];
-                        $('#sb-events').trigger('_openContext', {entity: this.entity, type: 'form', name: 'default', domain: ['id', '=', selected_id], mode: 'edit', purpose: 'update'});
+                        $('#sb-events').trigger('_openContext', {entity: this.entity, type: 'form', name: this.name, domain: ['id', '=', selected_id], mode: 'edit', purpose: 'update'});
+                    }
+                },
+                {
+                    title: 'SB_ACTIONS_BUTTON_CLONE',
+                    icon:  'content_copy',
+                    handler: async (event:any, selection:any) => {
+                        try {
+                            let response = await ApiService.clone(this.entity, this.selected_ids);
+                            // refresh the model
+                            await this.onchangeView();
+                        }
+                        catch(err) {
+                            console.log('unexpected error', err);
+                        }                        
                     }
                 },
                 {
@@ -157,7 +171,13 @@ export class View {
         try {
     
             this.translation = await ApiService.getTranslation(this.entity, environment.lang);
-            this.view_schema = await ApiService.getView(this.entity, this.type + '.' + this.name);
+            try {
+                this.view_schema = await ApiService.getView(this.entity, this.type + '.' + this.name);
+            }
+            catch(err) {
+                // fallback to default view
+                this.view_schema = await ApiService.getView(this.entity, this.type + '.default');
+            }
             this.model_schema = await ApiService.getSchema(this.entity);
             this.loadViewFields(this.view_schema);
             this.loadModelFields(this.model_schema);
@@ -441,9 +461,8 @@ export class View {
                         UIHelper.createButton('action-edit', TranslationService.instant('SB_ACTIONS_BUTTON_CREATE'), 'raised')
                         .on('click', async () => {
                             try {
-                                let object = await ApiService.create(this.entity, this.getCreationDefaults());
-                                // request a new Context for editing the new object
-                                $('#sb-events').trigger('_openContext', {entity: this.entity, type: 'form', name: 'default', domain: [['id', '=', object.id], ['state', '=', 'draft']], mode: 'edit', purpose: 'create'});
+                                // request a new Context for editing a new object
+                                $('#sb-events').trigger('_openContext', {entity: this.entity, type: 'form', name: this.name, domain: this.domain, mode: 'edit', purpose: 'create'});
                             }
                             catch(response) {
                                 this.displayErrorFeedback(response);
@@ -466,10 +485,8 @@ export class View {
                         UIHelper.createButton('action-create', TranslationService.instant('SB_ACTIONS_BUTTON_CREATE'), 'text')
                         .on('click', async () => {
                             try {
-                                // create a new object
-                                let object = await ApiService.create(this.entity, this.getCreationDefaults());
-                                // request a new Context for editing the new object
-                                $('#sb-events').trigger('_openContext', {entity: this.entity, type: 'form', name: 'default', domain: [['id', '=', object.id], ['state', '=', 'draft']], mode: 'edit', purpose: 'create'});
+                                // request a new Context for editing a new object
+                                $('#sb-events').trigger('_openContext', {entity: this.entity, type: 'form', name: this.name, domain: this.domain, mode: 'edit', purpose: 'create'});
                             }
                             catch(response) {
                                 this.displayErrorFeedback(response);
@@ -491,10 +508,8 @@ export class View {
                         UIHelper.createButton('action-create', TranslationService.instant('SB_ACTIONS_BUTTON_CREATE'), 'text')
                         .on('click', async () => {
                             try {
-                                // create a new object
-                                let object = await ApiService.create(this.entity, this.getCreationDefaults());
-                                // request a new Context for editing the new object
-                                $('#sb-events').trigger('_openContext', {entity: this.entity, type: 'form', name: 'default', domain: [['id', '=', object.id], ['state', '=', 'draft']], mode: 'edit', purpose: 'create'});
+                                // request a new Context for editing a new object
+                                $('#sb-events').trigger('_openContext', {entity: this.entity, type: 'form', name: this.name, domain: this.domain, mode: 'edit', purpose: 'create'});
                             }
                             catch(response) {
                                 this.displayErrorFeedback(response);
@@ -587,6 +602,9 @@ export class View {
         // pagination controls
         let $pagination = UIHelper.createPagination().addClass('sb-view-header-list-pagination');
 
+        $pagination.find('.pagination-container')
+        .prepend( UIHelper.createButton('refresh-view', 'refresh', 'icon', 'refresh').on('click', () => this.onchangeView()) );
+        
         $pagination.find('.pagination-total')
         .append( $('<span class="sb-view-header-list-pagination-start"></span>') ).append( $('<span />').text('-') )
         .append( $('<span class="sb-view-header-list-pagination-end"></span>') ).append( $('<span />').text(' / ') )
@@ -625,7 +643,7 @@ export class View {
             })
         );
 
-        let $select = UIHelper.createPaginationSelect('', '', [1, 2, 5, 10, 25, 50, 100], 10).addClass('sb-view-header-list-pagination-limit_select');
+        let $select = UIHelper.createPaginationSelect('', '', [5, 10, 25, 50, 100], 25).addClass('sb-view-header-list-pagination-limit_select');
         
         $pagination.find('.pagination-rows-per-page')
         .append($select);
@@ -719,7 +737,7 @@ export class View {
                 .append( 
                     UIHelper.createButton('action-edit', TranslationService.instant('SB_ACTIONS_BUTTON_UPDATE'), 'raised')
                     .on('click', () => {
-                        $('#sb-events').trigger('_openContext', {entity: this.entity, type: this.type, name: 'default', domain: this.domain, mode: 'edit', purpose: 'update'});
+                        $('#sb-events').trigger('_openContext', {entity: this.entity, type: this.type, name: this.name, domain: this.domain, mode: 'edit', purpose: 'update'});
                     })
                 );
                 break;
@@ -913,27 +931,7 @@ export class View {
         this.layoutListRefresh();
     }
 
-    /**
-     * Generate an object mapping fields of current entity with default values, based on current domain.
-     * 
-     * @returns Object  A map of fields with their related default values
-     */
-    private getCreationDefaults() {
-        // create a new object as draft (for asynchronous creation)
-        let fields:any = {state: 'draft'};
-        // use View domain for setting default values  
-        let tmpDomain = new Domain(this.domain);
-        for(let clause of tmpDomain.getClauses()) {
-            for(let condition of clause.getConditions()) {
-                let field  = condition.getOperand();
-                if(field == 'id') continue;
-                if(['ilike', 'like', '=', 'is'].includes(condition.getOperator()) && this.model_fields.hasOwnProperty(field)) {
-                    fields[field] = condition.getValue();
-                }
-            }
-        }
-        return fields;
-    }
+
 
     /** 
      * Apply a filter on the current view, and reload the Collection with the new resulting domain.

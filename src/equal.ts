@@ -1,5 +1,6 @@
 import { $ } from "./jquery-lib";
-import { Context } from "./equal-lib";
+import { Context, Domain } from "./equal-lib";
+
 import { environment } from "./environment";
 import { UIHelper } from './material-lib';
 import { ApiService, TranslationService } from "./equal-services";
@@ -32,9 +33,7 @@ class eQ {
     
     constructor(entity:string) {
         
-        // `#sb-container` is a convention and must be present in the DOM
-
-        
+        // As a convention element `#sb-container` must be present in the DOM.
         
         this.context = <Context>{};
         this.stack = [];
@@ -61,7 +60,7 @@ class eQ {
          * 
          * A new context can be requested by ngx (menu or app) or by opening a sub-object
          */
-        this.$sbEvents.on('_openContext', (event:any, config:any) => {
+        this.$sbEvents.on('_openContext', async (event:any, config:any) => {
             console.log('eQ: received _openContext', config);
             let params = {
                 entity:     '', 
@@ -75,9 +74,15 @@ class eQ {
             };
             // extend default params with received config
             config = {...params, ...config};
-
+            // create a draft object if required: Edition is based on asynchronous creation: a draft is created (or recylcled) and is turn into an instance if 'update' action is triggered.
+            if(config.purpose == 'create') {
+                console.log('requesting dratf object');
+                let defaults    = await this.getNewObjectDefaults(config.entity, config.domain);
+                let object      = await ApiService.create(config.entity, defaults);
+                config.domain   = [['id', '=', object.id], ['state', '=', 'draft']];    
+            }
+            // instanciate a new context and push it on the contexts stack
             let context: Context = new Context(config.entity, config.type, config.name, config.domain, config.mode, config.purpose, config.lang, config.callback);
-
             this.openContext(context);
         });
 
@@ -175,13 +180,26 @@ class eQ {
         return result;
     }
 
+    /**
+     * Refresh the header breadcrumb, according to available space.
+     * #sb-container-header is managed automatically and shows the breadcrumb of the stack
+     * 
+     * @returns 
+     */
     private async updateHeader() {
         console.log('update header');
 
-        if($('.sb-container-header').length == 0) {
-            // #sb-container-header is managed automatically and shows the breadcrumb of the stack
+        if($('.sb-container-header').length == 0) {            
             this.$headerContainer = $('<div/>').addClass('sb-container-header').appendTo($('#sb-container'));
         }
+
+        if( this.stack.length == 0 || !this.context.hasOwnProperty('$container')) {
+            // hide header if there is no context
+            this.$headerContainer.empty().hide();
+            return;
+        }
+        // make sure header is visible
+        this.$headerContainer.show();
 
         let $elem = $('<h3 />').css({display: 'flex'});
 
@@ -254,31 +272,22 @@ class eQ {
         }
 
         // ... plus the active context
-        if(this.context.hasOwnProperty('$container')) {
-            if(prepend_contexts_count > 0) {
-                $('<span> › </span>').css({'margin': '0 10px'}).appendTo($elem);
-            }            
-            $('<span>'+current_purpose_string+'</span>').appendTo($elem);
-            if(this.stack.length > 1) {
-                UIHelper.createButton('context-close', '', 'mini-fab', 'close').css({'transform': 'scale(0.5)', 'margin-top': '3px', 'background': '#bababa', 'box-shadow': 'none'}).appendTo($elem)
-                .on('click', () => {                    
-                    let validation = true;
-                    if(this.context.hasChanged()) {
-                        validation = confirm(TranslationService.instant('SB_ACTIONS_MESSAGE_ABANDON_CHANGE'));
-                    }
-                    if(!validation) return;
-                    this.closeContext();
-                });                
-            }
-            this.$headerContainer.show().empty().append($elem);
+        if(prepend_contexts_count > 0) {
+            $('<span> › </span>').css({'margin': '0 10px'}).appendTo($elem);
+        }            
+        $('<span>'+current_purpose_string+'</span>').appendTo($elem);
+        if(this.stack.length > 1) {
+            UIHelper.createButton('context-close', '', 'mini-fab', 'close').css({'transform': 'scale(0.5)', 'margin-top': '3px', 'background': '#bababa', 'box-shadow': 'none'}).appendTo($elem)
+            .on('click', () => {                    
+                let validation = true;
+                if(this.context.hasChanged()) {
+                    validation = confirm(TranslationService.instant('SB_ACTIONS_MESSAGE_ABANDON_CHANGE'));
+                }
+                if(!validation) return;
+                this.closeContext();
+            });                
         }
-        else {
-            console.log(this.stack.length);
-            // hide header if there is no context
-            if( this.stack.length == 0) {
-                this.$headerContainer.hide();
-            }
-        }
+        this.$headerContainer.show().empty().append($elem);
         
     }
 
@@ -300,6 +309,31 @@ class eQ {
         
         
         this.updateHeader();
+    }
+
+    /**
+     * Generate an object mapping fields of current entity with default values, based on current domain.
+     * 
+     * @returns Object  A map of fields with their related default values
+     */
+     private async getNewObjectDefaults(entity:string, domain:[] = []) {
+        // create a new object as draft
+        let fields:any = {state: 'draft'};
+        // retrieve fields definition
+        let model_schema = await ApiService.getSchema(entity);
+        let model_fields = model_schema.fields;
+        // use View domain for setting default values  
+        let tmpDomain = new Domain(domain);
+        for(let clause of tmpDomain.getClauses()) {
+            for(let condition of clause.getConditions()) {
+                let field  = condition.getOperand();
+                if(field == 'id') continue;
+                if(['ilike', 'like', '=', 'is'].includes(condition.getOperator()) && model_fields.hasOwnProperty(field)) {
+                    fields[field] = condition.getValue();
+                }
+            }
+        }
+        return fields;
     }
 
     /**
@@ -382,8 +416,13 @@ class eQ {
    
     }
 
+    /**
+     * Interface method for integration with external tools.
+     * @param context 
+     */
     public open(context: any) {
         console.log("eQ::open");
+        this.$sbEvents.trigger('_closeAll');
         this.$sbEvents.trigger('_openContext', context);
     }    
     

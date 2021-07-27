@@ -247,6 +247,28 @@ export class _ApiService {
         return result;
     }
 
+    public async clone(entity:string, ids:any[]) {
+        let result: any;
+        try {
+            let params = {
+                entity: entity,
+                ids: ids,
+                lang: environment.lang
+            };
+            const response = await $.get({
+                url: environment.backend_url+'/?do=model_clone',
+                dataType: 'json',
+                data: params,
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8'
+            });
+            result = response;
+        }
+        catch(response) {
+            throw response.responseJSON;
+        }
+        return result;
+    }
+
     /**
      * 
      * @param entity 

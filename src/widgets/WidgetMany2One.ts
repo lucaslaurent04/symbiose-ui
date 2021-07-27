@@ -15,7 +15,7 @@ export default class WidgetMany2One extends Widget {
         console.log('WidgetMany2One::render', this.config, this.mode, this.value);
         let $elem: JQuery;
 
-        // in edit mide, we should have received an id, and in view mode, a name
+        // in edit mode, we should have received an id, and in view mode, a name
         let value:string = this.value?this.value:'';
         let domain:any = [];
         if(this.config.hasOwnProperty('domain')) {
@@ -23,6 +23,9 @@ export default class WidgetMany2One extends Widget {
         }
 
 // #todo : display many2one as sub-forms
+
+        // on right side of widget, add an icon to open the target object (current selection) into a new context                    
+        let $button = UIHelper.createButton('m2o-actions', '', 'icon', 'open_in_new');
 
         switch(this.mode) {
             case 'edit':
@@ -33,8 +36,6 @@ export default class WidgetMany2One extends Widget {
                 let $menu = UIHelper.createMenu('').appendTo($select);        
                 let $menu_list = UIHelper.createList('').appendTo($menu);
                 let $link = UIHelper.createListItem('<a href="#">'+TranslationService.instant('SB_WIDGETS_MANY2ONE_ADVANCED_SEARCH')+'</a>');
-                // on right side of widget, add an icon to open the target object (current selection) into a new context                    
-                let $button = UIHelper.createButton('m2o-actions', '', 'icon', 'open_in_new');
 
                 $elem.append($select); 
                 $elem.append($button); 
@@ -85,7 +86,6 @@ export default class WidgetMany2One extends Widget {
                     }, 300);
 
                 });
-
                 // upon value change, relay updated value to parent layout
                 $select.on('change', (event) => {
                     console.log('WidgetMany2One : received change event');
@@ -96,8 +96,22 @@ export default class WidgetMany2One extends Widget {
                         this.value = {id: object.id, name: value};
                         $elem.trigger('_updatedWidget');    
                     }
-                });              
-
+                });
+                // open targeted object in new context
+                $button.on('click', async () => {
+                    let value = $select.find('input').val();
+                    let object = objects.find( o => o.name == value);
+                    if(object && object.hasOwnProperty('id')) {
+                        let object = objects.find( o => o.name == value);
+                        $('#sb-events').trigger('_openContext', {
+                            entity: this.config.foreign_object, 
+                            type: 'form', 
+                            name: (this.config.hasOwnProperty('view_name'))?this.config.view_name:'default',
+                            domain: ['id', '=', object.id]
+                        });
+                    }
+                });
+                // advanced search
                 $link.on('click', async () => {
                     $('#sb-events').trigger('_openContext', {
                         entity: this.config.foreign_object, 
@@ -118,22 +132,39 @@ export default class WidgetMany2One extends Widget {
                     return false;
                 });
 
-                $button.on('click', async () => {
-                    let value = $select.find('input').val();
-                    let object = objects.find( o => o.name == value);
-                    if(object && object.hasOwnProperty('id')) {
-                        let object = objects.find( o => o.name == value);
-                        $('#sb-events').trigger('_openContext', {entity: this.config.foreign_object, type: 'form', domain: ['id', '=', object.id]});
-                    }
-                });
 
                 // init list content
-                feedObjects();                
+                feedObjects();
                 break;
             case 'view':
-            default:                
-                $elem = $('<span/>').text(value);
-                $elem = UIHelper.createInputView('', this.label, value);                
+            default:
+                $elem = $('<div />');
+                let $input = UIHelper.createInputView('', this.label, value);
+
+                switch(this.config.layout) {
+                    case 'form':
+                        $input.css({"width": "calc(100% - 48px)", "display": "inline-block"});
+    
+                        $elem.append($input);
+                        $elem.append($button);
+        
+                        // open targeted object in new context
+                        $button.on('click', async () => {
+                            console.log(this.config);
+                            if(this.config.hasOwnProperty('object_id') && this.config.object_id && this.config.object_id > 0) {
+                                $('#sb-events').trigger('_openContext', {
+                                    entity: this.config.foreign_object,
+                                    type: 'form',
+                                    name: (this.config.hasOwnProperty('view_name'))?this.config.view_name:'default',
+                                    domain: ['id', '=', this.config.object_id]
+                                });
+                            }
+                        });    
+                        break;
+                    case 'list':
+                    default:
+                        $elem.append($input);                    
+                }
                 break;
         }
 

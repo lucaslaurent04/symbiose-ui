@@ -1,7 +1,8 @@
 import { $ } from "./jquery-lib";
 
-import View from "./View";
+import { View } from "./View";
 import { environment } from "./environment";
+
 export class Context {
     
     public $container: any;
@@ -13,27 +14,21 @@ export class Context {
 
 /*
 
-Contexts are created for a purpose.
-This purpose influences the need for available actions (buttons in the header).
-The purpose can be displayed to user as an indication of the currently expected action.
+Contexts have a type and a mode, and are created for a purpose.
+The purpose influences the need for available actions (buttons in the header),
+and can be displayed to user as an indication of the expected action.
 
-LIST
-    (purpose = view)
-    * View a list of existing objects : only possible action should be available ('create')
-    (purpose = select)
-    * Select a value for a field : the displayed list purpose is to select an item (other actions should not be available)
-    (purpose = add)
-    * Add one or more objects to a x2many fields
+{type = list} (toggleable mode)
+    * {purpose = view}: View a list of existing objects : only possible action should be available ('create')    
+    * {purpose = select}: Select a value for a field : the displayed list purpose is to select an item (other actions should not be available)    
+    * {purpose = add}: Add one or more objects to a x2many fields
 
-FORM 
-    VIEW 
-    (purpose = view)
-    * View a single object : only available actions should be 'edit'
-    EDIT 
-    (purpose = create)
-    * Create a new object : only available actions should be 'save' and 'cancel'
-    (purpose = update)
-    * Update an existing object : only available actions should be 'save' and 'cancel'
+{type = form}
+    * {mode = view}
+        * {purpose = view}: View a single object : only available actions should be 'edit'
+    * {mode = edit}    
+        * {purpose = create}: Create a new object : only available actions should be 'save' and 'cancel'    
+        * {purpose = update}: Update an existing object : only available actions should be 'save' and 'cancel'
 
  */
  
@@ -104,8 +99,6 @@ FORM
     public async refresh() {
         // refresh the model
         await this.view.onchangeView();
-        // refresh the layout
-        this.view.onchangeModel();
     }
 }
 

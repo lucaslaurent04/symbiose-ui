@@ -422,7 +422,7 @@ export class Layout {
                 let $this = $(event.currentTarget);
                 // discard click when row is being edited
                 if($this.attr('data-edit') == '0') {
-                    $('#sb-events').trigger('_openContext', {entity: this.view.getEntity(), type: 'form', domain: ['id', '=', object.id]});
+                    $('#sb-events').trigger('_openContext', {entity: this.view.getEntity(), type: 'form', name: this.view.getName(), domain: ['id', '=', object.id]});
                 }
             });
 
@@ -453,6 +453,7 @@ export class Layout {
                     // by convention, `name` subfield is always loaded for relational fields
                     if(config.type == 'many2one') {
                         value = object[item.value]['name'];
+                        config.object_id = object[item.value]['id'];
                     }
                     else {
                         value = object[item.value].map( (o:any) => o.name).join(', ');
@@ -534,7 +535,8 @@ export class Layout {
 
                     // by convention, `name` subfield is always loaded for relational fields
                     if(type == 'many2one') {
-                        value = object[field]['name'];                        
+                        value = object[field]['name'];
+                        config.object_id = object[field]['id'];
                     }
                     else if(type == 'many2many' || type == 'one2many') {
                         // for m2m fields, the value of the field is an array of objects `{id:, name:}`
