@@ -102,7 +102,20 @@ export class Layout {
         });
         return selection;
     }
+
     
+    public getSelectedSections() {
+        let selectedSections:any = {};
+        this.$layout.find('.sb-view-form-group').each( (i:number, group: any) => {
+            $(group).find('.sb-view-form-sections-tabbar').find('.sb-view-form-section-tab').each( (j:number, tab) => {
+                if($(tab).hasClass('mdc-tab--active')) {
+                    selectedSections[i] = j;
+                }
+            });
+        });
+        return selectedSections;
+    }    
+
     private layout() {
         console.log('Layout::layout');
                 
@@ -154,7 +167,7 @@ export class Layout {
         
         if(config.hasOwnProperty('selection')) {
             config.type = 'select';
-            config.values = config.selection;
+            config.values = TranslationService.resolve(translation, 'model', field, config.selection, 'selection');
         }
         // ready property is set to true during the 'feed' phase
         config.ready = false;
@@ -213,8 +226,10 @@ export class Layout {
         let view_schema = this.view.getViewSchema();
         let model_fields = this.view.getModelFields();
         let translation = this.view.getTranslation();
+        let view_config = this.view.getConfig();
 
         $.each(view_schema.layout.groups, (i:number, group) => {
+            let group_id = 'group-'+i;
             let $group = $('<div />').addClass('sb-view-form-group').appendTo($elem);
 
             // try to resolve the group title
@@ -227,16 +242,22 @@ export class Layout {
                 $group.append($('<div/>').addClass('sb-view-form-group-title').text(group_title));
             }
 
-            let $tabs = UIHelper.createTabBar('test', '', '').addClass('sb-view-form-sections-tabbar');
+            let selected_section = 0;
+            if(view_config && view_config.hasOwnProperty('selected_sections') && view_config.selected_sections.hasOwnProperty(i)) {
+                selected_section = view_config.selected_sections[i];
+            }
+
+            let $tabs = UIHelper.createTabBar('sections-'+group_id, '', '').addClass('sb-view-form-sections-tabbar');
 
             if(group.sections.length > 1 ||  group.sections[0].hasOwnProperty('label')){
                 $group.append($tabs);    
             }
             
-            $.each(group.sections, (i:number, section) => {
-                let section_id = 'section-'+i;
+            $.each(group.sections, (j:number, section) => {
+                let section_id = group_id+'-section-'+j;
                 let $section = $('<div />').attr('id', section_id).addClass('sb-view-form-section mdc-layout-grid').appendTo($group);
-                if(i > 0) {
+
+                if(j != selected_section) {
                     $section.hide();
                 }
 
@@ -247,7 +268,7 @@ export class Layout {
                         section_title = TranslationService.resolve(translation, 'view', section.id, section_title);
                     }
 
-                    let $tab = UIHelper.createTabButton('', section_title, (i == 0))
+                    let $tab = UIHelper.createTabButton(section_id+'-tab', section_title, (j == selected_section)).addClass('sb-view-form-section-tab')
                     .on('click', () => {
                         $group.find('.sb-view-form-section').hide();
                         $group.find('#'+section_id).show();
@@ -257,9 +278,9 @@ export class Layout {
                 }
                 
 
-                $.each(section.rows, (i, row) => {
+                $.each(section.rows, (k:number, row) => {
                     let $row = $('<div />').addClass('sb-view-form-row mdc-layout-grid__inner').appendTo($section);
-                    $.each(row.columns, (i, column) => {
+                    $.each(row.columns, (l:number, column) => {
                         let $column = $('<div />').addClass('mdc-layout-grid__cell').appendTo($row);
 
                         if(column.hasOwnProperty('width')) {
@@ -458,6 +479,8 @@ export class Layout {
                     else {
                         value = object[item.value].map( (o:any) => o.name).join(', ');
                         value = (value.length > 35)? value.substring(0, 35) + "..." : value;
+                        // we need the current object id for new objects creation
+                        config.object_id = object.id;
                     }                    
                 }
 
@@ -517,7 +540,7 @@ export class Layout {
         let focused_widget_id = $("input:focus").closest('.sb-widget').attr('id');
 
         if(objects.length > 0) {
-// todo : keep internal index of the object to display (with a prev/next navigation in the header)
+// #todo : keep internal index of the object to display (with a prev/next navigation in the header)
             let object:any = objects[0];
             for(let field of fields) {
                 let widget = this.model_widgets[0][field];
@@ -530,7 +553,7 @@ export class Layout {
                 let value = object[field];
                 let config = widget.getConfig();
 
-                // for relational fields, we need to check if the Model has been fetched al
+                // for relational fields, we need to check if the Model has been fetched
                 if(['one2many', 'many2one', 'many2many'].indexOf(type) > -1) {
 
                     // by convention, `name` subfield is always loaded for relational fields
@@ -548,8 +571,11 @@ export class Layout {
                             target_ids.push(0);
                         }
 
+                        // we need the current object id for new objects creation
+                        config.object_id = object.id;
+
                         config = {...config, 
-// todo : merge domains instead of override                            
+// #todo : merge domains instead of override
                             domain: ['id','in',target_ids]
                         };
                     }
@@ -591,7 +617,7 @@ export class Layout {
                     $parent.data('value', null);
                 }
                 else {
-// todo : many2one & x2many fields can have a specific domain, that might depend on current values of edited object : 
+// #todo : many2one & x2many fields can have a specific domain, that might depend on current values of edited object : 
 // we must re-evaluate the domain and set the widget config accordingly
                     let $widget = widget.render();
                     // Handle Widget update handler
@@ -602,7 +628,7 @@ export class Layout {
                         console.log(value);
                         this.view.onchangeViewModel([object.id], value);
                     });
-                    // prevent refreshing objects that haven't changed (otherwise currently active widget loses the focus)
+                    // prevent refreshing objects that haven't changed
                     if(has_changed) {
                         // append rendered widget
                         $parent.empty().append($widget).show();

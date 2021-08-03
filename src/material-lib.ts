@@ -10,6 +10,7 @@ import {MDCTabBar} from '@material/tab-bar';
 import {MDCSnackbar} from '@material/snackbar';
 import {MDCSwitch} from '@material/switch';
 import {MDCDialog} from '@material/dialog';
+import {MDCTooltip} from '@material/tooltip';
 
 import { $ } from "./jquery-lib";
 
@@ -40,7 +41,6 @@ class UIHelper {
                 case 'text':
                 default:
             }
-            new MDCRipple($button[0]);
         }
         else if(['fab', 'mini-fab'].indexOf(type) >= 0) {
             $button.addClass('mdc-fab')
@@ -52,15 +52,30 @@ class UIHelper {
                 $button.addClass('mdc-fab--touch');
             }
             $button.append($('<span/>').addClass('material-icons mdc-fab__icon').text(icon))
-            $button.append($('<div/>').addClass('mdc-fab__touch'));
-            new MDCRipple($button[0]);
+            $button.append($('<div/>').addClass('mdc-fab__touch'));        
         }
         else if(['icon'].indexOf(type) >= 0) {
-            $button.addClass('mdc-icon-button material-icons')
-            .append( $('<span />').addClass('mdc-button__icon').text(icon) );
+            $button.addClass('mdc-icon-button').attr('aria-describedby', id+'-tooltip').attr('data-tooltip-id', id+'-tooltip')
+            .append($('<span/>').addClass('material-icons mdc-icon-button__icon').text(icon))
+            // #todo - fix ripple not working on icon-button
+            
+            // workaround to fix tooltips not hiding
+            $button.on( "mouseenter", () => {
+                $button.parent().find('#'+id+'-tooltip').removeClass('mdc-tooltip--hide');
+            });
+            $button.on( "mouseleave", () => {
+                $button.parent().find('#'+id+'-tooltip').addClass('mdc-tooltip--hide');
+            });
         }
         
+        new MDCRipple($button[0]);        
         return $button;
+    }
+
+    public static createTooltip(id:string, label: string) {
+        let $elem = $('<div/>').attr('id', id+'-tooltip').addClass('mdc-tooltip').attr('role', 'tooltip').attr('aria-hidden', 'true')
+        .append($('<div/>').addClass('mdc-tooltip__surface').text(label));
+        return $elem;
     }
 
     public static createIcon(icon: string) {
@@ -111,7 +126,7 @@ class UIHelper {
                 <span class="mdc-text-field__ripple"></span> \
                 <span class="mdc-floating-label" id="my-label-id">'+label+'</span> \
                 <span class="mdc-text-field__resizer"> \
-                    <textarea '+( (disabled)?'disabled':'' )+'class="mdc-text-field__input" rows="8" cols="40" maxlength="255" aria-label="Label">'+value+'</textarea> \
+                    <textarea '+( (disabled)?'disabled':'' )+' class="mdc-text-field__input" rows="8" cols="40" maxlength="255" aria-label="Label">'+value+'</textarea> \
                 </span> \
                 <span class="mdc-line-ripple"></span> \
             </label> \
@@ -344,7 +359,7 @@ class UIHelper {
 
     public static createTabBar(id:string, label:string, value:string) {
         let $elem = $('\
-        <div class="mdc-tab-bar" role="tablist"> \
+        <div id="'+id+'" class="mdc-tab-bar" role="tablist"> \
             <div class="mdc-tab-scroller"> \
             <div class="mdc-tab-scroller__scroll-area"> \
                 <div class="sb-view-form-sections mdc-tab-scroller__scroll-content"> \
@@ -358,7 +373,7 @@ class UIHelper {
 
     public static createTabButton(id:string, label:string, active:boolean) {
         let $elem = $('\
-        <button class="mdc-tab '+((active)?'mdc-tab--active':'')+'" role="tab" tabindex="0"> \
+        <button id="'+id+'" class="mdc-tab '+((active)?'mdc-tab--active':'')+'" role="tab" tabindex="0"> \
             <span class="mdc-tab__content"> \
                 <span class="mdc-tab__text-label">'+label+'</span> \
             </span> \
@@ -439,23 +454,29 @@ class UIHelper {
 
  /*
   Decorators 
+  Some widgets need to be injected in DOM document before running MDC methods on them.
  */
 
-    public static decorateMenu($elem:any) {        
+    public static decorateMenu($elem:any) {
+        if(!$elem.length) return;
         let fields_toggle_menu = new MDCMenu($elem[0]);
-
         $elem.on('_toggle', () => {
             fields_toggle_menu.open = !$elem.hasClass('mdc-menu-surface--open');
         });
     }
 
     public static decorateTabBar($elem:any) {
-        
+        if(!$elem.length) return;
         new MDCTabBar($elem[0]);
     }
 
-    public static decorateTable($elem:any) {
+    public static decorateTooltip($elem:any) {
+        if(!$elem.length) return;
+        new MDCTooltip($elem[0]);
+    }
 
+    public static decorateTable($elem:any) {
+        if(!$elem.length) return;
         $elem.addClass('mdc-data-table').children().addClass('mdc-data-table__table-container');
 
         let $thead = $elem.find('thead');

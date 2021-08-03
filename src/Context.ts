@@ -33,12 +33,12 @@ and can be displayed to user as an indication of the expected action.
  */
  
 
-    constructor(entity: string, type: string, name: string, domain: any[], mode: string = 'view', purpose: string = 'view', lang: string = environment.lang, callback: (data:any) => void = (data:any=null) => {}) {
+    constructor(entity: string, type: string, name: string, domain: any[], mode: string = 'view', purpose: string = 'view', lang: string = environment.lang, callback: (data:any) => void = (data:any=null) => {}, config: any = null) {
         this.$container = $('<div />').addClass('sb-context');
 
         this.callback = callback;
 
-        this.view = new View(entity, type, name, domain, mode, purpose, lang);
+        this.view = new View(entity, type, name, domain, mode, purpose, lang, config);
         // inject View in parent Context object
         this.$container.append(this.view.getContainer())
     }    
@@ -47,6 +47,7 @@ and can be displayed to user as an indication of the expected action.
         console.log('close', data);
         this.$container.remove();
 
+        // callbacks are used to relay events across contexts (select, add, ...)
         if( ({}).toString.call(this.callback) === '[object Function]' ) {
             this.callback(data);
         }

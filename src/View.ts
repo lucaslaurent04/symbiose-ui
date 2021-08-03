@@ -73,7 +73,7 @@ export class View {
      * @param mode
      * @param purpose
      * @param lang
-     * @param config
+     * @param config        extra parameters related to contexts communications
      */    
     constructor(entity: string, type: string, name: string, domain: any[], mode: string, purpose: string, lang: string, config: any = null) {
         this.entity = entity;
@@ -91,34 +91,40 @@ export class View {
                 {
                     title: 'SB_ACTIONS_BUTTON_INLINE_UPDATE',
                     icon:  'dynamic_form',
-                    handler: (event:any, selection:any) => this.actionListInlineEdit(event, selection)
+                    primary: true,
+                    handler: (event:any) => this.actionListInlineEdit(event, this.selected_ids)
                 },
                 {
                     title: 'SB_ACTIONS_BUTTON_UPDATE',
                     icon:  'edit',
-                    handler: (event:any, selection:any) => {
-                        let selected_id = selection[0];
+                    primary: false,
+                    handler: (event:any) => {
+                        let selected_id = this.selected_ids[0];
                         $('#sb-events').trigger('_openContext', {entity: this.entity, type: 'form', name: this.name, domain: ['id', '=', selected_id], mode: 'edit', purpose: 'update'});
                     }
                 },
                 {
                     title: 'SB_ACTIONS_BUTTON_CLONE',
                     icon:  'content_copy',
-                    handler: async (event:any, selection:any) => {
+                    primary: false,
+                    handler: async (event:any) => {
                         try {
+                            console.log(this.selected_ids);
                             let response = await ApiService.clone(this.entity, this.selected_ids);
                             // refresh the model
                             await this.onchangeView();
                         }
-                        catch(err) {
-                            console.log('unexpected error', err);
+                        catch(response) {
+                            console.log('unexpected error', response);
+                            this.displayErrorFeedback(response);
                         }                        
                     }
                 },
                 {
                     title: 'SB_ACTIONS_BUTTON_ARCHIVE',
                     icon:  'archive',
-                    handler: (event:any, selection:any) => {
+                    primary: true,
+                    handler: (event:any) => {
                         let selected_id = this.selected_ids[0];
 // #todo
                     }
@@ -126,15 +132,20 @@ export class View {
                 {
                     title: 'SB_ACTIONS_BUTTON_DELETE',
                     icon:  'delete',
-                    handler: (event:any, selection:any) => {
+                    primary: true,
+                    handler: (event:any) => {
                         let selected_id = this.selected_ids[0];
 // #todo
                     }
                 }
-            ]     
+            ]
+            // selected_sections: {1: 2}
         };
 
-        this.setConfig(config);
+        // override config options, if other are given
+        if(config) {
+            this.config = {...this.config, ...config};
+        }
 
         this.mode = mode;
         this.purpose = purpose;
@@ -191,7 +202,7 @@ export class View {
             // if view schema specifies a domain, merge it with domain given in constructor
             if(this.view_schema.hasOwnProperty("domain")) {
                 // domain attribute is either a string or an array 
-                let domain = eval(this.view_schema.domain);                
+                let domain = eval(this.view_schema.domain);
                 // merge domains
                 let tmpDomain = new Domain(this.domain);
                 tmpDomain.merge(new Domain(domain));
@@ -261,12 +272,10 @@ export class View {
         return this.is_ready_promise;
     }
 
-    public setConfig(config:any) {
-        // override config options, if other are given
-        if(config) {
-            this.config = {...this.config, ...config};
-        }
+    public getConfig() {
+        return this.config;
     }
+        
     public setMode(mode: string) {
         this.mode = mode;
     }
@@ -457,7 +466,7 @@ export class View {
             switch(this.purpose) {
                 case 'view':
                     $actions_set
-                    .append( 
+                    .prepend( 
                         UIHelper.createButton('action-edit', TranslationService.instant('SB_ACTIONS_BUTTON_CREATE'), 'raised')
                         .on('click', async () => {
                             try {
@@ -472,16 +481,7 @@ export class View {
                     break;
                 case 'select':
                     $actions_set
-                    .append( 
-                        UIHelper.createButton('action-select', TranslationService.instant('SB_ACTIONS_BUTTON_SELECT'), 'raised', 'check')
-                        .on('click', async () => {
-                            // close context and relay selection, if any (mark the view as changed to force parent context update)
-                            // #todo : user should not be able to select more thant one id
-                            let objects = await this.model.get(this.selected_ids);
-                            $('#sb-events').trigger('_closeContext', {selection: this.selected_ids, objects: objects});
-                        })
-                    )
-                    .append( 
+                    .prepend( 
                         UIHelper.createButton('action-create', TranslationService.instant('SB_ACTIONS_BUTTON_CREATE'), 'text')
                         .on('click', async () => {
                             try {
@@ -492,30 +492,40 @@ export class View {
                                 this.displayErrorFeedback(response);
                             }
                         })
-                    );                    
+                    )                    
+                    .prepend( 
+                        UIHelper.createButton('action-select', TranslationService.instant('SB_ACTIONS_BUTTON_SELECT'), 'raised', 'check')
+                        .on('click', async () => {
+                            // close context and relay selection, if any (mark the view as changed to force parent context update)
+                            // #todo : user should not be able to select more thant one id
+                            let objects = await this.model.get(this.selected_ids);
+                            let context:any = {selection: this.selected_ids, objects: objects};
+                            $('#sb-events').trigger('_closeContext', context);
+                        })
+                    );
                     break;
                 case 'add':
                     $actions_set
-                    .append( 
+                    .prepend( 
+                        UIHelper.createButton('action-create', TranslationService.instant('SB_ACTIONS_BUTTON_CREATE'), 'text')
+                        .on('click', async () => {
+                            try {
+                                // request a new Context for editing a new object
+                                $('#sb-events').trigger('_openContext', {entity: this.entity, type: 'form', name: this.name, domain: this.domain, mode: 'edit', purpose: 'create'});
+                            }
+                            catch(response) {
+                                this.displayErrorFeedback(response);
+                            }
+                        })
+                    )
+                    .prepend( 
                         UIHelper.createButton('action-add', TranslationService.instant('SB_ACTIONS_BUTTON_ADD'), 'raised', 'check')
                         .on('click', async () => {
                             // close context and relay selection, if any (mark the view as changed to force parent context update)
                             let objects = await this.model.get(this.selected_ids);
                             $('#sb-events').trigger('_closeContext', {selection: this.selected_ids, objects: objects});
                         })
-                    )
-                    .append( 
-                        UIHelper.createButton('action-create', TranslationService.instant('SB_ACTIONS_BUTTON_CREATE'), 'text')
-                        .on('click', async () => {
-                            try {
-                                // request a new Context for editing a new object
-                                $('#sb-events').trigger('_openContext', {entity: this.entity, type: 'form', name: this.name, domain: this.domain, mode: 'edit', purpose: 'create'});
-                            }
-                            catch(response) {
-                                this.displayErrorFeedback(response);
-                            }
-                        })
-                    );                    
+                    );
                     break;
                 case 'widget':
                 default:
@@ -602,9 +612,11 @@ export class View {
         // pagination controls
         let $pagination = UIHelper.createPagination().addClass('sb-view-header-list-pagination');
 
-        $pagination.find('.pagination-container')
-        .prepend( UIHelper.createButton('refresh-view', 'refresh', 'icon', 'refresh').on('click', () => this.onchangeView()) );
+        let $refresh_list_button = UIHelper.createButton('refresh-view', 'refresh', 'icon', 'refresh').on('click', () => this.onchangeView());
         
+        $pagination.find('.pagination-container')
+        .prepend( $refresh_list_button );
+
         $pagination.find('.pagination-total')
         .append( $('<span class="sb-view-header-list-pagination-start"></span>') ).append( $('<span />').text('-') )
         .append( $('<span class="sb-view-header-list-pagination-end"></span>') ).append( $('<span />').text(' / ') )
@@ -657,8 +669,7 @@ export class View {
         
         // attach elements to header toolbar
         $level2.append( $filters_button );
-
-        $level2.append( $filters_set );
+        $level2.append( $filters_set );            
         $level2.append( $pagination );
         $level2.append( $fields_toggle_button );
 
@@ -693,35 +704,77 @@ export class View {
 
 
         let $action_set = this.$container.find('.sb-view-header-list-actions-set');
+
+        // abort any pending edition
+        let $actions_selected_edit = $action_set.find('.sb-view-header-list-actions-selected-edit');
+        if($actions_selected_edit.length) {
+            $actions_selected_edit.find('.action-selected-edit-cancel').trigger('click');
+        }
+        // remove containers related to selection actions
+        $action_set.find('.sb-view-header-list-actions-selected-edit').remove();
         $action_set.find('.sb-view-header-list-actions-selected').remove();
+        $action_set.find('.sb-view-header-list-actions-export').remove();
 
         // do not show the actions menu for 'add' and 'select' purposes
-        if(this.selected_ids.length > 0 && ['view', 'widget'].indexOf(this.purpose) > -1) {
-            let count = this.selected_ids.length;
+        if(['view', 'widget'].indexOf(this.purpose) > -1) {
+            if(this.purpose == 'view') {
+                // create export menu (always visible: no selection means "export all")
+                let $export_actions_menu_button = $('<div/>').addClass('sb-view-header-list-actions-export mdc-menu-surface--anchor')
+                .append(UIHelper.createButton('selection-action-'+'SB_ACTIONS_BUTTON_EXPORT', 'export', 'icon', 'file_download'))
+                .appendTo($action_set);
 
-            let $fields_toggle_button = $('<div/>').addClass('sb-view-header-list-actions-selected mdc-menu-surface--anchor')        
-            .append( UIHelper.createButton('action-selected', count+' '+TranslationService.instant('SB_ACTIONS_BUTTON_SELECTED'), 'outlined') );
+                let $export_actions_menu = UIHelper.createMenu('export-actions-menu').addClass('sb-view-header-list-export-menu').appendTo($export_actions_menu_button);    
+                let $export_actions_list = UIHelper.createList('export-actions-list').appendTo($export_actions_menu);
 
-            let $list = UIHelper.createList('fields-list');        
-            let $menu = UIHelper.createMenu('fields-menu').addClass('sb-view-header-list-fields_toggle-menu');
-            
-            $menu.append($list);
-            $fields_toggle_button.append($menu);
+                UIHelper.createListItem(TranslationService.instant('print'), 'print')
+                .on( 'click', (event:any) => {
+                    window.open(environment.backend_url+'/?get=model_export-pdf&entity='+this.entity+'&domain='+JSON.stringify(this.getDomain())+'&view_id='+this.type+'.'+this.name+'&lang='+this.lang, "_blank");
+                })
+                .appendTo($export_actions_list);
 
-            // add actions defined in view
-            for(let item of this.config.selection_actions) {
-                UIHelper.createListItem(TranslationService.instant(item.title), item.icon)
-                .on( 'click', (event:any) => item.handler(event, this.selected_ids) )
-                .appendTo($list);                
+                UIHelper.createListItem(TranslationService.instant('export as XLS'), 'file_copy')
+                .on( 'click', (event:any) => {
+                    window.open(environment.backend_url+'/?get=model_export-xls&entity='+this.entity+'&domain='+JSON.stringify(this.getDomain())+'&view_id='+this.type+'.'+this.name+'&lang='+this.lang, "_blank");
+                })
+                .appendTo($export_actions_list);
+
+                UIHelper.decorateMenu($export_actions_menu);
+                $export_actions_menu_button.find('button').on('click', () => $export_actions_menu.trigger('_toggle') );   
             }
 
-            UIHelper.decorateMenu($menu);
-
-            $fields_toggle_button.find('button').on('click', () => {
-                $menu.trigger('_toggle');
-            });    
+            // create buttons with actions to apply on current selection
+            if(this.selected_ids.length > 0) {
+                let $container = $('<div/>').addClass('sb-view-header-list-actions-selected').appendTo($action_set);
+                let count = this.selected_ids.length;
     
-            $action_set.append($fields_toggle_button);
+                let $fields_toggle_button = $('<div/>').addClass('mdc-menu-surface--anchor')
+                .append( UIHelper.createButton('action-selected', count+' '+TranslationService.instant('SB_ACTIONS_BUTTON_SELECTED'), 'outlined') );
+    
+                let $list = UIHelper.createList('fields-list');        
+                let $menu = UIHelper.createMenu('fields-menu').addClass('sb-view-header-list-fields_toggle-menu');
+                
+                $menu.append($list);
+                $fields_toggle_button.append($menu);
+    
+                // add actions defined in view
+                for(let item of this.config.selection_actions) {
+                    UIHelper.createListItem(TranslationService.instant(item.title), item.icon)
+                    .on( 'click', (event:any) => item.handler(event) )
+                    .appendTo($list);
+    
+                    if(item.hasOwnProperty('primary') && item.primary) {
+                        $container.append(UIHelper.createButton('selection-action-'+item.title, item.title, 'icon', item.icon).on('click', (event:any) => item.handler(event)));
+                        let $tooltip = UIHelper.createTooltip('selection-action-'+item.title, TranslationService.instant(item.title));
+                        $container.append($tooltip);
+                        UIHelper.decorateTooltip($tooltip);
+                    }
+                }
+    
+                UIHelper.decorateMenu($menu);
+                $fields_toggle_button.find('button').on('click', () => $menu.trigger('_toggle') );    
+                $fields_toggle_button.appendTo($container);
+            }
+            
         }
     }
 
@@ -737,7 +790,11 @@ export class View {
                 .append( 
                     UIHelper.createButton('action-edit', TranslationService.instant('SB_ACTIONS_BUTTON_UPDATE'), 'raised')
                     .on('click', () => {
-                        $('#sb-events').trigger('_openContext', {entity: this.entity, type: this.type, name: this.name, domain: this.domain, mode: 'edit', purpose: 'update'});
+                        $('#sb-events').trigger('_openContext', {
+                            entity: this.entity, type: this.type, name: this.name, domain: this.domain, mode: 'edit', purpose: 'update', 
+                            // for UX consistency, inject current view widget context (currently selected tabs, ...)
+                            selected_sections: this.layout.getSelectedSections()
+                        });
                     })
                 );
                 break;
@@ -762,9 +819,12 @@ export class View {
                         else {
                             // we're in edit mode for single object (form)
                             let object = objects[0];
-                            try {                                
+                            try {
+                                // update new object (set to instance)
                                 const response = await ApiService.update(this.entity, [object['id']], this.model.export(object));
-                                $('#sb-events').trigger('_closeContext');    
+                                // relay new object_id to parent view
+                                let context:any = {object_id: object.id};
+                                $('#sb-events').trigger('_closeContext', context);
                             }
                             catch(response) {
                                 console.log('catched response', response);
@@ -809,9 +869,8 @@ export class View {
 
         let fields:any = {};
         for(let item of this.view_schema.layout.items ) {
-// #todo : translate fields names            
-            let label = (item.hasOwnProperty('label'))?item.label:item.value.charAt(0).toUpperCase() + item.value.slice(1);
-            fields[item.value] = label;
+            let label = (item.hasOwnProperty('label'))?item.label:item.value;            
+            fields[item.value] = TranslationService.resolve(this.translation, 'model', item.value, label, 'label');
         }        
 
         let $select_field = UIHelper.createSelect('custom_filter_select_field', TranslationService.instant('SB_FILTERS_DIALOG_FIELD'), fields, Object.keys(fields)[0]).appendTo($elem);
@@ -966,49 +1025,55 @@ export class View {
     }
 
     private async actionListInlineEdit(event:any, selection: any) {
-
-        if(selection.length) {
+        if(selection.length && !this.$container.find('.sb-view-header-list-actions-selected-edit').length) {
             let $action_set = this.$container.find('.sb-view-header-list-actions-set');
-            let $button_save = UIHelper.createButton('action-selected-edit-save', TranslationService.instant('SB_ACTIONS_BUTTON_SAVE'), 'raised')
-            let $button_cancel = UIHelper.createButton('action-selected-edit-cancel', TranslationService.instant('SB_ACTIONS_BUTTON_CANCEL'), 'outlined')
-            
-            $action_set.append($button_save);
-            $action_set.append($button_cancel);
 
-            $button_save.on('click', () => {
+            let $action_set_selected_edit_actions = $('<div/>').addClass('sb-view-header-list-actions-selected-edit');
+
+            let $button_save = UIHelper.createButton('action-selected-edit-save', TranslationService.instant('SB_ACTIONS_BUTTON_SAVE'), 'raised').appendTo($action_set_selected_edit_actions);
+            let $button_cancel = UIHelper.createButton('action-selected-edit-cancel', TranslationService.instant('SB_ACTIONS_BUTTON_CANCEL'), 'outlined').appendTo($action_set_selected_edit_actions);
+            
+            $action_set.append($action_set_selected_edit_actions);
+
+
+            $button_save.on('click', async () => {
                 // handle changed objects
                 let objects = this.model.getChanges(selection);
-                let original_selection = [...selection];
 
-                for(let object_id of original_selection) {
-                    let object = objects.find( o => o.id == object_id );
-                    this.$layoutContainer.find('tr[data-id="'+object_id+'"]').each( async (i: number, tr: any) => {
-                        let $tr = $(tr);
-                        if(!object) {
-                            $tr.find('.sb-widget-cell').each( (i: number, cell: any):any => $(cell).trigger('_toggle_mode', 'view') );
-                            $tr.attr('data-edit', '0');
-                            selection.splice(selection.indexOf(object_id), 1);
-                        }
-                        else {
-                            try {
-                                await ApiService.update(this.entity, [object_id], this.model.export(object));
+                let promises = [];
+
+                for(let object_id of selection) {                    
+                    let promise = new Promise((resolve, reject) => {
+                        let object = objects.find( o => o.id == object_id );
+                        this.$layoutContainer.find('tr[data-id="'+object_id+'"]').each( async (i: number, tr: any) => {
+                            let $tr = $(tr);
+                            if(!object) {
                                 $tr.find('.sb-widget-cell').each( (i: number, cell: any):any => $(cell).trigger('_toggle_mode', 'view') );
                                 $tr.attr('data-edit', '0');
-                                selection.splice(selection.indexOf(object_id), 1);
-                                if(selection.length == 0) {
-                                    $button_save.remove();
-                                    $button_cancel.remove();
+                                resolve(true);
+                            }
+                            else {
+                                try {
+                                    await ApiService.update(this.entity, [object_id], this.model.export(object));
+                                    $tr.find('.sb-widget-cell').each( (i: number, cell: any):any => $(cell).trigger('_toggle_mode', 'view') );
+                                    $tr.attr('data-edit', '0');
+                                    resolve(true);
+                                }
+                                catch(response) {
+                                    this.displayErrorFeedback(response, object, true);
+                                    reject();
                                 }
                             }
-                            catch(response) {
-                                this.displayErrorFeedback(response, object, true);
-                            }    
-                        }
+                        });
                     });
+                    promises.push(promise);
                 }
-                if(selection.length == 0) {
-                    $button_save.remove();
-                    $button_cancel.remove();
+                try {
+                    await Promise.all(promises);
+                    $action_set_selected_edit_actions.remove();
+                }
+                catch(err) {
+                    // at least one promise was rejected
                 }
                 return false;                
             });
@@ -1031,8 +1096,7 @@ export class View {
                     $tr.find('.sb-widget-cell').each( (i: number, cell: any):any => $(cell).trigger('_toggle_mode', 'view') );
                     $tr.attr('data-edit', '0');    
                 });
-                $button_save.remove();
-                $button_cancel.remove();
+                $action_set_selected_edit_actions.remove();
                 return false;
             });
         }
@@ -1076,7 +1140,9 @@ export class View {
                     let msg:string = <string>(Object.values(errors['INVALID_PARAM'][field]))[0];
                     // translate error message
                     msg = TranslationService.resolve(this.translation, 'error', field, msg, error_id);
-                    this.layout.markFieldAsInvalid(object['id'], field, msg);
+                    if(object) {
+                        this.layout.markFieldAsInvalid(object['id'], field, msg);
+                    }                    
                     if(snack) {
                         let title = TranslationService.resolve(this.translation, 'model', field, field, 'label');
                         let $snack = UIHelper.createSnackbar(title+': '+msg, '', '', delay * (count-i));
@@ -1097,7 +1163,9 @@ export class View {
                     let i = 0, count = Object.keys(errors['CONFLICT_OBJECT']).length;    
                     for(let field in errors['CONFLICT_OBJECT']) {
                         let msg = TranslationService.instant('SB_ERROR_DUPLICATE_VALUE');
-                        this.layout.markFieldAsInvalid(object['id'], field, msg);
+                        if(object) {
+                            this.layout.markFieldAsInvalid(object['id'], field, msg);
+                        }                        
                         if(snack) {
                             let title = TranslationService.resolve(this.translation, 'model', field, field, 'label');
                             let $snack = UIHelper.createSnackbar(title+': '+msg, '', '', delay * (count-i));

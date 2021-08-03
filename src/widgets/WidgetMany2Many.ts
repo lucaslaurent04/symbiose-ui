@@ -22,7 +22,7 @@ export default class WidgetMany2Many extends Widget {
         if(this.config.hasOwnProperty('ready') && this.config.ready) {
 
             let view_config = {
-                show_actions: false,
+                show_actions: true,
                 // update the actions of the "current selection" button
                 selection_actions: [
                     {
@@ -51,8 +51,10 @@ export default class WidgetMany2Many extends Widget {
 
                 if(this.mode == 'edit') {
 
-                    $container.find('.sb-view-header-list-actions-set')
-                    .append( 
+                    let $actions_set = $container.find('.sb-view-header-list-actions-set');
+
+                    $actions_set
+                    .append(
                         UIHelper.createButton('action-edit', TranslationService.instant('SB_ACTIONS_BUTTON_ADD'), 'raised')
                         .on('click', async () => {
                             let purpose = (this.rel_type == 'many2many')?'add':'select';
@@ -83,7 +85,35 @@ export default class WidgetMany2Many extends Widget {
                                 }
                             });
                         })
-                    )
+                    );
+
+                    if(this.rel_type == 'one2many') {
+                        $actions_set
+                        .append(
+                            UIHelper.createButton('action-create', TranslationService.instant('SB_ACTIONS_BUTTON_CREATE'), 'raised')
+                            .on('click', async () => {        
+                                // request a new Context for selecting an existing object to add to current selection
+                                $('#sb-events').trigger('_openContext', {
+                                    entity: this.config.entity, 
+                                    type: 'form', 
+                                    name: 'default', 
+                                    domain: [this.config.foreign_field, '=', this.config.object_id], 
+                                    mode: 'edit', 
+                                    purpose: 'create',
+                                    callback: (data:any) => {
+                                        console.log('#######################" callback', data);
+                                        if(data && data.object_id) {
+                                            let ids = this.value.map( (o:any) => o.id);
+                                            // append created object to current selection
+                                            ids = ids.concat([data.object_id]);
+                                            this.value = ids.map( (id:number) => ({id: id}) );
+                                            $elem.trigger('_updatedWidget');
+                                        }
+                                    }
+                                });
+                            })
+                        );                        
+                    }
                 }
     
                 // inject View in parent Context object

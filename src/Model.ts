@@ -221,6 +221,9 @@ export class Model {
     }
     
     public ids() {
+        if(this.objects.length == 0) {
+            return [];
+        }
         return this.objects.map( (object:any) => object.id );
     }
 

@@ -82,7 +82,7 @@ class eQ {
                 config.domain   = [['id', '=', object.id], ['state', '=', 'draft']];    
             }
             // instanciate a new context and push it on the contexts stack
-            let context: Context = new Context(config.entity, config.type, config.name, config.domain, config.mode, config.purpose, config.lang, config.callback);
+            let context: Context = new Context(config.entity, config.type, config.name, config.domain, config.mode, config.purpose, config.lang, config.callback, config);
             this.openContext(context);
         });
 

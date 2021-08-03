@@ -56,7 +56,7 @@ var _ApiService = /*#__PURE__*/function () {
       cache: false,
       beforeSend: function beforeSend(xhr) {
         /*
-        // #removed for XSS protection (we use httponly cookie instead)
+        // #removed for XSS protection (we use httpOnly cookie instead)
         let access_token = this.getCookie('access_token');
         if(access_token) {
             xhr.setRequestHeader('Authorization', "Basic " + access_token); 
@@ -717,13 +717,14 @@ var Context = /*#__PURE__*/function () {
     var callback = arguments.length > 7 && arguments[7] !== undefined ? arguments[7] : function () {
       var data = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
     };
+    var config = arguments.length > 8 && arguments[8] !== undefined ? arguments[8] : null;
     (0, _classCallCheck2.default)(this, Context);
     (0, _defineProperty2.default)(this, "$container", void 0);
     (0, _defineProperty2.default)(this, "view", void 0);
     (0, _defineProperty2.default)(this, "callback", void 0);
     this.$container = (0, _jqueryLib.$)('<div />').addClass('sb-context');
     this.callback = callback;
-    this.view = new _View.View(entity, type, name, domain, mode, purpose, lang); // inject View in parent Context object
+    this.view = new _View.View(entity, type, name, domain, mode, purpose, lang, config); // inject View in parent Context object
 
     this.$container.append(this.view.getContainer());
   }
@@ -732,7 +733,7 @@ var Context = /*#__PURE__*/function () {
     key: "close",
     value: function close(data) {
       console.log('close', data);
-      this.$container.remove();
+      this.$container.remove(); // callbacks are used to relay events across contexts (select, add, ...)
 
       if ({}.toString.call(this.callback) === '[object Function]') {
         this.callback(data);
@@ -1445,6 +1446,19 @@ var Layout = /*#__PURE__*/function () {
       return selection;
     }
   }, {
+    key: "getSelectedSections",
+    value: function getSelectedSections() {
+      var selectedSections = {};
+      this.$layout.find('.sb-view-form-group').each(function (i, group) {
+        (0, _jqueryLib.$)(group).find('.sb-view-form-sections-tabbar').find('.sb-view-form-section-tab').each(function (j, tab) {
+          if ((0, _jqueryLib.$)(tab).hasClass('mdc-tab--active')) {
+            selectedSections[i] = j;
+          }
+        });
+      });
+      return selectedSections;
+    }
+  }, {
     key: "layout",
     value: function layout() {
       console.log('Layout::layout');
@@ -1500,7 +1514,7 @@ var Layout = /*#__PURE__*/function () {
 
       if (config.hasOwnProperty('selection')) {
         config.type = 'select';
-        config.values = config.selection;
+        config.values = _equalServices.TranslationService.resolve(translation, 'model', field, config.selection, 'selection');
       } // ready property is set to true during the 'feed' phase
 
 
@@ -1563,8 +1577,10 @@ var Layout = /*#__PURE__*/function () {
       var view_schema = this.view.getViewSchema();
       var model_fields = this.view.getModelFields();
       var translation = this.view.getTranslation();
+      var view_config = this.view.getConfig();
 
       _jqueryLib.$.each(view_schema.layout.groups, function (i, group) {
+        var group_id = 'group-' + i;
         var $group = (0, _jqueryLib.$)('<div />').addClass('sb-view-form-group').appendTo($elem); // try to resolve the group title
 
         var group_title = group.hasOwnProperty('label') ? group.label : '';
@@ -1578,17 +1594,23 @@ var Layout = /*#__PURE__*/function () {
           $group.append((0, _jqueryLib.$)('<div/>').addClass('sb-view-form-group-title').text(group_title));
         }
 
-        var $tabs = _materialLib.UIHelper.createTabBar('test', '', '').addClass('sb-view-form-sections-tabbar');
+        var selected_section = 0;
+
+        if (view_config && view_config.hasOwnProperty('selected_sections') && view_config.selected_sections.hasOwnProperty(i)) {
+          selected_section = view_config.selected_sections[i];
+        }
+
+        var $tabs = _materialLib.UIHelper.createTabBar('sections-' + group_id, '', '').addClass('sb-view-form-sections-tabbar');
 
         if (group.sections.length > 1 || group.sections[0].hasOwnProperty('label')) {
           $group.append($tabs);
         }
 
-        _jqueryLib.$.each(group.sections, function (i, section) {
-          var section_id = 'section-' + i;
+        _jqueryLib.$.each(group.sections, function (j, section) {
+          var section_id = group_id + '-section-' + j;
           var $section = (0, _jqueryLib.$)('<div />').attr('id', section_id).addClass('sb-view-form-section mdc-layout-grid').appendTo($group);
 
-          if (i > 0) {
+          if (j != selected_section) {
             $section.hide();
           }
 
@@ -1600,7 +1622,7 @@ var Layout = /*#__PURE__*/function () {
               section_title = _equalServices.TranslationService.resolve(translation, 'view', section.id, section_title);
             }
 
-            var $tab = _materialLib.UIHelper.createTabButton('', section_title, i == 0).on('click', function () {
+            var $tab = _materialLib.UIHelper.createTabButton(section_id + '-tab', section_title, j == selected_section).addClass('sb-view-form-section-tab').on('click', function () {
               $group.find('.sb-view-form-section').hide();
               $group.find('#' + section_id).show();
             });
@@ -1608,10 +1630,10 @@ var Layout = /*#__PURE__*/function () {
             $tabs.find('.sb-view-form-sections').append($tab);
           }
 
-          _jqueryLib.$.each(section.rows, function (i, row) {
+          _jqueryLib.$.each(section.rows, function (k, row) {
             var $row = (0, _jqueryLib.$)('<div />').addClass('sb-view-form-row mdc-layout-grid__inner').appendTo($section);
 
-            _jqueryLib.$.each(row.columns, function (i, column) {
+            _jqueryLib.$.each(row.columns, function (l, column) {
               var $column = (0, _jqueryLib.$)('<div />').addClass('mdc-layout-grid__cell').appendTo($row);
 
               if (column.hasOwnProperty('width')) {
@@ -1853,7 +1875,9 @@ var Layout = /*#__PURE__*/function () {
                   value = object[item.value].map(function (o) {
                     return o.name;
                   }).join(', ');
-                  value = value.length > 35 ? value.substring(0, 35) + "..." : value;
+                  value = value.length > 35 ? value.substring(0, 35) + "..." : value; // we need the current object id for new objects creation
+
+                  config.object_id = object.id;
                 }
               }
 
@@ -1933,7 +1957,7 @@ var Layout = /*#__PURE__*/function () {
 
       if (objects.length > 0) {
         (function () {
-          // todo : keep internal index of the object to display (with a prev/next navigation in the header)
+          // #todo : keep internal index of the object to display (with a prev/next navigation in the header)
           var object = objects[0];
 
           var _iterator6 = _createForOfIteratorHelper(fields),
@@ -1950,7 +1974,7 @@ var Layout = /*#__PURE__*/function () {
               var type = model_def['type'];
               var has_changed = false;
               var value = object[field];
-              var config = widget.getConfig(); // for relational fields, we need to check if the Model has been fetched al
+              var config = widget.getConfig(); // for relational fields, we need to check if the Model has been fetched
 
               if (['one2many', 'many2one', 'many2many'].indexOf(type) > -1) {
                 // by convention, `name` subfield is always loaded for relational fields
@@ -1969,10 +1993,12 @@ var Layout = /*#__PURE__*/function () {
 
                   if (!target_ids.length) {
                     target_ids.push(0);
-                  }
+                  } // we need the current object id for new objects creation
 
+
+                  config.object_id = object.id;
                   config = _objectSpread(_objectSpread({}, config), {}, {
-                    // todo : merge domains instead of override                            
+                    // #todo : merge domains instead of override
                     domain: ['id', 'in', target_ids]
                   });
                 }
@@ -2009,7 +2035,7 @@ var Layout = /*#__PURE__*/function () {
 
                 $parent.data('value', null);
               } else {
-                // todo : many2one & x2many fields can have a specific domain, that might depend on current values of edited object : 
+                // #todo : many2one & x2many fields can have a specific domain, that might depend on current values of edited object : 
                 // we must re-evaluate the domain and set the widget config accordingly
                 var $widget = widget.render(); // Handle Widget update handler
 
@@ -2020,7 +2046,7 @@ var Layout = /*#__PURE__*/function () {
                   console.log(value);
 
                   _this4.view.onchangeViewModel([object.id], value);
-                }); // prevent refreshing objects that haven't changed (otherwise currently active widget loses the focus)
+                }); // prevent refreshing objects that haven't changed
 
                 if (has_changed) {
                   // append rendered widget
@@ -2372,6 +2398,10 @@ var Model = /*#__PURE__*/function () {
   }, {
     key: "ids",
     value: function ids() {
+      if (this.objects.length == 0) {
+        return [];
+      }
+
       return this.objects.map(function (object) {
         return object.id;
       });
@@ -2579,10 +2609,10 @@ var _jqueryLib = __webpack_require__(/*! ./jquery-lib */ "./build/jquery-lib.js"
 
 var _environment = __webpack_require__(/*! ./environment */ "./build/environment.js");
 
-var _i18n = __webpack_require__(/*! ./i18n */ "./build/i18n.js");
-
 /**
- * This service is in charge of loading the UI translations and provide getters to retrieve requested values
+ * This service is in charge of loading the UI translations and provide getters to retrieve requested values.
+ * It expects .json translation files in the /assets/i18n/ folder.
+ * 
  */
 var _TranslationService = /*#__PURE__*/function () {
   // promise object
@@ -2598,15 +2628,26 @@ var _TranslationService = /*#__PURE__*/function () {
   (0, _createClass2.default)(_TranslationService, [{
     key: "init",
     value: function init() {
-      this.translations = _jqueryLib.$.Deferred();
-      this.resolved = false;
+      var _this = this;
 
-      if (_i18n.i18n.hasOwnProperty(_environment.environment.lang)) {
-        this.resolved = _i18n.i18n[_environment.environment.lang];
-        this.translations.resolve(_i18n.i18n[_environment.environment.lang]);
-      } else {
-        this.translations.resolve({});
-      }
+      this.translations = _jqueryLib.$.Deferred();
+      this.resolved = false; // load i18n file from server
+
+      fetch('/assets/i18n/' + _environment.environment.lang + '.json').then(function (response) {
+        if (response.ok) {
+          response.json().then(function (data) {
+            _this.resolved = data;
+
+            _this.translations.resolve(data);
+          });
+        } else {
+          _this.translations.resolve({});
+        }
+      }).catch(function (err) {
+        console.log('error fetch UI translation file');
+
+        _this.translations.resolve({});
+      });
     }
   }, {
     key: "translate",
@@ -2689,7 +2730,11 @@ var _TranslationService = /*#__PURE__*/function () {
     value: function resolve(translation, type, id) {
       var value = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : '';
       var section = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : 'label';
-      var result = value.charAt(0).toUpperCase() + value.replace(/_/g, ' ').slice(1);
+      var result = value;
+
+      if (typeof value === 'string' || value instanceof String) {
+        result = value.charAt(0).toUpperCase() + value.replace(/_/g, ' ').slice(1);
+      }
 
       if (translation.hasOwnProperty(type)) {
         if (translation[type].hasOwnProperty(id)) {
@@ -2753,15 +2798,15 @@ var _Layout = _interopRequireDefault(__webpack_require__(/*! ./Layout */ "./buil
 
 var _Model = _interopRequireDefault(__webpack_require__(/*! ./Model */ "./build/Model.js"));
 
-function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) { symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); } keys.push.apply(keys, symbols); } return keys; }
-
-function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2.default)(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
-
 function _createForOfIteratorHelper(o, allowArrayLike) { var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"]; if (!it) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = it.call(o); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
 
 function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
 
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) { symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); } keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2.default)(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
 
 var View = /*#__PURE__*/function () {
   // Mode under which the view is to be displayed ('View' [default], or 'edit')
@@ -2783,7 +2828,7 @@ var View = /*#__PURE__*/function () {
    * @param mode
    * @param purpose
    * @param lang
-   * @param config
+   * @param config        extra parameters related to contexts communications
    */
   function View(entity, type, name, domain, mode, purpose, lang) {
     var _this = this;
@@ -2830,14 +2875,16 @@ var View = /*#__PURE__*/function () {
       selection_actions: [{
         title: 'SB_ACTIONS_BUTTON_INLINE_UPDATE',
         icon: 'dynamic_form',
-        handler: function handler(event, selection) {
-          return _this.actionListInlineEdit(event, selection);
+        primary: true,
+        handler: function handler(event) {
+          return _this.actionListInlineEdit(event, _this.selected_ids);
         }
       }, {
         title: 'SB_ACTIONS_BUTTON_UPDATE',
         icon: 'edit',
-        handler: function handler(event, selection) {
-          var selected_id = selection[0];
+        primary: false,
+        handler: function handler(event) {
+          var selected_id = _this.selected_ids[0];
           (0, _jqueryLib.$)('#sb-events').trigger('_openContext', {
             entity: _this.entity,
             type: 'form',
@@ -2850,40 +2897,44 @@ var View = /*#__PURE__*/function () {
       }, {
         title: 'SB_ACTIONS_BUTTON_CLONE',
         icon: 'content_copy',
+        primary: false,
         handler: function () {
-          var _handler = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(event, selection) {
+          var _handler = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(event) {
             var response;
             return _regenerator.default.wrap(function _callee$(_context) {
               while (1) {
                 switch (_context.prev = _context.next) {
                   case 0:
                     _context.prev = 0;
-                    _context.next = 3;
+                    console.log(_this.selected_ids);
+                    _context.next = 4;
                     return _equalServices.ApiService.clone(_this.entity, _this.selected_ids);
 
-                  case 3:
+                  case 4:
                     response = _context.sent;
-                    _context.next = 6;
+                    _context.next = 7;
                     return _this.onchangeView();
 
-                  case 6:
-                    _context.next = 11;
+                  case 7:
+                    _context.next = 13;
                     break;
 
-                  case 8:
-                    _context.prev = 8;
+                  case 9:
+                    _context.prev = 9;
                     _context.t0 = _context["catch"](0);
                     console.log('unexpected error', _context.t0);
 
-                  case 11:
+                    _this.displayErrorFeedback(_context.t0);
+
+                  case 13:
                   case "end":
                     return _context.stop();
                 }
               }
-            }, _callee, null, [[0, 8]]);
+            }, _callee, null, [[0, 9]]);
           }));
 
-          function handler(_x, _x2) {
+          function handler(_x) {
             return _handler.apply(this, arguments);
           }
 
@@ -2892,18 +2943,25 @@ var View = /*#__PURE__*/function () {
       }, {
         title: 'SB_ACTIONS_BUTTON_ARCHIVE',
         icon: 'archive',
-        handler: function handler(event, selection) {
+        primary: true,
+        handler: function handler(event) {
           var selected_id = _this.selected_ids[0]; // #todo
         }
       }, {
         title: 'SB_ACTIONS_BUTTON_DELETE',
         icon: 'delete',
-        handler: function handler(event, selection) {
+        primary: true,
+        handler: function handler(event) {
           var selected_id = _this.selected_ids[0]; // #todo
         }
-      }]
-    };
-    this.setConfig(config);
+      }] // selected_sections: {1: 2}
+
+    }; // override config options, if other are given
+
+    if (config) {
+      this.config = _objectSpread(_objectSpread({}, this.config), config);
+    }
+
     this.mode = mode;
     this.purpose = purpose;
     this.domain = domain;
@@ -3082,12 +3140,9 @@ var View = /*#__PURE__*/function () {
       return this.is_ready_promise;
     }
   }, {
-    key: "setConfig",
-    value: function setConfig(config) {
-      // override config options, if other are given
-      if (config) {
-        this.config = _objectSpread(_objectSpread({}, this.config), config);
-      }
+    key: "getConfig",
+    value: function getConfig() {
+      return this.config;
     }
   }, {
     key: "setMode",
@@ -3362,7 +3417,7 @@ var View = /*#__PURE__*/function () {
       if (this.config.show_actions) {
         switch (this.purpose) {
           case 'view':
-            $actions_set.append(_materialLib.UIHelper.createButton('action-edit', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_CREATE'), 'raised').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3() {
+            $actions_set.prepend(_materialLib.UIHelper.createButton('action-edit', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_CREATE'), 'raised').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3() {
               return _regenerator.default.wrap(function _callee3$(_context3) {
                 while (1) {
                   switch (_context3.prev = _context3.next) {
@@ -3391,32 +3446,10 @@ var View = /*#__PURE__*/function () {
             break;
 
           case 'select':
-            $actions_set.append(_materialLib.UIHelper.createButton('action-select', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_SELECT'), 'raised', 'check').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
-              var objects;
+            $actions_set.prepend(_materialLib.UIHelper.createButton('action-create', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_CREATE'), 'text').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
               return _regenerator.default.wrap(function _callee4$(_context4) {
                 while (1) {
                   switch (_context4.prev = _context4.next) {
-                    case 0:
-                      _context4.next = 2;
-                      return _this2.model.get(_this2.selected_ids);
-
-                    case 2:
-                      objects = _context4.sent;
-                      (0, _jqueryLib.$)('#sb-events').trigger('_closeContext', {
-                        selection: _this2.selected_ids,
-                        objects: objects
-                      });
-
-                    case 4:
-                    case "end":
-                      return _context4.stop();
-                  }
-                }
-              }, _callee4);
-            })))).append(_materialLib.UIHelper.createButton('action-create', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_CREATE'), 'text').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5() {
-              return _regenerator.default.wrap(function _callee5$(_context5) {
-                while (1) {
-                  switch (_context5.prev = _context5.next) {
                     case 0:
                       try {
                         // request a new Context for editing a new object
@@ -3433,6 +3466,29 @@ var View = /*#__PURE__*/function () {
                       }
 
                     case 1:
+                    case "end":
+                      return _context4.stop();
+                  }
+                }
+              }, _callee4);
+            })))).prepend(_materialLib.UIHelper.createButton('action-select', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_SELECT'), 'raised', 'check').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5() {
+              var objects, context;
+              return _regenerator.default.wrap(function _callee5$(_context5) {
+                while (1) {
+                  switch (_context5.prev = _context5.next) {
+                    case 0:
+                      _context5.next = 2;
+                      return _this2.model.get(_this2.selected_ids);
+
+                    case 2:
+                      objects = _context5.sent;
+                      context = {
+                        selection: _this2.selected_ids,
+                        objects: objects
+                      };
+                      (0, _jqueryLib.$)('#sb-events').trigger('_closeContext', context);
+
+                    case 5:
                     case "end":
                       return _context5.stop();
                   }
@@ -3442,32 +3498,10 @@ var View = /*#__PURE__*/function () {
             break;
 
           case 'add':
-            $actions_set.append(_materialLib.UIHelper.createButton('action-add', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_ADD'), 'raised', 'check').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6() {
-              var objects;
+            $actions_set.prepend(_materialLib.UIHelper.createButton('action-create', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_CREATE'), 'text').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6() {
               return _regenerator.default.wrap(function _callee6$(_context6) {
                 while (1) {
                   switch (_context6.prev = _context6.next) {
-                    case 0:
-                      _context6.next = 2;
-                      return _this2.model.get(_this2.selected_ids);
-
-                    case 2:
-                      objects = _context6.sent;
-                      (0, _jqueryLib.$)('#sb-events').trigger('_closeContext', {
-                        selection: _this2.selected_ids,
-                        objects: objects
-                      });
-
-                    case 4:
-                    case "end":
-                      return _context6.stop();
-                  }
-                }
-              }, _callee6);
-            })))).append(_materialLib.UIHelper.createButton('action-create', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_CREATE'), 'text').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7() {
-              return _regenerator.default.wrap(function _callee7$(_context7) {
-                while (1) {
-                  switch (_context7.prev = _context7.next) {
                     case 0:
                       try {
                         // request a new Context for editing a new object
@@ -3484,6 +3518,28 @@ var View = /*#__PURE__*/function () {
                       }
 
                     case 1:
+                    case "end":
+                      return _context6.stop();
+                  }
+                }
+              }, _callee6);
+            })))).prepend(_materialLib.UIHelper.createButton('action-add', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_ADD'), 'raised', 'check').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7() {
+              var objects;
+              return _regenerator.default.wrap(function _callee7$(_context7) {
+                while (1) {
+                  switch (_context7.prev = _context7.next) {
+                    case 0:
+                      _context7.next = 2;
+                      return _this2.model.get(_this2.selected_ids);
+
+                    case 2:
+                      objects = _context7.sent;
+                      (0, _jqueryLib.$)('#sb-events').trigger('_closeContext', {
+                        selection: _this2.selected_ids,
+                        objects: objects
+                      });
+
+                    case 4:
                     case "end":
                       return _context7.stop();
                   }
@@ -3585,9 +3641,11 @@ var View = /*#__PURE__*/function () {
 
       var $pagination = _materialLib.UIHelper.createPagination().addClass('sb-view-header-list-pagination');
 
-      $pagination.find('.pagination-container').prepend(_materialLib.UIHelper.createButton('refresh-view', 'refresh', 'icon', 'refresh').on('click', function () {
+      var $refresh_list_button = _materialLib.UIHelper.createButton('refresh-view', 'refresh', 'icon', 'refresh').on('click', function () {
         return _this2.onchangeView();
-      }));
+      });
+
+      $pagination.find('.pagination-container').prepend($refresh_list_button);
       $pagination.find('.pagination-total').append((0, _jqueryLib.$)('<span class="sb-view-header-list-pagination-start"></span>')).append((0, _jqueryLib.$)('<span />').text('-')).append((0, _jqueryLib.$)('<span class="sb-view-header-list-pagination-end"></span>')).append((0, _jqueryLib.$)('<span />').text(' / ')).append((0, _jqueryLib.$)('<span class="sb-view-header-list-pagination-total"></span>'));
       $pagination.find('.pagination-navigation').append(_materialLib.UIHelper.createButton('', '', 'icon', 'first_page').addClass('sb-view-header-list-pagination-first_page').on('click', function (event) {
         _this2.setStart(0);
@@ -3659,47 +3717,96 @@ var View = /*#__PURE__*/function () {
       this.$container.find('.sb-view-header-list-pagination-prev_page').prop('disabled', !(start > limit));
       this.$container.find('.sb-view-header-list-pagination-next_page').prop('disabled', !(start <= total - limit));
       this.$container.find('.sb-view-header-list-pagination-last_page').prop('disabled', !(start <= total - limit));
-      var $action_set = this.$container.find('.sb-view-header-list-actions-set');
-      $action_set.find('.sb-view-header-list-actions-selected').remove(); // do not show the actions menu for 'add' and 'select' purposes
+      var $action_set = this.$container.find('.sb-view-header-list-actions-set'); // abort any pending edition
 
-      if (this.selected_ids.length > 0 && ['view', 'widget'].indexOf(this.purpose) > -1) {
-        var count = this.selected_ids.length;
-        var $fields_toggle_button = (0, _jqueryLib.$)('<div/>').addClass('sb-view-header-list-actions-selected mdc-menu-surface--anchor').append(_materialLib.UIHelper.createButton('action-selected', count + ' ' + _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_SELECTED'), 'outlined'));
+      var $actions_selected_edit = $action_set.find('.sb-view-header-list-actions-selected-edit');
 
-        var $list = _materialLib.UIHelper.createList('fields-list');
+      if ($actions_selected_edit.length) {
+        $actions_selected_edit.find('.action-selected-edit-cancel').trigger('click');
+      } // remove containers related to selection actions
 
-        var $menu = _materialLib.UIHelper.createMenu('fields-menu').addClass('sb-view-header-list-fields_toggle-menu');
 
-        $menu.append($list);
-        $fields_toggle_button.append($menu); // add actions defined in view
+      $action_set.find('.sb-view-header-list-actions-selected-edit').remove();
+      $action_set.find('.sb-view-header-list-actions-selected').remove();
+      $action_set.find('.sb-view-header-list-actions-export').remove(); // do not show the actions menu for 'add' and 'select' purposes
 
-        var _iterator7 = _createForOfIteratorHelper(this.config.selection_actions),
-            _step7;
+      if (['view', 'widget'].indexOf(this.purpose) > -1) {
+        if (this.purpose == 'view') {
+          // create export menu (always visible: no selection means "export all")
+          var $export_actions_menu_button = (0, _jqueryLib.$)('<div/>').addClass('sb-view-header-list-actions-export mdc-menu-surface--anchor').append(_materialLib.UIHelper.createButton('selection-action-' + 'SB_ACTIONS_BUTTON_EXPORT', 'export', 'icon', 'file_download')).appendTo($action_set);
 
-        try {
-          var _loop3 = function _loop3() {
-            var item = _step7.value;
+          var $export_actions_menu = _materialLib.UIHelper.createMenu('export-actions-menu').addClass('sb-view-header-list-export-menu').appendTo($export_actions_menu_button);
 
-            _materialLib.UIHelper.createListItem(_equalServices.TranslationService.instant(item.title), item.icon).on('click', function (event) {
-              return item.handler(event, _this3.selected_ids);
-            }).appendTo($list);
-          };
+          var $export_actions_list = _materialLib.UIHelper.createList('export-actions-list').appendTo($export_actions_menu);
 
-          for (_iterator7.s(); !(_step7 = _iterator7.n()).done;) {
-            _loop3();
+          _materialLib.UIHelper.createListItem(_equalServices.TranslationService.instant('print'), 'print').on('click', function (event) {
+            window.open(_environment.environment.backend_url + '/?get=model_export-pdf&entity=' + _this3.entity + '&domain=' + JSON.stringify(_this3.getDomain()) + '&view_id=' + _this3.type + '.' + _this3.name + '&lang=' + _this3.lang, "_blank");
+          }).appendTo($export_actions_list);
+
+          _materialLib.UIHelper.createListItem(_equalServices.TranslationService.instant('export as XLS'), 'file_copy').on('click', function (event) {
+            window.open(_environment.environment.backend_url + '/?get=model_export-xls&entity=' + _this3.entity + '&domain=' + JSON.stringify(_this3.getDomain()) + '&view_id=' + _this3.type + '.' + _this3.name + '&lang=' + _this3.lang, "_blank");
+          }).appendTo($export_actions_list);
+
+          _materialLib.UIHelper.decorateMenu($export_actions_menu);
+
+          $export_actions_menu_button.find('button').on('click', function () {
+            return $export_actions_menu.trigger('_toggle');
+          });
+        } // create buttons with actions to apply on current selection
+
+
+        if (this.selected_ids.length > 0) {
+          var $container = (0, _jqueryLib.$)('<div/>').addClass('sb-view-header-list-actions-selected').appendTo($action_set);
+          var count = this.selected_ids.length;
+          var $fields_toggle_button = (0, _jqueryLib.$)('<div/>').addClass('mdc-menu-surface--anchor').append(_materialLib.UIHelper.createButton('action-selected', count + ' ' + _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_SELECTED'), 'outlined'));
+
+          var $list = _materialLib.UIHelper.createList('fields-list');
+
+          var $menu = _materialLib.UIHelper.createMenu('fields-menu').addClass('sb-view-header-list-fields_toggle-menu');
+
+          $menu.append($list);
+          $fields_toggle_button.append($menu); // add actions defined in view
+
+          var _iterator7 = _createForOfIteratorHelper(this.config.selection_actions),
+              _step7;
+
+          try {
+            var _loop3 = function _loop3() {
+              var item = _step7.value;
+
+              _materialLib.UIHelper.createListItem(_equalServices.TranslationService.instant(item.title), item.icon).on('click', function (event) {
+                return item.handler(event);
+              }).appendTo($list);
+
+              if (item.hasOwnProperty('primary') && item.primary) {
+                $container.append(_materialLib.UIHelper.createButton('selection-action-' + item.title, item.title, 'icon', item.icon).on('click', function (event) {
+                  return item.handler(event);
+                }));
+
+                var $tooltip = _materialLib.UIHelper.createTooltip('selection-action-' + item.title, _equalServices.TranslationService.instant(item.title));
+
+                $container.append($tooltip);
+
+                _materialLib.UIHelper.decorateTooltip($tooltip);
+              }
+            };
+
+            for (_iterator7.s(); !(_step7 = _iterator7.n()).done;) {
+              _loop3();
+            }
+          } catch (err) {
+            _iterator7.e(err);
+          } finally {
+            _iterator7.f();
           }
-        } catch (err) {
-          _iterator7.e(err);
-        } finally {
-          _iterator7.f();
+
+          _materialLib.UIHelper.decorateMenu($menu);
+
+          $fields_toggle_button.find('button').on('click', function () {
+            return $menu.trigger('_toggle');
+          });
+          $fields_toggle_button.appendTo($container);
         }
-
-        _materialLib.UIHelper.decorateMenu($menu);
-
-        $fields_toggle_button.find('button').on('click', function () {
-          $menu.trigger('_toggle');
-        });
-        $action_set.append($fields_toggle_button);
       }
     }
   }, {
@@ -3720,14 +3827,16 @@ var View = /*#__PURE__*/function () {
               name: _this4.name,
               domain: _this4.domain,
               mode: 'edit',
-              purpose: 'update'
+              purpose: 'update',
+              // for UX consistency, inject current view widget context (currently selected tabs, ...)
+              selected_sections: _this4.layout.getSelectedSections()
             });
           }));
           break;
 
         case 'edit':
           $actions_set.append(_materialLib.UIHelper.createButton('action-save', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_SAVE'), 'raised').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee8() {
-            var objects, object, response;
+            var objects, object, response, context;
             return _regenerator.default.wrap(function _callee8$(_context8) {
               while (1) {
                 switch (_context8.prev = _context8.next) {
@@ -3757,7 +3866,7 @@ var View = /*#__PURE__*/function () {
 
                     // no change : close context
                     (0, _jqueryLib.$)('#sb-events').trigger('_closeContext');
-                    _context8.next = 23;
+                    _context8.next = 24;
                     break;
 
                   case 11:
@@ -3769,23 +3878,27 @@ var View = /*#__PURE__*/function () {
 
                   case 15:
                     response = _context8.sent;
-                    (0, _jqueryLib.$)('#sb-events').trigger('_closeContext');
-                    _context8.next = 23;
+                    // relay new object_id to parent view
+                    context = {
+                      object_id: object.id
+                    };
+                    (0, _jqueryLib.$)('#sb-events').trigger('_closeContext', context);
+                    _context8.next = 24;
                     break;
 
-                  case 19:
-                    _context8.prev = 19;
+                  case 20:
+                    _context8.prev = 20;
                     _context8.t0 = _context8["catch"](12);
                     console.log('catched response', _context8.t0);
 
                     _this4.displayErrorFeedback(_context8.t0, object, false);
 
-                  case 23:
+                  case 24:
                   case "end":
                     return _context8.stop();
                 }
               }
-            }, _callee8, null, [[12, 19]]);
+            }, _callee8, null, [[12, 20]]);
           })))).append(_materialLib.UIHelper.createButton('action-cancel', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_CANCEL'), 'outlined').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee9() {
             var validation;
             return _regenerator.default.wrap(function _callee9$(_context9) {
@@ -3871,9 +3984,8 @@ var View = /*#__PURE__*/function () {
       try {
         for (_iterator8.s(); !(_step8 = _iterator8.n()).done;) {
           var item = _step8.value;
-          // #todo : translate fields names            
-          var label = item.hasOwnProperty('label') ? item.label : item.value.charAt(0).toUpperCase() + item.value.slice(1);
-          fields[item.value] = label;
+          var label = item.hasOwnProperty('label') ? item.label : item.value;
+          fields[item.value] = _equalServices.TranslationService.resolve(this.translation, 'model', item.value, label, 'label');
         }
       } catch (err) {
         _iterator8.e(err);
@@ -3986,7 +4098,7 @@ var View = /*#__PURE__*/function () {
         }, _callee11, this);
       }));
 
-      function onchangeViewModel(_x3, _x4) {
+      function onchangeViewModel(_x2, _x3) {
         return _onchangeViewModel.apply(this, arguments);
       }
 
@@ -4125,7 +4237,7 @@ var View = /*#__PURE__*/function () {
         }, _callee14, this);
       }));
 
-      function applyFilter(_x5) {
+      function applyFilter(_x4) {
         return _applyFilter.apply(this, arguments);
       }
 
@@ -4134,115 +4246,133 @@ var View = /*#__PURE__*/function () {
   }, {
     key: "actionListInlineEdit",
     value: function () {
-      var _actionListInlineEdit = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee19(event, selection) {
+      var _actionListInlineEdit = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee20(event, selection) {
         var _this7 = this;
 
-        var $action_set, $button_save, $button_cancel, _iterator11, _step11, _loop6;
+        var $action_set, $action_set_selected_edit_actions, $button_save, $button_cancel, _iterator11, _step11, _loop6;
 
-        return _regenerator.default.wrap(function _callee19$(_context19) {
+        return _regenerator.default.wrap(function _callee20$(_context20) {
           while (1) {
-            switch (_context19.prev = _context19.next) {
+            switch (_context20.prev = _context20.next) {
               case 0:
-                if (selection.length) {
+                if (selection.length && !this.$container.find('.sb-view-header-list-actions-selected-edit').length) {
                   $action_set = this.$container.find('.sb-view-header-list-actions-set');
-                  $button_save = _materialLib.UIHelper.createButton('action-selected-edit-save', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_SAVE'), 'raised');
-                  $button_cancel = _materialLib.UIHelper.createButton('action-selected-edit-cancel', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_CANCEL'), 'outlined');
-                  $action_set.append($button_save);
-                  $action_set.append($button_cancel);
-                  $button_save.on('click', function () {
-                    // handle changed objects
-                    var objects = _this7.model.getChanges(selection);
+                  $action_set_selected_edit_actions = (0, _jqueryLib.$)('<div/>').addClass('sb-view-header-list-actions-selected-edit');
+                  $button_save = _materialLib.UIHelper.createButton('action-selected-edit-save', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_SAVE'), 'raised').appendTo($action_set_selected_edit_actions);
+                  $button_cancel = _materialLib.UIHelper.createButton('action-selected-edit-cancel', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_CANCEL'), 'outlined').appendTo($action_set_selected_edit_actions);
+                  $action_set.append($action_set_selected_edit_actions);
+                  $button_save.on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee16() {
+                    var objects, promises, _iterator9, _step9, _loop4;
 
-                    var original_selection = (0, _toConsumableArray2.default)(selection);
+                    return _regenerator.default.wrap(function _callee16$(_context16) {
+                      while (1) {
+                        switch (_context16.prev = _context16.next) {
+                          case 0:
+                            // handle changed objects
+                            objects = _this7.model.getChanges(selection);
+                            promises = [];
+                            _iterator9 = _createForOfIteratorHelper(selection);
 
-                    var _iterator9 = _createForOfIteratorHelper(original_selection),
-                        _step9;
+                            try {
+                              _loop4 = function _loop4() {
+                                var object_id = _step9.value;
+                                var promise = new Promise(function (resolve, reject) {
+                                  var object = objects.find(function (o) {
+                                    return o.id == object_id;
+                                  });
 
-                    try {
-                      var _loop4 = function _loop4() {
-                        var object_id = _step9.value;
-                        var object = objects.find(function (o) {
-                          return o.id == object_id;
-                        });
+                                  _this7.$layoutContainer.find('tr[data-id="' + object_id + '"]').each( /*#__PURE__*/function () {
+                                    var _ref9 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee15(i, tr) {
+                                      var $tr;
+                                      return _regenerator.default.wrap(function _callee15$(_context15) {
+                                        while (1) {
+                                          switch (_context15.prev = _context15.next) {
+                                            case 0:
+                                              $tr = (0, _jqueryLib.$)(tr);
 
-                        _this7.$layoutContainer.find('tr[data-id="' + object_id + '"]').each( /*#__PURE__*/function () {
-                          var _ref8 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee15(i, tr) {
-                            var $tr;
-                            return _regenerator.default.wrap(function _callee15$(_context15) {
-                              while (1) {
-                                switch (_context15.prev = _context15.next) {
-                                  case 0:
-                                    $tr = (0, _jqueryLib.$)(tr);
+                                              if (object) {
+                                                _context15.next = 7;
+                                                break;
+                                              }
 
-                                    if (object) {
-                                      _context15.next = 7;
-                                      break;
-                                    }
+                                              $tr.find('.sb-widget-cell').each(function (i, cell) {
+                                                return (0, _jqueryLib.$)(cell).trigger('_toggle_mode', 'view');
+                                              });
+                                              $tr.attr('data-edit', '0');
+                                              resolve(true);
+                                              _context15.next = 19;
+                                              break;
 
-                                    $tr.find('.sb-widget-cell').each(function (i, cell) {
-                                      return (0, _jqueryLib.$)(cell).trigger('_toggle_mode', 'view');
-                                    });
-                                    $tr.attr('data-edit', '0');
-                                    selection.splice(selection.indexOf(object_id), 1);
-                                    _context15.next = 19;
-                                    break;
+                                            case 7:
+                                              _context15.prev = 7;
+                                              _context15.next = 10;
+                                              return _equalServices.ApiService.update(_this7.entity, [object_id], _this7.model.export(object));
 
-                                  case 7:
-                                    _context15.prev = 7;
-                                    _context15.next = 10;
-                                    return _equalServices.ApiService.update(_this7.entity, [object_id], _this7.model.export(object));
+                                            case 10:
+                                              $tr.find('.sb-widget-cell').each(function (i, cell) {
+                                                return (0, _jqueryLib.$)(cell).trigger('_toggle_mode', 'view');
+                                              });
+                                              $tr.attr('data-edit', '0');
+                                              resolve(true);
+                                              _context15.next = 19;
+                                              break;
 
-                                  case 10:
-                                    $tr.find('.sb-widget-cell').each(function (i, cell) {
-                                      return (0, _jqueryLib.$)(cell).trigger('_toggle_mode', 'view');
-                                    });
-                                    $tr.attr('data-edit', '0');
-                                    selection.splice(selection.indexOf(object_id), 1);
+                                            case 15:
+                                              _context15.prev = 15;
+                                              _context15.t0 = _context15["catch"](7);
 
-                                    if (selection.length == 0) {
-                                      $button_save.remove();
-                                      $button_cancel.remove();
-                                    }
+                                              _this7.displayErrorFeedback(_context15.t0, object, true);
 
-                                    _context15.next = 19;
-                                    break;
+                                              reject();
 
-                                  case 16:
-                                    _context15.prev = 16;
-                                    _context15.t0 = _context15["catch"](7);
+                                            case 19:
+                                            case "end":
+                                              return _context15.stop();
+                                          }
+                                        }
+                                      }, _callee15, null, [[7, 15]]);
+                                    }));
 
-                                    _this7.displayErrorFeedback(_context15.t0, object, true);
+                                    return function (_x7, _x8) {
+                                      return _ref9.apply(this, arguments);
+                                    };
+                                  }());
+                                });
+                                promises.push(promise);
+                              };
 
-                                  case 19:
-                                  case "end":
-                                    return _context15.stop();
-                                }
+                              for (_iterator9.s(); !(_step9 = _iterator9.n()).done;) {
+                                _loop4();
                               }
-                            }, _callee15, null, [[7, 16]]);
-                          }));
+                            } catch (err) {
+                              _iterator9.e(err);
+                            } finally {
+                              _iterator9.f();
+                            }
 
-                          return function (_x8, _x9) {
-                            return _ref8.apply(this, arguments);
-                          };
-                        }());
-                      };
+                            _context16.prev = 4;
+                            _context16.next = 7;
+                            return Promise.all(promises);
 
-                      for (_iterator9.s(); !(_step9 = _iterator9.n()).done;) {
-                        _loop4();
+                          case 7:
+                            $action_set_selected_edit_actions.remove();
+                            _context16.next = 12;
+                            break;
+
+                          case 10:
+                            _context16.prev = 10;
+                            _context16.t0 = _context16["catch"](4);
+
+                          case 12:
+                            return _context16.abrupt("return", false);
+
+                          case 13:
+                          case "end":
+                            return _context16.stop();
+                        }
                       }
-                    } catch (err) {
-                      _iterator9.e(err);
-                    } finally {
-                      _iterator9.f();
-                    }
-
-                    if (selection.length == 0) {
-                      $button_save.remove();
-                      $button_cancel.remove();
-                    }
-
-                    return false;
-                  });
+                    }, _callee16, null, [[4, 10]]);
+                  })));
                   $button_cancel.on('click', function () {
                     // restore original values for changed objects
                     var objects = _this7.model.getChanges(selection);
@@ -4256,12 +4386,12 @@ var View = /*#__PURE__*/function () {
                         var object_id = object.id;
 
                         _this7.$layoutContainer.find('tr[data-id="' + object_id + '"]').each( /*#__PURE__*/function () {
-                          var _ref10 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee17(i, tr) {
+                          var _ref11 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee18(i, tr) {
                             var $tr, original, _i, _Object$keys, field;
 
-                            return _regenerator.default.wrap(function _callee17$(_context17) {
+                            return _regenerator.default.wrap(function _callee18$(_context18) {
                               while (1) {
-                                switch (_context17.prev = _context17.next) {
+                                switch (_context18.prev = _context18.next) {
                                   case 0:
                                     $tr = (0, _jqueryLib.$)(tr);
                                     original = $tr.data('original');
@@ -4274,14 +4404,14 @@ var View = /*#__PURE__*/function () {
 
                                   case 3:
                                   case "end":
-                                    return _context17.stop();
+                                    return _context18.stop();
                                 }
                               }
-                            }, _callee17);
+                            }, _callee18);
                           }));
 
-                          return function (_x12, _x13) {
-                            return _ref10.apply(this, arguments);
+                          return function (_x11, _x12) {
+                            return _ref11.apply(this, arguments);
                           };
                         }());
                       };
@@ -4296,11 +4426,11 @@ var View = /*#__PURE__*/function () {
                     }
 
                     _this7.$layoutContainer.find('tr.sb-view-layout-list-row').each( /*#__PURE__*/function () {
-                      var _ref9 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee16(i, tr) {
+                      var _ref10 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee17(i, tr) {
                         var $tr;
-                        return _regenerator.default.wrap(function _callee16$(_context16) {
+                        return _regenerator.default.wrap(function _callee17$(_context17) {
                           while (1) {
-                            switch (_context16.prev = _context16.next) {
+                            switch (_context17.prev = _context17.next) {
                               case 0:
                                 $tr = (0, _jqueryLib.$)(tr);
                                 $tr.find('.sb-widget-cell').each(function (i, cell) {
@@ -4310,19 +4440,18 @@ var View = /*#__PURE__*/function () {
 
                               case 3:
                               case "end":
-                                return _context16.stop();
+                                return _context17.stop();
                             }
                           }
-                        }, _callee16);
+                        }, _callee17);
                       }));
 
-                      return function (_x10, _x11) {
-                        return _ref9.apply(this, arguments);
+                      return function (_x9, _x10) {
+                        return _ref10.apply(this, arguments);
                       };
                     }());
 
-                    $button_save.remove();
-                    $button_cancel.remove();
+                    $action_set_selected_edit_actions.remove();
                     return false;
                   });
                 }
@@ -4334,26 +4463,26 @@ var View = /*#__PURE__*/function () {
                     var object_id = _step11.value;
 
                     _this7.$layoutContainer.find('tr[data-id="' + object_id + '"]').each( /*#__PURE__*/function () {
-                      var _ref11 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee18(i, tr) {
+                      var _ref12 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee19(i, tr) {
                         var $tr, $td, collection, object;
-                        return _regenerator.default.wrap(function _callee18$(_context18) {
+                        return _regenerator.default.wrap(function _callee19$(_context19) {
                           while (1) {
-                            switch (_context18.prev = _context18.next) {
+                            switch (_context19.prev = _context19.next) {
                               case 0:
                                 $tr = (0, _jqueryLib.$)(tr);
                                 $tr.addClass('sb-widget'); // not already in edit mode
 
                                 if (!($tr.attr('data-edit') != '1')) {
-                                  _context18.next = 11;
+                                  _context19.next = 11;
                                   break;
                                 }
 
                                 $td = $tr.children().first();
-                                _context18.next = 6;
+                                _context19.next = 6;
                                 return _this7.model.get([object_id]);
 
                               case 6:
-                                collection = _context18.sent;
+                                collection = _context19.sent;
                                 object = collection[0]; // save original object in the row
 
                                 $tr.data('original', _this7.deepCopy(object)); // mark row as being edited (prevent click handling)
@@ -4366,14 +4495,14 @@ var View = /*#__PURE__*/function () {
 
                               case 11:
                               case "end":
-                                return _context18.stop();
+                                return _context19.stop();
                             }
                           }
-                        }, _callee18);
+                        }, _callee19);
                       }));
 
-                      return function (_x14, _x15) {
-                        return _ref11.apply(this, arguments);
+                      return function (_x13, _x14) {
+                        return _ref12.apply(this, arguments);
                       };
                     }());
                   };
@@ -4389,13 +4518,13 @@ var View = /*#__PURE__*/function () {
 
               case 3:
               case "end":
-                return _context19.stop();
+                return _context20.stop();
             }
           }
-        }, _callee19, this);
+        }, _callee20, this);
       }));
 
-      function actionListInlineEdit(_x6, _x7) {
+      function actionListInlineEdit(_x5, _x6) {
         return _actionListInlineEdit.apply(this, arguments);
       }
 
@@ -4404,7 +4533,7 @@ var View = /*#__PURE__*/function () {
   }, {
     key: "displayErrorFeedback",
     value: function () {
-      var _displayErrorFeedback = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee20(response) {
+      var _displayErrorFeedback = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee21(response) {
         var object,
             snack,
             errors,
@@ -4427,24 +4556,24 @@ var View = /*#__PURE__*/function () {
             _$snack2,
             validation,
             _response,
-            _args20 = arguments;
+            _args21 = arguments;
 
-        return _regenerator.default.wrap(function _callee20$(_context20) {
+        return _regenerator.default.wrap(function _callee21$(_context21) {
           while (1) {
-            switch (_context20.prev = _context20.next) {
+            switch (_context21.prev = _context21.next) {
               case 0:
-                object = _args20.length > 1 && _args20[1] !== undefined ? _args20[1] : null;
-                snack = _args20.length > 2 && _args20[2] !== undefined ? _args20[2] : true;
+                object = _args21.length > 1 && _args21[1] !== undefined ? _args21[1] : null;
+                snack = _args21.length > 2 && _args21[2] !== undefined ? _args21[2] : true;
 
                 if (!(response && response.hasOwnProperty('errors'))) {
-                  _context20.next = 37;
+                  _context21.next = 37;
                   break;
                 }
 
                 errors = response['errors'];
 
                 if (!errors.hasOwnProperty('INVALID_PARAM')) {
-                  _context20.next = 10;
+                  _context21.next = 10;
                   break;
                 }
 
@@ -4457,7 +4586,10 @@ var View = /*#__PURE__*/function () {
                   msg = Object.values(errors['INVALID_PARAM'][field])[0]; // translate error message
 
                   msg = _equalServices.TranslationService.resolve(this.translation, 'error', field, msg, error_id);
-                  this.layout.markFieldAsInvalid(object['id'], field, msg);
+
+                  if (object) {
+                    this.layout.markFieldAsInvalid(object['id'], field, msg);
+                  }
 
                   if (snack) {
                     title = _equalServices.TranslationService.resolve(this.translation, 'model', field, field, 'label');
@@ -4468,29 +4600,29 @@ var View = /*#__PURE__*/function () {
                   ++i;
                 }
 
-                _context20.next = 37;
+                _context21.next = 37;
                 break;
 
               case 10:
                 if (!errors.hasOwnProperty('NOT_ALLOWED')) {
-                  _context20.next = 16;
+                  _context21.next = 16;
                   break;
                 }
 
                 _msg = _equalServices.TranslationService.instant('SB_ERROR_NOT_ALLOWED');
                 _$snack = _materialLib.UIHelper.createSnackbar(_msg, '', '', 4000);
                 this.$container.append(_$snack);
-                _context20.next = 37;
+                _context21.next = 37;
                 break;
 
               case 16:
                 if (!errors.hasOwnProperty('CONFLICT_OBJECT')) {
-                  _context20.next = 37;
+                  _context21.next = 37;
                   break;
                 }
 
                 if (!(typeof errors['CONFLICT_OBJECT'] == 'object')) {
-                  _context20.next = 23;
+                  _context21.next = 23;
                   break;
                 }
 
@@ -4499,7 +4631,10 @@ var View = /*#__PURE__*/function () {
 
                 for (_field in errors['CONFLICT_OBJECT']) {
                   _msg2 = _equalServices.TranslationService.instant('SB_ERROR_DUPLICATE_VALUE');
-                  this.layout.markFieldAsInvalid(object['id'], _field, _msg2);
+
+                  if (object) {
+                    this.layout.markFieldAsInvalid(object['id'], _field, _msg2);
+                  }
 
                   if (snack) {
                     _title = _equalServices.TranslationService.resolve(this.translation, 'model', _field, _field, 'label');
@@ -4510,7 +4645,7 @@ var View = /*#__PURE__*/function () {
                   ++_i2;
                 }
 
-                _context20.next = 37;
+                _context21.next = 37;
                 break;
 
               case 23:
@@ -4518,35 +4653,35 @@ var View = /*#__PURE__*/function () {
                 validation = confirm(_equalServices.TranslationService.instant('SB_ACTIONS_MESSAGE_ERASE_CONUCRRENT_CHANGES'));
 
                 if (!validation) {
-                  _context20.next = 37;
+                  _context21.next = 37;
                   break;
                 }
 
-                _context20.prev = 26;
-                _context20.next = 29;
+                _context21.prev = 26;
+                _context21.next = 29;
                 return _equalServices.ApiService.update(this.entity, [object['id']], this.model.export(object), true);
 
               case 29:
-                _response = _context20.sent;
+                _response = _context21.sent;
                 (0, _jqueryLib.$)('#sb-events').trigger('_closeContext');
-                _context20.next = 37;
+                _context21.next = 37;
                 break;
 
               case 33:
-                _context20.prev = 33;
-                _context20.t0 = _context20["catch"](26);
-                _context20.next = 37;
-                return this.displayErrorFeedback(_context20.t0, object, snack);
+                _context21.prev = 33;
+                _context21.t0 = _context21["catch"](26);
+                _context21.next = 37;
+                return this.displayErrorFeedback(_context21.t0, object, snack);
 
               case 37:
               case "end":
-                return _context20.stop();
+                return _context21.stop();
             }
           }
-        }, _callee20, this, [[26, 33]]);
+        }, _callee21, this, [[26, 33]]);
       }));
 
-      function displayErrorFeedback(_x16) {
+      function displayErrorFeedback(_x15) {
         return _displayErrorFeedback.apply(this, arguments);
       }
 
@@ -4951,7 +5086,7 @@ var eQ = /*#__PURE__*/function () {
 
                           case 12:
                             // instanciate a new context and push it on the contexts stack
-                            context = new _equalLib.Context(config.entity, config.type, config.name, config.domain, config.mode, config.purpose, config.lang, config.callback);
+                            context = new _equalLib.Context(config.entity, config.type, config.name, config.domain, config.mode, config.purpose, config.lang, config.callback, config);
 
                             _this.openContext(context);
 
@@ -5708,54 +5843,6 @@ module.exports = eQ;
 
 /***/ }),
 
-/***/ "./build/i18n.js":
-/*!***********************!*\
-  !*** ./build/i18n.js ***!
-  \***********************/
-/***/ ((__unused_webpack_module, exports) => {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", ({
-  value: true
-}));
-exports.default = exports.i18n = void 0;
-var i18n = {
-  "fr": {
-    "SB_PURPOSE_CREATE": "Création",
-    "SB_PURPOSE_UPDATE": "Modification",
-    "SB_PURPOSE_SELECT": "Sélection",
-    "SB_PURPOSE_ADD": "Ajout",
-    "SB_FILTERS_ADD_CUSTOM_FILTER": "Ajouter un filtre personnalisé",
-    "SB_FILTERS_DIALOG_FIELD": "Champ",
-    "SB_FILTERS_DIALOG_OPERATOR": "Opérateur",
-    "SB_FILTERS_DIALOG_VALUE": "Valeur",
-    "SB_ACTIONS_BUTTON_CREATE": "Créer",
-    "SB_ACTIONS_BUTTON_SAVE": "Sauver",
-    "SB_ACTIONS_BUTTON_UPDATE": "Modifier",
-    "SB_ACTIONS_BUTTON_INLINE_UPDATE": "Modifier en ligne",
-    "SB_ACTIONS_BUTTON_ARCHIVE": "Archiver",
-    "SB_ACTIONS_BUTTON_CLONE": "Dupliquer",
-    "SB_ACTIONS_BUTTON_DELETE": "Supprimer",
-    "SB_ACTIONS_BUTTON_CANCEL": "Annuler",
-    "SB_ACTIONS_BUTTON_SELECT": "Sélectionner",
-    "SB_ACTIONS_BUTTON_ADD": "Ajouter",
-    "SB_ACTIONS_BUTTON_REMOVE": "Retirer",
-    "SB_ACTIONS_BUTTON_SELECTED": "sélectionnés",
-    "SB_ACTIONS_MESSAGE_ABANDON_CHANGE": "Des modifications ont été apportées et vont être perdues. Voulez-vous continuer ?",
-    "SB_ACTIONS_MESSAGE_ERASE_CONUCRRENT_CHANGES": "Un autre utilisateur a apporté des modifications sur cette fiche pendant que vous l'éditiez. Ces modifications risquent d'être écrasées par les vôtres. Voulez-vous sauver tout de même ?",
-    "SB_WIDGETS_MANY2ONE_ADVANCED_SEARCH": "Recherche avancée ...",
-    "SB_ERROR_DUPLICATE_VALUE": "Cette valeur doit être unique mais existe déjà.",
-    "SB_ERROR_NOT_ALLOWED": "Vous n'avez pas les autorisations pour cette opération."
-  }
-};
-exports.i18n = i18n;
-var _default = i18n;
-exports.default = _default;
-
-/***/ }),
-
 /***/ "./build/i18n/jqueryui.js":
 /*!********************************!*\
   !*** ./build/i18n/jqueryui.js ***!
@@ -5921,6 +6008,8 @@ var _switch = __webpack_require__(/*! @material/switch */ "./node_modules/@mater
 
 var _dialog = __webpack_require__(/*! @material/dialog */ "./node_modules/@material/dialog/index.js");
 
+var _tooltip = __webpack_require__(/*! @material/tooltip */ "./node_modules/@material/tooltip/index.js");
+
 var _jqueryLib = __webpack_require__(/*! ./jquery-lib */ "./build/jquery-lib.js");
 
 function _createForOfIteratorHelper(o, allowArrayLike) { var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"]; if (!it) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = it.call(o); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
@@ -5966,8 +6055,6 @@ var UIHelper = /*#__PURE__*/function () {
           case 'text':
           default:
         }
-
-        new _ripple.MDCRipple($button[0]);
       } else if (['fab', 'mini-fab'].indexOf(type) >= 0) {
         $button.addClass('mdc-fab').append((0, _jqueryLib.$)('<div/>').addClass('mdc-fab__ripple'));
 
@@ -5979,12 +6066,26 @@ var UIHelper = /*#__PURE__*/function () {
 
         $button.append((0, _jqueryLib.$)('<span/>').addClass('material-icons mdc-fab__icon').text(icon));
         $button.append((0, _jqueryLib.$)('<div/>').addClass('mdc-fab__touch'));
-        new _ripple.MDCRipple($button[0]);
       } else if (['icon'].indexOf(type) >= 0) {
-        $button.addClass('mdc-icon-button material-icons').append((0, _jqueryLib.$)('<span />').addClass('mdc-button__icon').text(icon));
+        $button.addClass('mdc-icon-button').attr('aria-describedby', id + '-tooltip').attr('data-tooltip-id', id + '-tooltip').append((0, _jqueryLib.$)('<span/>').addClass('material-icons mdc-icon-button__icon').text(icon)); // #todo - fix ripple not working on icon-button
+        // workaround to fix tooltips not hiding
+
+        $button.on("mouseenter", function () {
+          $button.parent().find('#' + id + '-tooltip').removeClass('mdc-tooltip--hide');
+        });
+        $button.on("mouseleave", function () {
+          $button.parent().find('#' + id + '-tooltip').addClass('mdc-tooltip--hide');
+        });
       }
 
+      new _ripple.MDCRipple($button[0]);
       return $button;
+    }
+  }, {
+    key: "createTooltip",
+    value: function createTooltip(id, label) {
+      var $elem = (0, _jqueryLib.$)('<div/>').attr('id', id + '-tooltip').addClass('mdc-tooltip').attr('role', 'tooltip').attr('aria-hidden', 'true').append((0, _jqueryLib.$)('<div/>').addClass('mdc-tooltip__surface').text(label));
+      return $elem;
     }
   }, {
     key: "createIcon",
@@ -6046,7 +6147,7 @@ var UIHelper = /*#__PURE__*/function () {
                 <span class="mdc-text-field__ripple"></span> \
                 <span class="mdc-floating-label" id="my-label-id">' + label + '</span> \
                 <span class="mdc-text-field__resizer"> \
-                    <textarea ' + (disabled ? 'disabled' : '') + 'class="mdc-text-field__input" rows="8" cols="40" maxlength="255" aria-label="Label">' + value + '</textarea> \
+                    <textarea ' + (disabled ? 'disabled' : '') + ' class="mdc-text-field__input" rows="8" cols="40" maxlength="255" aria-label="Label">' + value + '</textarea> \
                 </span> \
                 <span class="mdc-line-ripple"></span> \
             </label> \
@@ -6305,7 +6406,7 @@ var UIHelper = /*#__PURE__*/function () {
     key: "createTabBar",
     value: function createTabBar(id, label, value) {
       var $elem = (0, _jqueryLib.$)('\
-        <div class="mdc-tab-bar" role="tablist"> \
+        <div id="' + id + '" class="mdc-tab-bar" role="tablist"> \
             <div class="mdc-tab-scroller"> \
             <div class="mdc-tab-scroller__scroll-area"> \
                 <div class="sb-view-form-sections mdc-tab-scroller__scroll-content"> \
@@ -6319,7 +6420,7 @@ var UIHelper = /*#__PURE__*/function () {
     key: "createTabButton",
     value: function createTabButton(id, label, active) {
       var $elem = (0, _jqueryLib.$)('\
-        <button class="mdc-tab ' + (active ? 'mdc-tab--active' : '') + '" role="tab" tabindex="0"> \
+        <button id="' + id + '" class="mdc-tab ' + (active ? 'mdc-tab--active' : '') + '" role="tab" tabindex="0"> \
             <span class="mdc-tab__content"> \
                 <span class="mdc-tab__text-label">' + label + '</span> \
             </span> \
@@ -6392,11 +6493,13 @@ var UIHelper = /*#__PURE__*/function () {
     }
     /*
      Decorators 
+     Some widgets need to be injected in DOM document before running MDC methods on them.
     */
 
   }, {
     key: "decorateMenu",
     value: function decorateMenu($elem) {
+      if (!$elem.length) return;
       var fields_toggle_menu = new _menu.MDCMenu($elem[0]);
       $elem.on('_toggle', function () {
         fields_toggle_menu.open = !$elem.hasClass('mdc-menu-surface--open');
@@ -6405,11 +6508,19 @@ var UIHelper = /*#__PURE__*/function () {
   }, {
     key: "decorateTabBar",
     value: function decorateTabBar($elem) {
+      if (!$elem.length) return;
       new _tabBar.MDCTabBar($elem[0]);
+    }
+  }, {
+    key: "decorateTooltip",
+    value: function decorateTooltip($elem) {
+      if (!$elem.length) return;
+      new _tooltip.MDCTooltip($elem[0]);
     }
   }, {
     key: "decorateTable",
     value: function decorateTable($elem) {
+      if (!$elem.length) return;
       $elem.addClass('mdc-data-table').children().addClass('mdc-data-table__table-container');
       var $thead = $elem.find('thead');
       var $head_rows = $thead.find('tr').addClass('mdc-data-table__header-row');
@@ -7196,7 +7307,7 @@ var WidgetMany2Many = /*#__PURE__*/function (_Widget) {
 
       if (this.config.hasOwnProperty('ready') && this.config.ready) {
         var view_config = {
-          show_actions: false,
+          show_actions: true,
           // update the actions of the "current selection" button
           selection_actions: [{
             title: 'SB_ACTIONS_BUTTON_REMOVE',
@@ -7238,7 +7349,8 @@ var WidgetMany2Many = /*#__PURE__*/function (_Widget) {
           var $container = view.getContainer();
 
           if (_this2.mode == 'edit') {
-            $container.find('.sb-view-header-list-actions-set').append(_materialLib.UIHelper.createButton('action-edit', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_ADD'), 'raised').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
+            var $actions_set = $container.find('.sb-view-header-list-actions-set');
+            $actions_set.append(_materialLib.UIHelper.createButton('action-edit', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_ADD'), 'raised').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
               var purpose;
               return _regenerator.default.wrap(function _callee$(_context) {
                 while (1) {
@@ -7287,6 +7399,49 @@ var WidgetMany2Many = /*#__PURE__*/function (_Widget) {
                 }
               }, _callee);
             }))));
+
+            if (_this2.rel_type == 'one2many') {
+              $actions_set.append(_materialLib.UIHelper.createButton('action-create', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_CREATE'), 'raised').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
+                return _regenerator.default.wrap(function _callee2$(_context2) {
+                  while (1) {
+                    switch (_context2.prev = _context2.next) {
+                      case 0:
+                        // request a new Context for selecting an existing object to add to current selection
+                        $('#sb-events').trigger('_openContext', {
+                          entity: _this2.config.entity,
+                          type: 'form',
+                          name: 'default',
+                          domain: [_this2.config.foreign_field, '=', _this2.config.object_id],
+                          mode: 'edit',
+                          purpose: 'create',
+                          callback: function callback(data) {
+                            console.log('#######################" callback', data);
+
+                            if (data && data.object_id) {
+                              var ids = _this2.value.map(function (o) {
+                                return o.id;
+                              }); // append created object to current selection
+
+
+                              ids = ids.concat([data.object_id]);
+                              _this2.value = ids.map(function (id) {
+                                return {
+                                  id: id
+                                };
+                              });
+                              $elem.trigger('_updatedWidget');
+                            }
+                          }
+                        });
+
+                      case 1:
+                      case "end":
+                        return _context2.stop();
+                    }
+                  }
+                }, _callee2);
+              }))));
+            }
           } // inject View in parent Context object
 
 
@@ -7887,7 +8042,7 @@ var WidgetText = /*#__PURE__*/function (_Widget) {
 
         case 'view':
         default:
-          $elem = $('<span/>').text(value);
+          $elem = _materialLib.UIHelper.createTextArea('', this.label, value, '', '', true);
           break;
       }
 
@@ -24530,6 +24685,1816 @@ __webpack_require__.r(__webpack_exports__);
 
 /***/ }),
 
+/***/ "./node_modules/@material/tooltip/component.js":
+/*!*****************************************************!*\
+  !*** ./node_modules/@material/tooltip/component.js ***!
+  \*****************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "MDCTooltip": () => (/* binding */ MDCTooltip)
+/* harmony export */ });
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! tslib */ "./node_modules/tslib/tslib.es6.js");
+/* harmony import */ var _material_base_component__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @material/base/component */ "./node_modules/@material/base/component.js");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./constants */ "./node_modules/@material/tooltip/constants.js");
+/* harmony import */ var _foundation__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./foundation */ "./node_modules/@material/tooltip/foundation.js");
+/**
+ * @license
+ * Copyright 2020 Google Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+
+
+
+var MDCTooltip = /** @class */ (function (_super) {
+    (0,tslib__WEBPACK_IMPORTED_MODULE_0__.__extends)(MDCTooltip, _super);
+    function MDCTooltip() {
+        return _super !== null && _super.apply(this, arguments) || this;
+    }
+    MDCTooltip.attachTo = function (root) {
+        return new MDCTooltip(root);
+    };
+    MDCTooltip.prototype.initialize = function () {
+        var tooltipId = this.root.getAttribute('id');
+        if (!tooltipId) {
+            throw new Error('MDCTooltip: Tooltip component must have an id.');
+        }
+        var anchorElem = document.querySelector("[data-tooltip-id=\"" + tooltipId + "\"]") ||
+            document.querySelector("[aria-describedby=\"" + tooltipId + "\"]");
+        if (!anchorElem) {
+            throw new Error('MDCTooltip: Tooltip component requires an anchor element annotated with [aria-describedby] or [data-tooltip-id].');
+        }
+        this.anchorElem = anchorElem;
+    };
+    MDCTooltip.prototype.initialSyncWithDOM = function () {
+        var _this = this;
+        this.isTooltipRich = this.foundation.isRich();
+        this.isTooltipPersistent = this.foundation.isPersistent();
+        this.handleMouseEnter = function () {
+            _this.foundation.handleAnchorMouseEnter();
+        };
+        this.handleFocus = function (evt) {
+            _this.foundation.handleAnchorFocus(evt);
+        };
+        this.handleMouseLeave = function () {
+            _this.foundation.handleAnchorMouseLeave();
+        };
+        this.handleTransitionEnd = function () {
+            _this.foundation.handleTransitionEnd();
+        };
+        this.handleClick = function () {
+            _this.foundation.handleAnchorClick();
+        };
+        this.handleTouchstart = function () {
+            _this.foundation.handleAnchorTouchstart();
+        };
+        this.handleTouchend = function () {
+            _this.foundation.handleAnchorTouchend();
+        };
+        if (this.isTooltipRich && this.isTooltipPersistent) {
+            this.anchorElem.addEventListener('click', this.handleClick);
+        }
+        else {
+            this.anchorElem.addEventListener('mouseenter', this.handleMouseEnter);
+            // TODO(b/157075286): Listening for a 'focus' event is too broad.
+            this.anchorElem.addEventListener('focus', this.handleFocus);
+            this.anchorElem.addEventListener('mouseleave', this.handleMouseLeave);
+            this.anchorElem.addEventListener('touchstart', this.handleTouchstart);
+            this.anchorElem.addEventListener('touchend', this.handleTouchend);
+        }
+        this.listen('transitionend', this.handleTransitionEnd);
+    };
+    MDCTooltip.prototype.destroy = function () {
+        if (this.anchorElem) {
+            if (this.isTooltipRich && this.isTooltipPersistent) {
+                this.anchorElem.removeEventListener('click', this.handleClick);
+            }
+            else {
+                this.anchorElem.removeEventListener('mouseenter', this.handleMouseEnter);
+                this.anchorElem.removeEventListener('focus', this.handleFocus);
+                this.anchorElem.removeEventListener('mouseleave', this.handleMouseLeave);
+                this.anchorElem.removeEventListener('touchstart', this.handleTouchstart);
+                this.anchorElem.removeEventListener('touchend', this.handleTouchend);
+            }
+        }
+        this.unlisten('transitionend', this.handleTransitionEnd);
+        _super.prototype.destroy.call(this);
+    };
+    MDCTooltip.prototype.setTooltipPosition = function (position) {
+        this.foundation.setTooltipPosition(position);
+    };
+    MDCTooltip.prototype.setAnchorBoundaryType = function (type) {
+        this.foundation.setAnchorBoundaryType(type);
+    };
+    MDCTooltip.prototype.setShowDelay = function (delayMs) {
+        this.foundation.setShowDelay(delayMs);
+    };
+    MDCTooltip.prototype.setHideDelay = function (delayMs) {
+        this.foundation.setHideDelay(delayMs);
+    };
+    MDCTooltip.prototype.hide = function () {
+        this.foundation.hide();
+    };
+    MDCTooltip.prototype.isShown = function () {
+        return this.foundation.isShown();
+    };
+    /**
+     * Method that allows user to specify additional elements that should have a
+     * scroll event listener attached to it. This should be used in instances
+     * where the anchor element is placed inside a scrollable container (that is
+     * not the body element), and will ensure that the tooltip will stay attached
+     * to the anchor on scroll.
+     */
+    MDCTooltip.prototype.attachScrollHandler = function (addEventListenerFn) {
+        this.foundation.attachScrollHandler(addEventListenerFn);
+    };
+    /**
+     * Must be used in conjunction with #attachScrollHandler. Removes the scroll
+     * event handler from elements on the page.
+     */
+    MDCTooltip.prototype.removeScrollHandler = function (removeEventHandlerFn) {
+        this.foundation.removeScrollHandler(removeEventHandlerFn);
+    };
+    MDCTooltip.prototype.getDefaultFoundation = function () {
+        var _this = this;
+        var adapter = {
+            getAttribute: function (attr) { return _this.root.getAttribute(attr); },
+            setAttribute: function (attr, value) {
+                _this.root.setAttribute(attr, value);
+            },
+            addClass: function (className) {
+                _this.root.classList.add(className);
+            },
+            hasClass: function (className) { return _this.root.classList.contains(className); },
+            removeClass: function (className) {
+                _this.root.classList.remove(className);
+            },
+            getComputedStyleProperty: function (propertyName) {
+                return window.getComputedStyle(_this.root).getPropertyValue(propertyName);
+            },
+            setStyleProperty: function (propertyName, value) {
+                _this.root.style.setProperty(propertyName, value);
+            },
+            setSurfaceAnimationStyleProperty: function (propertyName, value) {
+                var surface = _this.root.querySelector("." + _constants__WEBPACK_IMPORTED_MODULE_1__.CssClasses.SURFACE_ANIMATION);
+                surface === null || surface === void 0 ? void 0 : surface.style.setProperty(propertyName, value);
+            },
+            getViewportWidth: function () { return window.innerWidth; },
+            getViewportHeight: function () { return window.innerHeight; },
+            getTooltipSize: function () {
+                return {
+                    width: _this.root.offsetWidth,
+                    height: _this.root.offsetHeight
+                };
+            },
+            getAnchorBoundingRect: function () {
+                return _this.anchorElem ? _this.anchorElem.getBoundingClientRect() : null;
+            },
+            getParentBoundingRect: function () {
+                var _a, _b;
+                return (_b = (_a = _this.root.parentElement) === null || _a === void 0 ? void 0 : _a.getBoundingClientRect()) !== null && _b !== void 0 ? _b : null;
+            },
+            getAnchorAttribute: function (attr) {
+                return _this.anchorElem ? _this.anchorElem.getAttribute(attr) : null;
+            },
+            setAnchorAttribute: function (attr, value) {
+                var _a;
+                (_a = _this.anchorElem) === null || _a === void 0 ? void 0 : _a.setAttribute(attr, value);
+            },
+            isRTL: function () { return getComputedStyle(_this.root).direction === 'rtl'; },
+            anchorContainsElement: function (element) {
+                var _a;
+                return !!((_a = _this.anchorElem) === null || _a === void 0 ? void 0 : _a.contains(element));
+            },
+            tooltipContainsElement: function (element) {
+                return _this.root.contains(element);
+            },
+            focusAnchorElement: function () {
+                var _a;
+                (_a = _this.anchorElem) === null || _a === void 0 ? void 0 : _a.focus();
+            },
+            registerEventHandler: function (evt, handler) {
+                if (_this.root instanceof HTMLElement) {
+                    _this.root.addEventListener(evt, handler);
+                }
+            },
+            deregisterEventHandler: function (evt, handler) {
+                if (_this.root instanceof HTMLElement) {
+                    _this.root.removeEventListener(evt, handler);
+                }
+            },
+            registerAnchorEventHandler: function (evt, handler) {
+                var _a;
+                (_a = _this.anchorElem) === null || _a === void 0 ? void 0 : _a.addEventListener(evt, handler);
+            },
+            deregisterAnchorEventHandler: function (evt, handler) {
+                var _a;
+                (_a = _this.anchorElem) === null || _a === void 0 ? void 0 : _a.removeEventListener(evt, handler);
+            },
+            registerDocumentEventHandler: function (evt, handler) {
+                document.body.addEventListener(evt, handler);
+            },
+            deregisterDocumentEventHandler: function (evt, handler) {
+                document.body.removeEventListener(evt, handler);
+            },
+            registerWindowEventHandler: function (evt, handler) {
+                window.addEventListener(evt, handler);
+            },
+            deregisterWindowEventHandler: function (evt, handler) {
+                window.removeEventListener(evt, handler);
+            },
+            notifyHidden: function () {
+                _this.emit(_constants__WEBPACK_IMPORTED_MODULE_1__.events.HIDDEN, {});
+            },
+            getTooltipCaretBoundingRect: function () {
+                var caret = _this.root.querySelector("." + _constants__WEBPACK_IMPORTED_MODULE_1__.CssClasses.TOOLTIP_CARET_TOP);
+                if (!caret) {
+                    return null;
+                }
+                return caret.getBoundingClientRect();
+            },
+            setTooltipCaretStyle: function (propertyName, value) {
+                var topCaret = _this.root.querySelector("." + _constants__WEBPACK_IMPORTED_MODULE_1__.CssClasses.TOOLTIP_CARET_TOP);
+                var bottomCaret = _this.root.querySelector("." + _constants__WEBPACK_IMPORTED_MODULE_1__.CssClasses.TOOLTIP_CARET_BOTTOM);
+                if (!topCaret || !bottomCaret) {
+                    return;
+                }
+                topCaret.style.setProperty(propertyName, value);
+                bottomCaret.style.setProperty(propertyName, value);
+            },
+            clearTooltipCaretStyles: function () {
+                var topCaret = _this.root.querySelector("." + _constants__WEBPACK_IMPORTED_MODULE_1__.CssClasses.TOOLTIP_CARET_TOP);
+                var bottomCaret = _this.root.querySelector("." + _constants__WEBPACK_IMPORTED_MODULE_1__.CssClasses.TOOLTIP_CARET_BOTTOM);
+                if (!topCaret || !bottomCaret) {
+                    return;
+                }
+                topCaret.removeAttribute('style');
+                bottomCaret.removeAttribute('style');
+            },
+        };
+        //tslint:enable:object-literal-sort-keys
+        return new _foundation__WEBPACK_IMPORTED_MODULE_2__.MDCTooltipFoundation(adapter);
+    };
+    return MDCTooltip;
+}(_material_base_component__WEBPACK_IMPORTED_MODULE_3__.MDCComponent));
+
+//# sourceMappingURL=component.js.map
+
+/***/ }),
+
+/***/ "./node_modules/@material/tooltip/constants.js":
+/*!*****************************************************!*\
+  !*** ./node_modules/@material/tooltip/constants.js ***!
+  \*****************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "CssClasses": () => (/* binding */ CssClasses),
+/* harmony export */   "numbers": () => (/* binding */ numbers),
+/* harmony export */   "attributes": () => (/* binding */ attributes),
+/* harmony export */   "events": () => (/* binding */ events),
+/* harmony export */   "XPosition": () => (/* binding */ XPosition),
+/* harmony export */   "AnchorBoundaryType": () => (/* binding */ AnchorBoundaryType),
+/* harmony export */   "YPosition": () => (/* binding */ YPosition),
+/* harmony export */   "strings": () => (/* binding */ strings),
+/* harmony export */   "PositionWithCaret": () => (/* binding */ PositionWithCaret),
+/* harmony export */   "YPositionWithCaret": () => (/* binding */ YPositionWithCaret),
+/* harmony export */   "XPositionWithCaret": () => (/* binding */ XPositionWithCaret)
+/* harmony export */ });
+/**
+ * @license
+ * Copyright 2020 Google Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+var CssClasses;
+(function (CssClasses) {
+    CssClasses["RICH"] = "mdc-tooltip--rich";
+    CssClasses["SHOWN"] = "mdc-tooltip--shown";
+    CssClasses["SHOWING"] = "mdc-tooltip--showing";
+    CssClasses["SHOWING_TRANSITION"] = "mdc-tooltip--showing-transition";
+    CssClasses["HIDE"] = "mdc-tooltip--hide";
+    CssClasses["HIDE_TRANSITION"] = "mdc-tooltip--hide-transition";
+    CssClasses["MULTILINE_TOOLTIP"] = "mdc-tooltip--multiline";
+    CssClasses["SURFACE"] = "mdc-tooltip__surface";
+    CssClasses["SURFACE_ANIMATION"] = "mdc-tooltip__surface-animation";
+    CssClasses["TOOLTIP_CARET_TOP"] = "mdc-tooltip__caret-surface-top";
+    CssClasses["TOOLTIP_CARET_BOTTOM"] = "mdc-tooltip__caret-surface-bottom";
+})(CssClasses || (CssClasses = {}));
+var numbers = {
+    BOUNDED_ANCHOR_GAP: 4,
+    UNBOUNDED_ANCHOR_GAP: 8,
+    MIN_VIEWPORT_TOOLTIP_THRESHOLD: 8,
+    HIDE_DELAY_MS: 600,
+    SHOW_DELAY_MS: 500,
+    // LINT.IfChange(tooltip-dimensions)
+    MIN_HEIGHT: 24,
+    MAX_WIDTH: 200,
+    // LINT.ThenChange(_tooltip.scss:tooltip-dimensions)
+    CARET_INDENTATION: 24,
+    // LINT.IfChange(tooltip-anim-scale)
+    ANIMATION_SCALE: 0.8,
+    // LINT.ThenChange(_tooltip.scss:tooltip-anim-scale)
+};
+var attributes = {
+    ARIA_EXPANDED: 'aria-expanded',
+    ARIA_HASPOPUP: 'aria-haspopup',
+    PERSISTENT: 'data-mdc-tooltip-persistent',
+    SCROLLABLE_ANCESTOR: 'tooltip-scrollable-ancestor',
+    HAS_CARET: 'data-mdc-tooltip-has-caret',
+    HIDDEN_FROM_SCREENREADER: 'data-hide-tooltip-from-screenreader',
+};
+var events = {
+    HIDDEN: 'MDCTooltip:hidden',
+};
+/** Enum for possible tooltip positioning relative to its anchor element. */
+var XPosition;
+(function (XPosition) {
+    XPosition[XPosition["DETECTED"] = 0] = "DETECTED";
+    XPosition[XPosition["START"] = 1] = "START";
+    // Note: CENTER is not valid for rich tooltips.
+    XPosition[XPosition["CENTER"] = 2] = "CENTER";
+    XPosition[XPosition["END"] = 3] = "END";
+})(XPosition || (XPosition = {}));
+var YPosition;
+(function (YPosition) {
+    YPosition[YPosition["DETECTED"] = 0] = "DETECTED";
+    YPosition[YPosition["ABOVE"] = 1] = "ABOVE";
+    YPosition[YPosition["BELOW"] = 2] = "BELOW";
+})(YPosition || (YPosition = {}));
+/**
+ * Enum for possible anchor boundary types. This determines the gap between the
+ * bottom of the anchor and the tooltip element.
+ * Bounded anchors have an identifiable boundary (e.g. buttons).
+ * Unbounded anchors don't have a visually declared boundary (e.g. plain text).
+ */
+var AnchorBoundaryType;
+(function (AnchorBoundaryType) {
+    AnchorBoundaryType[AnchorBoundaryType["BOUNDED"] = 0] = "BOUNDED";
+    AnchorBoundaryType[AnchorBoundaryType["UNBOUNDED"] = 1] = "UNBOUNDED";
+})(AnchorBoundaryType || (AnchorBoundaryType = {}));
+var strings = {
+    LEFT: 'left',
+    RIGHT: 'right',
+    CENTER: 'center',
+    TOP: 'top',
+    BOTTOM: 'bottom'
+};
+/**
+ * Enum for possible positions of a tooltip with caret (this specifies the
+ * positioning of the tooltip relative to the anchor -- the position of the
+ * caret will follow that of the tooltip). This can NOT be combined with the
+ * above X/YPosition options. Naming for the enums follows: (vertical
+ * placement)_(horizontal placement).
+ */
+var PositionWithCaret;
+(function (PositionWithCaret) {
+    PositionWithCaret[PositionWithCaret["DETECTED"] = 0] = "DETECTED";
+    PositionWithCaret[PositionWithCaret["ABOVE_START"] = 1] = "ABOVE_START";
+    PositionWithCaret[PositionWithCaret["ABOVE_CENTER"] = 2] = "ABOVE_CENTER";
+    PositionWithCaret[PositionWithCaret["ABOVE_END"] = 3] = "ABOVE_END";
+    PositionWithCaret[PositionWithCaret["TOP_SIDE_START"] = 4] = "TOP_SIDE_START";
+    PositionWithCaret[PositionWithCaret["CENTER_SIDE_START"] = 5] = "CENTER_SIDE_START";
+    PositionWithCaret[PositionWithCaret["BOTTOM_SIDE_START"] = 6] = "BOTTOM_SIDE_START";
+    PositionWithCaret[PositionWithCaret["TOP_SIDE_END"] = 7] = "TOP_SIDE_END";
+    PositionWithCaret[PositionWithCaret["CENTER_SIDE_END"] = 8] = "CENTER_SIDE_END";
+    PositionWithCaret[PositionWithCaret["BOTTOM_SIDE_END"] = 9] = "BOTTOM_SIDE_END";
+    PositionWithCaret[PositionWithCaret["BELOW_START"] = 10] = "BELOW_START";
+    PositionWithCaret[PositionWithCaret["BELOW_CENTER"] = 11] = "BELOW_CENTER";
+    PositionWithCaret[PositionWithCaret["BELOW_END"] = 12] = "BELOW_END";
+})(PositionWithCaret || (PositionWithCaret = {}));
+var YPositionWithCaret;
+(function (YPositionWithCaret) {
+    YPositionWithCaret[YPositionWithCaret["ABOVE"] = 1] = "ABOVE";
+    YPositionWithCaret[YPositionWithCaret["BELOW"] = 2] = "BELOW";
+    YPositionWithCaret[YPositionWithCaret["SIDE_TOP"] = 3] = "SIDE_TOP";
+    YPositionWithCaret[YPositionWithCaret["SIDE_CENTER"] = 4] = "SIDE_CENTER";
+    YPositionWithCaret[YPositionWithCaret["SIDE_BOTTOM"] = 5] = "SIDE_BOTTOM";
+})(YPositionWithCaret || (YPositionWithCaret = {}));
+var XPositionWithCaret;
+(function (XPositionWithCaret) {
+    XPositionWithCaret[XPositionWithCaret["START"] = 1] = "START";
+    XPositionWithCaret[XPositionWithCaret["CENTER"] = 2] = "CENTER";
+    XPositionWithCaret[XPositionWithCaret["END"] = 3] = "END";
+    XPositionWithCaret[XPositionWithCaret["SIDE_START"] = 4] = "SIDE_START";
+    XPositionWithCaret[XPositionWithCaret["SIDE_END"] = 5] = "SIDE_END";
+})(XPositionWithCaret || (XPositionWithCaret = {}));
+
+//# sourceMappingURL=constants.js.map
+
+/***/ }),
+
+/***/ "./node_modules/@material/tooltip/foundation.js":
+/*!******************************************************!*\
+  !*** ./node_modules/@material/tooltip/foundation.js ***!
+  \******************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "MDCTooltipFoundation": () => (/* binding */ MDCTooltipFoundation),
+/* harmony export */   "default": () => (__WEBPACK_DEFAULT_EXPORT__)
+/* harmony export */ });
+/* harmony import */ var tslib__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! tslib */ "./node_modules/tslib/tslib.es6.js");
+/* harmony import */ var _material_animation_animationframe__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @material/animation/animationframe */ "./node_modules/@material/animation/animationframe.js");
+/* harmony import */ var _material_animation_util__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @material/animation/util */ "./node_modules/@material/animation/util.js");
+/* harmony import */ var _material_base_foundation__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! @material/base/foundation */ "./node_modules/@material/base/foundation.js");
+/* harmony import */ var _material_dom_keyboard__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @material/dom/keyboard */ "./node_modules/@material/dom/keyboard.js");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./constants */ "./node_modules/@material/tooltip/constants.js");
+/**
+ * @license
+ * Copyright 2020 Google Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+
+
+
+
+
+var RICH = _constants__WEBPACK_IMPORTED_MODULE_0__.CssClasses.RICH, SHOWN = _constants__WEBPACK_IMPORTED_MODULE_0__.CssClasses.SHOWN, SHOWING = _constants__WEBPACK_IMPORTED_MODULE_0__.CssClasses.SHOWING, SHOWING_TRANSITION = _constants__WEBPACK_IMPORTED_MODULE_0__.CssClasses.SHOWING_TRANSITION, HIDE = _constants__WEBPACK_IMPORTED_MODULE_0__.CssClasses.HIDE, HIDE_TRANSITION = _constants__WEBPACK_IMPORTED_MODULE_0__.CssClasses.HIDE_TRANSITION, MULTILINE_TOOLTIP = _constants__WEBPACK_IMPORTED_MODULE_0__.CssClasses.MULTILINE_TOOLTIP;
+var AnimationKeys;
+(function (AnimationKeys) {
+    AnimationKeys["POLL_ANCHOR"] = "poll_anchor";
+})(AnimationKeys || (AnimationKeys = {}));
+// Accessing `window` without a `typeof` check will throw on Node environments.
+var HAS_WINDOW = typeof window !== 'undefined';
+var MDCTooltipFoundation = /** @class */ (function (_super) {
+    (0,tslib__WEBPACK_IMPORTED_MODULE_1__.__extends)(MDCTooltipFoundation, _super);
+    function MDCTooltipFoundation(adapter) {
+        var _this = _super.call(this, (0,tslib__WEBPACK_IMPORTED_MODULE_1__.__assign)((0,tslib__WEBPACK_IMPORTED_MODULE_1__.__assign)({}, MDCTooltipFoundation.defaultAdapter), adapter)) || this;
+        _this.tooltipShown = false;
+        _this.anchorGap = _constants__WEBPACK_IMPORTED_MODULE_0__.numbers.BOUNDED_ANCHOR_GAP;
+        _this.xTooltipPos = _constants__WEBPACK_IMPORTED_MODULE_0__.XPosition.DETECTED;
+        _this.yTooltipPos = _constants__WEBPACK_IMPORTED_MODULE_0__.YPosition.DETECTED;
+        _this.tooltipPositionWithCaret = _constants__WEBPACK_IMPORTED_MODULE_0__.PositionWithCaret.DETECTED;
+        // Minimum threshold distance needed between the tooltip and the viewport.
+        _this.minViewportTooltipThreshold = _constants__WEBPACK_IMPORTED_MODULE_0__.numbers.MIN_VIEWPORT_TOOLTIP_THRESHOLD;
+        _this.hideDelayMs = _constants__WEBPACK_IMPORTED_MODULE_0__.numbers.HIDE_DELAY_MS;
+        _this.showDelayMs = _constants__WEBPACK_IMPORTED_MODULE_0__.numbers.SHOW_DELAY_MS;
+        _this.anchorRect = null;
+        _this.parentRect = null;
+        _this.frameId = null;
+        _this.hideTimeout = null;
+        _this.showTimeout = null;
+        _this.addAncestorScrollEventListeners = new Array();
+        _this.removeAncestorScrollEventListeners = new Array();
+        _this.animFrame = new _material_animation_animationframe__WEBPACK_IMPORTED_MODULE_2__.AnimationFrame();
+        _this.anchorBlurHandler = function (evt) {
+            _this.handleAnchorBlur(evt);
+        };
+        _this.documentClickHandler = function (evt) {
+            _this.handleDocumentClick(evt);
+        };
+        _this.documentKeydownHandler = function (evt) {
+            _this.handleKeydown(evt);
+        };
+        _this.tooltipMouseEnterHandler = function () {
+            _this.handleTooltipMouseEnter();
+        };
+        _this.tooltipMouseLeaveHandler = function () {
+            _this.handleTooltipMouseLeave();
+        };
+        _this.richTooltipFocusOutHandler = function (evt) {
+            _this.handleRichTooltipFocusOut(evt);
+        };
+        _this.windowScrollHandler = function () {
+            _this.handleWindowChangeEvent();
+        };
+        _this.windowResizeHandler = function () {
+            _this.handleWindowChangeEvent();
+        };
+        return _this;
+    }
+    Object.defineProperty(MDCTooltipFoundation, "defaultAdapter", {
+        get: function () {
+            return {
+                getAttribute: function () { return null; },
+                setAttribute: function () { return undefined; },
+                addClass: function () { return undefined; },
+                hasClass: function () { return false; },
+                removeClass: function () { return undefined; },
+                getComputedStyleProperty: function () { return ''; },
+                setStyleProperty: function () { return undefined; },
+                setSurfaceAnimationStyleProperty: function () { return undefined; },
+                getViewportWidth: function () { return 0; },
+                getViewportHeight: function () { return 0; },
+                getTooltipSize: function () { return ({ width: 0, height: 0 }); },
+                getAnchorBoundingRect: function () {
+                    return ({ top: 0, right: 0, bottom: 0, left: 0, width: 0, height: 0 });
+                },
+                getParentBoundingRect: function () {
+                    return ({ top: 0, right: 0, bottom: 0, left: 0, width: 0, height: 0 });
+                },
+                getAnchorAttribute: function () { return null; },
+                setAnchorAttribute: function () { return null; },
+                isRTL: function () { return false; },
+                anchorContainsElement: function () { return false; },
+                tooltipContainsElement: function () { return false; },
+                focusAnchorElement: function () { return undefined; },
+                registerEventHandler: function () { return undefined; },
+                deregisterEventHandler: function () { return undefined; },
+                registerAnchorEventHandler: function () { return undefined; },
+                deregisterAnchorEventHandler: function () { return undefined; },
+                registerDocumentEventHandler: function () { return undefined; },
+                deregisterDocumentEventHandler: function () { return undefined; },
+                registerWindowEventHandler: function () { return undefined; },
+                deregisterWindowEventHandler: function () { return undefined; },
+                notifyHidden: function () { return undefined; },
+                getTooltipCaretBoundingRect: function () {
+                    return ({ top: 0, right: 0, bottom: 0, left: 0, width: 0, height: 0 });
+                },
+                setTooltipCaretStyle: function () { return undefined; },
+                clearTooltipCaretStyles: function () { return undefined; },
+            };
+        },
+        enumerable: false,
+        configurable: true
+    });
+    MDCTooltipFoundation.prototype.init = function () {
+        this.richTooltip = this.adapter.hasClass(RICH);
+        this.persistentTooltip =
+            this.adapter.getAttribute(_constants__WEBPACK_IMPORTED_MODULE_0__.attributes.PERSISTENT) === 'true';
+        this.interactiveTooltip =
+            !!this.adapter.getAnchorAttribute(_constants__WEBPACK_IMPORTED_MODULE_0__.attributes.ARIA_EXPANDED) &&
+                this.adapter.getAnchorAttribute(_constants__WEBPACK_IMPORTED_MODULE_0__.attributes.ARIA_HASPOPUP) === 'dialog';
+        this.hasCaret = this.richTooltip &&
+            this.adapter.getAttribute(_constants__WEBPACK_IMPORTED_MODULE_0__.attributes.HAS_CARET) === 'true';
+    };
+    MDCTooltipFoundation.prototype.isShown = function () {
+        return this.tooltipShown;
+    };
+    MDCTooltipFoundation.prototype.isRich = function () {
+        return this.richTooltip;
+    };
+    MDCTooltipFoundation.prototype.isPersistent = function () {
+        return this.persistentTooltip;
+    };
+    MDCTooltipFoundation.prototype.handleAnchorMouseEnter = function () {
+        var _this = this;
+        if (this.tooltipShown) {
+            // Covers the instance where a user hovers over the anchor to reveal the
+            // tooltip, and then quickly navigates away and then back to the anchor.
+            // The tooltip should stay visible without animating out and then back in
+            // again.
+            this.show();
+        }
+        else {
+            // clearHideTimeout here since handleAnchorMouseLeave sets a hideTimeout
+            // and that can execute before the showTimeout executes, resulting in hide
+            // being called and the showTimeout set below to be cleared.
+            this.clearHideTimeout();
+            this.showTimeout = setTimeout(function () {
+                _this.show();
+            }, this.showDelayMs);
+        }
+    };
+    MDCTooltipFoundation.prototype.handleAnchorTouchstart = function () {
+        var _this = this;
+        this.showTimeout = setTimeout(function () {
+            _this.show();
+        }, this.showDelayMs);
+        // Prevent a context menu from appearing if user is long-pressing on a
+        // tooltip anchor.
+        this.adapter.registerWindowEventHandler('contextmenu', this.preventContextMenuOnLongTouch);
+    };
+    MDCTooltipFoundation.prototype.preventContextMenuOnLongTouch = function (evt) {
+        evt.preventDefault();
+    };
+    MDCTooltipFoundation.prototype.handleAnchorTouchend = function () {
+        this.clearShowTimeout();
+        // Only remove the 'contextmenu' listener if the tooltip is not shown. When
+        // the tooltip *is* shown, listener is removed in the close method.
+        if (!this.isShown()) {
+            this.adapter.deregisterWindowEventHandler('contextmenu', this.preventContextMenuOnLongTouch);
+        }
+    };
+    MDCTooltipFoundation.prototype.handleAnchorFocus = function (evt) {
+        var _this = this;
+        // TODO(b/157075286): Need to add some way to distinguish keyboard
+        // navigation focus events from other focus events, and only show the
+        // tooltip on the former of these events.
+        var relatedTarget = evt.relatedTarget;
+        var tooltipContainsRelatedTarget = relatedTarget instanceof HTMLElement &&
+            this.adapter.tooltipContainsElement(relatedTarget);
+        // Do not show tooltip if the previous focus was on a tooltip element. This
+        // occurs when a rich tooltip is closed and focus is restored to the anchor
+        // or when user tab-navigates back into the anchor from the rich tooltip.
+        if (tooltipContainsRelatedTarget) {
+            return;
+        }
+        this.showTimeout = setTimeout(function () {
+            _this.show();
+        }, this.showDelayMs);
+    };
+    MDCTooltipFoundation.prototype.handleAnchorMouseLeave = function () {
+        var _this = this;
+        this.clearShowTimeout();
+        this.hideTimeout = setTimeout(function () {
+            _this.hide();
+        }, this.hideDelayMs);
+    };
+    MDCTooltipFoundation.prototype.handleAnchorClick = function () {
+        if (this.tooltipShown) {
+            this.hide();
+        }
+        else {
+            this.show();
+        }
+    };
+    MDCTooltipFoundation.prototype.handleDocumentClick = function (evt) {
+        var anchorOrTooltipContainsTargetElement = evt.target instanceof HTMLElement &&
+            (this.adapter.anchorContainsElement(evt.target) ||
+                this.adapter.tooltipContainsElement(evt.target));
+        // For persistent rich tooltips, we will not hide if:
+        // - The click target is within the anchor element. Otherwise, both
+        //   the anchor element's click handler and this handler will handle the
+        //   click (due to event propagation), resulting in a shown tooltip
+        //   being immediately hidden if the tooltip was initially hidden.
+        // - The click target is within the tooltip element, since clicks
+        //   on the tooltip do not close the tooltip.
+        if (this.richTooltip && this.persistentTooltip &&
+            anchorOrTooltipContainsTargetElement) {
+            return;
+        }
+        // Hide the tooltip immediately on click.
+        this.hide();
+    };
+    MDCTooltipFoundation.prototype.handleKeydown = function (evt) {
+        // Hide the tooltip immediately on ESC key.
+        var key = (0,_material_dom_keyboard__WEBPACK_IMPORTED_MODULE_3__.normalizeKey)(evt);
+        if (key === _material_dom_keyboard__WEBPACK_IMPORTED_MODULE_3__.KEY.ESCAPE) {
+            var tooltipContainsActiveElement = document.activeElement instanceof HTMLElement &&
+                this.adapter.tooltipContainsElement(document.activeElement);
+            if (tooltipContainsActiveElement) {
+                this.adapter.focusAnchorElement();
+            }
+            this.hide();
+        }
+    };
+    MDCTooltipFoundation.prototype.handleAnchorBlur = function (evt) {
+        if (this.richTooltip) {
+            var tooltipContainsRelatedTargetElement = evt.relatedTarget instanceof HTMLElement &&
+                this.adapter.tooltipContainsElement(evt.relatedTarget);
+            // If focus changed to the tooltip element, don't hide the tooltip.
+            if (tooltipContainsRelatedTargetElement) {
+                return;
+            }
+        }
+        // Hide tooltip immediately on focus change.
+        this.hide();
+    };
+    MDCTooltipFoundation.prototype.handleTooltipMouseEnter = function () {
+        this.show();
+    };
+    MDCTooltipFoundation.prototype.handleTooltipMouseLeave = function () {
+        var _this = this;
+        this.clearShowTimeout();
+        this.hideTimeout = setTimeout(function () {
+            _this.hide();
+        }, this.hideDelayMs);
+    };
+    MDCTooltipFoundation.prototype.handleRichTooltipFocusOut = function (evt) {
+        var anchorOrTooltipContainsRelatedTargetElement = evt.relatedTarget instanceof HTMLElement &&
+            (this.adapter.anchorContainsElement(evt.relatedTarget) ||
+                this.adapter.tooltipContainsElement(evt.relatedTarget));
+        // If the focus is still within the anchor or the tooltip, do not hide the
+        // tooltip.
+        if (anchorOrTooltipContainsRelatedTargetElement) {
+            return;
+        }
+        this.hide();
+    };
+    /**
+     * On window resize or scroll, check the anchor position and size and
+     * repostion tooltip if necessary.
+     */
+    MDCTooltipFoundation.prototype.handleWindowChangeEvent = function () {
+        var _this = this;
+        // Since scroll and resize events can fire at a high rate, we throttle
+        // the potential re-positioning of tooltip component using
+        // requestAnimationFrame.
+        this.animFrame.request(AnimationKeys.POLL_ANCHOR, function () {
+            _this.repositionTooltipOnAnchorMove();
+        });
+    };
+    MDCTooltipFoundation.prototype.show = function () {
+        var e_1, _a;
+        var _this = this;
+        this.clearHideTimeout();
+        this.clearShowTimeout();
+        if (this.tooltipShown) {
+            return;
+        }
+        this.tooltipShown = true;
+        var showTooltipOptions = this.parseShowTooltipOptions();
+        if (!showTooltipOptions.hideFromScreenreader) {
+            this.adapter.setAttribute('aria-hidden', 'false');
+        }
+        if (this.richTooltip) {
+            if (this.interactiveTooltip) {
+                this.adapter.setAnchorAttribute('aria-expanded', 'true');
+            }
+            this.adapter.registerEventHandler('focusout', this.richTooltipFocusOutHandler);
+        }
+        if (!this.persistentTooltip) {
+            this.adapter.registerEventHandler('mouseenter', this.tooltipMouseEnterHandler);
+            this.adapter.registerEventHandler('mouseleave', this.tooltipMouseLeaveHandler);
+        }
+        this.adapter.removeClass(HIDE);
+        this.adapter.addClass(SHOWING);
+        if (this.isTooltipMultiline() && !this.richTooltip) {
+            this.adapter.addClass(MULTILINE_TOOLTIP);
+        }
+        this.anchorRect = this.adapter.getAnchorBoundingRect();
+        this.parentRect = this.adapter.getParentBoundingRect();
+        this.richTooltip ? this.positionRichTooltip() : this.positionPlainTooltip();
+        this.adapter.registerAnchorEventHandler('blur', this.anchorBlurHandler);
+        this.adapter.registerDocumentEventHandler('click', this.documentClickHandler);
+        this.adapter.registerDocumentEventHandler('keydown', this.documentKeydownHandler);
+        this.adapter.registerWindowEventHandler('scroll', this.windowScrollHandler);
+        this.adapter.registerWindowEventHandler('resize', this.windowResizeHandler);
+        try {
+            // Register any additional scroll handlers
+            for (var _b = (0,tslib__WEBPACK_IMPORTED_MODULE_1__.__values)(this.addAncestorScrollEventListeners), _c = _b.next(); !_c.done; _c = _b.next()) {
+                var fn = _c.value;
+                fn();
+            }
+        }
+        catch (e_1_1) { e_1 = { error: e_1_1 }; }
+        finally {
+            try {
+                if (_c && !_c.done && (_a = _b.return)) _a.call(_b);
+            }
+            finally { if (e_1) throw e_1.error; }
+        }
+        this.frameId = requestAnimationFrame(function () {
+            _this.clearAllAnimationClasses();
+            _this.adapter.addClass(SHOWN);
+            _this.adapter.addClass(SHOWING_TRANSITION);
+        });
+    };
+    MDCTooltipFoundation.prototype.hide = function () {
+        var e_2, _a;
+        this.clearHideTimeout();
+        this.clearShowTimeout();
+        if (!this.tooltipShown) {
+            return;
+        }
+        if (this.frameId) {
+            cancelAnimationFrame(this.frameId);
+        }
+        this.tooltipShown = false;
+        this.adapter.setAttribute('aria-hidden', 'true');
+        this.adapter.deregisterEventHandler('focusout', this.richTooltipFocusOutHandler);
+        if (this.richTooltip) {
+            if (this.interactiveTooltip) {
+                this.adapter.setAnchorAttribute('aria-expanded', 'false');
+            }
+        }
+        if (!this.persistentTooltip) {
+            this.adapter.deregisterEventHandler('mouseenter', this.tooltipMouseEnterHandler);
+            this.adapter.deregisterEventHandler('mouseleave', this.tooltipMouseLeaveHandler);
+        }
+        this.clearAllAnimationClasses();
+        this.adapter.addClass(HIDE);
+        this.adapter.addClass(HIDE_TRANSITION);
+        this.adapter.removeClass(SHOWN);
+        this.adapter.deregisterAnchorEventHandler('blur', this.anchorBlurHandler);
+        this.adapter.deregisterDocumentEventHandler('click', this.documentClickHandler);
+        this.adapter.deregisterDocumentEventHandler('keydown', this.documentKeydownHandler);
+        this.adapter.deregisterWindowEventHandler('scroll', this.windowScrollHandler);
+        this.adapter.deregisterWindowEventHandler('resize', this.windowResizeHandler);
+        this.adapter.deregisterWindowEventHandler('contextmenu', this.preventContextMenuOnLongTouch);
+        try {
+            // Deregister any additional scroll handlers
+            for (var _b = (0,tslib__WEBPACK_IMPORTED_MODULE_1__.__values)(this.removeAncestorScrollEventListeners), _c = _b.next(); !_c.done; _c = _b.next()) {
+                var fn = _c.value;
+                fn();
+            }
+        }
+        catch (e_2_1) { e_2 = { error: e_2_1 }; }
+        finally {
+            try {
+                if (_c && !_c.done && (_a = _b.return)) _a.call(_b);
+            }
+            finally { if (e_2) throw e_2.error; }
+        }
+    };
+    MDCTooltipFoundation.prototype.handleTransitionEnd = function () {
+        var isHidingTooltip = this.adapter.hasClass(HIDE);
+        this.adapter.removeClass(SHOWING);
+        this.adapter.removeClass(SHOWING_TRANSITION);
+        this.adapter.removeClass(HIDE);
+        this.adapter.removeClass(HIDE_TRANSITION);
+        // If handleTransitionEnd is called after hiding the tooltip, the tooltip
+        // will have the HIDE class (before calling the adapter removeClass method).
+        // If tooltip is now hidden, send a notification that the animation has
+        // completed and the tooltip is no longer visible.
+        if (isHidingTooltip) {
+            this.adapter.notifyHidden();
+        }
+    };
+    MDCTooltipFoundation.prototype.clearAllAnimationClasses = function () {
+        this.adapter.removeClass(SHOWING_TRANSITION);
+        this.adapter.removeClass(HIDE_TRANSITION);
+    };
+    MDCTooltipFoundation.prototype.setTooltipPosition = function (position) {
+        var xPos = position.xPos, yPos = position.yPos, withCaretPos = position.withCaretPos;
+        if (this.hasCaret && withCaretPos) {
+            this.tooltipPositionWithCaret = withCaretPos;
+            return;
+        }
+        if (xPos) {
+            this.xTooltipPos = xPos;
+        }
+        if (yPos) {
+            this.yTooltipPos = yPos;
+        }
+    };
+    MDCTooltipFoundation.prototype.setAnchorBoundaryType = function (type) {
+        if (type === _constants__WEBPACK_IMPORTED_MODULE_0__.AnchorBoundaryType.UNBOUNDED) {
+            this.anchorGap = _constants__WEBPACK_IMPORTED_MODULE_0__.numbers.UNBOUNDED_ANCHOR_GAP;
+        }
+        else {
+            this.anchorGap = _constants__WEBPACK_IMPORTED_MODULE_0__.numbers.BOUNDED_ANCHOR_GAP;
+        }
+    };
+    MDCTooltipFoundation.prototype.setShowDelay = function (delayMs) {
+        this.showDelayMs = delayMs;
+    };
+    MDCTooltipFoundation.prototype.setHideDelay = function (delayMs) {
+        this.hideDelayMs = delayMs;
+    };
+    MDCTooltipFoundation.prototype.parseShowTooltipOptions = function () {
+        var hideFromScreenreader = Boolean(this.adapter.getAnchorAttribute(_constants__WEBPACK_IMPORTED_MODULE_0__.attributes.HIDDEN_FROM_SCREENREADER));
+        return { hideFromScreenreader: hideFromScreenreader };
+    };
+    MDCTooltipFoundation.prototype.isTooltipMultiline = function () {
+        var tooltipSize = this.adapter.getTooltipSize();
+        return tooltipSize.height > _constants__WEBPACK_IMPORTED_MODULE_0__.numbers.MIN_HEIGHT &&
+            tooltipSize.width >= _constants__WEBPACK_IMPORTED_MODULE_0__.numbers.MAX_WIDTH;
+    };
+    MDCTooltipFoundation.prototype.positionPlainTooltip = function () {
+        // A plain tooltip has `fixed` positioning and is placed as an immediate
+        // child of the document body. Its positioning is calculated with respect to
+        // the viewport.
+        var _a = this.calculateTooltipStyles(this.anchorRect), top = _a.top, yTransformOrigin = _a.yTransformOrigin, left = _a.left, xTransformOrigin = _a.xTransformOrigin;
+        var transformProperty = HAS_WINDOW ? (0,_material_animation_util__WEBPACK_IMPORTED_MODULE_4__.getCorrectPropertyName)(window, 'transform') : 'transform';
+        this.adapter.setSurfaceAnimationStyleProperty(transformProperty + "-origin", xTransformOrigin + " " + yTransformOrigin);
+        this.adapter.setStyleProperty('top', top + "px");
+        this.adapter.setStyleProperty('left', left + "px");
+    };
+    MDCTooltipFoundation.prototype.positionRichTooltip = function () {
+        // TODO(b/177686782): Remove width setting when max-content is used to style
+        // the rich tooltip.
+        var _a, _b, _c, _d;
+        // getComputedStyleProperty is used instead of getTooltipSize since
+        // getTooltipSize returns the offSetWidth, which includes the border and
+        // padding. What we need is the width of the tooltip without border and
+        // padding.
+        var width = this.adapter.getComputedStyleProperty('width');
+        // When rich tooltips are positioned within their parent containers, the
+        // tooltip width might be shrunk if it collides with the edge of the parent
+        // container. We set the width of the tooltip to prevent this.
+        this.adapter.setStyleProperty('width', width);
+        var _e = this.hasCaret ?
+            this.calculateTooltipWithCaretStyles(this.anchorRect) :
+            this.calculateTooltipStyles(this.anchorRect), top = _e.top, yTransformOrigin = _e.yTransformOrigin, left = _e.left, xTransformOrigin = _e.xTransformOrigin;
+        var transformProperty = HAS_WINDOW ? (0,_material_animation_util__WEBPACK_IMPORTED_MODULE_4__.getCorrectPropertyName)(window, 'transform') : 'transform';
+        this.adapter.setSurfaceAnimationStyleProperty(transformProperty + "-origin", xTransformOrigin + " " + yTransformOrigin);
+        // A rich tooltip has `absolute` positioning and is placed as a sibling to
+        // the anchor element. Its positioning is calculated with respect to the
+        // parent element, and so the values need to be adjusted against the parent
+        // element.
+        var leftAdjustment = left - ((_b = (_a = this.parentRect) === null || _a === void 0 ? void 0 : _a.left) !== null && _b !== void 0 ? _b : 0);
+        var topAdjustment = top - ((_d = (_c = this.parentRect) === null || _c === void 0 ? void 0 : _c.top) !== null && _d !== void 0 ? _d : 0);
+        this.adapter.setStyleProperty('top', topAdjustment + "px");
+        this.adapter.setStyleProperty('left', leftAdjustment + "px");
+    };
+    /**
+     * Calculates the position of the tooltip. A tooltip will be placed beneath
+     * the anchor element and aligned either with the 'start'/'end' edge of the
+     * anchor element or the 'center'.
+     *
+     * Tooltip alignment is selected such that the tooltip maintains a threshold
+     * distance away from the viewport (defaulting to 'center' alignment). If the
+     * placement of the anchor prevents this threshold distance from being
+     * maintained, the tooltip is positioned so that it does not collide with the
+     * viewport.
+     *
+     * Users can specify an alignment, however, if this alignment results in the
+     * tooltip colliding with the viewport, this specification is overwritten.
+     */
+    MDCTooltipFoundation.prototype.calculateTooltipStyles = function (anchorRect) {
+        if (!anchorRect) {
+            return { top: 0, left: 0 };
+        }
+        var tooltipSize = this.adapter.getTooltipSize();
+        var top = this.calculateYTooltipDistance(anchorRect, tooltipSize.height);
+        var left = this.calculateXTooltipDistance(anchorRect, tooltipSize.width);
+        return {
+            top: top.distance,
+            yTransformOrigin: top.yTransformOrigin,
+            left: left.distance,
+            xTransformOrigin: left.xTransformOrigin
+        };
+    };
+    /**
+     * Calculates the `left` distance for the tooltip.
+     * Returns the distance value and a string indicating the x-axis transform-
+     * origin that should be used when animating the tooltip.
+     */
+    MDCTooltipFoundation.prototype.calculateXTooltipDistance = function (anchorRect, tooltipWidth) {
+        var isLTR = !this.adapter.isRTL();
+        var startPos, endPos, centerPos;
+        var startTransformOrigin, endTransformOrigin;
+        if (this.richTooltip) {
+            startPos = isLTR ? anchorRect.left - tooltipWidth : anchorRect.right;
+            endPos = isLTR ? anchorRect.right : anchorRect.left - tooltipWidth;
+            startTransformOrigin = isLTR ? _constants__WEBPACK_IMPORTED_MODULE_0__.strings.RIGHT : _constants__WEBPACK_IMPORTED_MODULE_0__.strings.LEFT;
+            endTransformOrigin = isLTR ? _constants__WEBPACK_IMPORTED_MODULE_0__.strings.LEFT : _constants__WEBPACK_IMPORTED_MODULE_0__.strings.RIGHT;
+        }
+        else {
+            startPos = isLTR ? anchorRect.left : anchorRect.right - tooltipWidth;
+            endPos = isLTR ? anchorRect.right - tooltipWidth : anchorRect.left;
+            centerPos = anchorRect.left + (anchorRect.width - tooltipWidth) / 2;
+            startTransformOrigin = isLTR ? _constants__WEBPACK_IMPORTED_MODULE_0__.strings.LEFT : _constants__WEBPACK_IMPORTED_MODULE_0__.strings.RIGHT;
+            endTransformOrigin = isLTR ? _constants__WEBPACK_IMPORTED_MODULE_0__.strings.RIGHT : _constants__WEBPACK_IMPORTED_MODULE_0__.strings.LEFT;
+        }
+        var positionOptions = this.richTooltip ?
+            this.determineValidPositionOptions(startPos, endPos) :
+            // For plain tooltips, centerPos is defined
+            this.determineValidPositionOptions(centerPos, startPos, endPos);
+        if (this.xTooltipPos === _constants__WEBPACK_IMPORTED_MODULE_0__.XPosition.START && positionOptions.has(startPos)) {
+            return { distance: startPos, xTransformOrigin: startTransformOrigin };
+        }
+        if (this.xTooltipPos === _constants__WEBPACK_IMPORTED_MODULE_0__.XPosition.END && positionOptions.has(endPos)) {
+            return { distance: endPos, xTransformOrigin: endTransformOrigin };
+        }
+        if (this.xTooltipPos === _constants__WEBPACK_IMPORTED_MODULE_0__.XPosition.CENTER &&
+            positionOptions.has(centerPos)) {
+            // This code path is only executed if calculating the distance for plain
+            // tooltips. In this instance, centerPos will always be defined, so we can
+            // safely assert that the returned value is non-null/undefined.
+            return { distance: centerPos, xTransformOrigin: _constants__WEBPACK_IMPORTED_MODULE_0__.strings.CENTER };
+        }
+        // If no user position is supplied, rich tooltips default to end pos, then
+        // start position. Plain tooltips default to center, start, then end.
+        var possiblePositions = this.richTooltip ?
+            [
+                { distance: endPos, xTransformOrigin: endTransformOrigin },
+                { distance: startPos, xTransformOrigin: startTransformOrigin }
+            ] :
+            [
+                { distance: centerPos, xTransformOrigin: _constants__WEBPACK_IMPORTED_MODULE_0__.strings.CENTER },
+                { distance: startPos, xTransformOrigin: startTransformOrigin },
+                { distance: endPos, xTransformOrigin: endTransformOrigin }
+            ];
+        var validPosition = possiblePositions.find(function (_a) {
+            var distance = _a.distance;
+            return positionOptions.has(distance);
+        });
+        if (validPosition) {
+            return validPosition;
+        }
+        // Indicates that all potential positions would result in the tooltip
+        // colliding with the viewport. This would only occur when the anchor
+        // element itself collides with the viewport, or the viewport is very
+        // narrow. In this case, we allow the tooltip to be mis-aligned from the
+        // anchor element.
+        if (anchorRect.left < 0) {
+            return {
+                distance: this.minViewportTooltipThreshold,
+                xTransformOrigin: _constants__WEBPACK_IMPORTED_MODULE_0__.strings.LEFT
+            };
+        }
+        else {
+            var viewportWidth = this.adapter.getViewportWidth();
+            var distance = viewportWidth - (tooltipWidth + this.minViewportTooltipThreshold);
+            return { distance: distance, xTransformOrigin: _constants__WEBPACK_IMPORTED_MODULE_0__.strings.RIGHT };
+        }
+    };
+    /**
+     * Given the values for the horizontal alignments of the tooltip, calculates
+     * which of these options would result in the tooltip maintaining the required
+     * threshold distance vs which would result in the tooltip staying within the
+     * viewport.
+     *
+     * A Set of values is returned holding the distances that would honor the
+     * above requirements. Following the logic for determining the tooltip
+     * position, if all alignments violate the threshold, then the returned Set
+     * contains values that keep the tooltip within the viewport.
+     */
+    MDCTooltipFoundation.prototype.determineValidPositionOptions = function () {
+        var e_3, _a;
+        var positions = [];
+        for (var _i = 0; _i < arguments.length; _i++) {
+            positions[_i] = arguments[_i];
+        }
+        var posWithinThreshold = new Set();
+        var posWithinViewport = new Set();
+        try {
+            for (var positions_1 = (0,tslib__WEBPACK_IMPORTED_MODULE_1__.__values)(positions), positions_1_1 = positions_1.next(); !positions_1_1.done; positions_1_1 = positions_1.next()) {
+                var position = positions_1_1.value;
+                if (this.positionHonorsViewportThreshold(position)) {
+                    posWithinThreshold.add(position);
+                }
+                else if (this.positionDoesntCollideWithViewport(position)) {
+                    posWithinViewport.add(position);
+                }
+            }
+        }
+        catch (e_3_1) { e_3 = { error: e_3_1 }; }
+        finally {
+            try {
+                if (positions_1_1 && !positions_1_1.done && (_a = positions_1.return)) _a.call(positions_1);
+            }
+            finally { if (e_3) throw e_3.error; }
+        }
+        return posWithinThreshold.size ? posWithinThreshold : posWithinViewport;
+    };
+    MDCTooltipFoundation.prototype.positionHonorsViewportThreshold = function (leftPos) {
+        var viewportWidth = this.adapter.getViewportWidth();
+        var tooltipWidth = this.adapter.getTooltipSize().width;
+        return leftPos + tooltipWidth <=
+            viewportWidth - this.minViewportTooltipThreshold &&
+            leftPos >= this.minViewportTooltipThreshold;
+    };
+    MDCTooltipFoundation.prototype.positionDoesntCollideWithViewport = function (leftPos) {
+        var viewportWidth = this.adapter.getViewportWidth();
+        var tooltipWidth = this.adapter.getTooltipSize().width;
+        return leftPos + tooltipWidth <= viewportWidth && leftPos >= 0;
+    };
+    /**
+     * Calculates the `top` distance for the tooltip.
+     * Returns the distance value and a string indicating the y-axis transform-
+     * origin that should be used when animating the tooltip.
+     */
+    MDCTooltipFoundation.prototype.calculateYTooltipDistance = function (anchorRect, tooltipHeight) {
+        var belowYPos = anchorRect.bottom + this.anchorGap;
+        var aboveYPos = anchorRect.top - (this.anchorGap + tooltipHeight);
+        var yPositionOptions = this.determineValidYPositionOptions(aboveYPos, belowYPos);
+        if (this.yTooltipPos === _constants__WEBPACK_IMPORTED_MODULE_0__.YPosition.ABOVE &&
+            yPositionOptions.has(aboveYPos)) {
+            return { distance: aboveYPos, yTransformOrigin: _constants__WEBPACK_IMPORTED_MODULE_0__.strings.BOTTOM };
+        }
+        else if (this.yTooltipPos === _constants__WEBPACK_IMPORTED_MODULE_0__.YPosition.BELOW &&
+            yPositionOptions.has(belowYPos)) {
+            return { distance: belowYPos, yTransformOrigin: _constants__WEBPACK_IMPORTED_MODULE_0__.strings.TOP };
+        }
+        if (yPositionOptions.has(belowYPos)) {
+            return { distance: belowYPos, yTransformOrigin: _constants__WEBPACK_IMPORTED_MODULE_0__.strings.TOP };
+        }
+        if (yPositionOptions.has(aboveYPos)) {
+            return { distance: aboveYPos, yTransformOrigin: _constants__WEBPACK_IMPORTED_MODULE_0__.strings.BOTTOM };
+        }
+        // Indicates that all potential positions would result in the tooltip
+        // colliding with the viewport. This would only occur when the viewport is
+        // very short.
+        return { distance: belowYPos, yTransformOrigin: _constants__WEBPACK_IMPORTED_MODULE_0__.strings.TOP };
+    };
+    /**
+     * Given the values for above/below alignment of the tooltip, calculates
+     * which of these options would result in the tooltip maintaining the required
+     * threshold distance vs which would result in the tooltip staying within the
+     * viewport.
+     *
+     * A Set of values is returned holding the distances that would honor the
+     * above requirements. Following the logic for determining the tooltip
+     * position, if all possible alignments violate the threshold, then the
+     * returned Set contains values that keep the tooltip within the viewport.
+     */
+    MDCTooltipFoundation.prototype.determineValidYPositionOptions = function (aboveAnchorPos, belowAnchorPos) {
+        var posWithinThreshold = new Set();
+        var posWithinViewport = new Set();
+        if (this.yPositionHonorsViewportThreshold(aboveAnchorPos)) {
+            posWithinThreshold.add(aboveAnchorPos);
+        }
+        else if (this.yPositionDoesntCollideWithViewport(aboveAnchorPos)) {
+            posWithinViewport.add(aboveAnchorPos);
+        }
+        if (this.yPositionHonorsViewportThreshold(belowAnchorPos)) {
+            posWithinThreshold.add(belowAnchorPos);
+        }
+        else if (this.yPositionDoesntCollideWithViewport(belowAnchorPos)) {
+            posWithinViewport.add(belowAnchorPos);
+        }
+        return posWithinThreshold.size ? posWithinThreshold : posWithinViewport;
+    };
+    MDCTooltipFoundation.prototype.yPositionHonorsViewportThreshold = function (yPos) {
+        var viewportHeight = this.adapter.getViewportHeight();
+        var tooltipHeight = this.adapter.getTooltipSize().height;
+        return yPos + tooltipHeight + this.minViewportTooltipThreshold <=
+            viewportHeight &&
+            yPos >= this.minViewportTooltipThreshold;
+    };
+    MDCTooltipFoundation.prototype.yPositionDoesntCollideWithViewport = function (yPos) {
+        var viewportHeight = this.adapter.getViewportHeight();
+        var tooltipHeight = this.adapter.getTooltipSize().height;
+        return yPos + tooltipHeight <= viewportHeight && yPos >= 0;
+    };
+    MDCTooltipFoundation.prototype.calculateTooltipWithCaretStyles = function (anchorRect) {
+        // Prior to grabbing the caret bounding rect, we clear all styles set on the
+        // caret. This will ensure the width/height is consistent (since we rotate
+        // the caret 90deg in some positions which would result in the height and
+        // width bounding rect measurements flipping).
+        this.adapter.clearTooltipCaretStyles();
+        var caretSize = this.adapter.getTooltipCaretBoundingRect();
+        if (!anchorRect || !caretSize) {
+            return { position: _constants__WEBPACK_IMPORTED_MODULE_0__.PositionWithCaret.DETECTED, top: 0, left: 0 };
+        }
+        // The caret for the rich tooltip is created by rotating/skewing/scaling
+        // square div into a diamond shape and then hiding half of it so it looks
+        // like a triangle. We use the boundingClientRect to calculate the
+        // width/height of the element after the transforms (to the caret) have been
+        // applied. Since the full tooltip is scaled by 0.8 for the entrance
+        // animation, we divide by this value to retrieve the actual caret
+        // dimensions.
+        var caretWidth = caretSize.width / _constants__WEBPACK_IMPORTED_MODULE_0__.numbers.ANIMATION_SCALE;
+        // Since we hide half of caret, we divide the returned ClientRect height
+        // by 2.
+        var caretHeight = (caretSize.height / _constants__WEBPACK_IMPORTED_MODULE_0__.numbers.ANIMATION_SCALE) / 2;
+        var tooltipSize = this.adapter.getTooltipSize();
+        var yOptions = this.calculateYWithCaretDistanceOptions(anchorRect, tooltipSize.height, { caretWidth: caretWidth, caretHeight: caretHeight });
+        var xOptions = this.calculateXWithCaretDistanceOptions(anchorRect, tooltipSize.width, { caretWidth: caretWidth, caretHeight: caretHeight });
+        var positionOptions = this.validateTooltipWithCaretDistances(yOptions, xOptions);
+        if (positionOptions.size < 1) {
+            positionOptions = this.generateBackupPositionOption(anchorRect, tooltipSize, { caretWidth: caretWidth, caretHeight: caretHeight });
+        }
+        var _a = this.determineTooltipWithCaretDistance(positionOptions), position = _a.position, xDistance = _a.xDistance, yDistance = _a.yDistance;
+        // After determining the position of the tooltip relative to the anchor,
+        // place the caret in the corresponding position and retrieve the necessary
+        // x/y transform origins needed to properly animate the tooltip entrance.
+        var _b = this.setCaretPositionStyles(position, { caretWidth: caretWidth, caretHeight: caretHeight }), yTransformOrigin = _b.yTransformOrigin, xTransformOrigin = _b.xTransformOrigin;
+        return {
+            yTransformOrigin: yTransformOrigin,
+            xTransformOrigin: xTransformOrigin,
+            top: yDistance,
+            left: xDistance
+        };
+    };
+    MDCTooltipFoundation.prototype.calculateXWithCaretDistanceOptions = function (anchorRect, tooltipWidth, caretSize) {
+        var caretWidth = caretSize.caretWidth, caretHeight = caretSize.caretHeight;
+        var isLTR = !this.adapter.isRTL();
+        var anchorMidpoint = anchorRect.left + anchorRect.width / 2;
+        var sideLeftAligned = anchorRect.left - (tooltipWidth + this.anchorGap + caretHeight);
+        var sideRightAligned = anchorRect.right + this.anchorGap + caretHeight;
+        var sideStartPos = isLTR ? sideLeftAligned : sideRightAligned;
+        var sideEndPos = isLTR ? sideRightAligned : sideLeftAligned;
+        var verticalLeftAligned = anchorMidpoint - (_constants__WEBPACK_IMPORTED_MODULE_0__.numbers.CARET_INDENTATION + caretWidth / 2);
+        var verticalRightAligned = anchorMidpoint -
+            (tooltipWidth - _constants__WEBPACK_IMPORTED_MODULE_0__.numbers.CARET_INDENTATION - caretWidth / 2);
+        var verticalStartPos = isLTR ? verticalLeftAligned : verticalRightAligned;
+        var verticalEndPos = isLTR ? verticalRightAligned : verticalLeftAligned;
+        var verticalCenterPos = anchorMidpoint - tooltipWidth / 2;
+        var possiblePositionsMap = new Map([
+            [_constants__WEBPACK_IMPORTED_MODULE_0__.XPositionWithCaret.START, verticalStartPos],
+            [_constants__WEBPACK_IMPORTED_MODULE_0__.XPositionWithCaret.CENTER, verticalCenterPos],
+            [_constants__WEBPACK_IMPORTED_MODULE_0__.XPositionWithCaret.END, verticalEndPos],
+            [_constants__WEBPACK_IMPORTED_MODULE_0__.XPositionWithCaret.SIDE_END, sideEndPos],
+            [_constants__WEBPACK_IMPORTED_MODULE_0__.XPositionWithCaret.SIDE_START, sideStartPos],
+        ]);
+        return possiblePositionsMap;
+    };
+    MDCTooltipFoundation.prototype.calculateYWithCaretDistanceOptions = function (anchorRect, tooltipHeight, caretSize) {
+        var caretWidth = caretSize.caretWidth, caretHeight = caretSize.caretHeight;
+        var anchorMidpoint = anchorRect.top + anchorRect.height / 2;
+        var belowYPos = anchorRect.bottom + this.anchorGap + caretHeight;
+        var aboveYPos = anchorRect.top - (this.anchorGap + tooltipHeight + caretHeight);
+        var sideTopYPos = anchorMidpoint - (_constants__WEBPACK_IMPORTED_MODULE_0__.numbers.CARET_INDENTATION + caretWidth / 2);
+        var sideCenterYPos = anchorMidpoint - (tooltipHeight / 2);
+        var sideBottomYPos = anchorMidpoint -
+            (tooltipHeight - _constants__WEBPACK_IMPORTED_MODULE_0__.numbers.CARET_INDENTATION - caretWidth / 2);
+        var possiblePositionsMap = new Map([
+            [_constants__WEBPACK_IMPORTED_MODULE_0__.YPositionWithCaret.ABOVE, aboveYPos],
+            [_constants__WEBPACK_IMPORTED_MODULE_0__.YPositionWithCaret.BELOW, belowYPos],
+            [_constants__WEBPACK_IMPORTED_MODULE_0__.YPositionWithCaret.SIDE_TOP, sideTopYPos],
+            [_constants__WEBPACK_IMPORTED_MODULE_0__.YPositionWithCaret.SIDE_CENTER, sideCenterYPos],
+            [_constants__WEBPACK_IMPORTED_MODULE_0__.YPositionWithCaret.SIDE_BOTTOM, sideBottomYPos],
+        ]);
+        return possiblePositionsMap;
+    };
+    MDCTooltipFoundation.prototype.repositionTooltipOnAnchorMove = function () {
+        var newAnchorRect = this.adapter.getAnchorBoundingRect();
+        if (!newAnchorRect || !this.anchorRect)
+            return;
+        if (newAnchorRect.top !== this.anchorRect.top ||
+            newAnchorRect.left !== this.anchorRect.left ||
+            newAnchorRect.height !== this.anchorRect.height ||
+            newAnchorRect.width !== this.anchorRect.width) {
+            this.anchorRect = newAnchorRect;
+            this.parentRect = this.adapter.getParentBoundingRect();
+            this.richTooltip ? this.positionRichTooltip() :
+                this.positionPlainTooltip();
+        }
+    };
+    /**
+     * Given a list of x/y position options for a rich tooltip with caret, checks
+     * if valid x/y combinations of these position options are either within the
+     * viewport threshold, or simply within the viewport. Returns a map with the
+     * valid x/y position combinations that all either honor the viewport
+     * threshold or are simply inside within the viewport.
+     */
+    MDCTooltipFoundation.prototype.validateTooltipWithCaretDistances = function (yOptions, xOptions) {
+        var e_4, _a, e_5, _b, e_6, _c;
+        var posWithinThreshold = new Map();
+        var posWithinViewport = new Map();
+        // If a tooltip has a caret, not all combinations of YPositionWithCarets and
+        // XPositionWithCarets are possible. Because of this we only check the
+        // validity of a given XPositionWithCaret if a potential corresponding
+        // YPositionWithCaret is valid.
+        var validMappings = new Map([
+            [
+                _constants__WEBPACK_IMPORTED_MODULE_0__.YPositionWithCaret.ABOVE,
+                [
+                    _constants__WEBPACK_IMPORTED_MODULE_0__.XPositionWithCaret.START, _constants__WEBPACK_IMPORTED_MODULE_0__.XPositionWithCaret.CENTER,
+                    _constants__WEBPACK_IMPORTED_MODULE_0__.XPositionWithCaret.END
+                ]
+            ],
+            [
+                _constants__WEBPACK_IMPORTED_MODULE_0__.YPositionWithCaret.BELOW,
+                [
+                    _constants__WEBPACK_IMPORTED_MODULE_0__.XPositionWithCaret.START, _constants__WEBPACK_IMPORTED_MODULE_0__.XPositionWithCaret.CENTER,
+                    _constants__WEBPACK_IMPORTED_MODULE_0__.XPositionWithCaret.END
+                ]
+            ],
+            [
+                _constants__WEBPACK_IMPORTED_MODULE_0__.YPositionWithCaret.SIDE_TOP,
+                [_constants__WEBPACK_IMPORTED_MODULE_0__.XPositionWithCaret.SIDE_START, _constants__WEBPACK_IMPORTED_MODULE_0__.XPositionWithCaret.SIDE_END]
+            ],
+            [
+                _constants__WEBPACK_IMPORTED_MODULE_0__.YPositionWithCaret.SIDE_CENTER,
+                [_constants__WEBPACK_IMPORTED_MODULE_0__.XPositionWithCaret.SIDE_START, _constants__WEBPACK_IMPORTED_MODULE_0__.XPositionWithCaret.SIDE_END]
+            ],
+            [
+                _constants__WEBPACK_IMPORTED_MODULE_0__.YPositionWithCaret.SIDE_BOTTOM,
+                [_constants__WEBPACK_IMPORTED_MODULE_0__.XPositionWithCaret.SIDE_START, _constants__WEBPACK_IMPORTED_MODULE_0__.XPositionWithCaret.SIDE_END]
+            ],
+        ]);
+        try {
+            for (var _d = (0,tslib__WEBPACK_IMPORTED_MODULE_1__.__values)(validMappings.keys()), _e = _d.next(); !_e.done; _e = _d.next()) {
+                var y = _e.value;
+                var yDistance = yOptions.get(y);
+                if (this.yPositionHonorsViewportThreshold(yDistance)) {
+                    try {
+                        for (var _f = (e_5 = void 0, (0,tslib__WEBPACK_IMPORTED_MODULE_1__.__values)(validMappings.get(y))), _g = _f.next(); !_g.done; _g = _f.next()) {
+                            var x = _g.value;
+                            var xDistance = xOptions.get(x);
+                            if (this.positionHonorsViewportThreshold(xDistance)) {
+                                var caretPositionName = this.caretPositionOptionsMapping(x, y);
+                                posWithinThreshold.set(caretPositionName, { xDistance: xDistance, yDistance: yDistance });
+                            }
+                        }
+                    }
+                    catch (e_5_1) { e_5 = { error: e_5_1 }; }
+                    finally {
+                        try {
+                            if (_g && !_g.done && (_b = _f.return)) _b.call(_f);
+                        }
+                        finally { if (e_5) throw e_5.error; }
+                    }
+                }
+                else if (this.yPositionDoesntCollideWithViewport(yDistance)) {
+                    try {
+                        for (var _h = (e_6 = void 0, (0,tslib__WEBPACK_IMPORTED_MODULE_1__.__values)(validMappings.get(y))), _j = _h.next(); !_j.done; _j = _h.next()) {
+                            var x = _j.value;
+                            var xDistance = xOptions.get(x);
+                            if (this.positionDoesntCollideWithViewport(xDistance)) {
+                                var caretPositionName = this.caretPositionOptionsMapping(x, y);
+                                posWithinViewport.set(caretPositionName, { xDistance: xDistance, yDistance: yDistance });
+                            }
+                        }
+                    }
+                    catch (e_6_1) { e_6 = { error: e_6_1 }; }
+                    finally {
+                        try {
+                            if (_j && !_j.done && (_c = _h.return)) _c.call(_h);
+                        }
+                        finally { if (e_6) throw e_6.error; }
+                    }
+                }
+            }
+        }
+        catch (e_4_1) { e_4 = { error: e_4_1 }; }
+        finally {
+            try {
+                if (_e && !_e.done && (_a = _d.return)) _a.call(_d);
+            }
+            finally { if (e_4) throw e_4.error; }
+        }
+        return posWithinThreshold.size ? posWithinThreshold : posWithinViewport;
+    };
+    /**
+     * Method for generating a horizontal and vertical position for the tooltip if
+     * all other calculated values are considered invalid. This would only happen
+     * in situations of very small viewports/large tooltips.
+     */
+    MDCTooltipFoundation.prototype.generateBackupPositionOption = function (anchorRect, tooltipSize, caretSize) {
+        var isLTR = !this.adapter.isRTL();
+        var xDistance;
+        var xPos;
+        if (anchorRect.left < 0) {
+            xDistance = this.minViewportTooltipThreshold + caretSize.caretHeight;
+            xPos = isLTR ? _constants__WEBPACK_IMPORTED_MODULE_0__.XPositionWithCaret.END : _constants__WEBPACK_IMPORTED_MODULE_0__.XPositionWithCaret.START;
+        }
+        else {
+            var viewportWidth = this.adapter.getViewportWidth();
+            xDistance = viewportWidth -
+                (tooltipSize.width + this.minViewportTooltipThreshold +
+                    caretSize.caretHeight);
+            xPos = isLTR ? _constants__WEBPACK_IMPORTED_MODULE_0__.XPositionWithCaret.START : _constants__WEBPACK_IMPORTED_MODULE_0__.XPositionWithCaret.END;
+        }
+        var yDistance;
+        var yPos;
+        if (anchorRect.top < 0) {
+            yDistance = this.minViewportTooltipThreshold + caretSize.caretHeight;
+            yPos = _constants__WEBPACK_IMPORTED_MODULE_0__.YPositionWithCaret.BELOW;
+        }
+        else {
+            var viewportHeight = this.adapter.getViewportHeight();
+            yDistance = viewportHeight -
+                (tooltipSize.height + this.minViewportTooltipThreshold +
+                    caretSize.caretHeight);
+            yPos = _constants__WEBPACK_IMPORTED_MODULE_0__.YPositionWithCaret.ABOVE;
+        }
+        var caretPositionName = this.caretPositionOptionsMapping(xPos, yPos);
+        return new Map([[caretPositionName, { xDistance: xDistance, yDistance: yDistance }]]);
+    };
+    /**
+     * Given a list of valid position options for a rich tooltip with caret,
+     * returns the option that should be used.
+     */
+    MDCTooltipFoundation.prototype.determineTooltipWithCaretDistance = function (options) {
+        if (options.has(this.tooltipPositionWithCaret)) {
+            var tooltipPos = options.get(this.tooltipPositionWithCaret);
+            return {
+                position: this.tooltipPositionWithCaret,
+                xDistance: tooltipPos.xDistance,
+                yDistance: tooltipPos.yDistance,
+            };
+        }
+        var orderPref = [
+            _constants__WEBPACK_IMPORTED_MODULE_0__.PositionWithCaret.ABOVE_START, _constants__WEBPACK_IMPORTED_MODULE_0__.PositionWithCaret.ABOVE_CENTER,
+            _constants__WEBPACK_IMPORTED_MODULE_0__.PositionWithCaret.ABOVE_END, _constants__WEBPACK_IMPORTED_MODULE_0__.PositionWithCaret.TOP_SIDE_START,
+            _constants__WEBPACK_IMPORTED_MODULE_0__.PositionWithCaret.CENTER_SIDE_START, _constants__WEBPACK_IMPORTED_MODULE_0__.PositionWithCaret.BOTTOM_SIDE_START,
+            _constants__WEBPACK_IMPORTED_MODULE_0__.PositionWithCaret.TOP_SIDE_END, _constants__WEBPACK_IMPORTED_MODULE_0__.PositionWithCaret.CENTER_SIDE_END,
+            _constants__WEBPACK_IMPORTED_MODULE_0__.PositionWithCaret.BOTTOM_SIDE_END, _constants__WEBPACK_IMPORTED_MODULE_0__.PositionWithCaret.BELOW_START,
+            _constants__WEBPACK_IMPORTED_MODULE_0__.PositionWithCaret.BELOW_CENTER, _constants__WEBPACK_IMPORTED_MODULE_0__.PositionWithCaret.BELOW_END
+        ];
+        // Before calling this method we check whether or not the "options" param
+        // is empty and invoke a different method. We, therefore, can be certain
+        // that "validPosition" will always be defined.
+        var validPosition = orderPref.find(function (pos) { return options.has(pos); });
+        var pos = options.get(validPosition);
+        return {
+            position: validPosition,
+            xDistance: pos.xDistance,
+            yDistance: pos.yDistance,
+        };
+    };
+    /**
+     * Returns the corresponding PositionWithCaret enum for the proivded
+     * XPositionWithCaret and YPositionWithCaret enums. This mapping exists so our
+     * public API accepts only PositionWithCaret enums (as all combinations of
+     * XPositionWithCaret and YPositionWithCaret are not valid), but internally we
+     * can calculate the X and Y positions of a rich tooltip with caret
+     * separately.
+     */
+    MDCTooltipFoundation.prototype.caretPositionOptionsMapping = function (xPos, yPos) {
+        switch (yPos) {
+            case _constants__WEBPACK_IMPORTED_MODULE_0__.YPositionWithCaret.ABOVE:
+                if (xPos === _constants__WEBPACK_IMPORTED_MODULE_0__.XPositionWithCaret.START) {
+                    return _constants__WEBPACK_IMPORTED_MODULE_0__.PositionWithCaret.ABOVE_START;
+                }
+                else if (xPos === _constants__WEBPACK_IMPORTED_MODULE_0__.XPositionWithCaret.CENTER) {
+                    return _constants__WEBPACK_IMPORTED_MODULE_0__.PositionWithCaret.ABOVE_CENTER;
+                }
+                else if (xPos === _constants__WEBPACK_IMPORTED_MODULE_0__.XPositionWithCaret.END) {
+                    return _constants__WEBPACK_IMPORTED_MODULE_0__.PositionWithCaret.ABOVE_END;
+                }
+                break;
+            case _constants__WEBPACK_IMPORTED_MODULE_0__.YPositionWithCaret.BELOW:
+                if (xPos === _constants__WEBPACK_IMPORTED_MODULE_0__.XPositionWithCaret.START) {
+                    return _constants__WEBPACK_IMPORTED_MODULE_0__.PositionWithCaret.BELOW_START;
+                }
+                else if (xPos === _constants__WEBPACK_IMPORTED_MODULE_0__.XPositionWithCaret.CENTER) {
+                    return _constants__WEBPACK_IMPORTED_MODULE_0__.PositionWithCaret.BELOW_CENTER;
+                }
+                else if (xPos === _constants__WEBPACK_IMPORTED_MODULE_0__.XPositionWithCaret.END) {
+                    return _constants__WEBPACK_IMPORTED_MODULE_0__.PositionWithCaret.BELOW_END;
+                }
+                break;
+            case _constants__WEBPACK_IMPORTED_MODULE_0__.YPositionWithCaret.SIDE_TOP:
+                if (xPos === _constants__WEBPACK_IMPORTED_MODULE_0__.XPositionWithCaret.SIDE_START) {
+                    return _constants__WEBPACK_IMPORTED_MODULE_0__.PositionWithCaret.TOP_SIDE_START;
+                }
+                else if (xPos === _constants__WEBPACK_IMPORTED_MODULE_0__.XPositionWithCaret.SIDE_END) {
+                    return _constants__WEBPACK_IMPORTED_MODULE_0__.PositionWithCaret.TOP_SIDE_END;
+                }
+                break;
+            case _constants__WEBPACK_IMPORTED_MODULE_0__.YPositionWithCaret.SIDE_CENTER:
+                if (xPos === _constants__WEBPACK_IMPORTED_MODULE_0__.XPositionWithCaret.SIDE_START) {
+                    return _constants__WEBPACK_IMPORTED_MODULE_0__.PositionWithCaret.CENTER_SIDE_START;
+                }
+                else if (xPos === _constants__WEBPACK_IMPORTED_MODULE_0__.XPositionWithCaret.SIDE_END) {
+                    return _constants__WEBPACK_IMPORTED_MODULE_0__.PositionWithCaret.CENTER_SIDE_END;
+                }
+                break;
+            case _constants__WEBPACK_IMPORTED_MODULE_0__.YPositionWithCaret.SIDE_BOTTOM:
+                if (xPos === _constants__WEBPACK_IMPORTED_MODULE_0__.XPositionWithCaret.SIDE_START) {
+                    return _constants__WEBPACK_IMPORTED_MODULE_0__.PositionWithCaret.BOTTOM_SIDE_START;
+                }
+                else if (xPos === _constants__WEBPACK_IMPORTED_MODULE_0__.XPositionWithCaret.SIDE_END) {
+                    return _constants__WEBPACK_IMPORTED_MODULE_0__.PositionWithCaret.BOTTOM_SIDE_END;
+                }
+                break;
+            default:
+                break;
+        }
+        throw new Error("MDCTooltipFoundation: Invalid caret position of " + xPos + ", " + yPos);
+    };
+    /**
+     * Given a PositionWithCaret, applies the correct styles to the caret element
+     * so that it is positioned properly on the rich tooltip.
+     * Returns the x and y positions of the caret, to be used as the
+     * transform-origin on the tooltip itself for entrance animations.
+     */
+    MDCTooltipFoundation.prototype.setCaretPositionStyles = function (position, caretSize) {
+        var values = this.calculateCaretPositionOnTooltip(position, caretSize);
+        if (!values) {
+            return { yTransformOrigin: 0, xTransformOrigin: 0 };
+        }
+        // Prior to setting the caret position styles, clear any previous styles
+        // set. This is necessary as all position options do not use the same
+        // properties (e.g. using 'left' or 'right') and so old style properties
+        // might not get overridden, causing misplaced carets.
+        this.adapter.clearTooltipCaretStyles();
+        this.adapter.setTooltipCaretStyle(values.yAlignment, values.yAxisPx);
+        this.adapter.setTooltipCaretStyle(values.xAlignment, values.xAxisPx);
+        // Value of scaleX is cos(skew), Math.cos() expects radians though, so we
+        // must first convert the skew value (which is in degrees) to radians.
+        var skewRadians = values.skew * (Math.PI / 180);
+        var scaleX = Math.cos(skewRadians);
+        this.adapter.setTooltipCaretStyle('transform', "rotate(" + values.rotation + "deg) skewY(" + values.skew + "deg) scaleX(" + scaleX + ")");
+        this.adapter.setTooltipCaretStyle('transform-origin', values.xAlignment + " " + values.yAlignment);
+        return {
+            yTransformOrigin: values.yTransformOrigin,
+            xTransformOrigin: values.xTransformOrigin
+        };
+    };
+    /**
+     * Given a PositionWithCaret, determines the correct styles to position the
+     * caret properly on the rich tooltip.
+     */
+    MDCTooltipFoundation.prototype.calculateCaretPositionOnTooltip = function (tooltipPos, caretSize) {
+        var isLTR = !this.adapter.isRTL();
+        var tooltipWidth = this.adapter.getComputedStyleProperty('width');
+        var tooltipHeight = this.adapter.getComputedStyleProperty('height');
+        if (!tooltipWidth || !tooltipHeight || !caretSize) {
+            return;
+        }
+        var midpointWidth = "calc((" + tooltipWidth + " - " + caretSize.caretWidth + "px) / 2)";
+        var midpointHeight = "calc((" + tooltipHeight + " - " + caretSize.caretWidth + "px) / 2)";
+        var flushWithEdge = '0';
+        var indentedFromEdge = _constants__WEBPACK_IMPORTED_MODULE_0__.numbers.CARET_INDENTATION + "px";
+        var indentedFromWidth = "calc(" + tooltipWidth + " - " + indentedFromEdge + ")";
+        var indentedFromHeight = "calc(" + tooltipHeight + " - " + indentedFromEdge + ")";
+        var verticalRotation = 35;
+        var horizontalRotation = Math.abs(90 - verticalRotation);
+        var skewDeg = 20;
+        switch (tooltipPos) {
+            case _constants__WEBPACK_IMPORTED_MODULE_0__.PositionWithCaret.BELOW_CENTER:
+                return {
+                    yAlignment: _constants__WEBPACK_IMPORTED_MODULE_0__.strings.TOP,
+                    xAlignment: _constants__WEBPACK_IMPORTED_MODULE_0__.strings.LEFT,
+                    yAxisPx: flushWithEdge,
+                    xAxisPx: midpointWidth,
+                    rotation: -1 * verticalRotation,
+                    skew: -1 * skewDeg,
+                    xTransformOrigin: midpointWidth,
+                    yTransformOrigin: flushWithEdge,
+                };
+            case _constants__WEBPACK_IMPORTED_MODULE_0__.PositionWithCaret.BELOW_END:
+                return {
+                    yAlignment: _constants__WEBPACK_IMPORTED_MODULE_0__.strings.TOP,
+                    xAlignment: isLTR ? _constants__WEBPACK_IMPORTED_MODULE_0__.strings.RIGHT : _constants__WEBPACK_IMPORTED_MODULE_0__.strings.LEFT,
+                    yAxisPx: flushWithEdge,
+                    xAxisPx: indentedFromEdge,
+                    rotation: isLTR ? verticalRotation : -1 * verticalRotation,
+                    skew: isLTR ? skewDeg : -1 * skewDeg,
+                    xTransformOrigin: isLTR ? indentedFromWidth : indentedFromEdge,
+                    yTransformOrigin: flushWithEdge,
+                };
+            case _constants__WEBPACK_IMPORTED_MODULE_0__.PositionWithCaret.BELOW_START:
+                return {
+                    yAlignment: _constants__WEBPACK_IMPORTED_MODULE_0__.strings.TOP,
+                    xAlignment: isLTR ? _constants__WEBPACK_IMPORTED_MODULE_0__.strings.LEFT : _constants__WEBPACK_IMPORTED_MODULE_0__.strings.RIGHT,
+                    yAxisPx: flushWithEdge,
+                    xAxisPx: indentedFromEdge,
+                    rotation: isLTR ? -1 * verticalRotation : verticalRotation,
+                    skew: isLTR ? -1 * skewDeg : skewDeg,
+                    xTransformOrigin: isLTR ? indentedFromEdge : indentedFromWidth,
+                    yTransformOrigin: flushWithEdge,
+                };
+            case _constants__WEBPACK_IMPORTED_MODULE_0__.PositionWithCaret.TOP_SIDE_END:
+                return {
+                    yAlignment: _constants__WEBPACK_IMPORTED_MODULE_0__.strings.TOP,
+                    xAlignment: isLTR ? _constants__WEBPACK_IMPORTED_MODULE_0__.strings.LEFT : _constants__WEBPACK_IMPORTED_MODULE_0__.strings.RIGHT,
+                    yAxisPx: indentedFromEdge,
+                    xAxisPx: flushWithEdge,
+                    rotation: isLTR ? horizontalRotation : -1 * horizontalRotation,
+                    skew: isLTR ? -1 * skewDeg : skewDeg,
+                    xTransformOrigin: isLTR ? flushWithEdge : tooltipWidth,
+                    yTransformOrigin: indentedFromEdge,
+                };
+            case _constants__WEBPACK_IMPORTED_MODULE_0__.PositionWithCaret.CENTER_SIDE_END:
+                return {
+                    yAlignment: _constants__WEBPACK_IMPORTED_MODULE_0__.strings.TOP,
+                    xAlignment: isLTR ? _constants__WEBPACK_IMPORTED_MODULE_0__.strings.LEFT : _constants__WEBPACK_IMPORTED_MODULE_0__.strings.RIGHT,
+                    yAxisPx: midpointHeight,
+                    xAxisPx: flushWithEdge,
+                    rotation: isLTR ? horizontalRotation : -1 * horizontalRotation,
+                    skew: isLTR ? -1 * skewDeg : skewDeg,
+                    xTransformOrigin: isLTR ? flushWithEdge : tooltipWidth,
+                    yTransformOrigin: midpointHeight,
+                };
+            case _constants__WEBPACK_IMPORTED_MODULE_0__.PositionWithCaret.BOTTOM_SIDE_END:
+                return {
+                    yAlignment: _constants__WEBPACK_IMPORTED_MODULE_0__.strings.BOTTOM,
+                    xAlignment: isLTR ? _constants__WEBPACK_IMPORTED_MODULE_0__.strings.LEFT : _constants__WEBPACK_IMPORTED_MODULE_0__.strings.RIGHT,
+                    yAxisPx: indentedFromEdge,
+                    xAxisPx: flushWithEdge,
+                    rotation: isLTR ? -1 * horizontalRotation : horizontalRotation,
+                    skew: isLTR ? skewDeg : -1 * skewDeg,
+                    xTransformOrigin: isLTR ? flushWithEdge : tooltipWidth,
+                    yTransformOrigin: indentedFromHeight,
+                };
+            case _constants__WEBPACK_IMPORTED_MODULE_0__.PositionWithCaret.TOP_SIDE_START:
+                return {
+                    yAlignment: _constants__WEBPACK_IMPORTED_MODULE_0__.strings.TOP,
+                    xAlignment: isLTR ? _constants__WEBPACK_IMPORTED_MODULE_0__.strings.RIGHT : _constants__WEBPACK_IMPORTED_MODULE_0__.strings.LEFT,
+                    yAxisPx: indentedFromEdge,
+                    xAxisPx: flushWithEdge,
+                    rotation: isLTR ? -1 * horizontalRotation : horizontalRotation,
+                    skew: isLTR ? skewDeg : -1 * skewDeg,
+                    xTransformOrigin: isLTR ? tooltipWidth : flushWithEdge,
+                    yTransformOrigin: indentedFromEdge,
+                };
+            case _constants__WEBPACK_IMPORTED_MODULE_0__.PositionWithCaret.CENTER_SIDE_START:
+                return {
+                    yAlignment: _constants__WEBPACK_IMPORTED_MODULE_0__.strings.TOP,
+                    xAlignment: isLTR ? _constants__WEBPACK_IMPORTED_MODULE_0__.strings.RIGHT : _constants__WEBPACK_IMPORTED_MODULE_0__.strings.LEFT,
+                    yAxisPx: midpointHeight,
+                    xAxisPx: flushWithEdge,
+                    rotation: isLTR ? -1 * horizontalRotation : horizontalRotation,
+                    skew: isLTR ? skewDeg : -1 * skewDeg,
+                    xTransformOrigin: isLTR ? tooltipWidth : flushWithEdge,
+                    yTransformOrigin: midpointHeight,
+                };
+            case _constants__WEBPACK_IMPORTED_MODULE_0__.PositionWithCaret.BOTTOM_SIDE_START:
+                return {
+                    yAlignment: _constants__WEBPACK_IMPORTED_MODULE_0__.strings.BOTTOM,
+                    xAlignment: isLTR ? _constants__WEBPACK_IMPORTED_MODULE_0__.strings.RIGHT : _constants__WEBPACK_IMPORTED_MODULE_0__.strings.LEFT,
+                    yAxisPx: indentedFromEdge,
+                    xAxisPx: flushWithEdge,
+                    rotation: isLTR ? horizontalRotation : -1 * horizontalRotation,
+                    skew: isLTR ? -1 * skewDeg : skewDeg,
+                    xTransformOrigin: isLTR ? tooltipWidth : flushWithEdge,
+                    yTransformOrigin: indentedFromHeight,
+                };
+            case _constants__WEBPACK_IMPORTED_MODULE_0__.PositionWithCaret.ABOVE_CENTER:
+                return {
+                    yAlignment: _constants__WEBPACK_IMPORTED_MODULE_0__.strings.BOTTOM,
+                    xAlignment: _constants__WEBPACK_IMPORTED_MODULE_0__.strings.LEFT,
+                    yAxisPx: flushWithEdge,
+                    xAxisPx: midpointWidth,
+                    rotation: verticalRotation,
+                    skew: skewDeg,
+                    xTransformOrigin: midpointWidth,
+                    yTransformOrigin: tooltipHeight,
+                };
+            case _constants__WEBPACK_IMPORTED_MODULE_0__.PositionWithCaret.ABOVE_END:
+                return {
+                    yAlignment: _constants__WEBPACK_IMPORTED_MODULE_0__.strings.BOTTOM,
+                    xAlignment: isLTR ? _constants__WEBPACK_IMPORTED_MODULE_0__.strings.RIGHT : _constants__WEBPACK_IMPORTED_MODULE_0__.strings.LEFT,
+                    yAxisPx: flushWithEdge,
+                    xAxisPx: indentedFromEdge,
+                    rotation: isLTR ? -1 * verticalRotation : verticalRotation,
+                    skew: isLTR ? -1 * skewDeg : skewDeg,
+                    xTransformOrigin: isLTR ? indentedFromWidth : indentedFromEdge,
+                    yTransformOrigin: tooltipHeight,
+                };
+            default:
+            case _constants__WEBPACK_IMPORTED_MODULE_0__.PositionWithCaret.ABOVE_START:
+                return {
+                    yAlignment: _constants__WEBPACK_IMPORTED_MODULE_0__.strings.BOTTOM,
+                    xAlignment: isLTR ? _constants__WEBPACK_IMPORTED_MODULE_0__.strings.LEFT : _constants__WEBPACK_IMPORTED_MODULE_0__.strings.RIGHT,
+                    yAxisPx: flushWithEdge,
+                    xAxisPx: indentedFromEdge,
+                    rotation: isLTR ? verticalRotation : -1 * verticalRotation,
+                    skew: isLTR ? skewDeg : -1 * skewDeg,
+                    xTransformOrigin: isLTR ? indentedFromEdge : indentedFromWidth,
+                    yTransformOrigin: tooltipHeight,
+                };
+        }
+    };
+    MDCTooltipFoundation.prototype.clearShowTimeout = function () {
+        if (this.showTimeout) {
+            clearTimeout(this.showTimeout);
+            this.showTimeout = null;
+        }
+    };
+    MDCTooltipFoundation.prototype.clearHideTimeout = function () {
+        if (this.hideTimeout) {
+            clearTimeout(this.hideTimeout);
+            this.hideTimeout = null;
+        }
+    };
+    /**
+     * Method that allows user to specify additional elements that should have a
+     * scroll event listener attached to it. This should be used in instances
+     * where the anchor element is placed inside a scrollable container, and will
+     * ensure that the tooltip will stay attached to the anchor on scroll.
+     */
+    MDCTooltipFoundation.prototype.attachScrollHandler = function (addEventListenerFn) {
+        var _this = this;
+        this.addAncestorScrollEventListeners.push(function () {
+            addEventListenerFn('scroll', _this.windowScrollHandler);
+        });
+    };
+    /**
+     * Must be used in conjunction with #attachScrollHandler. Removes the scroll
+     * event handler from elements on the page.
+     */
+    MDCTooltipFoundation.prototype.removeScrollHandler = function (removeEventHandlerFn) {
+        var _this = this;
+        this.removeAncestorScrollEventListeners.push(function () {
+            removeEventHandlerFn('scroll', _this.windowScrollHandler);
+        });
+    };
+    MDCTooltipFoundation.prototype.destroy = function () {
+        var e_7, _a;
+        if (this.frameId) {
+            cancelAnimationFrame(this.frameId);
+            this.frameId = null;
+        }
+        this.clearHideTimeout();
+        this.clearShowTimeout();
+        this.adapter.removeClass(SHOWN);
+        this.adapter.removeClass(SHOWING_TRANSITION);
+        this.adapter.removeClass(SHOWING);
+        this.adapter.removeClass(HIDE);
+        this.adapter.removeClass(HIDE_TRANSITION);
+        if (this.richTooltip) {
+            this.adapter.deregisterEventHandler('focusout', this.richTooltipFocusOutHandler);
+        }
+        if (!this.persistentTooltip) {
+            this.adapter.deregisterEventHandler('mouseenter', this.tooltipMouseEnterHandler);
+            this.adapter.deregisterEventHandler('mouseleave', this.tooltipMouseLeaveHandler);
+        }
+        this.adapter.deregisterAnchorEventHandler('blur', this.anchorBlurHandler);
+        this.adapter.deregisterDocumentEventHandler('click', this.documentClickHandler);
+        this.adapter.deregisterDocumentEventHandler('keydown', this.documentKeydownHandler);
+        this.adapter.deregisterWindowEventHandler('scroll', this.windowScrollHandler);
+        this.adapter.deregisterWindowEventHandler('resize', this.windowResizeHandler);
+        try {
+            for (var _b = (0,tslib__WEBPACK_IMPORTED_MODULE_1__.__values)(this.removeAncestorScrollEventListeners), _c = _b.next(); !_c.done; _c = _b.next()) {
+                var fn = _c.value;
+                fn();
+            }
+        }
+        catch (e_7_1) { e_7 = { error: e_7_1 }; }
+        finally {
+            try {
+                if (_c && !_c.done && (_a = _b.return)) _a.call(_b);
+            }
+            finally { if (e_7) throw e_7.error; }
+        }
+        this.animFrame.cancelAll();
+    };
+    return MDCTooltipFoundation;
+}(_material_base_foundation__WEBPACK_IMPORTED_MODULE_5__.MDCFoundation));
+
+// tslint:disable-next-line:no-default-export Needed for backward compatibility with MDC Web v0.44.0 and earlier.
+/* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (MDCTooltipFoundation);
+//# sourceMappingURL=foundation.js.map
+
+/***/ }),
+
+/***/ "./node_modules/@material/tooltip/index.js":
+/*!*************************************************!*\
+  !*** ./node_modules/@material/tooltip/index.js ***!
+  \*************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "MDCTooltip": () => (/* reexport safe */ _component__WEBPACK_IMPORTED_MODULE_0__.MDCTooltip),
+/* harmony export */   "MDCTooltipFoundation": () => (/* reexport safe */ _foundation__WEBPACK_IMPORTED_MODULE_1__.MDCTooltipFoundation),
+/* harmony export */   "AnchorBoundaryType": () => (/* reexport safe */ _constants__WEBPACK_IMPORTED_MODULE_2__.AnchorBoundaryType),
+/* harmony export */   "CssClasses": () => (/* reexport safe */ _constants__WEBPACK_IMPORTED_MODULE_2__.CssClasses),
+/* harmony export */   "PositionWithCaret": () => (/* reexport safe */ _constants__WEBPACK_IMPORTED_MODULE_2__.PositionWithCaret),
+/* harmony export */   "XPosition": () => (/* reexport safe */ _constants__WEBPACK_IMPORTED_MODULE_2__.XPosition),
+/* harmony export */   "XPositionWithCaret": () => (/* reexport safe */ _constants__WEBPACK_IMPORTED_MODULE_2__.XPositionWithCaret),
+/* harmony export */   "YPosition": () => (/* reexport safe */ _constants__WEBPACK_IMPORTED_MODULE_2__.YPosition),
+/* harmony export */   "YPositionWithCaret": () => (/* reexport safe */ _constants__WEBPACK_IMPORTED_MODULE_2__.YPositionWithCaret),
+/* harmony export */   "attributes": () => (/* reexport safe */ _constants__WEBPACK_IMPORTED_MODULE_2__.attributes),
+/* harmony export */   "events": () => (/* reexport safe */ _constants__WEBPACK_IMPORTED_MODULE_2__.events),
+/* harmony export */   "numbers": () => (/* reexport safe */ _constants__WEBPACK_IMPORTED_MODULE_2__.numbers),
+/* harmony export */   "strings": () => (/* reexport safe */ _constants__WEBPACK_IMPORTED_MODULE_2__.strings)
+/* harmony export */ });
+/* harmony import */ var _component__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./component */ "./node_modules/@material/tooltip/component.js");
+/* harmony import */ var _foundation__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./foundation */ "./node_modules/@material/tooltip/foundation.js");
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./constants */ "./node_modules/@material/tooltip/constants.js");
+/**
+ * @license
+ * Copyright 2020 Google Inc.
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ *
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+
+
+
+
+//# sourceMappingURL=index.js.map
+
+/***/ }),
+
 /***/ "./node_modules/css-loader/dist/cjs.js!./css/equal.css":
 /*!*************************************************************!*\
   !*** ./node_modules/css-loader/dist/cjs.js!./css/equal.css ***!
@@ -24550,7 +26515,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1___default()((_node_modules_css_loader_dist_runtime_cssWithMappingToString_js__WEBPACK_IMPORTED_MODULE_0___default()));
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, ":root {\r\n    /* colored buttons */\r\n    --mdc-theme-primary: #3f51b5;\r\n    --mdc-theme-primary-hover: #4f61c5;\r\n\r\n    --mdc-theme-primary-selected: #f5f5ff;\r\n    --mdc-theme-primary-outline: #b1b1dc;\r\n\r\n    /* checkbox background */\r\n    --mdc-theme-secondary: #3f51b5;\r\n    /* menus */\r\n    --mdc-typography-subtitle1-font-size: 14px;\r\n    /* table headers */\r\n    --mdc-typography-subtitle2-font-weight: 600;\r\n\r\n\r\n    --mdc-layout-grid-margin-desktop: 12px;\r\n    --mdc-layout-grid-gutter-desktop: 24px;\r\n    --mdc-layout-grid-margin-tablet: 12px;\r\n    --mdc-layout-grid-gutter-tablet: 18px;\r\n    --mdc-layout-grid-margin-phone: 12px;\r\n    --mdc-layout-grid-gutter-phone: 16px;\r\n\r\n}\r\n    \r\nbody, html {\r\n    margin: 0;\r\n    padding: 0;\r\n    height:100%;\r\n}\r\n\r\n#sb-root {\r\n    display: flex;\r\n    height: 100%;\r\n    flex-flow: column nowrap;\r\n}\r\n\r\n#sb-menu .sb-menu-button {\r\n    display: inline-block;\r\n}\r\n\r\n#sb-container {\r\n\r\n    width: 100%;\r\n    height: 100%;\r\n    overflow: auto;\r\n    flex: 1 1 100%;\r\n    box-sizing: border-box;\r\n}\r\n\r\n.sb-container-header {\r\n    padding-left: 12px;\r\n    height: 48px;\r\n    border-bottom: solid 1px lightgrey;\r\n}\r\n\r\n.sb-container-header h3 {\r\n    line-height: 48px;\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n.sb-container-header a {\r\n    cursor: pointer;\r\n    text-decoration: none;\r\n    color: var(--mdc-theme-primary);\r\n}\r\n\r\n.sb-container-header a:hover {\r\n\r\n}\r\n\r\n.sb-context {\r\n    /* container height minus the header */\r\n    height: calc(100% - 48px);\r\n}\r\n\r\n.sb-view { \r\n    position: relative;\r\n    height: 100%;\r\n}\r\n\r\n.sb-view-layout {\r\n    /* height must be decremented by heght of other elements from parent (header and footer) */\r\n    height: calc(100% - 112px);\r\n}\r\n\r\n.sb-view-list-inline-actions-button {\r\n    transform: scale(0.7);\r\n}\r\n\r\n.sb-layout {\r\n    position: relative;\r\n    height: 100%;\r\n}\r\n\r\n\r\n\r\n\r\n.sb-view-layout-list table th {\r\n    cursor: pointer;\r\n    user-select: none;\r\n    position: sticky;\r\n    top: 0;\r\n    z-index: 3;\r\n}\r\n\r\n.sb-view-layout-list table th.sortable.hover {\r\n    background-color: #f0f0f0;\r\n}\r\n\r\n.sb-view-layout-list table th.sorted {\r\n    color: black;\r\n}\r\n\r\n.sb-view-layout-list table th.asc::after, .sb-view-layout-list table th.desc::after {\r\n    position: absolute;\r\n    margin-left: 6px;\r\n    font-family: FontAwesome;\r\n    opacity: 0.3;\r\n}\r\n\r\n.sb-view-layout-list table th.asc::after {\r\n    content: \"\\f0d7\";\r\n}\r\n\r\n.sb-view-layout-list table th.desc::after {\r\n    content: \"\\f0d8\";\r\n}\r\n\r\n.sb-view-layout-list table tr {\r\n    cursor: pointer;\r\n}\r\n\r\n.sb-view-header-list {\r\n    position: relative;\r\n    max-height: 112px;\r\n    /*\r\n    height: 112px;\r\n    line-height: 112px;\r\n    */\r\n}\r\n\r\n.sb-view-header-list-actions {\r\n    margin-left: 12px;\r\n    max-height: 56px;\r\n    line-height: 56px;\r\n}\r\n\r\n.sb-view-header-list-actions button {\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-header-list-actions-selected {\r\n    position: relative;\r\n    display: inline-block;\r\n    margin-left: 12px;\r\n}\r\n/* todo: improve this (add a custom class)*/\r\n.sb-view-header-list-actions-selected .mdc-button__label {\r\n    padding-right: 10px;\r\n}\r\n\r\n.sb-view-header-list-actions-selected .mdc-button__label::after {\r\n    content: \"\\f0d7\";\r\n}\r\n\r\n.sb-view-header-list-actions-selected .mdc-button__label::after {\r\n    position: absolute;\r\n    margin-left: 6px;\r\n    font-family: FontAwesome;\r\n    opacity: 0.5;\r\n}\r\n\r\n.sb-view-header-list-navigation {\r\n    height: 56px;\r\n    line-height: 56px;\r\n    display: flex;\r\n}\r\n\r\n.sb-view-header-list-filters {\r\n    margin-top: 4px;\r\n}\r\n\r\n.sb-view-header-list-filters .sb-view-header-list-filters-menu {\r\n    min-width: 250px;\r\n}\r\n\r\n.sb-view-header-list-filters-set {\r\n    margin-top: 4px;\r\n}\r\n\r\n\r\n.sb-view-header-list-fields_toggle {\r\n    /* flex-grow: 1; */\r\n    margin-top: 4px;\r\n    margin-right: 10px;\r\n    text-align: right;\r\n}\r\n\r\n\r\n.sb-view-header-list-fields_toggle .sb-view-header-list-fields_toggle-menu {\r\n    min-width: 250px;\r\n    max-width: 250px;\r\n    right: 0 !important;\r\n    left: unset !important;\r\n}\r\n\r\n.sb-view-header-list-pagination {\r\n    flex: 1;\r\n    flex-grow: 1;\r\n\r\n}\r\n\r\n.sb-view-header-list-pagination-limit_select {\r\n    margin-left: 12px;\r\n}\r\n\r\n.sb-view-header-list-pagination .pagination-navigation {\r\n    user-select: none; \r\n}\r\n\r\n\r\n.sb-widget-mode-view input {\r\n    color: black !important;\r\n    user-select: none;\r\n}\r\n\r\n.sb-widget-mode-view .mdc-text-field .mdc-floating-label,\r\n.sb-widget-mode-view.mdc-select .mdc-floating-label {\r\n    color: rgba(0,0,0,0.5) !important;\r\n    user-select: none;\r\n    font-size: 16px;\r\n    font-weight: 400;\r\n}\r\n\r\n.sb-widget-mode-edit .mdc-text-field .mdc-floating-label, \r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label {\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n}\r\n\r\n.sb-widget-mode-view .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above, \r\n.sb-widget-mode-view.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n}\r\n\r\n.sb-widget-mode-edit .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above, \r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.6) !important;\r\n    font-weight: 400;\r\n}\r\n\r\n\r\n.sb-view-header-form {\r\n    height: 56px;\r\n    line-height: 56px;\r\n}\r\n\r\n.sb-view-header-form-actions {\r\n    display: flex;\r\n    flex-direction: row;\r\n    align-items: center;\r\n    margin-left: 12px;\r\n    max-width: 250px;\r\n    height: 56px;\r\n    line-height: 56px;\r\n}\r\n\r\n.sb-view-header-form-actions button {\r\n    flex: 0 1 auto;\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-form-group {\r\n    padding: 12px;\r\n}\r\n\r\n.sb-view-form-row:not(:first-child) {\r\n    padding-top: 24px;\r\n}\r\n\r\n.sb-view-form-group-title {\r\n    font-size: 20px;\r\n    margin-bottom: 12px;\r\n}\r\n\r\n.sb-view-form-sections-tabbar {\r\n    margin-bottom: 12px;\r\n}\r\n\r\n.sb-view-layout-list .mdc-line-ripple::before, .sb-view-layout-list .mdc-line-ripple::after {\r\n  border: none !important;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget label.mdc-text-field .mdc-floating-label {\r\n    display: none !important;\r\n}\r\n.sb-view-layout-list .sb-widget-mode-view label.mdc-text-field::before {\r\n    display: none !important;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget-mode-view input {\r\n    height: 100%;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget-mode-edit button.mdc-icon-button {\r\n    padding: 0 0 0 5px;\r\n    height: auto;\r\n    width: auto;\r\n    position: absolute;\r\n}\r\n\r\n.sb-view-layout-form-input-button {\r\n    width: 25px;\r\n    height: 30px;\r\n    position: absolute;\r\n    right: 12px;\r\n    top: calc(50% - 15px);\r\n}\r\n\r\n.sb-view-layout-form-input-decoy {\r\n    position: absolute;\r\n    left: 16px;\r\n    bottom: 10px;\r\n    z-index: -1;\r\n    opacity: 0;\r\n}\r\n\r\n\r\n.sb-widget {\r\n    position: relative;\r\n}\r\n\r\n.sb-ui-checkbox {\r\n    position: relative;\r\n}\r\n\r\n.sb-ui-menu.mdc-menu-surface--is-open-below {\r\n    margin-top: 48px;\r\n}\r\n\r\n.sb-ui-menu.mdc-menu-surface--open {\r\n    margin-bottom: 48px;\r\n}\r\n\r\n\r\n/* Material Components customizations */\r\n\r\n\r\n/* Special SB widgets customizations */\r\n\r\n/* support for title strings */\r\n.sb-widget.title {\r\n    margin-top: -14px; \r\n}\r\n\r\n.sb-widget.title span.mdc-floating-label--float-above {\r\n    transform: translateY(-166%) !important;\r\n}\r\n.sb-widget.title label.mdc-text-field {\r\n  height: 70px;\r\n}\r\n.sb-widget.title input.mdc-text-field__input {\r\n  font-size: 30px;\r\n  margin-top: auto; \r\n  height: 60px;\r\n}\r\n\r\n.sb-view-layout-form .sb-widget.sb-widget-type-boolean {\r\n    height: 56px;\r\n    vertical-align: middle;\r\n    display: table-cell;\r\n    padding-left: 16px;\r\n}\r\n\r\n\r\n/* adapt inputs for inline editing */\r\n.sb-widget-cell .mdc-text-field {\r\n  height: 100%;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field {\r\n    padding-left: 0;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-text-field {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    padding-left: 5px;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-select__anchor {\r\n    padding-left: 5px;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field-helper-line {\r\n  display: none;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--filled::before {\r\n  display: none;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--filled:not(.mdc-text-field--disabled) {\r\n    background-color: inherit;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-text-field--filled:not(.mdc-text-field--disabled) {\r\n    background-color: white;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--invalid .mdc-text-field__input {\r\n    color: var(--mdc-theme-error, #b00020);\r\n}\r\n\r\n.sb-widget-cell .mdc-select {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    margin-top: -14px;\r\n}\r\n\r\n.sb-widget-cell .mdc-select {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    margin-top: -14px;\r\n}\r\n\r\n\r\n.sb-widget-cell .mdc-select__anchor {\r\n    height: 100%;\r\n}\r\n\r\n/* make mini-fab flat (mini save buttons) */ \r\n.sb-view-layout-list-row-checkbox .mdc-fab--mini {\r\n    box-shadow: none !important;\r\n    margin: 2px 0;\r\n}\r\n\r\n.mdc-data-table {\r\n    height: 100%;\r\n}\r\n\r\n\r\n.mdc-data-table__table-container::-webkit-scrollbar {\r\n    width: 4px;\r\n    overflow-y: scroll;\r\n    background: #EAEAEA;\r\n\r\n}\r\n\r\n.mdc-data-table__table-container::-webkit-scrollbar-thumb {\r\n    background: var(--mdc-theme-primary, #6200ee);\r\n    border-radius: 10px;\r\n}\r\n\r\n\r\n\r\n/* custom style for special button with icon only */\r\n.mdc-button-icon {\r\n\tmin-width: 36px;\r\n}\r\n\r\n.mdc-button-icon  .mdc-button__ripple {\r\n\tborder-radius: 50%;\r\n    width: 36px;\r\n}\r\n\r\n\r\n\r\n.mdc-menu {\r\n    min-width: var(--mdc-menu-min-width, 200px) !important;\r\n    max-width: calc(100vw - 32px) !important;\r\n}\r\n\r\n.mdc-text-field:not(.mdc-text-field--disabled) .mdc-text-field__icon {\r\n    color: rgba(0,0,0,.54);\r\n    background-color: white;\r\n}\r\n\r\n.mdc-text-field--focused .mdc-text-field-helper-line .mdc-text-field-helper-text {\r\n    opacity: 1 !important;\r\n}\r\n\r\n.mdc-text-field--with-trailing-icon .mdc-text-field__icon {\r\n    left: initial;\r\n    right: 12px;\r\n}\r\n\r\n.mdc-text-field--with-leading-icon .mdc-text-field__icon, .mdc-text-field--with-trailing-icon .mdc-text-field__icon {\r\n    position: absolute;\r\n    top: 50%;\r\n    transform: translateY(-50%);\r\n    cursor: pointer;\r\n}\r\n\r\n.mdc-text-field--textarea {\r\n    outline: solid 1px rgba(0, 0,0,0.1);\r\n}\r\n\r\n.sb-view-layout.sb-view-layout-form .mdc-text-field--filled:not(.mdc-text-field--disabled), .mdc-select--filled:not(.mdc-select--disabled) .mdc-select__anchor {\r\n    background: transparent !important;\r\n}\r\n\r\n.mdc-layout-grid__cell {\r\n    position: relative;\r\n}\r\n\r\n.mdc-text-field-helper-line {\r\n    position: absolute;\r\n    width: 100%;\r\n    max-width: 100%;\r\n    padding-left: 0 !important;    \r\n    padding-right: 0 !important;    \r\n}\r\n\r\n.mdc-data-table__header-cell--checkbox {\r\n    width: 44px;\r\n}\r\n.mdc-data-table__row--selected {\r\n    background-color: var(--mdc-theme-primary-selected) !important;\r\n}\r\n.mdc-list-item .mdc-checkbox {\r\n    margin-left: -11px;\r\n}\r\n\r\n.mdc-list-item__graphic {\r\n    color: rgba(0,0,0,.54) !important;\r\n    margin-right: 12px;\r\n}\r\n\r\n.mdc-list-item__text {\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;    \r\n}\r\n\r\n.mdc-chip .mdc-chip__icon {\r\n    font-size: 22px;\r\n    height: 22px;\r\n}\r\n\r\n.mdc-list-item {\r\n    height: 44px;\r\n    align-items: center !important;\r\n}\r\n\r\n.mdc-data-table__cell {\r\n    height: 44px;\r\n}\r\n\r\n\r\n.mdc-data-table__pagination {\r\n    border-top: 0;\r\n}\r\n\r\n.mdc-text-field {\r\n    width: 100%;\r\n}\r\n\r\n.mdc-floating-label {\r\n    font-size: 16px !important;\r\n    /* color: rgba(0, 0, 0, 0.8) !important;*/\r\n}\r\n\r\n\r\n.mdc-text-field-helper-line .mdc-text-field-helper-text {\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n\r\n.mdc-text-field--invalid:not(.mdc-text-field--disabled) .mdc-text-field-helper-line .mdc-text-field-helper-text--validation-msg {\r\n    color: var(--mdc-theme-error, #b00020) !important;\r\n}\r\n\r\n.mdc-text-field--focused:not(.mdc-text-field--disabled) .mdc-floating-label {\r\n    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;\r\n}\r\n\r\n.mdc-select--focused:not(.mdc-text-field--disabled) .mdc-floating-label {\r\n    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;\r\n}\r\n\r\n.mdc-select {\r\n    width: 100%;\r\n}\r\n\r\n.mdc-tab {\r\n    max-width: 280px;\r\n}\r\n\r\n.mdc-tab-bar {\r\n    margin-top: 12px;\r\n    border-bottom: 1px solid rgba(0, 0, 0, 0.12);\r\n}\r\n\r\n.mdc-tab__text-label {\r\n    user-select: none;\r\n}\r\n.mdc-tab.mdc-tab--active .mdc-tab__ripple {\r\n    background-color: var(--mdc-ripple-color, var(--mdc-theme-primary, #6200ee));\r\n    opacity: 0.1;\r\n}\r\n\r\n\r\n\r\n/* jqueryui datepicker material styling */\r\n\r\n\r\n.ui-datepicker {\r\n    z-index: 3 !important;\r\n    font-family: \"Roboto\";\r\n}\r\n\r\n.ui-datepicker {\r\n    padding: 0;\r\n    border: none;  \r\n    width: 325px;\r\n    box-shadow: 4px 4px 10px 2px rgba(0, 0, 0, 0.24);\r\n    margin-left: -16px;\r\n    margin-top: 6px;\r\n    font-size: 14px;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-title {\r\n    font-size: 17px;\r\n}\r\n\r\n.ui-datepicker-trigger {\r\n    position: absolute;\r\n    right: 12px;\r\n    top: 50%;\r\n    opacity: 0;\r\n    margin-top: -10px;\r\n    cursor: pointer;\r\n}\r\n\r\n.ui-corner-all {\r\n  border-radius: 0;\r\n}\r\n\r\n.ui-widget-header {\r\n  border: 0;\r\n}\r\n\r\n.ui-datepicker-header {\r\n  text-align: center;\r\n  background: white;\r\n  padding-bottom: 15px;\r\n  font-weight: 300;\r\n}\r\n.ui-datepicker-header .ui-datepicker-prev,\r\n.ui-datepicker-header .ui-datepicker-next,\r\n.ui-datepicker-header .ui-datepicker-title {\r\n  border: none;\r\n  outline: none;\r\n  margin: 5px;\r\n}\r\n\r\n.ui-datepicker-prev.ui-state-hover,\r\n.ui-datepicker-next.ui-state-hover {\r\n  border: none;\r\n  outline: none;\r\n  background: #b4cbe5;\r\n}\r\n\r\n.ui-datepicker .ui-state-default {\r\n  background: none;\r\n  border: none;\r\n  text-align: center;\r\n  height: 33px;\r\n  width: 33px;\r\n  line-height: 30px;\r\n}\r\n.ui-datepicker .ui-state-highlight {\r\n  color: var(--mdc-theme-primary);\r\n}\r\n.ui-datepicker .ui-state-active {\r\n  color: white;\r\n}\r\n\r\n\r\n\r\n.ui-datepicker-calendar thead th {\r\n    color: #999999;\r\n    font-weight: 200;\r\n}\r\n\r\n.ui-datepicker-buttonpane {\r\n  border: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-state-default {\r\n  background: white;\r\n  border: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-datepicker-close,\r\n.ui-datepicker-buttonpane .ui-datepicker-current {\r\n  background: white;\r\n  color: #284B72;\r\n  text-transform: uppercase;\r\n  border: none;\r\n  opacity: 1;\r\n  font-weight: 200;\r\n  outline: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-datepicker-close:hover,\r\n.ui-datepicker-buttonpane .ui-datepicker-current:hover {\r\n  background: #b4cbe5;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev {\r\n    text-decoration: none;\r\n    height: auto !important;\r\n    width: auto !important;\r\n\tleft: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-next {\r\n    text-decoration: none;\r\n    height: auto !important;\r\n    width: auto !important;\r\n\tright: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev .ui-icon, .ui-datepicker .ui-datepicker-next .ui-icon {\r\n    display: none !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev::after {\r\n    font-family: FontAwesome;\r\n\tcontent: \"\\f053\";\r\n\tdisplay: block;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-next::after {\r\n    font-family: FontAwesome;\r\n\tcontent: \"\\f054\";\r\n\tdisplay: block;\r\n}\r\n\r\n\r\n.ui-datepicker .ui-datepicker-prev.ui-state-hover, .ui-datepicker .ui-datepicker-next.ui-state-hover {\r\n    background: none;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev-hover {\r\n\tleft: 8px !important;\r\n    top: 8px !important;\r\n}\r\n.ui-datepicker .ui-datepicker-next-hover {\r\n\tright: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n\r\n\r\n\r\n\r\nbutton.ui-state-hover {\r\n    background: unset !important;\r\n    background-color: var(--mdc-theme-primary-hover) !important;\r\n    border: unset !important;\r\n    color: white !important;\r\n    box-shadow: 0px 3px 1px -2px rgb(0 0 0 / 20%), 0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%) !important;\r\n}\r\n\r\n\r\n\r\n/* jquery ui datepicker month year picker */\r\n.ui-datepicker .ui-datepicker-select-month td ,\r\n.ui-datepicker .ui-datepicker-select-year td {\r\n\theight: 33px;\r\n}\r\n.ui-datepicker .ui-datepicker-select-month td span,\r\n.ui-datepicker .ui-datepicker-select-month td a,\r\n.ui-datepicker .ui-datepicker-select-year td span,\r\n.ui-datepicker .ui-datepicker-select-year td a  {\r\n\ttext-align: center;\r\n}\r\n.ui-datepicker .ui-datepicker-select-year td.outoffocus {\r\n\topacity: 0.5;\r\n}\r\n\r\n.ui-datepicker-select-month .ui-state-default, .ui-datepicker-select-year .ui-state-default {\r\n    margin: auto;\r\n}\r\n\r\n.ui-datepicker td {\r\n    font-size: 14px !important;\r\n}\r\n\r\n.ui-datepicker .ui-state-default, .ui-datepicker .ui-state-active {\r\n    position: relative;\r\n    border: 0 !important;\r\n    background: none !important;\r\n}\r\n\r\n.ui-datepicker .ui-state-active::after {\r\n    position: absolute;\r\n    display: block;\r\n    content: '';\r\n    background-color:var(--mdc-theme-primary);\r\n    border-radius: 50%;\r\n    width: 34px;\r\n    height: 34px;\r\n    z-index: -1;\r\n    top: 0;\r\n    left: calc(50% - 16px)\r\n}\r\n\r\n\r\n.ui-datepicker .ui-state-default:not(.ui-state-active).ui-state-hover::after {\r\n    position: absolute;\r\n    display: block;\r\n    content: '';\r\n    background-color: rgba(0,0,0,0.05);\r\n    border-radius: 50%;\r\n    width: 34px;\r\n    height: 34px;\r\n    z-index: -1;\r\n    top: 0;\r\n    left: calc(50% - 16px)\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header {\r\n    display: flex;\r\n    align-items: center;\r\n    padding: 4px 24px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header .ui-datepicker-title {\r\n    flex: 1;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header-time-switch {\r\n    flex: 1;\r\n    line-height: 100%;\r\n    height: 100%;\r\n    align-self: center;\r\n}\r\n\r\n\r\n.timepicker{\r\n    display:block;\r\n    user-select:none;\r\n    margin:0 auto;\r\n    width:100%;\r\n    height:100%;\r\n    font-size:14px;\r\n}\r\n.timepicker__title{background-image:-webkit-linear-gradient(top,#fff 0,#f2f2f2 100%);position:relative;background:#f2f2f2;margin:0 auto;border-bottom:1px solid #e5e5e5;padding:12px 11px 10px 15px;color:#4C4C4C;font-size:inherit}\r\n.timepicker__close{-webkit-transform:translateY(-25%);-moz-transform:translateY(-25%);-ms-transform:translateY(-25%);-o-transform:translateY(-25%);transform:translateY(-25%);position:absolute;top:25%;right:10px;color:#34495e;cursor:pointer}\r\n.timepicker__close:before{content:'\\00d7'}\r\n.timepicker__controls{padding:10px 0;line-height:normal;margin:0}\r\n.timepicker__controls__control,.timepicker__controls__control--separator{vertical-align:middle;display:inline-block;font-size:inherit;margin:0 auto;width:35px;letter-spacing:1.3px}\r\n.timepicker__controls__control-down,.timepicker__controls__control-up{color:#34495e;position:relative;display:block;margin:3px auto;font-size:18px;cursor:pointer}\r\n.timepicker__controls__control-up:before{content:'\\f0d8'}\r\n.timepicker__controls__control-down:after{content:'\\f0d7'}\r\n.timepicker__controls__control--separator{width:5px}\r\n.text-center,.timepicker__controls,.timepicker__controls__control,.timepicker__controls__control--separator,.timepicker__controls__control-down,.timepicker__controls__control-up,.timepicker__title{text-align:center}\r\n.hover-state{color:#3498db}\r\n \r\n.fontello-after:after,.fontello:before,.timepicker__controls__control-down:after,.timepicker__controls__control-up:before{font-family:FontAwesome;font-style:normal;font-weight:400;display:inline-block;text-decoration:inherit;width:1em;margin-right:.2em;text-align:center;font-variant:normal;text-transform:none;line-height:1em;margin-left:.2em;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}  \r\n.clearable-picker{position:relative;display:inline-block}  \r\n.clearable-picker>.hastimepicker{padding-right:1em}  \r\n.clearable-picker>.hastimepicker::-ms-clear{display:none}  \r\n.clearable-picker>[data-clear-picker]{position:absolute;top:50%;right:0;transform:translateY(-50%);font-weight:700;font-size:.8em;padding:0 .3em .2em;line-height:1;color:#bababa;cursor:pointer}  \r\n.clearable-picker>[data-clear-picker]:hover{color:#a1a1a1}\r\n.timepicker__controls__control span {\r\n    outline: none;\r\n}", "",{"version":3,"sources":["webpack://./css/equal.css"],"names":[],"mappings":"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","sourcesContent":[":root {\r\n    /* colored buttons */\r\n    --mdc-theme-primary: #3f51b5;\r\n    --mdc-theme-primary-hover: #4f61c5;\r\n\r\n    --mdc-theme-primary-selected: #f5f5ff;\r\n    --mdc-theme-primary-outline: #b1b1dc;\r\n\r\n    /* checkbox background */\r\n    --mdc-theme-secondary: #3f51b5;\r\n    /* menus */\r\n    --mdc-typography-subtitle1-font-size: 14px;\r\n    /* table headers */\r\n    --mdc-typography-subtitle2-font-weight: 600;\r\n\r\n\r\n    --mdc-layout-grid-margin-desktop: 12px;\r\n    --mdc-layout-grid-gutter-desktop: 24px;\r\n    --mdc-layout-grid-margin-tablet: 12px;\r\n    --mdc-layout-grid-gutter-tablet: 18px;\r\n    --mdc-layout-grid-margin-phone: 12px;\r\n    --mdc-layout-grid-gutter-phone: 16px;\r\n\r\n}\r\n    \r\nbody, html {\r\n    margin: 0;\r\n    padding: 0;\r\n    height:100%;\r\n}\r\n\r\n#sb-root {\r\n    display: flex;\r\n    height: 100%;\r\n    flex-flow: column nowrap;\r\n}\r\n\r\n#sb-menu .sb-menu-button {\r\n    display: inline-block;\r\n}\r\n\r\n#sb-container {\r\n\r\n    width: 100%;\r\n    height: 100%;\r\n    overflow: auto;\r\n    flex: 1 1 100%;\r\n    box-sizing: border-box;\r\n}\r\n\r\n.sb-container-header {\r\n    padding-left: 12px;\r\n    height: 48px;\r\n    border-bottom: solid 1px lightgrey;\r\n}\r\n\r\n.sb-container-header h3 {\r\n    line-height: 48px;\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n.sb-container-header a {\r\n    cursor: pointer;\r\n    text-decoration: none;\r\n    color: var(--mdc-theme-primary);\r\n}\r\n\r\n.sb-container-header a:hover {\r\n\r\n}\r\n\r\n.sb-context {\r\n    /* container height minus the header */\r\n    height: calc(100% - 48px);\r\n}\r\n\r\n.sb-view { \r\n    position: relative;\r\n    height: 100%;\r\n}\r\n\r\n.sb-view-layout {\r\n    /* height must be decremented by heght of other elements from parent (header and footer) */\r\n    height: calc(100% - 112px);\r\n}\r\n\r\n.sb-view-list-inline-actions-button {\r\n    transform: scale(0.7);\r\n}\r\n\r\n.sb-layout {\r\n    position: relative;\r\n    height: 100%;\r\n}\r\n\r\n\r\n\r\n\r\n.sb-view-layout-list table th {\r\n    cursor: pointer;\r\n    user-select: none;\r\n    position: sticky;\r\n    top: 0;\r\n    z-index: 3;\r\n}\r\n\r\n.sb-view-layout-list table th.sortable.hover {\r\n    background-color: #f0f0f0;\r\n}\r\n\r\n.sb-view-layout-list table th.sorted {\r\n    color: black;\r\n}\r\n\r\n.sb-view-layout-list table th.asc::after, .sb-view-layout-list table th.desc::after {\r\n    position: absolute;\r\n    margin-left: 6px;\r\n    font-family: FontAwesome;\r\n    opacity: 0.3;\r\n}\r\n\r\n.sb-view-layout-list table th.asc::after {\r\n    content: \"\\f0d7\";\r\n}\r\n\r\n.sb-view-layout-list table th.desc::after {\r\n    content: \"\\f0d8\";\r\n}\r\n\r\n.sb-view-layout-list table tr {\r\n    cursor: pointer;\r\n}\r\n\r\n.sb-view-header-list {\r\n    position: relative;\r\n    max-height: 112px;\r\n    /*\r\n    height: 112px;\r\n    line-height: 112px;\r\n    */\r\n}\r\n\r\n.sb-view-header-list-actions {\r\n    margin-left: 12px;\r\n    max-height: 56px;\r\n    line-height: 56px;\r\n}\r\n\r\n.sb-view-header-list-actions button {\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-header-list-actions-selected {\r\n    position: relative;\r\n    display: inline-block;\r\n    margin-left: 12px;\r\n}\r\n/* todo: improve this (add a custom class)*/\r\n.sb-view-header-list-actions-selected .mdc-button__label {\r\n    padding-right: 10px;\r\n}\r\n\r\n.sb-view-header-list-actions-selected .mdc-button__label::after {\r\n    content: \"\\f0d7\";\r\n}\r\n\r\n.sb-view-header-list-actions-selected .mdc-button__label::after {\r\n    position: absolute;\r\n    margin-left: 6px;\r\n    font-family: FontAwesome;\r\n    opacity: 0.5;\r\n}\r\n\r\n.sb-view-header-list-navigation {\r\n    height: 56px;\r\n    line-height: 56px;\r\n    display: flex;\r\n}\r\n\r\n.sb-view-header-list-filters {\r\n    margin-top: 4px;\r\n}\r\n\r\n.sb-view-header-list-filters .sb-view-header-list-filters-menu {\r\n    min-width: 250px;\r\n}\r\n\r\n.sb-view-header-list-filters-set {\r\n    margin-top: 4px;\r\n}\r\n\r\n\r\n.sb-view-header-list-fields_toggle {\r\n    /* flex-grow: 1; */\r\n    margin-top: 4px;\r\n    margin-right: 10px;\r\n    text-align: right;\r\n}\r\n\r\n\r\n.sb-view-header-list-fields_toggle .sb-view-header-list-fields_toggle-menu {\r\n    min-width: 250px;\r\n    max-width: 250px;\r\n    right: 0 !important;\r\n    left: unset !important;\r\n}\r\n\r\n.sb-view-header-list-pagination {\r\n    flex: 1;\r\n    flex-grow: 1;\r\n\r\n}\r\n\r\n.sb-view-header-list-pagination-limit_select {\r\n    margin-left: 12px;\r\n}\r\n\r\n.sb-view-header-list-pagination .pagination-navigation {\r\n    user-select: none; \r\n}\r\n\r\n\r\n.sb-widget-mode-view input {\r\n    color: black !important;\r\n    user-select: none;\r\n}\r\n\r\n.sb-widget-mode-view .mdc-text-field .mdc-floating-label,\r\n.sb-widget-mode-view.mdc-select .mdc-floating-label {\r\n    color: rgba(0,0,0,0.5) !important;\r\n    user-select: none;\r\n    font-size: 16px;\r\n    font-weight: 400;\r\n}\r\n\r\n.sb-widget-mode-edit .mdc-text-field .mdc-floating-label, \r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label {\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n}\r\n\r\n.sb-widget-mode-view .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above, \r\n.sb-widget-mode-view.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n}\r\n\r\n.sb-widget-mode-edit .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above, \r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.6) !important;\r\n    font-weight: 400;\r\n}\r\n\r\n\r\n.sb-view-header-form {\r\n    height: 56px;\r\n    line-height: 56px;\r\n}\r\n\r\n.sb-view-header-form-actions {\r\n    display: flex;\r\n    flex-direction: row;\r\n    align-items: center;\r\n    margin-left: 12px;\r\n    max-width: 250px;\r\n    height: 56px;\r\n    line-height: 56px;\r\n}\r\n\r\n.sb-view-header-form-actions button {\r\n    flex: 0 1 auto;\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-form-group {\r\n    padding: 12px;\r\n}\r\n\r\n.sb-view-form-row:not(:first-child) {\r\n    padding-top: 24px;\r\n}\r\n\r\n.sb-view-form-group-title {\r\n    font-size: 20px;\r\n    margin-bottom: 12px;\r\n}\r\n\r\n.sb-view-form-sections-tabbar {\r\n    margin-bottom: 12px;\r\n}\r\n\r\n.sb-view-layout-list .mdc-line-ripple::before, .sb-view-layout-list .mdc-line-ripple::after {\r\n  border: none !important;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget label.mdc-text-field .mdc-floating-label {\r\n    display: none !important;\r\n}\r\n.sb-view-layout-list .sb-widget-mode-view label.mdc-text-field::before {\r\n    display: none !important;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget-mode-view input {\r\n    height: 100%;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget-mode-edit button.mdc-icon-button {\r\n    padding: 0 0 0 5px;\r\n    height: auto;\r\n    width: auto;\r\n    position: absolute;\r\n}\r\n\r\n.sb-view-layout-form-input-button {\r\n    width: 25px;\r\n    height: 30px;\r\n    position: absolute;\r\n    right: 12px;\r\n    top: calc(50% - 15px);\r\n}\r\n\r\n.sb-view-layout-form-input-decoy {\r\n    position: absolute;\r\n    left: 16px;\r\n    bottom: 10px;\r\n    z-index: -1;\r\n    opacity: 0;\r\n}\r\n\r\n\r\n.sb-widget {\r\n    position: relative;\r\n}\r\n\r\n.sb-ui-checkbox {\r\n    position: relative;\r\n}\r\n\r\n.sb-ui-menu.mdc-menu-surface--is-open-below {\r\n    margin-top: 48px;\r\n}\r\n\r\n.sb-ui-menu.mdc-menu-surface--open {\r\n    margin-bottom: 48px;\r\n}\r\n\r\n\r\n/* Material Components customizations */\r\n\r\n\r\n/* Special SB widgets customizations */\r\n\r\n/* support for title strings */\r\n.sb-widget.title {\r\n    margin-top: -14px; \r\n}\r\n\r\n.sb-widget.title span.mdc-floating-label--float-above {\r\n    transform: translateY(-166%) !important;\r\n}\r\n.sb-widget.title label.mdc-text-field {\r\n  height: 70px;\r\n}\r\n.sb-widget.title input.mdc-text-field__input {\r\n  font-size: 30px;\r\n  margin-top: auto; \r\n  height: 60px;\r\n}\r\n\r\n.sb-view-layout-form .sb-widget.sb-widget-type-boolean {\r\n    height: 56px;\r\n    vertical-align: middle;\r\n    display: table-cell;\r\n    padding-left: 16px;\r\n}\r\n\r\n\r\n/* adapt inputs for inline editing */\r\n.sb-widget-cell .mdc-text-field {\r\n  height: 100%;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field {\r\n    padding-left: 0;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-text-field {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    padding-left: 5px;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-select__anchor {\r\n    padding-left: 5px;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field-helper-line {\r\n  display: none;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--filled::before {\r\n  display: none;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--filled:not(.mdc-text-field--disabled) {\r\n    background-color: inherit;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-text-field--filled:not(.mdc-text-field--disabled) {\r\n    background-color: white;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--invalid .mdc-text-field__input {\r\n    color: var(--mdc-theme-error, #b00020);\r\n}\r\n\r\n.sb-widget-cell .mdc-select {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    margin-top: -14px;\r\n}\r\n\r\n.sb-widget-cell .mdc-select {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    margin-top: -14px;\r\n}\r\n\r\n\r\n.sb-widget-cell .mdc-select__anchor {\r\n    height: 100%;\r\n}\r\n\r\n/* make mini-fab flat (mini save buttons) */ \r\n.sb-view-layout-list-row-checkbox .mdc-fab--mini {\r\n    box-shadow: none !important;\r\n    margin: 2px 0;\r\n}\r\n\r\n.mdc-data-table {\r\n    height: 100%;\r\n}\r\n\r\n\r\n.mdc-data-table__table-container::-webkit-scrollbar {\r\n    width: 4px;\r\n    overflow-y: scroll;\r\n    background: #EAEAEA;\r\n\r\n}\r\n\r\n.mdc-data-table__table-container::-webkit-scrollbar-thumb {\r\n    background: var(--mdc-theme-primary, #6200ee);\r\n    border-radius: 10px;\r\n}\r\n\r\n\r\n\r\n/* custom style for special button with icon only */\r\n.mdc-button-icon {\r\n\tmin-width: 36px;\r\n}\r\n\r\n.mdc-button-icon  .mdc-button__ripple {\r\n\tborder-radius: 50%;\r\n    width: 36px;\r\n}\r\n\r\n\r\n\r\n.mdc-menu {\r\n    min-width: var(--mdc-menu-min-width, 200px) !important;\r\n    max-width: calc(100vw - 32px) !important;\r\n}\r\n\r\n.mdc-text-field:not(.mdc-text-field--disabled) .mdc-text-field__icon {\r\n    color: rgba(0,0,0,.54);\r\n    background-color: white;\r\n}\r\n\r\n.mdc-text-field--focused .mdc-text-field-helper-line .mdc-text-field-helper-text {\r\n    opacity: 1 !important;\r\n}\r\n\r\n.mdc-text-field--with-trailing-icon .mdc-text-field__icon {\r\n    left: initial;\r\n    right: 12px;\r\n}\r\n\r\n.mdc-text-field--with-leading-icon .mdc-text-field__icon, .mdc-text-field--with-trailing-icon .mdc-text-field__icon {\r\n    position: absolute;\r\n    top: 50%;\r\n    transform: translateY(-50%);\r\n    cursor: pointer;\r\n}\r\n\r\n.mdc-text-field--textarea {\r\n    outline: solid 1px rgba(0, 0,0,0.1);\r\n}\r\n\r\n.sb-view-layout.sb-view-layout-form .mdc-text-field--filled:not(.mdc-text-field--disabled), .mdc-select--filled:not(.mdc-select--disabled) .mdc-select__anchor {\r\n    background: transparent !important;\r\n}\r\n\r\n.mdc-layout-grid__cell {\r\n    position: relative;\r\n}\r\n\r\n.mdc-text-field-helper-line {\r\n    position: absolute;\r\n    width: 100%;\r\n    max-width: 100%;\r\n    padding-left: 0 !important;    \r\n    padding-right: 0 !important;    \r\n}\r\n\r\n.mdc-data-table__header-cell--checkbox {\r\n    width: 44px;\r\n}\r\n.mdc-data-table__row--selected {\r\n    background-color: var(--mdc-theme-primary-selected) !important;\r\n}\r\n.mdc-list-item .mdc-checkbox {\r\n    margin-left: -11px;\r\n}\r\n\r\n.mdc-list-item__graphic {\r\n    color: rgba(0,0,0,.54) !important;\r\n    margin-right: 12px;\r\n}\r\n\r\n.mdc-list-item__text {\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;    \r\n}\r\n\r\n.mdc-chip .mdc-chip__icon {\r\n    font-size: 22px;\r\n    height: 22px;\r\n}\r\n\r\n.mdc-list-item {\r\n    height: 44px;\r\n    align-items: center !important;\r\n}\r\n\r\n.mdc-data-table__cell {\r\n    height: 44px;\r\n}\r\n\r\n\r\n.mdc-data-table__pagination {\r\n    border-top: 0;\r\n}\r\n\r\n.mdc-text-field {\r\n    width: 100%;\r\n}\r\n\r\n.mdc-floating-label {\r\n    font-size: 16px !important;\r\n    /* color: rgba(0, 0, 0, 0.8) !important;*/\r\n}\r\n\r\n\r\n.mdc-text-field-helper-line .mdc-text-field-helper-text {\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n\r\n.mdc-text-field--invalid:not(.mdc-text-field--disabled) .mdc-text-field-helper-line .mdc-text-field-helper-text--validation-msg {\r\n    color: var(--mdc-theme-error, #b00020) !important;\r\n}\r\n\r\n.mdc-text-field--focused:not(.mdc-text-field--disabled) .mdc-floating-label {\r\n    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;\r\n}\r\n\r\n.mdc-select--focused:not(.mdc-text-field--disabled) .mdc-floating-label {\r\n    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;\r\n}\r\n\r\n.mdc-select {\r\n    width: 100%;\r\n}\r\n\r\n.mdc-tab {\r\n    max-width: 280px;\r\n}\r\n\r\n.mdc-tab-bar {\r\n    margin-top: 12px;\r\n    border-bottom: 1px solid rgba(0, 0, 0, 0.12);\r\n}\r\n\r\n.mdc-tab__text-label {\r\n    user-select: none;\r\n}\r\n.mdc-tab.mdc-tab--active .mdc-tab__ripple {\r\n    background-color: var(--mdc-ripple-color, var(--mdc-theme-primary, #6200ee));\r\n    opacity: 0.1;\r\n}\r\n\r\n\r\n\r\n/* jqueryui datepicker material styling */\r\n\r\n\r\n.ui-datepicker {\r\n    z-index: 3 !important;\r\n    font-family: \"Roboto\";\r\n}\r\n\r\n.ui-datepicker {\r\n    padding: 0;\r\n    border: none;  \r\n    width: 325px;\r\n    box-shadow: 4px 4px 10px 2px rgba(0, 0, 0, 0.24);\r\n    margin-left: -16px;\r\n    margin-top: 6px;\r\n    font-size: 14px;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-title {\r\n    font-size: 17px;\r\n}\r\n\r\n.ui-datepicker-trigger {\r\n    position: absolute;\r\n    right: 12px;\r\n    top: 50%;\r\n    opacity: 0;\r\n    margin-top: -10px;\r\n    cursor: pointer;\r\n}\r\n\r\n.ui-corner-all {\r\n  border-radius: 0;\r\n}\r\n\r\n.ui-widget-header {\r\n  border: 0;\r\n}\r\n\r\n.ui-datepicker-header {\r\n  text-align: center;\r\n  background: white;\r\n  padding-bottom: 15px;\r\n  font-weight: 300;\r\n}\r\n.ui-datepicker-header .ui-datepicker-prev,\r\n.ui-datepicker-header .ui-datepicker-next,\r\n.ui-datepicker-header .ui-datepicker-title {\r\n  border: none;\r\n  outline: none;\r\n  margin: 5px;\r\n}\r\n\r\n.ui-datepicker-prev.ui-state-hover,\r\n.ui-datepicker-next.ui-state-hover {\r\n  border: none;\r\n  outline: none;\r\n  background: #b4cbe5;\r\n}\r\n\r\n.ui-datepicker .ui-state-default {\r\n  background: none;\r\n  border: none;\r\n  text-align: center;\r\n  height: 33px;\r\n  width: 33px;\r\n  line-height: 30px;\r\n}\r\n.ui-datepicker .ui-state-highlight {\r\n  color: var(--mdc-theme-primary);\r\n}\r\n.ui-datepicker .ui-state-active {\r\n  color: white;\r\n}\r\n\r\n\r\n\r\n.ui-datepicker-calendar thead th {\r\n    color: #999999;\r\n    font-weight: 200;\r\n}\r\n\r\n.ui-datepicker-buttonpane {\r\n  border: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-state-default {\r\n  background: white;\r\n  border: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-datepicker-close,\r\n.ui-datepicker-buttonpane .ui-datepicker-current {\r\n  background: white;\r\n  color: #284B72;\r\n  text-transform: uppercase;\r\n  border: none;\r\n  opacity: 1;\r\n  font-weight: 200;\r\n  outline: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-datepicker-close:hover,\r\n.ui-datepicker-buttonpane .ui-datepicker-current:hover {\r\n  background: #b4cbe5;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev {\r\n    text-decoration: none;\r\n    height: auto !important;\r\n    width: auto !important;\r\n\tleft: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-next {\r\n    text-decoration: none;\r\n    height: auto !important;\r\n    width: auto !important;\r\n\tright: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev .ui-icon, .ui-datepicker .ui-datepicker-next .ui-icon {\r\n    display: none !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev::after {\r\n    font-family: FontAwesome;\r\n\tcontent: \"\\f053\";\r\n\tdisplay: block;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-next::after {\r\n    font-family: FontAwesome;\r\n\tcontent: \"\\f054\";\r\n\tdisplay: block;\r\n}\r\n\r\n\r\n.ui-datepicker .ui-datepicker-prev.ui-state-hover, .ui-datepicker .ui-datepicker-next.ui-state-hover {\r\n    background: none;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev-hover {\r\n\tleft: 8px !important;\r\n    top: 8px !important;\r\n}\r\n.ui-datepicker .ui-datepicker-next-hover {\r\n\tright: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n\r\n\r\n\r\n\r\nbutton.ui-state-hover {\r\n    background: unset !important;\r\n    background-color: var(--mdc-theme-primary-hover) !important;\r\n    border: unset !important;\r\n    color: white !important;\r\n    box-shadow: 0px 3px 1px -2px rgb(0 0 0 / 20%), 0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%) !important;\r\n}\r\n\r\n\r\n\r\n/* jquery ui datepicker month year picker */\r\n.ui-datepicker .ui-datepicker-select-month td ,\r\n.ui-datepicker .ui-datepicker-select-year td {\r\n\theight: 33px;\r\n}\r\n.ui-datepicker .ui-datepicker-select-month td span,\r\n.ui-datepicker .ui-datepicker-select-month td a,\r\n.ui-datepicker .ui-datepicker-select-year td span,\r\n.ui-datepicker .ui-datepicker-select-year td a  {\r\n\ttext-align: center;\r\n}\r\n.ui-datepicker .ui-datepicker-select-year td.outoffocus {\r\n\topacity: 0.5;\r\n}\r\n\r\n.ui-datepicker-select-month .ui-state-default, .ui-datepicker-select-year .ui-state-default {\r\n    margin: auto;\r\n}\r\n\r\n.ui-datepicker td {\r\n    font-size: 14px !important;\r\n}\r\n\r\n.ui-datepicker .ui-state-default, .ui-datepicker .ui-state-active {\r\n    position: relative;\r\n    border: 0 !important;\r\n    background: none !important;\r\n}\r\n\r\n.ui-datepicker .ui-state-active::after {\r\n    position: absolute;\r\n    display: block;\r\n    content: '';\r\n    background-color:var(--mdc-theme-primary);\r\n    border-radius: 50%;\r\n    width: 34px;\r\n    height: 34px;\r\n    z-index: -1;\r\n    top: 0;\r\n    left: calc(50% - 16px)\r\n}\r\n\r\n\r\n.ui-datepicker .ui-state-default:not(.ui-state-active).ui-state-hover::after {\r\n    position: absolute;\r\n    display: block;\r\n    content: '';\r\n    background-color: rgba(0,0,0,0.05);\r\n    border-radius: 50%;\r\n    width: 34px;\r\n    height: 34px;\r\n    z-index: -1;\r\n    top: 0;\r\n    left: calc(50% - 16px)\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header {\r\n    display: flex;\r\n    align-items: center;\r\n    padding: 4px 24px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header .ui-datepicker-title {\r\n    flex: 1;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header-time-switch {\r\n    flex: 1;\r\n    line-height: 100%;\r\n    height: 100%;\r\n    align-self: center;\r\n}\r\n\r\n\r\n.timepicker{\r\n    display:block;\r\n    user-select:none;\r\n    margin:0 auto;\r\n    width:100%;\r\n    height:100%;\r\n    font-size:14px;\r\n}\r\n.timepicker__title{background-image:-webkit-linear-gradient(top,#fff 0,#f2f2f2 100%);position:relative;background:#f2f2f2;margin:0 auto;border-bottom:1px solid #e5e5e5;padding:12px 11px 10px 15px;color:#4C4C4C;font-size:inherit}\r\n.timepicker__close{-webkit-transform:translateY(-25%);-moz-transform:translateY(-25%);-ms-transform:translateY(-25%);-o-transform:translateY(-25%);transform:translateY(-25%);position:absolute;top:25%;right:10px;color:#34495e;cursor:pointer}\r\n.timepicker__close:before{content:'\\00d7'}\r\n.timepicker__controls{padding:10px 0;line-height:normal;margin:0}\r\n.timepicker__controls__control,.timepicker__controls__control--separator{vertical-align:middle;display:inline-block;font-size:inherit;margin:0 auto;width:35px;letter-spacing:1.3px}\r\n.timepicker__controls__control-down,.timepicker__controls__control-up{color:#34495e;position:relative;display:block;margin:3px auto;font-size:18px;cursor:pointer}\r\n.timepicker__controls__control-up:before{content:'\\f0d8'}\r\n.timepicker__controls__control-down:after{content:'\\f0d7'}\r\n.timepicker__controls__control--separator{width:5px}\r\n.text-center,.timepicker__controls,.timepicker__controls__control,.timepicker__controls__control--separator,.timepicker__controls__control-down,.timepicker__controls__control-up,.timepicker__title{text-align:center}\r\n.hover-state{color:#3498db}\r\n \r\n.fontello-after:after,.fontello:before,.timepicker__controls__control-down:after,.timepicker__controls__control-up:before{font-family:FontAwesome;font-style:normal;font-weight:400;display:inline-block;text-decoration:inherit;width:1em;margin-right:.2em;text-align:center;font-variant:normal;text-transform:none;line-height:1em;margin-left:.2em;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}  \r\n.clearable-picker{position:relative;display:inline-block}  \r\n.clearable-picker>.hastimepicker{padding-right:1em}  \r\n.clearable-picker>.hastimepicker::-ms-clear{display:none}  \r\n.clearable-picker>[data-clear-picker]{position:absolute;top:50%;right:0;transform:translateY(-50%);font-weight:700;font-size:.8em;padding:0 .3em .2em;line-height:1;color:#bababa;cursor:pointer}  \r\n.clearable-picker>[data-clear-picker]:hover{color:#a1a1a1}\r\n.timepicker__controls__control span {\r\n    outline: none;\r\n}"],"sourceRoot":""}]);
+___CSS_LOADER_EXPORT___.push([module.id, ":root {\r\n    /* colored buttons */\r\n    --mdc-theme-primary: #3f51b5;\r\n    --mdc-theme-primary-hover: #4f61c5;\r\n\r\n    --mdc-theme-primary-selected: #f5f5ff;\r\n    --mdc-theme-primary-outline: #b1b1dc;\r\n\r\n    /* checkbox background */\r\n    --mdc-theme-secondary: #3f51b5;\r\n    /* menus */\r\n    --mdc-typography-subtitle1-font-size: 14px;\r\n    /* table headers */\r\n    --mdc-typography-subtitle2-font-weight: 600;\r\n\r\n\r\n    --mdc-layout-grid-margin-desktop: 12px;\r\n    --mdc-layout-grid-gutter-desktop: 24px;\r\n    --mdc-layout-grid-margin-tablet: 12px;\r\n    --mdc-layout-grid-gutter-tablet: 18px;\r\n    --mdc-layout-grid-margin-phone: 12px;\r\n    --mdc-layout-grid-gutter-phone: 16px;\r\n\r\n}\r\n    \r\nbody, html {\r\n    margin: 0;\r\n    padding: 0;\r\n    height:100%;\r\n}\r\n\r\n#sb-root {\r\n    display: flex;\r\n    height: 100%;\r\n    flex-flow: column nowrap;\r\n}\r\n\r\n#sb-menu .sb-menu-button {\r\n    display: inline-block;\r\n}\r\n\r\n#sb-container {\r\n    width: 100%;\r\n    height: 100%;\r\n    overflow: hidden;\r\n    flex: 1 1 100%;\r\n    box-sizing: border-box;\r\n}\r\n\r\n.sb-container-header {\r\n    padding-left: 12px;\r\n    height: 48px;\r\n    border-bottom: solid 1px lightgrey;\r\n}\r\n\r\n.sb-container-header h3 {\r\n    line-height: 48px;\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n.sb-container-header a {\r\n    cursor: pointer;\r\n    text-decoration: none;\r\n    color: var(--mdc-theme-primary);\r\n}\r\n\r\n.sb-container-header a:hover {\r\n\r\n}\r\n\r\n.sb-context {\r\n    /* container height minus the header */\r\n    height: calc(100% - 48px);\r\n}\r\n\r\n.sb-view { \r\n    position: relative;\r\n    height: 100%;\r\n}\r\n\r\n.sb-view-layout-list {\r\n    /* height must be decremented by height of other elements from parent (header and footer) */\r\n    height: calc(100% - 112px);\r\n}\r\n\r\n.sb-view-layout-form {\r\n    /* height must be decremented by height of other elements from parent (header and footer) */\r\n    height: calc(100% - 56px);\r\n    padding-bottom: 10px;\r\n}\r\n\r\n.sb-view-list-inline-actions-button {\r\n    transform: scale(0.7);\r\n}\r\n\r\n.sb-layout {\r\n    position: relative;\r\n    height: 100%;\r\n}\r\n\r\n\r\n\r\n\r\n.sb-view-layout-list table th {\r\n    cursor: pointer;\r\n    user-select: none;\r\n    position: sticky;\r\n    top: 0;\r\n    z-index: 3;\r\n}\r\n\r\n.sb-view-layout-list table th.sortable.hover {\r\n    background-color: #f0f0f0;\r\n}\r\n\r\n.sb-view-layout-list table th.sorted {\r\n    color: black;\r\n}\r\n\r\n.sb-view-layout-list table th.asc::after, .sb-view-layout-list table th.desc::after {\r\n    position: absolute;\r\n    margin-left: 6px;\r\n    font-family: FontAwesome;\r\n    opacity: 0.3;\r\n}\r\n\r\n.sb-view-layout-list table th.asc::after {\r\n    content: \"\\f0d7\";\r\n}\r\n\r\n.sb-view-layout-list table th.desc::after {\r\n    content: \"\\f0d8\";\r\n}\r\n\r\n.sb-view-layout-list table tr {\r\n    cursor: pointer;\r\n}\r\n\r\n.sb-view-header-list {\r\n    position: relative;\r\n    max-height: 112px;\r\n    /*\r\n    height: 112px;\r\n    line-height: 112px;\r\n    */\r\n}\r\n\r\n.sb-view-header-list-actions {\r\n    margin-left: 12px;\r\n    max-height: 56px;\r\n}\r\n\r\n.sb-view-header-list-actions-set {\r\n    display: flex;\r\n    margin-top: 10px;\r\n}\r\n\r\n.sb-view-header-list-actions button {\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-header-list-actions-selected {\r\n    position: relative;\r\n    display: flex;\r\n}\r\n\r\n/* todo: improve this (add a custom class)*/\r\n.sb-view-header-list-actions-selected .mdc-button__label {\r\n    padding-right: 10px;\r\n}\r\n\r\n.sb-view-header-list-actions-selected .mdc-button__label::after {\r\n    content: \"\\f0d7\";\r\n}\r\n\r\n.sb-view-header-list-actions-selected .mdc-button__label::after {\r\n    position: absolute;\r\n    margin-left: 6px;\r\n    font-family: FontAwesome;\r\n    opacity: 0.5;\r\n}\r\n\r\n.sb-view-header-list-navigation {\r\n    height: 56px;\r\n    line-height: 56px;\r\n    display: flex;\r\n}\r\n\r\n.sb-view-header-list-filters {\r\n    margin-top: 4px;\r\n}\r\n\r\n.sb-view-header-list-filters .sb-view-header-list-filters-menu {\r\n    min-width: 250px;\r\n}\r\n\r\n.sb-view-header-list-filters-set {\r\n    margin-top: 4px;\r\n}\r\n\r\n\r\n.sb-view-header-list-fields_toggle {\r\n    /* flex-grow: 1; */\r\n    margin-top: 4px;\r\n    margin-right: 10px;\r\n    text-align: right;\r\n}\r\n\r\n\r\n.sb-view-header-list-fields_toggle .sb-view-header-list-fields_toggle-menu {\r\n    min-width: 250px !important;\r\n    max-width: 250px !important;\r\n}\r\n\r\n.sb-view-header-list-pagination {\r\n    flex: 1;\r\n    flex-grow: 1;\r\n\r\n}\r\n\r\n.sb-view-header-list-pagination-limit_select {\r\n    margin-left: 12px;\r\n}\r\n\r\n.sb-view-header-list-pagination .pagination-navigation {\r\n    user-select: none; \r\n}\r\n\r\n\r\n.sb-widget-mode-view input {\r\n    color: black !important;\r\n    user-select: none;\r\n}\r\n\r\n.sb-widget-mode-view .mdc-text-field .mdc-floating-label,\r\n.sb-widget-mode-view.mdc-select .mdc-floating-label {\r\n    color: rgba(0,0,0,0.5) !important;\r\n    user-select: none;\r\n    font-size: 16px;\r\n    font-weight: 400;\r\n}\r\n\r\n.sb-widget-mode-edit .mdc-text-field .mdc-floating-label, \r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label {\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n}\r\n\r\n.sb-widget-mode-view .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above, \r\n.sb-widget-mode-view.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n}\r\n\r\n.sb-widget-mode-edit .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above, \r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.6) !important;\r\n    font-weight: 400;\r\n}\r\n\r\n\r\n.sb-view-header-form {\r\n    height: 56px;\r\n    line-height: 56px;\r\n}\r\n\r\n.sb-view-header-form-actions {\r\n    display: flex;\r\n    flex-direction: row;\r\n    align-items: center;\r\n    margin-left: 12px;\r\n    max-width: 250px;\r\n    height: 56px;\r\n    line-height: 56px;\r\n}\r\n\r\n.sb-view-header-form-actions button {\r\n    flex: 0 1 auto;\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-form-group {\r\n    padding: 12px;\r\n}\r\n\r\n.sb-view-form-row:not(:first-child) {\r\n    padding-top: 24px;\r\n}\r\n\r\n.sb-view-form-group-title {\r\n    font-size: 20px;\r\n    margin-bottom: 12px;\r\n}\r\n\r\n.sb-view-form-sections-tabbar {\r\n    margin-bottom: 12px;\r\n}\r\n\r\n.sb-view-layout-list .mdc-line-ripple::before, .sb-view-layout-list .mdc-line-ripple::after {\r\n  border: none !important;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget label.mdc-text-field .mdc-floating-label {\r\n    display: none !important;\r\n}\r\n.sb-view-layout-list .sb-widget-mode-view label.mdc-text-field::before {\r\n    display: none !important;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget-mode-view input {\r\n    height: 100%;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget-mode-edit button.mdc-icon-button {\r\n    padding: 0 0 0 5px;\r\n    height: auto;\r\n    width: auto;\r\n    position: absolute;\r\n}\r\n\r\n.sb-view-layout-form-input-button {\r\n    width: 25px;\r\n    height: 30px;\r\n    position: absolute;\r\n    right: 12px;\r\n    top: calc(50% - 15px);\r\n}\r\n\r\n.sb-view-layout-form-input-decoy {\r\n    position: absolute;\r\n    left: 16px;\r\n    bottom: 10px;\r\n    z-index: -1;\r\n    opacity: 0;\r\n}\r\n\r\n\r\n.sb-widget {\r\n    position: relative;\r\n}\r\n\r\n.sb-ui-checkbox {\r\n    position: relative;\r\n}\r\n\r\n.sb-ui-menu.mdc-menu-surface--is-open-below {\r\n    margin-top: 48px;\r\n}\r\n\r\n.sb-ui-menu.mdc-menu-surface--open {\r\n    margin-bottom: 48px;\r\n}\r\n\r\n\r\n/* Material Components customizations */\r\n\r\n/* fix for ripple not working on icon-button */\r\nbutton.mdc-icon-button:hover, button.mdc-icon-button:active, button.mdc-icon-button:focus {\r\n    border-radius: 50%;\r\n    background-color: rgba(0,0,0,0.10);\r\n}\r\n\r\n/* fix tooltip not hiding */\r\n.mdc-tooltip--hide {\r\n    opacity: 0;\r\n}\r\n\r\n/* Special SB widgets customizations */\r\n\r\n/* support for title strings */\r\n.sb-widget.title {\r\n    margin-top: -14px; \r\n}\r\n\r\n.sb-widget.title span.mdc-floating-label--float-above {\r\n    transform: translateY(-166%) !important;\r\n}\r\n.sb-widget.title label.mdc-text-field {\r\n  height: 70px;\r\n}\r\n.sb-widget.title input.mdc-text-field__input {\r\n  font-size: 30px;\r\n  margin-top: auto; \r\n  height: 60px;\r\n}\r\n\r\n.sb-view-layout-form {\r\n    overflow-y: scroll;\r\n}\r\n\r\n\r\n.sb-view-layout-form::-webkit-scrollbar {\r\n    width: 6px;\r\n    overflow-y: scroll;\r\n    background: #EAEAEA;\r\n\r\n}\r\n\r\n.sb-view-layout-form::-webkit-scrollbar-thumb {\r\n    background: var(--mdc-theme-primary, #6200ee);\r\n    border-radius: 10px;\r\n}\r\n\r\n\r\n.sb-view-layout-form .sb-widget.sb-widget-type-boolean {\r\n    height: 56px;\r\n    vertical-align: middle;\r\n    display: table-cell;\r\n    padding-left: 16px;\r\n}\r\n\r\n\r\n/* adapt inputs for inline editing */\r\n.sb-widget-cell .mdc-text-field {\r\n  height: 100%;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field {\r\n    padding-left: 0;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-text-field {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    padding-left: 5px;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-select__anchor {\r\n    padding-left: 5px;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field-helper-line {\r\n  display: none;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--filled::before {\r\n  display: none;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--filled:not(.mdc-text-field--disabled) {\r\n    background-color: inherit;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-text-field--filled:not(.mdc-text-field--disabled) {\r\n    background-color: white;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--invalid .mdc-text-field__input {\r\n    color: var(--mdc-theme-error, #b00020);\r\n}\r\n\r\n.sb-widget-cell .mdc-select {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    margin-top: -14px;\r\n}\r\n\r\n.sb-widget-cell .mdc-select {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    margin-top: -14px;\r\n}\r\n\r\n\r\n.sb-widget-cell .mdc-select__anchor {\r\n    height: 100%;\r\n}\r\n\r\n/* make mini-fab flat (mini save buttons) */ \r\n.sb-view-layout-list-row-checkbox .mdc-fab--mini {\r\n    box-shadow: none !important;\r\n    margin: 2px 0;\r\n}\r\n\r\n.mdc-data-table {\r\n    height: 100%;\r\n}\r\n\r\n\r\n.mdc-data-table__table-container::-webkit-scrollbar {\r\n    width: 6px;\r\n    overflow-y: scroll;\r\n    background: #EAEAEA;\r\n\r\n}\r\n\r\n.mdc-data-table__table-container::-webkit-scrollbar-thumb {\r\n    background: var(--mdc-theme-primary, #6200ee);\r\n    border-radius: 10px;\r\n}\r\n\r\n\r\n\r\n/* custom style for special button with icon only */\r\n.mdc-button-icon {\r\n\tmin-width: 36px;\r\n}\r\n\r\n.mdc-button-icon  .mdc-button__ripple {\r\n\tborder-radius: 50%;\r\n    width: 36px;\r\n}\r\n\r\n\r\n\r\n.mdc-menu {\r\n    min-width: var(--mdc-menu-min-width, 200px) !important;\r\n    max-width: calc(100vw - 32px) !important;\r\n}\r\n\r\n.mdc-text-field:not(.mdc-text-field--disabled) .mdc-text-field__icon {\r\n    color: rgba(0,0,0,.54);\r\n    background-color: white;\r\n}\r\n\r\n.mdc-text-field--focused .mdc-text-field-helper-line .mdc-text-field-helper-text {\r\n    opacity: 1 !important;\r\n}\r\n\r\n.mdc-text-field--with-trailing-icon .mdc-text-field__icon {\r\n    left: initial;\r\n    right: 12px;\r\n}\r\n\r\n.mdc-text-field--with-leading-icon .mdc-text-field__icon, .mdc-text-field--with-trailing-icon .mdc-text-field__icon {\r\n    position: absolute;\r\n    top: 50%;\r\n    transform: translateY(-50%);\r\n    cursor: pointer;\r\n}\r\n\r\n.mdc-text-field--textarea {\r\n    outline: solid 1px rgba(0, 0,0,0.1);\r\n}\r\n\r\n.sb-view-layout.sb-view-layout-form .mdc-text-field--filled:not(.mdc-text-field--disabled), .mdc-select--filled:not(.mdc-select--disabled) .mdc-select__anchor {\r\n    background: transparent !important;\r\n}\r\n\r\n.mdc-layout-grid__cell {\r\n    position: relative;\r\n}\r\n\r\n.mdc-text-field-helper-line {\r\n    position: absolute;\r\n    width: 100%;\r\n    max-width: 100%;\r\n    padding-left: 0 !important;    \r\n    padding-right: 0 !important;    \r\n}\r\n\r\n.mdc-data-table__header-cell--checkbox {\r\n    width: 44px;\r\n}\r\n.mdc-data-table__row--selected {\r\n    background-color: var(--mdc-theme-primary-selected) !important;\r\n}\r\n.mdc-list-item .mdc-checkbox {\r\n    margin-left: -11px;\r\n}\r\n\r\n.mdc-list-item__graphic {\r\n    color: rgba(0,0,0,.54) !important;\r\n    margin-right: 12px;\r\n}\r\n\r\n.mdc-list-item__text {\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;    \r\n}\r\n\r\n.mdc-chip .mdc-chip__icon {\r\n    font-size: 22px;\r\n    height: 22px;\r\n}\r\n\r\n.mdc-list-item {\r\n    height: 44px;\r\n    align-items: center !important;\r\n}\r\n\r\n.mdc-data-table__cell {\r\n    height: 44px;\r\n}\r\n\r\n\r\n.mdc-data-table__pagination {\r\n    border-top: 0;\r\n}\r\n\r\n.mdc-text-field {\r\n    width: 100%;\r\n}\r\n\r\n.mdc-floating-label {\r\n    font-size: 16px !important;\r\n    /* color: rgba(0, 0, 0, 0.8) !important;*/\r\n}\r\n\r\n\r\n.mdc-text-field-helper-line .mdc-text-field-helper-text {\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n\r\n.mdc-text-field--invalid:not(.mdc-text-field--disabled) .mdc-text-field-helper-line .mdc-text-field-helper-text--validation-msg {\r\n    color: var(--mdc-theme-error, #b00020) !important;\r\n}\r\n\r\n.mdc-text-field--focused:not(.mdc-text-field--disabled) .mdc-floating-label {\r\n    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;\r\n}\r\n\r\n.mdc-select--focused:not(.mdc-text-field--disabled) .mdc-floating-label {\r\n    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;\r\n}\r\n\r\n.mdc-select {\r\n    width: 100%;\r\n}\r\n\r\n.mdc-tab {\r\n    max-width: 280px;\r\n}\r\n\r\n.mdc-tab-bar {\r\n    margin-top: 12px;\r\n    border-bottom: 1px solid rgba(0, 0, 0, 0.12);\r\n}\r\n\r\n.mdc-tab__text-label {\r\n    user-select: none;\r\n}\r\n.mdc-tab.mdc-tab--active .mdc-tab__ripple {\r\n    background-color: var(--mdc-ripple-color, var(--mdc-theme-primary, #6200ee));\r\n    opacity: 0.1;\r\n}\r\n\r\n\r\n\r\n/* jqueryui datepicker material styling */\r\n\r\n\r\n.ui-datepicker {\r\n    z-index: 3 !important;\r\n    font-family: \"Roboto\";\r\n}\r\n\r\n.ui-datepicker {\r\n    padding: 0;\r\n    border: none;  \r\n    width: 325px;\r\n    box-shadow: 4px 4px 10px 2px rgba(0, 0, 0, 0.24);\r\n    margin-left: -16px;\r\n    margin-top: 6px;\r\n    font-size: 14px;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-title {\r\n    font-size: 17px;\r\n}\r\n\r\n.ui-datepicker-trigger {\r\n    position: absolute;\r\n    right: 12px;\r\n    top: 50%;\r\n    opacity: 0;\r\n    margin-top: -10px;\r\n    cursor: pointer;\r\n}\r\n\r\n.ui-corner-all {\r\n  border-radius: 0;\r\n}\r\n\r\n.ui-widget-header {\r\n  border: 0;\r\n}\r\n\r\n.ui-datepicker-header {\r\n  text-align: center;\r\n  background: white;\r\n  padding-bottom: 15px;\r\n  font-weight: 300;\r\n}\r\n.ui-datepicker-header .ui-datepicker-prev,\r\n.ui-datepicker-header .ui-datepicker-next,\r\n.ui-datepicker-header .ui-datepicker-title {\r\n  border: none;\r\n  outline: none;\r\n  margin: 5px;\r\n}\r\n\r\n.ui-datepicker-prev.ui-state-hover,\r\n.ui-datepicker-next.ui-state-hover {\r\n  border: none;\r\n  outline: none;\r\n  background: #b4cbe5;\r\n}\r\n\r\n.ui-datepicker .ui-state-default {\r\n  background: none;\r\n  border: none;\r\n  text-align: center;\r\n  height: 33px;\r\n  width: 33px;\r\n  line-height: 30px;\r\n}\r\n.ui-datepicker .ui-state-highlight {\r\n  color: var(--mdc-theme-primary);\r\n}\r\n.ui-datepicker .ui-state-active {\r\n  color: white;\r\n}\r\n\r\n\r\n\r\n.ui-datepicker-calendar thead th {\r\n    color: #999999;\r\n    font-weight: 200;\r\n}\r\n\r\n.ui-datepicker-buttonpane {\r\n  border: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-state-default {\r\n  background: white;\r\n  border: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-datepicker-close,\r\n.ui-datepicker-buttonpane .ui-datepicker-current {\r\n  background: white;\r\n  color: #284B72;\r\n  text-transform: uppercase;\r\n  border: none;\r\n  opacity: 1;\r\n  font-weight: 200;\r\n  outline: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-datepicker-close:hover,\r\n.ui-datepicker-buttonpane .ui-datepicker-current:hover {\r\n  background: #b4cbe5;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev {\r\n    text-decoration: none;\r\n    height: auto !important;\r\n    width: auto !important;\r\n\tleft: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-next {\r\n    text-decoration: none;\r\n    height: auto !important;\r\n    width: auto !important;\r\n\tright: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev .ui-icon, .ui-datepicker .ui-datepicker-next .ui-icon {\r\n    display: none !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev::after {\r\n    font-family: FontAwesome;\r\n\tcontent: \"\\f053\";\r\n\tdisplay: block;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-next::after {\r\n    font-family: FontAwesome;\r\n\tcontent: \"\\f054\";\r\n\tdisplay: block;\r\n}\r\n\r\n\r\n.ui-datepicker .ui-datepicker-prev.ui-state-hover, .ui-datepicker .ui-datepicker-next.ui-state-hover {\r\n    background: none;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev-hover {\r\n\tleft: 8px !important;\r\n    top: 8px !important;\r\n}\r\n.ui-datepicker .ui-datepicker-next-hover {\r\n\tright: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n\r\n\r\n\r\n\r\nbutton.ui-state-hover {\r\n    background: unset !important;\r\n    background-color: var(--mdc-theme-primary-hover) !important;\r\n    border: unset !important;\r\n    color: white !important;\r\n    box-shadow: 0px 3px 1px -2px rgb(0 0 0 / 20%), 0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%) !important;\r\n}\r\n\r\n\r\n\r\n/* jquery ui datepicker month year picker */\r\n.ui-datepicker .ui-datepicker-select-month td ,\r\n.ui-datepicker .ui-datepicker-select-year td {\r\n\theight: 33px;\r\n}\r\n.ui-datepicker .ui-datepicker-select-month td span,\r\n.ui-datepicker .ui-datepicker-select-month td a,\r\n.ui-datepicker .ui-datepicker-select-year td span,\r\n.ui-datepicker .ui-datepicker-select-year td a  {\r\n\ttext-align: center;\r\n}\r\n.ui-datepicker .ui-datepicker-select-year td.outoffocus {\r\n\topacity: 0.5;\r\n}\r\n\r\n.ui-datepicker-select-month .ui-state-default, .ui-datepicker-select-year .ui-state-default {\r\n    margin: auto;\r\n}\r\n\r\n.ui-datepicker td {\r\n    font-size: 14px !important;\r\n}\r\n\r\n.ui-datepicker .ui-state-default, .ui-datepicker .ui-state-active {\r\n    position: relative;\r\n    border: 0 !important;\r\n    background: none !important;\r\n}\r\n\r\n.ui-datepicker .ui-state-active::after {\r\n    position: absolute;\r\n    display: block;\r\n    content: '';\r\n    background-color:var(--mdc-theme-primary);\r\n    border-radius: 50%;\r\n    width: 34px;\r\n    height: 34px;\r\n    z-index: -1;\r\n    top: 0;\r\n    left: calc(50% - 16px)\r\n}\r\n\r\n\r\n.ui-datepicker .ui-state-default:not(.ui-state-active).ui-state-hover::after {\r\n    position: absolute;\r\n    display: block;\r\n    content: '';\r\n    background-color: rgba(0,0,0,0.05);\r\n    border-radius: 50%;\r\n    width: 34px;\r\n    height: 34px;\r\n    z-index: -1;\r\n    top: 0;\r\n    left: calc(50% - 16px)\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header {\r\n    display: flex;\r\n    align-items: center;\r\n    padding: 4px 24px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header .ui-datepicker-title {\r\n    flex: 1;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header-time-switch {\r\n    flex: 1;\r\n    line-height: 100%;\r\n    height: 100%;\r\n    align-self: center;\r\n}\r\n\r\n\r\n.timepicker{\r\n    display:block;\r\n    user-select:none;\r\n    margin:0 auto;\r\n    width:100%;\r\n    height:100%;\r\n    font-size:14px;\r\n}\r\n.timepicker__title{background-image:-webkit-linear-gradient(top,#fff 0,#f2f2f2 100%);position:relative;background:#f2f2f2;margin:0 auto;border-bottom:1px solid #e5e5e5;padding:12px 11px 10px 15px;color:#4C4C4C;font-size:inherit}\r\n.timepicker__close{-webkit-transform:translateY(-25%);-moz-transform:translateY(-25%);-ms-transform:translateY(-25%);-o-transform:translateY(-25%);transform:translateY(-25%);position:absolute;top:25%;right:10px;color:#34495e;cursor:pointer}\r\n.timepicker__close:before{content:'\\00d7'}\r\n.timepicker__controls{padding:10px 0;line-height:normal;margin:0}\r\n.timepicker__controls__control,.timepicker__controls__control--separator{vertical-align:middle;display:inline-block;font-size:inherit;margin:0 auto;width:35px;letter-spacing:1.3px}\r\n.timepicker__controls__control-down,.timepicker__controls__control-up{color:#34495e;position:relative;display:block;margin:3px auto;font-size:18px;cursor:pointer}\r\n.timepicker__controls__control-up:before{content:'\\f0d8'}\r\n.timepicker__controls__control-down:after{content:'\\f0d7'}\r\n.timepicker__controls__control--separator{width:5px}\r\n.text-center,.timepicker__controls,.timepicker__controls__control,.timepicker__controls__control--separator,.timepicker__controls__control-down,.timepicker__controls__control-up,.timepicker__title{text-align:center}\r\n.hover-state{color:#3498db}\r\n \r\n.fontello-after:after,.fontello:before,.timepicker__controls__control-down:after,.timepicker__controls__control-up:before{font-family:FontAwesome;font-style:normal;font-weight:400;display:inline-block;text-decoration:inherit;width:1em;margin-right:.2em;text-align:center;font-variant:normal;text-transform:none;line-height:1em;margin-left:.2em;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}  \r\n.clearable-picker{position:relative;display:inline-block}  \r\n.clearable-picker>.hastimepicker{padding-right:1em}  \r\n.clearable-picker>.hastimepicker::-ms-clear{display:none}  \r\n.clearable-picker>[data-clear-picker]{position:absolute;top:50%;right:0;transform:translateY(-50%);font-weight:700;font-size:.8em;padding:0 .3em .2em;line-height:1;color:#bababa;cursor:pointer}  \r\n.clearable-picker>[data-clear-picker]:hover{color:#a1a1a1}\r\n.timepicker__controls__control span {\r\n    outline: none;\r\n}", "",{"version":3,"sources":["webpack://./css/equal.css"],"names":[],"mappings":"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","sourcesContent":[":root {\r\n    /* colored buttons */\r\n    --mdc-theme-primary: #3f51b5;\r\n    --mdc-theme-primary-hover: #4f61c5;\r\n\r\n    --mdc-theme-primary-selected: #f5f5ff;\r\n    --mdc-theme-primary-outline: #b1b1dc;\r\n\r\n    /* checkbox background */\r\n    --mdc-theme-secondary: #3f51b5;\r\n    /* menus */\r\n    --mdc-typography-subtitle1-font-size: 14px;\r\n    /* table headers */\r\n    --mdc-typography-subtitle2-font-weight: 600;\r\n\r\n\r\n    --mdc-layout-grid-margin-desktop: 12px;\r\n    --mdc-layout-grid-gutter-desktop: 24px;\r\n    --mdc-layout-grid-margin-tablet: 12px;\r\n    --mdc-layout-grid-gutter-tablet: 18px;\r\n    --mdc-layout-grid-margin-phone: 12px;\r\n    --mdc-layout-grid-gutter-phone: 16px;\r\n\r\n}\r\n    \r\nbody, html {\r\n    margin: 0;\r\n    padding: 0;\r\n    height:100%;\r\n}\r\n\r\n#sb-root {\r\n    display: flex;\r\n    height: 100%;\r\n    flex-flow: column nowrap;\r\n}\r\n\r\n#sb-menu .sb-menu-button {\r\n    display: inline-block;\r\n}\r\n\r\n#sb-container {\r\n    width: 100%;\r\n    height: 100%;\r\n    overflow: hidden;\r\n    flex: 1 1 100%;\r\n    box-sizing: border-box;\r\n}\r\n\r\n.sb-container-header {\r\n    padding-left: 12px;\r\n    height: 48px;\r\n    border-bottom: solid 1px lightgrey;\r\n}\r\n\r\n.sb-container-header h3 {\r\n    line-height: 48px;\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n.sb-container-header a {\r\n    cursor: pointer;\r\n    text-decoration: none;\r\n    color: var(--mdc-theme-primary);\r\n}\r\n\r\n.sb-container-header a:hover {\r\n\r\n}\r\n\r\n.sb-context {\r\n    /* container height minus the header */\r\n    height: calc(100% - 48px);\r\n}\r\n\r\n.sb-view { \r\n    position: relative;\r\n    height: 100%;\r\n}\r\n\r\n.sb-view-layout-list {\r\n    /* height must be decremented by height of other elements from parent (header and footer) */\r\n    height: calc(100% - 112px);\r\n}\r\n\r\n.sb-view-layout-form {\r\n    /* height must be decremented by height of other elements from parent (header and footer) */\r\n    height: calc(100% - 56px);\r\n    padding-bottom: 10px;\r\n}\r\n\r\n.sb-view-list-inline-actions-button {\r\n    transform: scale(0.7);\r\n}\r\n\r\n.sb-layout {\r\n    position: relative;\r\n    height: 100%;\r\n}\r\n\r\n\r\n\r\n\r\n.sb-view-layout-list table th {\r\n    cursor: pointer;\r\n    user-select: none;\r\n    position: sticky;\r\n    top: 0;\r\n    z-index: 3;\r\n}\r\n\r\n.sb-view-layout-list table th.sortable.hover {\r\n    background-color: #f0f0f0;\r\n}\r\n\r\n.sb-view-layout-list table th.sorted {\r\n    color: black;\r\n}\r\n\r\n.sb-view-layout-list table th.asc::after, .sb-view-layout-list table th.desc::after {\r\n    position: absolute;\r\n    margin-left: 6px;\r\n    font-family: FontAwesome;\r\n    opacity: 0.3;\r\n}\r\n\r\n.sb-view-layout-list table th.asc::after {\r\n    content: \"\\f0d7\";\r\n}\r\n\r\n.sb-view-layout-list table th.desc::after {\r\n    content: \"\\f0d8\";\r\n}\r\n\r\n.sb-view-layout-list table tr {\r\n    cursor: pointer;\r\n}\r\n\r\n.sb-view-header-list {\r\n    position: relative;\r\n    max-height: 112px;\r\n    /*\r\n    height: 112px;\r\n    line-height: 112px;\r\n    */\r\n}\r\n\r\n.sb-view-header-list-actions {\r\n    margin-left: 12px;\r\n    max-height: 56px;\r\n}\r\n\r\n.sb-view-header-list-actions-set {\r\n    display: flex;\r\n    margin-top: 10px;\r\n}\r\n\r\n.sb-view-header-list-actions button {\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-header-list-actions-selected {\r\n    position: relative;\r\n    display: flex;\r\n}\r\n\r\n/* todo: improve this (add a custom class)*/\r\n.sb-view-header-list-actions-selected .mdc-button__label {\r\n    padding-right: 10px;\r\n}\r\n\r\n.sb-view-header-list-actions-selected .mdc-button__label::after {\r\n    content: \"\\f0d7\";\r\n}\r\n\r\n.sb-view-header-list-actions-selected .mdc-button__label::after {\r\n    position: absolute;\r\n    margin-left: 6px;\r\n    font-family: FontAwesome;\r\n    opacity: 0.5;\r\n}\r\n\r\n.sb-view-header-list-navigation {\r\n    height: 56px;\r\n    line-height: 56px;\r\n    display: flex;\r\n}\r\n\r\n.sb-view-header-list-filters {\r\n    margin-top: 4px;\r\n}\r\n\r\n.sb-view-header-list-filters .sb-view-header-list-filters-menu {\r\n    min-width: 250px;\r\n}\r\n\r\n.sb-view-header-list-filters-set {\r\n    margin-top: 4px;\r\n}\r\n\r\n\r\n.sb-view-header-list-fields_toggle {\r\n    /* flex-grow: 1; */\r\n    margin-top: 4px;\r\n    margin-right: 10px;\r\n    text-align: right;\r\n}\r\n\r\n\r\n.sb-view-header-list-fields_toggle .sb-view-header-list-fields_toggle-menu {\r\n    min-width: 250px !important;\r\n    max-width: 250px !important;\r\n}\r\n\r\n.sb-view-header-list-pagination {\r\n    flex: 1;\r\n    flex-grow: 1;\r\n\r\n}\r\n\r\n.sb-view-header-list-pagination-limit_select {\r\n    margin-left: 12px;\r\n}\r\n\r\n.sb-view-header-list-pagination .pagination-navigation {\r\n    user-select: none; \r\n}\r\n\r\n\r\n.sb-widget-mode-view input {\r\n    color: black !important;\r\n    user-select: none;\r\n}\r\n\r\n.sb-widget-mode-view .mdc-text-field .mdc-floating-label,\r\n.sb-widget-mode-view.mdc-select .mdc-floating-label {\r\n    color: rgba(0,0,0,0.5) !important;\r\n    user-select: none;\r\n    font-size: 16px;\r\n    font-weight: 400;\r\n}\r\n\r\n.sb-widget-mode-edit .mdc-text-field .mdc-floating-label, \r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label {\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n}\r\n\r\n.sb-widget-mode-view .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above, \r\n.sb-widget-mode-view.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n}\r\n\r\n.sb-widget-mode-edit .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above, \r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.6) !important;\r\n    font-weight: 400;\r\n}\r\n\r\n\r\n.sb-view-header-form {\r\n    height: 56px;\r\n    line-height: 56px;\r\n}\r\n\r\n.sb-view-header-form-actions {\r\n    display: flex;\r\n    flex-direction: row;\r\n    align-items: center;\r\n    margin-left: 12px;\r\n    max-width: 250px;\r\n    height: 56px;\r\n    line-height: 56px;\r\n}\r\n\r\n.sb-view-header-form-actions button {\r\n    flex: 0 1 auto;\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-form-group {\r\n    padding: 12px;\r\n}\r\n\r\n.sb-view-form-row:not(:first-child) {\r\n    padding-top: 24px;\r\n}\r\n\r\n.sb-view-form-group-title {\r\n    font-size: 20px;\r\n    margin-bottom: 12px;\r\n}\r\n\r\n.sb-view-form-sections-tabbar {\r\n    margin-bottom: 12px;\r\n}\r\n\r\n.sb-view-layout-list .mdc-line-ripple::before, .sb-view-layout-list .mdc-line-ripple::after {\r\n  border: none !important;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget label.mdc-text-field .mdc-floating-label {\r\n    display: none !important;\r\n}\r\n.sb-view-layout-list .sb-widget-mode-view label.mdc-text-field::before {\r\n    display: none !important;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget-mode-view input {\r\n    height: 100%;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget-mode-edit button.mdc-icon-button {\r\n    padding: 0 0 0 5px;\r\n    height: auto;\r\n    width: auto;\r\n    position: absolute;\r\n}\r\n\r\n.sb-view-layout-form-input-button {\r\n    width: 25px;\r\n    height: 30px;\r\n    position: absolute;\r\n    right: 12px;\r\n    top: calc(50% - 15px);\r\n}\r\n\r\n.sb-view-layout-form-input-decoy {\r\n    position: absolute;\r\n    left: 16px;\r\n    bottom: 10px;\r\n    z-index: -1;\r\n    opacity: 0;\r\n}\r\n\r\n\r\n.sb-widget {\r\n    position: relative;\r\n}\r\n\r\n.sb-ui-checkbox {\r\n    position: relative;\r\n}\r\n\r\n.sb-ui-menu.mdc-menu-surface--is-open-below {\r\n    margin-top: 48px;\r\n}\r\n\r\n.sb-ui-menu.mdc-menu-surface--open {\r\n    margin-bottom: 48px;\r\n}\r\n\r\n\r\n/* Material Components customizations */\r\n\r\n/* fix for ripple not working on icon-button */\r\nbutton.mdc-icon-button:hover, button.mdc-icon-button:active, button.mdc-icon-button:focus {\r\n    border-radius: 50%;\r\n    background-color: rgba(0,0,0,0.10);\r\n}\r\n\r\n/* fix tooltip not hiding */\r\n.mdc-tooltip--hide {\r\n    opacity: 0;\r\n}\r\n\r\n/* Special SB widgets customizations */\r\n\r\n/* support for title strings */\r\n.sb-widget.title {\r\n    margin-top: -14px; \r\n}\r\n\r\n.sb-widget.title span.mdc-floating-label--float-above {\r\n    transform: translateY(-166%) !important;\r\n}\r\n.sb-widget.title label.mdc-text-field {\r\n  height: 70px;\r\n}\r\n.sb-widget.title input.mdc-text-field__input {\r\n  font-size: 30px;\r\n  margin-top: auto; \r\n  height: 60px;\r\n}\r\n\r\n.sb-view-layout-form {\r\n    overflow-y: scroll;\r\n}\r\n\r\n\r\n.sb-view-layout-form::-webkit-scrollbar {\r\n    width: 6px;\r\n    overflow-y: scroll;\r\n    background: #EAEAEA;\r\n\r\n}\r\n\r\n.sb-view-layout-form::-webkit-scrollbar-thumb {\r\n    background: var(--mdc-theme-primary, #6200ee);\r\n    border-radius: 10px;\r\n}\r\n\r\n\r\n.sb-view-layout-form .sb-widget.sb-widget-type-boolean {\r\n    height: 56px;\r\n    vertical-align: middle;\r\n    display: table-cell;\r\n    padding-left: 16px;\r\n}\r\n\r\n\r\n/* adapt inputs for inline editing */\r\n.sb-widget-cell .mdc-text-field {\r\n  height: 100%;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field {\r\n    padding-left: 0;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-text-field {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    padding-left: 5px;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-select__anchor {\r\n    padding-left: 5px;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field-helper-line {\r\n  display: none;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--filled::before {\r\n  display: none;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--filled:not(.mdc-text-field--disabled) {\r\n    background-color: inherit;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-text-field--filled:not(.mdc-text-field--disabled) {\r\n    background-color: white;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--invalid .mdc-text-field__input {\r\n    color: var(--mdc-theme-error, #b00020);\r\n}\r\n\r\n.sb-widget-cell .mdc-select {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    margin-top: -14px;\r\n}\r\n\r\n.sb-widget-cell .mdc-select {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    margin-top: -14px;\r\n}\r\n\r\n\r\n.sb-widget-cell .mdc-select__anchor {\r\n    height: 100%;\r\n}\r\n\r\n/* make mini-fab flat (mini save buttons) */ \r\n.sb-view-layout-list-row-checkbox .mdc-fab--mini {\r\n    box-shadow: none !important;\r\n    margin: 2px 0;\r\n}\r\n\r\n.mdc-data-table {\r\n    height: 100%;\r\n}\r\n\r\n\r\n.mdc-data-table__table-container::-webkit-scrollbar {\r\n    width: 6px;\r\n    overflow-y: scroll;\r\n    background: #EAEAEA;\r\n\r\n}\r\n\r\n.mdc-data-table__table-container::-webkit-scrollbar-thumb {\r\n    background: var(--mdc-theme-primary, #6200ee);\r\n    border-radius: 10px;\r\n}\r\n\r\n\r\n\r\n/* custom style for special button with icon only */\r\n.mdc-button-icon {\r\n\tmin-width: 36px;\r\n}\r\n\r\n.mdc-button-icon  .mdc-button__ripple {\r\n\tborder-radius: 50%;\r\n    width: 36px;\r\n}\r\n\r\n\r\n\r\n.mdc-menu {\r\n    min-width: var(--mdc-menu-min-width, 200px) !important;\r\n    max-width: calc(100vw - 32px) !important;\r\n}\r\n\r\n.mdc-text-field:not(.mdc-text-field--disabled) .mdc-text-field__icon {\r\n    color: rgba(0,0,0,.54);\r\n    background-color: white;\r\n}\r\n\r\n.mdc-text-field--focused .mdc-text-field-helper-line .mdc-text-field-helper-text {\r\n    opacity: 1 !important;\r\n}\r\n\r\n.mdc-text-field--with-trailing-icon .mdc-text-field__icon {\r\n    left: initial;\r\n    right: 12px;\r\n}\r\n\r\n.mdc-text-field--with-leading-icon .mdc-text-field__icon, .mdc-text-field--with-trailing-icon .mdc-text-field__icon {\r\n    position: absolute;\r\n    top: 50%;\r\n    transform: translateY(-50%);\r\n    cursor: pointer;\r\n}\r\n\r\n.mdc-text-field--textarea {\r\n    outline: solid 1px rgba(0, 0,0,0.1);\r\n}\r\n\r\n.sb-view-layout.sb-view-layout-form .mdc-text-field--filled:not(.mdc-text-field--disabled), .mdc-select--filled:not(.mdc-select--disabled) .mdc-select__anchor {\r\n    background: transparent !important;\r\n}\r\n\r\n.mdc-layout-grid__cell {\r\n    position: relative;\r\n}\r\n\r\n.mdc-text-field-helper-line {\r\n    position: absolute;\r\n    width: 100%;\r\n    max-width: 100%;\r\n    padding-left: 0 !important;    \r\n    padding-right: 0 !important;    \r\n}\r\n\r\n.mdc-data-table__header-cell--checkbox {\r\n    width: 44px;\r\n}\r\n.mdc-data-table__row--selected {\r\n    background-color: var(--mdc-theme-primary-selected) !important;\r\n}\r\n.mdc-list-item .mdc-checkbox {\r\n    margin-left: -11px;\r\n}\r\n\r\n.mdc-list-item__graphic {\r\n    color: rgba(0,0,0,.54) !important;\r\n    margin-right: 12px;\r\n}\r\n\r\n.mdc-list-item__text {\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;    \r\n}\r\n\r\n.mdc-chip .mdc-chip__icon {\r\n    font-size: 22px;\r\n    height: 22px;\r\n}\r\n\r\n.mdc-list-item {\r\n    height: 44px;\r\n    align-items: center !important;\r\n}\r\n\r\n.mdc-data-table__cell {\r\n    height: 44px;\r\n}\r\n\r\n\r\n.mdc-data-table__pagination {\r\n    border-top: 0;\r\n}\r\n\r\n.mdc-text-field {\r\n    width: 100%;\r\n}\r\n\r\n.mdc-floating-label {\r\n    font-size: 16px !important;\r\n    /* color: rgba(0, 0, 0, 0.8) !important;*/\r\n}\r\n\r\n\r\n.mdc-text-field-helper-line .mdc-text-field-helper-text {\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n\r\n.mdc-text-field--invalid:not(.mdc-text-field--disabled) .mdc-text-field-helper-line .mdc-text-field-helper-text--validation-msg {\r\n    color: var(--mdc-theme-error, #b00020) !important;\r\n}\r\n\r\n.mdc-text-field--focused:not(.mdc-text-field--disabled) .mdc-floating-label {\r\n    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;\r\n}\r\n\r\n.mdc-select--focused:not(.mdc-text-field--disabled) .mdc-floating-label {\r\n    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;\r\n}\r\n\r\n.mdc-select {\r\n    width: 100%;\r\n}\r\n\r\n.mdc-tab {\r\n    max-width: 280px;\r\n}\r\n\r\n.mdc-tab-bar {\r\n    margin-top: 12px;\r\n    border-bottom: 1px solid rgba(0, 0, 0, 0.12);\r\n}\r\n\r\n.mdc-tab__text-label {\r\n    user-select: none;\r\n}\r\n.mdc-tab.mdc-tab--active .mdc-tab__ripple {\r\n    background-color: var(--mdc-ripple-color, var(--mdc-theme-primary, #6200ee));\r\n    opacity: 0.1;\r\n}\r\n\r\n\r\n\r\n/* jqueryui datepicker material styling */\r\n\r\n\r\n.ui-datepicker {\r\n    z-index: 3 !important;\r\n    font-family: \"Roboto\";\r\n}\r\n\r\n.ui-datepicker {\r\n    padding: 0;\r\n    border: none;  \r\n    width: 325px;\r\n    box-shadow: 4px 4px 10px 2px rgba(0, 0, 0, 0.24);\r\n    margin-left: -16px;\r\n    margin-top: 6px;\r\n    font-size: 14px;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-title {\r\n    font-size: 17px;\r\n}\r\n\r\n.ui-datepicker-trigger {\r\n    position: absolute;\r\n    right: 12px;\r\n    top: 50%;\r\n    opacity: 0;\r\n    margin-top: -10px;\r\n    cursor: pointer;\r\n}\r\n\r\n.ui-corner-all {\r\n  border-radius: 0;\r\n}\r\n\r\n.ui-widget-header {\r\n  border: 0;\r\n}\r\n\r\n.ui-datepicker-header {\r\n  text-align: center;\r\n  background: white;\r\n  padding-bottom: 15px;\r\n  font-weight: 300;\r\n}\r\n.ui-datepicker-header .ui-datepicker-prev,\r\n.ui-datepicker-header .ui-datepicker-next,\r\n.ui-datepicker-header .ui-datepicker-title {\r\n  border: none;\r\n  outline: none;\r\n  margin: 5px;\r\n}\r\n\r\n.ui-datepicker-prev.ui-state-hover,\r\n.ui-datepicker-next.ui-state-hover {\r\n  border: none;\r\n  outline: none;\r\n  background: #b4cbe5;\r\n}\r\n\r\n.ui-datepicker .ui-state-default {\r\n  background: none;\r\n  border: none;\r\n  text-align: center;\r\n  height: 33px;\r\n  width: 33px;\r\n  line-height: 30px;\r\n}\r\n.ui-datepicker .ui-state-highlight {\r\n  color: var(--mdc-theme-primary);\r\n}\r\n.ui-datepicker .ui-state-active {\r\n  color: white;\r\n}\r\n\r\n\r\n\r\n.ui-datepicker-calendar thead th {\r\n    color: #999999;\r\n    font-weight: 200;\r\n}\r\n\r\n.ui-datepicker-buttonpane {\r\n  border: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-state-default {\r\n  background: white;\r\n  border: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-datepicker-close,\r\n.ui-datepicker-buttonpane .ui-datepicker-current {\r\n  background: white;\r\n  color: #284B72;\r\n  text-transform: uppercase;\r\n  border: none;\r\n  opacity: 1;\r\n  font-weight: 200;\r\n  outline: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-datepicker-close:hover,\r\n.ui-datepicker-buttonpane .ui-datepicker-current:hover {\r\n  background: #b4cbe5;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev {\r\n    text-decoration: none;\r\n    height: auto !important;\r\n    width: auto !important;\r\n\tleft: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-next {\r\n    text-decoration: none;\r\n    height: auto !important;\r\n    width: auto !important;\r\n\tright: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev .ui-icon, .ui-datepicker .ui-datepicker-next .ui-icon {\r\n    display: none !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev::after {\r\n    font-family: FontAwesome;\r\n\tcontent: \"\\f053\";\r\n\tdisplay: block;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-next::after {\r\n    font-family: FontAwesome;\r\n\tcontent: \"\\f054\";\r\n\tdisplay: block;\r\n}\r\n\r\n\r\n.ui-datepicker .ui-datepicker-prev.ui-state-hover, .ui-datepicker .ui-datepicker-next.ui-state-hover {\r\n    background: none;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev-hover {\r\n\tleft: 8px !important;\r\n    top: 8px !important;\r\n}\r\n.ui-datepicker .ui-datepicker-next-hover {\r\n\tright: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n\r\n\r\n\r\n\r\nbutton.ui-state-hover {\r\n    background: unset !important;\r\n    background-color: var(--mdc-theme-primary-hover) !important;\r\n    border: unset !important;\r\n    color: white !important;\r\n    box-shadow: 0px 3px 1px -2px rgb(0 0 0 / 20%), 0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%) !important;\r\n}\r\n\r\n\r\n\r\n/* jquery ui datepicker month year picker */\r\n.ui-datepicker .ui-datepicker-select-month td ,\r\n.ui-datepicker .ui-datepicker-select-year td {\r\n\theight: 33px;\r\n}\r\n.ui-datepicker .ui-datepicker-select-month td span,\r\n.ui-datepicker .ui-datepicker-select-month td a,\r\n.ui-datepicker .ui-datepicker-select-year td span,\r\n.ui-datepicker .ui-datepicker-select-year td a  {\r\n\ttext-align: center;\r\n}\r\n.ui-datepicker .ui-datepicker-select-year td.outoffocus {\r\n\topacity: 0.5;\r\n}\r\n\r\n.ui-datepicker-select-month .ui-state-default, .ui-datepicker-select-year .ui-state-default {\r\n    margin: auto;\r\n}\r\n\r\n.ui-datepicker td {\r\n    font-size: 14px !important;\r\n}\r\n\r\n.ui-datepicker .ui-state-default, .ui-datepicker .ui-state-active {\r\n    position: relative;\r\n    border: 0 !important;\r\n    background: none !important;\r\n}\r\n\r\n.ui-datepicker .ui-state-active::after {\r\n    position: absolute;\r\n    display: block;\r\n    content: '';\r\n    background-color:var(--mdc-theme-primary);\r\n    border-radius: 50%;\r\n    width: 34px;\r\n    height: 34px;\r\n    z-index: -1;\r\n    top: 0;\r\n    left: calc(50% - 16px)\r\n}\r\n\r\n\r\n.ui-datepicker .ui-state-default:not(.ui-state-active).ui-state-hover::after {\r\n    position: absolute;\r\n    display: block;\r\n    content: '';\r\n    background-color: rgba(0,0,0,0.05);\r\n    border-radius: 50%;\r\n    width: 34px;\r\n    height: 34px;\r\n    z-index: -1;\r\n    top: 0;\r\n    left: calc(50% - 16px)\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header {\r\n    display: flex;\r\n    align-items: center;\r\n    padding: 4px 24px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header .ui-datepicker-title {\r\n    flex: 1;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header-time-switch {\r\n    flex: 1;\r\n    line-height: 100%;\r\n    height: 100%;\r\n    align-self: center;\r\n}\r\n\r\n\r\n.timepicker{\r\n    display:block;\r\n    user-select:none;\r\n    margin:0 auto;\r\n    width:100%;\r\n    height:100%;\r\n    font-size:14px;\r\n}\r\n.timepicker__title{background-image:-webkit-linear-gradient(top,#fff 0,#f2f2f2 100%);position:relative;background:#f2f2f2;margin:0 auto;border-bottom:1px solid #e5e5e5;padding:12px 11px 10px 15px;color:#4C4C4C;font-size:inherit}\r\n.timepicker__close{-webkit-transform:translateY(-25%);-moz-transform:translateY(-25%);-ms-transform:translateY(-25%);-o-transform:translateY(-25%);transform:translateY(-25%);position:absolute;top:25%;right:10px;color:#34495e;cursor:pointer}\r\n.timepicker__close:before{content:'\\00d7'}\r\n.timepicker__controls{padding:10px 0;line-height:normal;margin:0}\r\n.timepicker__controls__control,.timepicker__controls__control--separator{vertical-align:middle;display:inline-block;font-size:inherit;margin:0 auto;width:35px;letter-spacing:1.3px}\r\n.timepicker__controls__control-down,.timepicker__controls__control-up{color:#34495e;position:relative;display:block;margin:3px auto;font-size:18px;cursor:pointer}\r\n.timepicker__controls__control-up:before{content:'\\f0d8'}\r\n.timepicker__controls__control-down:after{content:'\\f0d7'}\r\n.timepicker__controls__control--separator{width:5px}\r\n.text-center,.timepicker__controls,.timepicker__controls__control,.timepicker__controls__control--separator,.timepicker__controls__control-down,.timepicker__controls__control-up,.timepicker__title{text-align:center}\r\n.hover-state{color:#3498db}\r\n \r\n.fontello-after:after,.fontello:before,.timepicker__controls__control-down:after,.timepicker__controls__control-up:before{font-family:FontAwesome;font-style:normal;font-weight:400;display:inline-block;text-decoration:inherit;width:1em;margin-right:.2em;text-align:center;font-variant:normal;text-transform:none;line-height:1em;margin-left:.2em;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}  \r\n.clearable-picker{position:relative;display:inline-block}  \r\n.clearable-picker>.hastimepicker{padding-right:1em}  \r\n.clearable-picker>.hastimepicker::-ms-clear{display:none}  \r\n.clearable-picker>[data-clear-picker]{position:absolute;top:50%;right:0;transform:translateY(-50%);font-weight:700;font-size:.8em;padding:0 .3em .2em;line-height:1;color:#bababa;cursor:pointer}  \r\n.clearable-picker>[data-clear-picker]:hover{color:#a1a1a1}\r\n.timepicker__controls__control span {\r\n    outline: none;\r\n}"],"sourceRoot":""}]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 

@@ -1,9 +1,10 @@
 import { $ } from "./jquery-lib";
 import { environment } from "./environment";
-import { i18n } from "./i18n";
 
 /**
- * This service is in charge of loading the UI translations and provide getters to retrieve requested values
+ * This service is in charge of loading the UI translations and provide getters to retrieve requested values.
+ * It expects .json translation files in the /assets/i18n/ folder.
+ * 
  */
 export class _TranslationService {
         
@@ -23,13 +24,24 @@ export class _TranslationService {
         this.translations = $.Deferred();
         this.resolved = false;
 
-        if(i18n.hasOwnProperty(environment.lang)) {
-            this.resolved = (<any>i18n)[environment.lang];
-            this.translations.resolve((<any>i18n)[environment.lang]);
-        }
-        else {
+
+        // load i18n file from server
+        fetch('/assets/i18n/'+environment.lang+'.json')
+        .then( (response) => {
+            if(response.ok) {
+                response.json().then( (data) => {
+                    this.resolved = data;
+                    this.translations.resolve(data);                    
+                });
+            }
+            else {
+                this.translations.resolve({});
+            }        
+        })
+        .catch( (err:any) => {
+            console.log('error fetch UI translation file');
             this.translations.resolve({});
-        }
+        });
 
     }
 
@@ -73,9 +85,13 @@ export class _TranslationService {
      * 
      * @returns The translated value, or the original value if translation fails.
      */ 
-    public resolve(translation:any, type:string, id: string, value: string = '', section:string = 'label') {
-        let result = value.charAt(0).toUpperCase() + value.replace(/_/g, ' ').slice(1);
+    public resolve(translation:any, type:string, id: string, value: any = '', section:string = 'label') {
+        let result = value;
 
+        if (typeof value === 'string' || value instanceof String) {
+            result = value.charAt(0).toUpperCase() + value.replace(/_/g, ' ').slice(1);
+        }
+        
         if(translation.hasOwnProperty(type)) {
             if(translation[type].hasOwnProperty(id)) {
                 if(translation[type][id].hasOwnProperty(section)) {

@@ -23,7 +23,7 @@ export default class WidgetText extends Widget {
                 break;
             case 'view':
             default:
-                $elem = $('<span/>').text(value);
+                $elem = UIHelper.createTextArea('', this.label, value, '', '', true);
                 break;
         }
 

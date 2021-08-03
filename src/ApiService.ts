@@ -27,7 +27,7 @@ export class _ApiService {
             cache:false,
             beforeSend: (xhr) => {
                 /*
-                // #removed for XSS protection (we use httponly cookie instead)
+                // #removed for XSS protection (we use httpOnly cookie instead)
                 let access_token = this.getCookie('access_token');
                 if(access_token) {
                     xhr.setRequestHeader('Authorization', "Basic " + access_token); 
@@ -155,8 +155,7 @@ export class _ApiService {
     public async getTranslation(entity:string, lang:string) {
         const translation = await this.loadTranslation(entity, lang);
         return translation;
-    }
-        
+    }   
         
     public async getSchema(entity:string) {
         const schema = await this.loadSchema(entity);
