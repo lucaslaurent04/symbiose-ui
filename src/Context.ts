@@ -52,7 +52,7 @@ and can be displayed to user as an indication of the expected action.
      * 
      */
     public close(data:any) {
-        console.log('close', data);
+        console.log('Context::close', data);
         // remove Context container
         this.$container.remove();
         // invoke callback to relay events across contexts (select, add, ...)
@@ -69,7 +69,7 @@ and can be displayed to user as an indication of the expected action.
     public closeContext(data: any = {}) {
         this.frame.closeContext(data);
     }
-    
+
     /**
      * 
      * @returns Promise A promise that resolves when the View will be fully rendered

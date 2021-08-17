@@ -859,7 +859,7 @@ var Context = /*#__PURE__*/function () {
   (0, _createClass2.default)(Context, [{
     key: "close",
     value: function close(data) {
-      console.log('close', data); // remove Context container
+      console.log('Context::close', data); // remove Context container
 
       this.$container.remove(); // invoke callback to relay events across contexts (select, add, ...)
 
@@ -1452,6 +1452,16 @@ var _materialLib = __webpack_require__(/*! ./material-lib */ "./build/material-l
 
 var _environment = __webpack_require__(/*! ./environment */ "./build/environment.js");
 
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) { symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); } keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2.default)(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
+function _createForOfIteratorHelper(o, allowArrayLike) { var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"]; if (!it) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = it.call(o); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
+
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
+
 /**
  * Frames handle a stack of contexts. They're in charge of their header.
  * 
@@ -1678,7 +1688,7 @@ var Frame = /*#__PURE__*/function () {
               case 0:
                 console.log('update header');
 
-                if ((0, _jqueryLib.$)('.sb-container-header').length == 0) {
+                if ((0, _jqueryLib.$)(this.domContainerSelector).find('.sb-container-header').length == 0) {
                   this.$headerContainer = (0, _jqueryLib.$)('<div/>').addClass('sb-container-header').appendTo((0, _jqueryLib.$)(this.domContainerSelector));
                 }
 
@@ -1907,6 +1917,227 @@ var Frame = /*#__PURE__*/function () {
 
       return updateHeader;
     }()
+    /**
+     * Generate an object mapping fields of current entity with default values, based on current domain.
+     * 
+     * @returns Object  A map of fields with their related default values
+     */
+
+  }, {
+    key: "getNewObjectDefaults",
+    value: function () {
+      var _getNewObjectDefaults = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6(entity) {
+        var domain,
+            fields,
+            model_schema,
+            model_fields,
+            tmpDomain,
+            _iterator,
+            _step,
+            clause,
+            _iterator2,
+            _step2,
+            condition,
+            field,
+            _args7 = arguments;
+
+        return _regenerator.default.wrap(function _callee6$(_context7) {
+          while (1) {
+            switch (_context7.prev = _context7.next) {
+              case 0:
+                domain = _args7.length > 1 && _args7[1] !== undefined ? _args7[1] : [];
+                // create a new object as draft
+                fields = {
+                  state: 'draft'
+                }; // retrieve fields definition
+
+                _context7.next = 4;
+                return _equalServices.ApiService.getSchema(entity);
+
+              case 4:
+                model_schema = _context7.sent;
+                model_fields = model_schema.fields; // use View domain for setting default values  
+
+                tmpDomain = new _equalLib.Domain(domain);
+                _iterator = _createForOfIteratorHelper(tmpDomain.getClauses());
+                _context7.prev = 8;
+
+                _iterator.s();
+
+              case 10:
+                if ((_step = _iterator.n()).done) {
+                  _context7.next = 33;
+                  break;
+                }
+
+                clause = _step.value;
+                _iterator2 = _createForOfIteratorHelper(clause.getConditions());
+                _context7.prev = 13;
+
+                _iterator2.s();
+
+              case 15:
+                if ((_step2 = _iterator2.n()).done) {
+                  _context7.next = 23;
+                  break;
+                }
+
+                condition = _step2.value;
+                field = condition.getOperand();
+
+                if (!(field == 'id')) {
+                  _context7.next = 20;
+                  break;
+                }
+
+                return _context7.abrupt("continue", 21);
+
+              case 20:
+                if (['ilike', 'like', '=', 'is'].includes(condition.getOperator()) && model_fields.hasOwnProperty(field)) {
+                  fields[field] = condition.getValue();
+                }
+
+              case 21:
+                _context7.next = 15;
+                break;
+
+              case 23:
+                _context7.next = 28;
+                break;
+
+              case 25:
+                _context7.prev = 25;
+                _context7.t0 = _context7["catch"](13);
+
+                _iterator2.e(_context7.t0);
+
+              case 28:
+                _context7.prev = 28;
+
+                _iterator2.f();
+
+                return _context7.finish(28);
+
+              case 31:
+                _context7.next = 10;
+                break;
+
+              case 33:
+                _context7.next = 38;
+                break;
+
+              case 35:
+                _context7.prev = 35;
+                _context7.t1 = _context7["catch"](8);
+
+                _iterator.e(_context7.t1);
+
+              case 38:
+                _context7.prev = 38;
+
+                _iterator.f();
+
+                return _context7.finish(38);
+
+              case 41:
+                return _context7.abrupt("return", fields);
+
+              case 42:
+              case "end":
+                return _context7.stop();
+            }
+          }
+        }, _callee6, null, [[8, 35, 38, 41], [13, 25, 28, 31]]);
+      }));
+
+      function getNewObjectDefaults(_x2) {
+        return _getNewObjectDefaults.apply(this, arguments);
+      }
+
+      return getNewObjectDefaults;
+    }()
+    /**
+     * Instanciate a new context and push it on the contexts stack.
+     * 
+     * @param config 
+     */
+
+  }, {
+    key: "openContext",
+    value: function () {
+      var _openContext = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7(config) {
+        var _this3 = this;
+
+        var defaults, object, context, prev_context;
+        return _regenerator.default.wrap(function _callee7$(_context8) {
+          while (1) {
+            switch (_context8.prev = _context8.next) {
+              case 0:
+                // extend default params with received config
+                config = _objectSpread(_objectSpread({}, {
+                  entity: '',
+                  type: 'list',
+                  name: 'default',
+                  domain: [],
+                  mode: 'view',
+                  // view, edit
+                  purpose: 'view',
+                  // view, select, add, create
+                  lang: _environment.environment.lang,
+                  callback: null
+                }), config); // create a draft object if required: Edition is based on asynchronous creation: a draft is created (or recylcled) and is turned into an instance if 'update' action is triggered.
+
+                if (!(config.purpose == 'create')) {
+                  _context8.next = 10;
+                  break;
+                }
+
+                console.log('requesting dratf object');
+                _context8.next = 5;
+                return this.getNewObjectDefaults(config.entity, config.domain);
+
+              case 5:
+                defaults = _context8.sent;
+                _context8.next = 8;
+                return _equalServices.ApiService.create(config.entity, defaults);
+
+              case 8:
+                object = _context8.sent;
+                config.domain = [['id', '=', object.id], ['state', '=', 'draft']];
+
+              case 10:
+                context = new _equalLib.Context(this, config.entity, config.type, config.name, config.domain, config.mode, config.purpose, config.lang, config.callback, config);
+                prev_context = this.context; // stack received context        
+
+                if (this.context) {
+                  this.stack.push(this.context);
+                }
+
+                this.context = context;
+                this.context.isReady().then(function () {
+                  if (prev_context && prev_context.hasOwnProperty('$container')) {
+                    // conainers are hidden and not detached in order to maintain the listeners
+                    prev_context.$container.hide();
+                  }
+
+                  (0, _jqueryLib.$)(_this3.domContainerSelector).append(_this3.context.getContainer());
+                });
+                this.updateHeader();
+
+              case 16:
+              case "end":
+                return _context8.stop();
+            }
+          }
+        }, _callee7, this);
+      }));
+
+      function openContext(_x3) {
+        return _openContext.apply(this, arguments);
+      }
+
+      return openContext;
+    }()
   }, {
     key: "closeAll",
     value: function closeAll() {
@@ -1916,58 +2147,29 @@ var Frame = /*#__PURE__*/function () {
       }
     }
   }, {
-    key: "openContext",
+    key: "closeContext",
     value:
-    /**
-     * Instanciate a new context and push it on the contexts stack.
-     * 
-     * @param config 
-     */
-    function openContext(config) {
-      var _this3 = this;
-
-      var context = new _equalLib.Context(this, config.entity, config.type, config.name, config.domain, config.mode, config.purpose, config.lang, config.callback, config);
-      var prev_context = this.context; // stack received context        
-
-      if (this.context) {
-        this.stack.push(this.context);
-      }
-
-      this.context = context;
-      this.context.isReady().then(function () {
-        if (prev_context && prev_context.hasOwnProperty('$container')) {
-          // conainers are hidden and not detached in order to maintain the listeners
-          prev_context.$container.hide();
-        }
-
-        (0, _jqueryLib.$)(_this3.domContainerSelector).append(_this3.context.getContainer());
-      });
-      this.updateHeader();
-    }
     /**
      * Handler for request for closing current context (top of stack).
      * When closing, a context might transmit some value (its the case, for instance, when selecting one or more records for m2m or o2m fields).
      * 
      * @param silent do not show the pop-ed context and do not refresh the header 
      */
-
-  }, {
-    key: "closeContext",
-    value: function () {
-      var _closeContext = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6() {
+    function () {
+      var _closeContext = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee8() {
         var data,
             silent,
             has_changed,
-            _args7 = arguments;
-        return _regenerator.default.wrap(function _callee6$(_context7) {
+            _args9 = arguments;
+        return _regenerator.default.wrap(function _callee8$(_context9) {
           while (1) {
-            switch (_context7.prev = _context7.next) {
+            switch (_context9.prev = _context9.next) {
               case 0:
-                data = _args7.length > 0 && _args7[0] !== undefined ? _args7[0] : null;
-                silent = _args7.length > 1 && _args7[1] !== undefined ? _args7[1] : false;
+                data = _args9.length > 0 && _args9[0] !== undefined ? _args9[0] : null;
+                silent = _args9.length > 1 && _args9[1] !== undefined ? _args9[1] : false;
 
                 if (!this.stack.length) {
-                  _context7.next = 14;
+                  _context9.next = 15;
                   break;
                 }
 
@@ -1978,23 +2180,23 @@ var Frame = /*#__PURE__*/function () {
                 this.context = this.stack.pop();
 
                 if (silent) {
-                  _context7.next = 14;
+                  _context9.next = 14;
                   break;
                 }
 
                 console.log(this.context);
 
                 if (!(this.context != undefined && this.context.hasOwnProperty('$container'))) {
-                  _context7.next = 13;
+                  _context9.next = 13;
                   break;
                 }
 
                 if (!(has_changed && this.context.getMode() == 'view')) {
-                  _context7.next = 12;
+                  _context9.next = 12;
                   break;
                 }
 
-                _context7.next = 12;
+                _context9.next = 12;
                 return this.context.refresh();
 
               case 12:
@@ -2004,11 +2206,17 @@ var Frame = /*#__PURE__*/function () {
                 this.updateHeader();
 
               case 14:
+                // if we closed the lastest Context from the stack, relay data to the outside
+                if (!this.stack.length) {
+                  (0, _jqueryLib.$)(this.domContainerSelector).trigger('_close', [data]);
+                }
+
+              case 15:
               case "end":
-                return _context7.stop();
+                return _context9.stop();
             }
           }
-        }, _callee6, this);
+        }, _callee8, this);
       }));
 
       function closeContext() {
@@ -2362,11 +2570,15 @@ var Layout = /*#__PURE__*/function () {
         var parts = view_id.split(".", 2);
         var view_type = parts.length > 1 ? parts[0] : 'list';
         var view_name = parts.length > 1 ? parts[1] : parts[0];
+        var def_domain = def.hasOwnProperty('domain') ? def['domain'] : [];
+        var view_domain = item.hasOwnProperty('domain') ? item['domain'] : [];
+        var tmpDomain = new _Domain.default(def_domain);
+        tmpDomain.merge(new _Domain.default(view_domain));
         config = _objectSpread(_objectSpread({}, config), {}, {
           entity: def['foreign_object'],
           view_type: view_type,
           view_name: view_name,
-          domain: def.hasOwnProperty('domain') ? def['domain'] : []
+          domain: tmpDomain.toArray()
         });
       }
 
@@ -4803,7 +5015,7 @@ var View = /*#__PURE__*/function () {
                     // no change : close context
                     _this4.closeContext();
 
-                    _context11.next = 22;
+                    _context11.next = 23;
                     break;
 
                   case 11:
@@ -4816,26 +5028,32 @@ var View = /*#__PURE__*/function () {
                   case 15:
                     response = _context11.sent;
 
-                    // relay new object_id to parent view
+                    if (response && response.length) {
+                      // merge object with response (state and name fields might have changed)
+                      object = _objectSpread(_objectSpread({}, object), response[0]);
+                    } // relay new object_id to parent view
+
+
                     _this4.closeContext({
-                      object_id: object.id
+                      selection: [object.id],
+                      objects: [object]
                     });
 
-                    _context11.next = 22;
+                    _context11.next = 23;
                     break;
 
-                  case 19:
-                    _context11.prev = 19;
+                  case 20:
+                    _context11.prev = 20;
                     _context11.t0 = _context11["catch"](12);
 
                     _this4.displayErrorFeedback(_context11.t0, object, false);
 
-                  case 22:
+                  case 23:
                   case "end":
                     return _context11.stop();
                 }
               }
-            }, _callee11, null, [[12, 19]]);
+            }, _callee11, null, [[12, 20]]);
           })))).append(_materialLib.UIHelper.createButton('action-cancel', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_CANCEL'), 'outlined').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee12() {
             var validation;
             return _regenerator.default.wrap(function _callee12$(_context12) {
@@ -5930,15 +6148,7 @@ var _equalLib = __webpack_require__(/*! ./equal-lib */ "./build/equal-lib.js");
 
 var _environment = __webpack_require__(/*! ./environment */ "./build/environment.js");
 
-var _equalServices = __webpack_require__(/*! ./equal-services */ "./build/equal-services.js");
-
 var _moment = _interopRequireDefault(__webpack_require__(/*! moment/moment.js */ "./node_modules/moment/moment.js"));
-
-function _createForOfIteratorHelper(o, allowArrayLike) { var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"]; if (!it) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = it.call(o); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
-
-function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
-
-function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
 function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) { symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); } keys.push.apply(keys, symbols); } return keys; }
 
@@ -5973,12 +6183,12 @@ var eQ = /*#__PURE__*/function () {
   (0, _createClass2.default)(eQ, [{
     key: "init",
     value: function () {
-      var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
+      var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
         var _this = this;
 
-        return _regenerator.default.wrap(function _callee2$(_context2) {
+        return _regenerator.default.wrap(function _callee$(_context) {
           while (1) {
-            switch (_context2.prev = _context2.next) {
+            switch (_context.prev = _context.next) {
               case 0:
                 // init locale
                 _moment.default.locale(_environment.environment.locale); // $sbEvents is a jQuery object used to communicate: it allows an both internal services and external lib to connect with eQ-UI
@@ -5991,67 +6201,29 @@ var eQ = /*#__PURE__*/function () {
                  * A new context can be requested by ngx (menu or app) or by opening a sub-object
                  */
 
-                this.$sbEvents.on('_openContext', /*#__PURE__*/function () {
-                  var _ref = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(event, config) {
-                    var params, defaults, object;
-                    return _regenerator.default.wrap(function _callee$(_context) {
-                      while (1) {
-                        switch (_context.prev = _context.next) {
-                          case 0:
-                            console.log('eQ: received _openContext', config);
-                            params = {
-                              entity: '',
-                              type: 'list',
-                              name: 'default',
-                              domain: [],
-                              mode: 'view',
-                              // view, edit
-                              purpose: 'view',
-                              // view, select, add
-                              lang: _environment.environment.lang,
-                              callback: null,
-                              domContainerSelector: '#sb-container'
-                            }; // extend default params with received config
+                this.$sbEvents.on('_openContext', function (event, config) {
+                  console.log('eQ: received _openContext', config); // extend default params with received config
 
-                            config = _objectSpread(_objectSpread({}, params), config); // create a draft object if required: Edition is based on asynchronous creation: a draft is created (or recylcled) and is turned into an instance if 'update' action is triggered.
+                  config = _objectSpread(_objectSpread({}, {
+                    entity: '',
+                    type: 'list',
+                    name: 'default',
+                    domain: [],
+                    mode: 'view',
+                    // view, edit
+                    purpose: 'view',
+                    // view, select, add
+                    lang: _environment.environment.lang,
+                    callback: null,
+                    domContainerSelector: '#sb-container'
+                  }), config);
 
-                            if (!(config.purpose == 'create')) {
-                              _context.next = 12;
-                              break;
-                            }
+                  if (!_this.frames.hasOwnProperty(config.domContainerSelector)) {
+                    _this.frames[config.domContainerSelector] = new _equalLib.Frame(config.domContainerSelector);
+                  }
 
-                            console.log('requesting dratf object');
-                            _context.next = 7;
-                            return _this.getNewObjectDefaults(config.entity, config.domain);
-
-                          case 7:
-                            defaults = _context.sent;
-                            _context.next = 10;
-                            return _equalServices.ApiService.create(config.entity, defaults);
-
-                          case 10:
-                            object = _context.sent;
-                            config.domain = [['id', '=', object.id], ['state', '=', 'draft']];
-
-                          case 12:
-                            if (!_this.frames.hasOwnProperty(config.domContainerSelector)) {
-                              _this.frames[config.domContainerSelector] = new _equalLib.Frame(config.domContainerSelector);
-                            }
-
-                            _this.frames[config.domContainerSelector].openContext(config);
-
-                          case 14:
-                          case "end":
-                            return _context.stop();
-                        }
-                      }
-                    }, _callee);
-                  }));
-
-                  return function (_x, _x2) {
-                    return _ref.apply(this, arguments);
-                  };
-                }());
+                  _this.frames[config.domContainerSelector].openContext(config);
+                });
                 /**
                  * 
                  * Event handler for request for closing current context
@@ -6085,10 +6257,10 @@ var eQ = /*#__PURE__*/function () {
 
               case 5:
               case "end":
-                return _context2.stop();
+                return _context.stop();
             }
           }
-        }, _callee2, this);
+        }, _callee, this);
       }));
 
       function init() {
@@ -6096,145 +6268,6 @@ var eQ = /*#__PURE__*/function () {
       }
 
       return init;
-    }()
-    /**
-     * Generate an object mapping fields of current entity with default values, based on current domain.
-     * 
-     * @returns Object  A map of fields with their related default values
-     */
-
-  }, {
-    key: "getNewObjectDefaults",
-    value: function () {
-      var _getNewObjectDefaults = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3(entity) {
-        var domain,
-            fields,
-            model_schema,
-            model_fields,
-            tmpDomain,
-            _iterator,
-            _step,
-            clause,
-            _iterator2,
-            _step2,
-            condition,
-            field,
-            _args3 = arguments;
-
-        return _regenerator.default.wrap(function _callee3$(_context3) {
-          while (1) {
-            switch (_context3.prev = _context3.next) {
-              case 0:
-                domain = _args3.length > 1 && _args3[1] !== undefined ? _args3[1] : [];
-                // create a new object as draft
-                fields = {
-                  state: 'draft'
-                }; // retrieve fields definition
-
-                _context3.next = 4;
-                return _equalServices.ApiService.getSchema(entity);
-
-              case 4:
-                model_schema = _context3.sent;
-                model_fields = model_schema.fields; // use View domain for setting default values  
-
-                tmpDomain = new _equalLib.Domain(domain);
-                _iterator = _createForOfIteratorHelper(tmpDomain.getClauses());
-                _context3.prev = 8;
-
-                _iterator.s();
-
-              case 10:
-                if ((_step = _iterator.n()).done) {
-                  _context3.next = 33;
-                  break;
-                }
-
-                clause = _step.value;
-                _iterator2 = _createForOfIteratorHelper(clause.getConditions());
-                _context3.prev = 13;
-
-                _iterator2.s();
-
-              case 15:
-                if ((_step2 = _iterator2.n()).done) {
-                  _context3.next = 23;
-                  break;
-                }
-
-                condition = _step2.value;
-                field = condition.getOperand();
-
-                if (!(field == 'id')) {
-                  _context3.next = 20;
-                  break;
-                }
-
-                return _context3.abrupt("continue", 21);
-
-              case 20:
-                if (['ilike', 'like', '=', 'is'].includes(condition.getOperator()) && model_fields.hasOwnProperty(field)) {
-                  fields[field] = condition.getValue();
-                }
-
-              case 21:
-                _context3.next = 15;
-                break;
-
-              case 23:
-                _context3.next = 28;
-                break;
-
-              case 25:
-                _context3.prev = 25;
-                _context3.t0 = _context3["catch"](13);
-
-                _iterator2.e(_context3.t0);
-
-              case 28:
-                _context3.prev = 28;
-
-                _iterator2.f();
-
-                return _context3.finish(28);
-
-              case 31:
-                _context3.next = 10;
-                break;
-
-              case 33:
-                _context3.next = 38;
-                break;
-
-              case 35:
-                _context3.prev = 35;
-                _context3.t1 = _context3["catch"](8);
-
-                _iterator.e(_context3.t1);
-
-              case 38:
-                _context3.prev = 38;
-
-                _iterator.f();
-
-                return _context3.finish(38);
-
-              case 41:
-                return _context3.abrupt("return", fields);
-
-              case 42:
-              case "end":
-                return _context3.stop();
-            }
-          }
-        }, _callee3, null, [[8, 35, 38, 41], [13, 25, 28, 31]]);
-      }));
-
-      function getNewObjectDefaults(_x3) {
-        return _getNewObjectDefaults.apply(this, arguments);
-      }
-
-      return getNewObjectDefaults;
     }()
     /**
      * Interface method for integration with external tools.
@@ -6723,8 +6756,9 @@ var UIHelper = /*#__PURE__*/function () {
     key: "createSelect",
     value: function createSelect(id, label, values) {
       var selected = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : '';
+      var disabled = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : false;
       var $elem = (0, _jqueryLib.$)('\
-        <div id="' + id + '" class="mdc-select mdc-select--filled ' + (label.length ? '' : 'mdc-select--no-label') + ' "> \
+        <div id="' + id + '" class="mdc-select mdc-select--filled ' + (label.length ? '' : 'mdc-select--no-label') + ' ' + (disabled ? 'mdc-select--disabled' : '') + '"> \
             <div class="mdc-select__anchor" role="button" tabindex="0"> \
                 <span class="mdc-select__ripple"></span> \
                 ' + (label.length ? '<span class="mdc-floating-label">' + label + '</span>' : '') + '\
@@ -7834,21 +7868,21 @@ var WidgetMany2Many = /*#__PURE__*/function (_Widget) {
                           mode: 'edit',
                           purpose: 'create',
                           callback: function callback(data) {
-                            console.log('#######################" callback', data);
+                            if (data && data.selection) {
+                              if (data.selection.length) {
+                                var ids = _this2.value.map(function (o) {
+                                  return o.id;
+                                }); // append created object to current selection
 
-                            if (data && data.object_id) {
-                              var ids = _this2.value.map(function (o) {
-                                return o.id;
-                              }); // append created object to current selection
 
-
-                              ids = ids.concat([data.object_id]);
-                              _this2.value = ids.map(function (id) {
-                                return {
-                                  id: id
-                                };
-                              });
-                              $elem.trigger('_updatedWidget');
+                                ids = ids.concat([data.selection[0]]);
+                                _this2.value = ids.map(function (id) {
+                                  return {
+                                    id: id
+                                  };
+                                });
+                                $elem.trigger('_updatedWidget');
+                              }
                             }
                           }
                         });
@@ -7951,17 +7985,19 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
       if (this.config.hasOwnProperty('domain')) {
         domain = this.config.domain;
       } // #todo : display many2one as sub-forms
-      // on right side of widget, add an icon to open the target object (current selection) into a new context                    
+      // on right side of widget, add an icon to open the target object (current selection) into a new context
 
 
-      var $button = _materialLib.UIHelper.createButton('m2o-actions', '', 'icon', 'open_in_new');
+      var $button_open = _materialLib.UIHelper.createButton('m2o-actions-open', '', 'icon', 'open_in_new');
+
+      var $button_create = _materialLib.UIHelper.createButton('m2o-actions-create', '', 'icon', 'add');
 
       switch (this.mode) {
         case 'edit':
           var objects = [];
           $elem = $('<div />');
 
-          var $select = _materialLib.UIHelper.createInput('', this.label, value).addClass('mdc-menu-surface--anchor').css({
+          var $select = _materialLib.UIHelper.createInput('', this.label, value, this.config.helper, '', this.readonly).addClass('mdc-menu-surface--anchor').css({
             "width": "calc(100% - 48px)",
             "display": "inline-block"
           });
@@ -7970,10 +8006,17 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
 
           var $menu_list = _materialLib.UIHelper.createList('').appendTo($menu);
 
-          var $link = _materialLib.UIHelper.createListItem('<a href="#">' + _equalServices.TranslationService.instant('SB_WIDGETS_MANY2ONE_ADVANCED_SEARCH') + '</a>');
+          var $link = _materialLib.UIHelper.createListItem('<a style="text-decoration: underline;">' + _equalServices.TranslationService.instant('SB_WIDGETS_MANY2ONE_ADVANCED_SEARCH') + '</a>');
+
+          if (value.length) {
+            $button_create.hide();
+          } else {
+            $button_open.hide();
+          }
 
           $elem.append($select);
-          $elem.append($button);
+          $elem.append($button_open);
+          $elem.append($button_create);
 
           _materialLib.UIHelper.decorateMenu($menu);
 
@@ -8012,43 +8055,51 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
             }).catch(function (response) {
               console.log(response);
             });
-          }; // make the menu sync with its parent width (menu is 'fixed')
+          };
 
-
-          $select.on('click', function () {
-            $select.find('.mdc-menu-surface').width($select.width());
-            $menu.trigger('_toggle');
-          });
-          var timeout = null;
-          $select.find('input').on('keyup', function () {
-            if (timeout) {
-              clearTimeout(timeout);
-            }
-
-            timeout = setTimeout(function () {
-              timeout = null;
-              feedObjects();
-            }, 300);
-          }); // upon value change, relay updated value to parent layout
-
-          $select.on('change', function (event) {
-            console.log('WidgetMany2One : received change event'); // m2o relations are always loaded as an object with {id:, name:}
-
-            var value = $select.find('input').val();
-            var object = objects.find(function (o) {
-              return o.name == value;
+          if (!this.readonly) {
+            // make the menu sync with its parent width (menu is 'fixed')
+            $select.on('click', function () {
+              $select.find('.mdc-menu-surface').width($select.width());
+              $menu.trigger('_toggle');
             });
+            var timeout = null;
+            $select.find('input').on('keyup', function () {
+              if (timeout) {
+                clearTimeout(timeout);
+              }
 
-            if (object) {
-              _this.value = {
-                id: object.id,
-                name: value
-              };
-              $elem.trigger('_updatedWidget');
-            }
-          }); // open targeted object in new context
+              timeout = setTimeout(function () {
+                timeout = null;
+                feedObjects();
+              }, 300);
+            }); // upon value change, relay updated value to parent layout
 
-          $button.on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
+            $select.on('change', function (event) {
+              console.log('WidgetMany2One : received change event'); // m2o relations are always loaded as an object with {id:, name:}
+
+              var value = $select.find('input').val();
+              var object = objects.find(function (o) {
+                return o.name == value;
+              });
+
+              if (object) {
+                $button_create.hide();
+                $button_open.show();
+                _this.value = {
+                  id: object.id,
+                  name: value
+                };
+                $elem.trigger('_updatedWidget');
+              } else {
+                $button_create.show();
+                $button_open.hide();
+              }
+            });
+          } // open targeted object in new context
+
+
+          $button_open.on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
             var value, object, _object;
 
             return _regenerator.default.wrap(function _callee$(_context) {
@@ -8079,12 +8130,50 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
                 }
               }
             }, _callee);
-          }))); // advanced search
+          }))); // open targeted object in new context
 
-          $link.on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
+          $button_create.on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
             return _regenerator.default.wrap(function _callee2$(_context2) {
               while (1) {
                 switch (_context2.prev = _context2.next) {
+                  case 0:
+                    _this.getLayout().openContext({
+                      entity: _this.config.foreign_object,
+                      type: 'form',
+                      mode: 'edit',
+                      purpose: 'create',
+                      name: _this.config.hasOwnProperty('view_name') ? _this.config.view_name : 'default',
+                      callback: function callback(data) {
+                        if (data && data.selection && data.objects) {
+                          if (data.selection.length) {
+                            $button_create.hide();
+                            $button_open.show(); // m2o relations are always loaded as an object with {id:, name:}
+
+                            var object = data.objects.find(function (o) {
+                              return o.id == data.selection[0];
+                            });
+                            _this.value = {
+                              id: object.id,
+                              name: object.name
+                            };
+                            $elem.trigger('_updatedWidget');
+                          }
+                        }
+                      }
+                    });
+
+                  case 1:
+                  case "end":
+                    return _context2.stop();
+                }
+              }
+            }, _callee2);
+          }))); // advanced search
+
+          $link.on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3() {
+            return _regenerator.default.wrap(function _callee3$(_context3) {
+              while (1) {
+                switch (_context3.prev = _context3.next) {
                   case 0:
                     _this.getLayout().openContext({
                       entity: _this.config.foreign_object,
@@ -8108,14 +8197,14 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
                       }
                     });
 
-                    return _context2.abrupt("return", false);
+                    return _context3.abrupt("return", false);
 
                   case 2:
                   case "end":
-                    return _context2.stop();
+                    return _context3.stop();
                 }
               }
-            }, _callee2);
+            }, _callee3);
           }))); // init list content
 
           feedObjects();
@@ -8134,12 +8223,12 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
                 "display": "inline-block"
               });
               $elem.append($input);
-              $elem.append($button); // open targeted object in new context
+              $elem.append($button_open); // open targeted object in new context
 
-              $button.on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3() {
-                return _regenerator.default.wrap(function _callee3$(_context3) {
+              $button_open.on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
+                return _regenerator.default.wrap(function _callee4$(_context4) {
                   while (1) {
-                    switch (_context3.prev = _context3.next) {
+                    switch (_context4.prev = _context4.next) {
                       case 0:
                         console.log(_this.config);
 
@@ -8154,10 +8243,10 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
 
                       case 2:
                       case "end":
-                        return _context3.stop();
+                        return _context4.stop();
                     }
                   }
-                }, _callee3);
+                }, _callee4);
               })));
               break;
 
@@ -8286,7 +8375,7 @@ var WidgetSelect = /*#__PURE__*/function (_Widget) {
 
       switch (this.mode) {
         case 'edit':
-          $elem = _materialLib.UIHelper.createSelect('', this.label, this.config.values, value); // setup handler for relaying value update to parent layout
+          $elem = _materialLib.UIHelper.createSelect('', this.label, this.config.values, value, this.readonly); // setup handler for relaying value update to parent layout
 
           $elem.find('input').on('change', function (event) {
             console.log('WidgetSelect : received change event');

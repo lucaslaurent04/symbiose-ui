@@ -1,8 +1,7 @@
 import { $ } from "./jquery-lib";
-import { Domain, Frame } from "./equal-lib";
+import { Frame } from "./equal-lib";
 
 import { environment } from "./environment";
-import { ApiService, TranslationService } from "./equal-services";
 import moment from 'moment/moment.js';
 
 require('../datepicker-improved.js');
@@ -45,10 +44,11 @@ class eQ {
          * 
          * A new context can be requested by ngx (menu or app) or by opening a sub-object
          */
-        this.$sbEvents.on('_openContext', async (event:any, config:any) => {
+        this.$sbEvents.on('_openContext', (event:any, config:any) => {
             console.log('eQ: received _openContext', config);
 
-            let params = {
+            // extend default params with received config
+            config = {...{
                 entity:     '', 
                 type:       'list', 
                 name:       'default', 
@@ -58,16 +58,7 @@ class eQ {
                 lang:       environment.lang,
                 callback:   null,
                 domContainerSelector: '#sb-container'
-            };
-            // extend default params with received config
-            config = {...params, ...config};
-            // create a draft object if required: Edition is based on asynchronous creation: a draft is created (or recylcled) and is turned into an instance if 'update' action is triggered.
-            if(config.purpose == 'create') {
-                console.log('requesting dratf object');
-                let defaults    = await this.getNewObjectDefaults(config.entity, config.domain);
-                let object      = await ApiService.create(config.entity, defaults);
-                config.domain   = [['id', '=', object.id], ['state', '=', 'draft']];    
-            }
+            }, ...config};
 
             if(!this.frames.hasOwnProperty(config.domContainerSelector)) {
                 this.frames[config.domContainerSelector] = new Frame(config.domContainerSelector);
@@ -107,33 +98,6 @@ class eQ {
 
     }
 
-
-
-
-    /**
-     * Generate an object mapping fields of current entity with default values, based on current domain.
-     * 
-     * @returns Object  A map of fields with their related default values
-     */
-     private async getNewObjectDefaults(entity:string, domain:[] = []) {
-        // create a new object as draft
-        let fields:any = {state: 'draft'};
-        // retrieve fields definition
-        let model_schema = await ApiService.getSchema(entity);
-        let model_fields = model_schema.fields;
-        // use View domain for setting default values  
-        let tmpDomain = new Domain(domain);
-        for(let clause of tmpDomain.getClauses()) {
-            for(let condition of clause.getConditions()) {
-                let field  = condition.getOperand();
-                if(field == 'id') continue;
-                if(['ilike', 'like', '=', 'is'].includes(condition.getOperator()) && model_fields.hasOwnProperty(field)) {
-                    fields[field] = condition.getValue();
-                }
-            }
-        }
-        return fields;
-    }   
 
     /**
      * Interface method for integration with external tools.

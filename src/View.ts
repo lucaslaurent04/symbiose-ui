@@ -864,8 +864,12 @@ export class View {
                             try {
                                 // update new object (set to instance)
                                 const response = await ApiService.update(this.entity, [object['id']], this.model.export(object));
+                                if(response && response.length) {
+                                    // merge object with response (state and name fields might have changed)
+                                    object = {...object, ...response[0]};
+                                }
                                 // relay new object_id to parent view
-                                this.closeContext({object_id: object.id});
+                                this.closeContext({selection: [object.id], objects: [object]});
                             }
                             catch(response) {
                                 this.displayErrorFeedback(response, object, false);

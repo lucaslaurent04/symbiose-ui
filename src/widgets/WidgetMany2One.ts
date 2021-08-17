@@ -6,7 +6,7 @@ import Layout from "../Layout";
 import Domain from "../Domain";
 
 export default class WidgetMany2One extends Widget {
-    
+
 
     constructor(layout: Layout, label: string, value: any, config: any) {
         super(layout, 'many2one', label, value, config);
@@ -25,21 +25,32 @@ export default class WidgetMany2One extends Widget {
 
 // #todo : display many2one as sub-forms
 
-        // on right side of widget, add an icon to open the target object (current selection) into a new context                    
-        let $button = UIHelper.createButton('m2o-actions', '', 'icon', 'open_in_new');
+        // on right side of widget, add an icon to open the target object (current selection) into a new context
+        let $button_open = UIHelper.createButton('m2o-actions-open', '', 'icon', 'open_in_new');
+        let $button_create = UIHelper.createButton('m2o-actions-create', '', 'icon', 'add');
 
         switch(this.mode) {
             case 'edit':
                 let objects:Array<any> = [];
                 $elem = $('<div />');
 
-                let $select = UIHelper.createInput('', this.label, value).addClass('mdc-menu-surface--anchor').css({"width": "calc(100% - 48px)", "display": "inline-block"});
-                let $menu = UIHelper.createMenu('').appendTo($select);        
-                let $menu_list = UIHelper.createList('').appendTo($menu);
-                let $link = UIHelper.createListItem('<a href="#">'+TranslationService.instant('SB_WIDGETS_MANY2ONE_ADVANCED_SEARCH')+'</a>');
+                let $select = UIHelper.createInput('', this.label, value, this.config.helper, '', this.readonly).addClass('mdc-menu-surface--anchor').css({"width": "calc(100% - 48px)", "display": "inline-block"});
 
-                $elem.append($select); 
-                $elem.append($button); 
+                let $menu = UIHelper.createMenu('').appendTo($select);
+                let $menu_list = UIHelper.createList('').appendTo($menu);
+                let $link = UIHelper.createListItem('<a style="text-decoration: underline;">'+TranslationService.instant('SB_WIDGETS_MANY2ONE_ADVANCED_SEARCH')+'</a>');
+
+                if(value.length) {
+                    $button_create.hide();
+                }
+                else {
+                    $button_open.hide();
+                }
+
+                $elem.append($select);
+                
+                $elem.append($button_open);
+                $elem.append($button_create);
 
                 UIHelper.decorateMenu($menu);
 
@@ -68,58 +79,91 @@ export default class WidgetMany2One extends Widget {
                     });
                 };
 
-                // make the menu sync with its parent width (menu is 'fixed')
-                $select.on('click', () => {                    
-                    $select.find('.mdc-menu-surface').width(<number>$select.width());
-                    $menu.trigger('_toggle');                    
-                });
+                if(!this.readonly) {
+                    // make the menu sync with its parent width (menu is 'fixed')
+                    $select.on('click', () => {
+                        $select.find('.mdc-menu-surface').width(<number>$select.width());
+                        $menu.trigger('_toggle');
+                    });
 
-                let timeout:any = null;
+                    let timeout:any = null;
 
-                $select.find('input')
-                .on('keyup', () => {                        
-                    if(timeout) {
-                        clearTimeout(timeout);
-                    }
-                    timeout = setTimeout(() => {
-                        timeout = null;
-                        feedObjects();
-                    }, 300);
+                    $select.find('input')
+                    .on('keyup', () => {
+                        if(timeout) {
+                            clearTimeout(timeout);
+                        }
+                        timeout = setTimeout(() => {
+                            timeout = null;
+                            feedObjects();
+                        }, 300);
+                    });
 
-                });
-                // upon value change, relay updated value to parent layout
-                $select.on('change', (event) => {
-                    console.log('WidgetMany2One : received change event');
-                    // m2o relations are always loaded as an object with {id:, name:}
-                    let value = $select.find('input').val();
-                    let object = objects.find( o => o.name == value);
-                    if(object) {
-                        this.value = {id: object.id, name: value};
-                        $elem.trigger('_updatedWidget');    
-                    }
-                });
+                    // upon value change, relay updated value to parent layout
+                    $select.on('change', (event) => {
+                        console.log('WidgetMany2One : received change event');
+                        // m2o relations are always loaded as an object with {id:, name:}
+                        let value = $select.find('input').val();
+                        let object = objects.find( o => o.name == value);
+                        if(object) {
+                            $button_create.hide();
+                            $button_open.show();
+                            this.value = {id: object.id, name: value};
+                            $elem.trigger('_updatedWidget');
+                        }
+                        else {
+                            $button_create.show();
+                            $button_open.hide();
+                        }
+                    });
+                }
+
                 // open targeted object in new context
-                $button.on('click', async () => {
+                $button_open.on('click', async () => {
                     let value = $select.find('input').val();
                     let object = objects.find( o => o.name == value);
                     if(object && object.hasOwnProperty('id')) {
                         let object = objects.find( o => o.name == value);
                         this.getLayout().openContext({
-                            entity: this.config.foreign_object, 
-                            type: 'form', 
+                            entity: this.config.foreign_object,
+                            type: 'form',
                             name: (this.config.hasOwnProperty('view_name'))?this.config.view_name:'default',
                             domain: ['id', '=', object.id]
                         });
                     }
                 });
+
+                // open targeted object in new context
+                $button_create.on('click', async () => {
+                    this.getLayout().openContext({
+                        entity: this.config.foreign_object,
+                        type: 'form',
+                        mode: 'edit',
+                        purpose: 'create',
+                        name: (this.config.hasOwnProperty('view_name'))?this.config.view_name:'default',
+                        callback: (data:any) => {
+                            if(data && data.selection && data.objects) {
+                                if(data.selection.length) {
+                                    $button_create.hide();
+                                    $button_open.show();            
+                                    // m2o relations are always loaded as an object with {id:, name:}
+                                    let object = data.objects.find( (o:any) => o.id == data.selection[0] );
+                                    this.value = {id: object.id, name: object.name};
+                                    $elem.trigger('_updatedWidget');
+                                }
+                            }
+                        }
+                    });
+                });
+
                 // advanced search
                 $link.on('click', async () => {
                     this.getLayout().openContext({
-                        entity: this.config.foreign_object, 
+                        entity: this.config.foreign_object,
                         type: (this.config.hasOwnProperty('view_type'))?this.config.view_type:'list',
                         name: (this.config.hasOwnProperty('view_name'))?this.config.view_name:'default',
-                        domain: domain, 
-                        mode: 'view', 
+                        domain: domain,
+                        mode: 'view',
                         purpose: 'select',
                         callback: (data:any) => {
                             if(data && data.selection && data.objects) {
@@ -145,12 +189,12 @@ export default class WidgetMany2One extends Widget {
                 switch(this.config.layout) {
                     case 'form':
                         $input.css({"width": "calc(100% - 48px)", "display": "inline-block"});
-    
+
                         $elem.append($input);
-                        $elem.append($button);
-        
+                        $elem.append($button_open);
+
                         // open targeted object in new context
-                        $button.on('click', async () => {
+                        $button_open.on('click', async () => {
                             console.log(this.config);
                             if(this.config.hasOwnProperty('object_id') && this.config.object_id && this.config.object_id > 0) {
                                 this.getLayout().openContext({
@@ -160,11 +204,11 @@ export default class WidgetMany2One extends Widget {
                                     domain: ['id', '=', this.config.object_id]
                                 });
                             }
-                        });    
+                        });
                         break;
                     case 'list':
                     default:
-                        $elem.append($input);                    
+                        $elem.append($input);
                 }
                 break;
         }
@@ -173,5 +217,5 @@ export default class WidgetMany2One extends Widget {
         $elem.addClass('sb-widget').addClass('sb-widget-mode-'+this.mode).attr('id', this.getId());
 
         return $elem;
-    }    
+    }
 }

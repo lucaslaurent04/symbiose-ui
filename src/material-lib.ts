@@ -278,9 +278,9 @@ class UIHelper {
         return $elem;
     }
 
-    public static createSelect(id: string, label: string, values: any, selected: any='') {
+    public static createSelect(id: string, label: string, values: any, selected: any='', disabled: boolean=false) {
         let $elem = $('\
-        <div id="'+id+'" class="mdc-select mdc-select--filled '+( (label.length)?'':'mdc-select--no-label' )+' "> \
+        <div id="'+id+'" class="mdc-select mdc-select--filled '+( (label.length)?'':'mdc-select--no-label' )+' '+ ( (disabled)?'mdc-select--disabled':'' ) +'"> \
             <div class="mdc-select__anchor" role="button" tabindex="0"> \
                 <span class="mdc-select__ripple"></span> \
                 '+ ( (label.length)?'<span class="mdc-floating-label">'+label+'</span>':'' ) +'\

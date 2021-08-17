@@ -235,18 +235,22 @@ export class Layout {
 
         // for relational fields, we need to check if the Model has been fetched al
         if(['one2many', 'many2one', 'many2many'].indexOf(def['type']) > -1) {
-
             // defined config for Widget's view with a custom domain according to object values
             let view_id = (config.hasOwnProperty('view'))?config.view:'list.default';
             let parts = view_id.split(".", 2); 
             let view_type = (parts.length > 1)?parts[0]:'list';
             let view_name = (parts.length > 1)?parts[1]:parts[0];
 
+            let def_domain = (def.hasOwnProperty('domain'))?def['domain']:[];
+            let view_domain = (item.hasOwnProperty('domain'))?item['domain']:[];
+            let tmpDomain = new Domain(def_domain);
+            tmpDomain.merge(new Domain(view_domain));
+
             config = {...config, 
                 entity: def['foreign_object'],
                 view_type: view_type,
                 view_name: view_name,
-                domain: (def.hasOwnProperty('domain'))?def['domain']:[]
+                domain: tmpDomain.toArray()
             };
 
         }

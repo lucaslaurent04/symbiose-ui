@@ -7,7 +7,7 @@ import View from "../View";
 import { ApiService, TranslationService } from "../equal-services";
 
 export default class WidgetMany2Many extends Widget {
-    
+
     protected rel_type: string;
 
     constructor(layout:Layout, label: string, value: any, config: any) {
@@ -47,7 +47,7 @@ export default class WidgetMany2Many extends Widget {
             };
 
             let view = new View(this.getLayout().getView().getContext(), this.config.entity, this.config.view_type, this.config.view_name, this.config.domain, this.mode, 'widget', this.config.lang, view_config);
-    
+
             view.isReady().then( () => {
                 let $container = view.getContainer();
 
@@ -61,14 +61,14 @@ export default class WidgetMany2Many extends Widget {
                         UIHelper.createButton('action-edit', TranslationService.instant('SB_ACTIONS_BUTTON_ADD'), 'raised')
                         .on('click', async () => {
                             let purpose = (this.rel_type == 'many2many')?'add':'select';
-    
+
                             // request a new Context for selecting an existing object to add to current selection
                             this.getLayout().openContext({
-                                entity: this.config.entity, 
-                                type: 'list', 
-                                name: 'default', 
-                                domain: [], 
-                                mode: 'view', 
+                                entity: this.config.entity,
+                                type: 'list',
+                                name: 'default',
+                                domain: [],
+                                mode: 'view',
                                 purpose: purpose,
                                 callback: (data:any) => {
                                     if(data && data.selection) {
@@ -94,40 +94,41 @@ export default class WidgetMany2Many extends Widget {
                         $actions_set
                         .append(
                             UIHelper.createButton('action-create', TranslationService.instant('SB_ACTIONS_BUTTON_CREATE'), 'raised')
-                            .on('click', async () => {        
+                            .on('click', async () => {
                                 // request a new Context for selecting an existing object to add to current selection
                                 this.getLayout().openContext({
-                                    entity: this.config.entity, 
-                                    type: 'form', 
-                                    name: 'default', 
-                                    domain: [this.config.foreign_field, '=', this.config.object_id], 
-                                    mode: 'edit', 
+                                    entity: this.config.entity,
+                                    type: 'form',
+                                    name: 'default',
+                                    domain: [this.config.foreign_field, '=', this.config.object_id],
+                                    mode: 'edit',
                                     purpose: 'create',
                                     callback: (data:any) => {
-                                        console.log('#######################" callback', data);
-                                        if(data && data.object_id) {
-                                            let ids = this.value.map( (o:any) => o.id);
-                                            // append created object to current selection
-                                            ids = ids.concat([data.object_id]);
-                                            this.value = ids.map( (id:number) => ({id: id}) );
-                                            $elem.trigger('_updatedWidget');
+                                        if(data && data.selection) {
+                                            if(data.selection.length) {
+                                                let ids = this.value.map( (o:any) => o.id);
+                                                // append created object to current selection
+                                                ids = ids.concat([data.selection[0]]);
+                                                this.value = ids.map( (id:number) => ({id: id}) );
+                                                $elem.trigger('_updatedWidget');
+                                            }
                                         }
                                     }
                                 });
                             })
-                        );                        
+                        );
                     }
                 }
-    
+
                 // inject View in parent Context object
-                $elem.append($container); 
+                $elem.append($container);
             });
-   
+
         }
 
         $elem.addClass('sb-widget').attr('id', this.getId());
 
         return $elem;
     }
-    
+
 }
