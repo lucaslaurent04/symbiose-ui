@@ -1,5 +1,8 @@
 import Widget from "./Widget";
+import Layout from "../Layout";
+
 import { UIHelper } from '../material-lib';
+
 import View from "../View";
 import { ApiService, TranslationService } from "../equal-services";
 
@@ -7,8 +10,8 @@ export default class WidgetMany2Many extends Widget {
     
     protected rel_type: string;
 
-    constructor(label: string, value: any, config: any) {
-        super('many2many', label, value, config);
+    constructor(layout:Layout, label: string, value: any, config: any) {
+        super(layout, 'many2many', label, value, config);
         this.rel_type = 'many2many';
     }
 
@@ -43,7 +46,7 @@ export default class WidgetMany2Many extends Widget {
                 ]
             };
 
-            let view = new View(this.config.entity, this.config.view_type, this.config.view_name, this.config.domain, this.mode, 'widget', this.config.lang, view_config);
+            let view = new View(this.getLayout().getView().getContext(), this.config.entity, this.config.view_type, this.config.view_name, this.config.domain, this.mode, 'widget', this.config.lang, view_config);
     
             view.isReady().then( () => {
                 let $container = view.getContainer();
@@ -60,7 +63,7 @@ export default class WidgetMany2Many extends Widget {
                             let purpose = (this.rel_type == 'many2many')?'add':'select';
     
                             // request a new Context for selecting an existing object to add to current selection
-                            $('#sb-events').trigger('_openContext', {
+                            this.getLayout().openContext({
                                 entity: this.config.entity, 
                                 type: 'list', 
                                 name: 'default', 
@@ -93,7 +96,7 @@ export default class WidgetMany2Many extends Widget {
                             UIHelper.createButton('action-create', TranslationService.instant('SB_ACTIONS_BUTTON_CREATE'), 'raised')
                             .on('click', async () => {        
                                 // request a new Context for selecting an existing object to add to current selection
-                                $('#sb-events').trigger('_openContext', {
+                                this.getLayout().openContext({
                                     entity: this.config.entity, 
                                     type: 'form', 
                                     name: 'default', 

@@ -39,7 +39,7 @@ body, html {
     display: inline-block;
 }
 
-#sb-container {
+#sb-container, .sb-container {
     width: 100%;
     height: 100%;
     overflow: hidden;

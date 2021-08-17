@@ -51,6 +51,19 @@ export class Layout {
         }        
     }
 
+    public getView() {
+        return this.view;
+    }
+
+    /**
+     * Relay Context opening requests to parent View.
+     * 
+     * @param config 
+     */
+    public openContext(config: any) {
+        this.view.openContext(config);
+    }
+
     /**
      * 
      * @param field 
@@ -70,6 +83,24 @@ export class Layout {
     }
 
     public updateFieldValue(object_id: number, field: string, value: any) {
+        let model_fields = this.view.getModelFields();
+
+        if(!model_fields || !model_fields.hasOwnProperty(field)) {
+            return null;
+        }
+
+        let def = model_fields[field];
+
+        if(['one2many', 'many2one', 'many2many'].indexOf(def.type) > -1) {
+            // by convention, `name` subfield is always loaded for relational fields
+            if(def.type == 'many2one') {
+                value = value['name'];
+            }
+            else {
+// #todo : this method should use the same logic as the feed* methods.
+            }
+        }
+
         if(this.model_widgets[object_id][field]) {
             this.model_widgets[object_id][field].setValue(value);
         }        
@@ -167,7 +198,16 @@ export class Layout {
         
         if(config.hasOwnProperty('selection')) {
             config.type = 'select';
-            config.values = TranslationService.resolve(translation, 'model', field, config.selection, 'selection');
+            let translated = TranslationService.resolve(translation, 'model', field, config.selection, 'selection');
+            let values = translated;
+            if(Array.isArray(translated)) {
+                // convert array to a Map (original values as keys and translations as values)
+                values = {};
+                for(let i = 0, n = config.selection.length; i < n; ++i) {
+                    values[config.selection[i]] = translated[i];
+                }
+            }
+            config.values = values;
         }
         // ready property is set to true during the 'feed' phase
         config.ready = false;
@@ -303,7 +343,7 @@ export class Layout {
                                     let config = this.getWidgetConfig(item);
 
                                     if(config) {
-                                        let widget:Widget = WidgetFactory.getWidget(config.type, config.title, '', config);
+                                        let widget:Widget = WidgetFactory.getWidget(this, config.type, config.title, '', config);
                                         widget.setReadonly(config.readonly);
                                         // store widget in widgets Map, using field name as key
                                         if(typeof this.model_widgets[0] == 'undefined') {
@@ -443,7 +483,7 @@ export class Layout {
                 let $this = $(event.currentTarget);
                 // discard click when row is being edited
                 if($this.attr('data-edit') == '0') {
-                    $('#sb-events').trigger('_openContext', {entity: this.view.getEntity(), type: 'form', name: this.view.getName(), domain: ['id', '=', object.id]});
+                    this.openContext({entity: this.view.getEntity(), type: 'form', name: this.view.getName(), domain: ['id', '=', object.id]});
                 }
             });
 
@@ -484,15 +524,7 @@ export class Layout {
                     }                    
                 }
 
-                if(config.type == 'select' && this.view.getMode() == 'view') {
-                    if(config.values && !Array.isArray(config.values) ) {
-                        if(config.values.hasOwnProperty(value) ) {
-                            value = config.values[value];
-                        }
-                    }
-                }
-
-                let widget:Widget = WidgetFactory.getWidget(config.type, '', value, config);
+                let widget:Widget = WidgetFactory.getWidget(this, config.type, '', value, config);
 
                 // store widget in widgets Map, using widget id as key (there are several rows for each field)
                 if(typeof this.model_widgets[object.id] == 'undefined') {
@@ -530,7 +562,7 @@ export class Layout {
     }
     
     private feedForm(objects: any) {
-        console.log('Layout::feedForm');
+        console.log('Layout::feedForm', objects);
         // display the first object from the collection
 
         let fields = Object.keys(this.view.getViewFields());
@@ -580,15 +612,7 @@ export class Layout {
                         };
                     }
                 }
-
-                if(config.type == 'select' && this.view.getMode() == 'view') {
-                    if(config.values && !Array.isArray(config.values) ) {
-                        if(config.values.hasOwnProperty(value) ) {
-                            value = config.values[value];
-                        }
-                    }
-                }
-                
+               
                 has_changed = (!value || $parent.data('value') != value);
 
                 widget.setConfig({...config, ready: true})

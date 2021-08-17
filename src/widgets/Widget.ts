@@ -1,6 +1,8 @@
+import Layout from "../Layout";
 
 export default class Widget {
     
+    private layout: Layout;
     protected value: any;
     protected label: string;    
     protected type: string;
@@ -12,8 +14,10 @@ export default class Widget {
 
     protected config: any;
     
-    constructor(type: string, label: string, value: any, config: any) {
+    constructor(layout: Layout, type: string, label: string, value: any, config: any) {
         console.log('Widget constructor', type, label, value, config);
+        this.layout = layout;
+
         this.value = value;
         this.label = label;
         this.type = type;
@@ -28,6 +32,10 @@ export default class Widget {
         var S4 = () => (((1+Math.random())*0x10000)|0).toString(16).substring(1);
         // generate a random guid
         this.id = (S4()+S4()+"-"+S4()+"-"+S4()+"-"+S4()+"-"+S4()+S4()+S4());
+    }
+
+    protected getLayout() {
+        return this.layout;
     }
 
     public getId() {

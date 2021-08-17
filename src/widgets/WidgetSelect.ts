@@ -1,14 +1,16 @@
 import Widget from "./Widget";
+import Layout from "../Layout";
+
 import { UIHelper } from '../material-lib';
 
 export default class WidgetSelect extends Widget {
         
-    constructor(label: string, value: any, config: any) {
-        super('select', label, value, config);
+    constructor(layout: Layout, label: string, value: any, config: any) {
+        super(layout, 'select', label, value, config);
     }
 
     public render():JQuery {
-        console.log('WidgetSelect::render', this.config, this.mode);
+        console.log('WidgetSelect::render', this.config, this.mode, this.value);
         let $elem: JQuery;
         let value:string = this.value?this.value:'';
         switch(this.mode) {
@@ -23,9 +25,9 @@ export default class WidgetSelect extends Widget {
                 });
                 break;
             case 'view':
-            default:                
-                $elem = $('<span/>').text(value);
-                $elem = UIHelper.createInputView('', this.label, value);                
+            default:
+                let val:string = Array.isArray(this.config.values)?value:this.config.values[value];
+                $elem = UIHelper.createInputView('', this.label, val);
                 break;
         }
         $elem.addClass('sb-widget').addClass('sb-widget-mode-'+this.mode).attr('id', this.getId());

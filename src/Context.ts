@@ -1,12 +1,14 @@
 import { $ } from "./jquery-lib";
 
-import { View } from "./View";
+import { Frame, View } from "./equal-lib";
 import { environment } from "./environment";
 
 export class Context {
     
     public $container: any;
-    
+
+    private frame: Frame;
+
     private view: View;
 
     // callback to be called when the context closes
@@ -33,27 +35,41 @@ and can be displayed to user as an indication of the expected action.
  */
  
 
-    constructor(entity: string, type: string, name: string, domain: any[], mode: string = 'view', purpose: string = 'view', lang: string = environment.lang, callback: (data:any) => void = (data:any=null) => {}, config: any = null) {
+    constructor(frame: Frame, entity: string, type: string, name: string, domain: any[], mode: string = 'view', purpose: string = 'view', lang: string = environment.lang, callback: (data:any) => void = (data:any=null) => {}, config: any = null) {
         this.$container = $('<div />').addClass('sb-context');
 
         this.callback = callback;
 
-        this.view = new View(entity, type, name, domain, mode, purpose, lang, config);
+        this.frame = frame;
+        this.view = new View(this, entity, type, name, domain, mode, purpose, lang, config);
         // inject View in parent Context object
         this.$container.append(this.view.getContainer())
     }    
 
+    /**
+     * Close current context.    
+     * Should be called only by parent Frame.
+     * 
+     */
     public close(data:any) {
         console.log('close', data);
+        // remove Context container
         this.$container.remove();
-
-        // callbacks are used to relay events across contexts (select, add, ...)
+        // invoke callback to relay events across contexts (select, add, ...)
         if( ({}).toString.call(this.callback) === '[object Function]' ) {
             this.callback(data);
-        }
-        
+        }        
     }
 
+    /**
+     * Relay closing request to parent Frame.
+     * 
+     * @param data 
+     */
+    public closeContext(data: any = {}) {
+        this.frame.closeContext(data);
+    }
+    
     /**
      * 
      * @returns Promise A promise that resolves when the View will be fully rendered
@@ -90,6 +106,10 @@ and can be displayed to user as an indication of the expected action.
         return this.$container;
     }
 
+    public getFrame() {
+        return this.frame;
+    }
+
     public getView() {
         return this.view;
     }
@@ -101,6 +121,16 @@ and can be displayed to user as an indication of the expected action.
         // refresh the model
         await this.view.onchangeView();
     }
+
+    /**
+     * Relay Context opening requests to parent Frame.
+     * 
+     * @param config 
+     */
+    public openContext(config: any) {
+        this.frame.openContext(config);
+    }
+
 }
 
 export default Context;

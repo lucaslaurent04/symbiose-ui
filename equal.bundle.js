@@ -395,20 +395,11 @@ var _ApiService = /*#__PURE__*/function () {
 
       return read;
     }()
-    /**
-     * 
-     * In practice, only one object is updated at a time (through form or list inline editing)
-     * 
-     * @param entity 
-     * @param ids 
-     * @param fields 
-     */
-
   }, {
-    key: "update",
+    key: "delete",
     value: function () {
-      var _update = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6(entity, ids, fields) {
-        var force,
+      var _delete2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6(entity, ids) {
+        var permanent,
             result,
             params,
             response,
@@ -417,57 +408,53 @@ var _ApiService = /*#__PURE__*/function () {
           while (1) {
             switch (_context6.prev = _context6.next) {
               case 0:
-                force = _args6.length > 3 && _args6[3] !== undefined ? _args6[3] : false;
-                console.log('ApiService::update', entity, ids, fields);
-                result = true;
-                _context6.prev = 3;
+                permanent = _args6.length > 2 && _args6[2] !== undefined ? _args6[2] : false;
+                _context6.prev = 1;
                 params = {
                   entity: entity,
                   ids: ids,
-                  fields: fields,
-                  lang: _environment.environment.lang,
-                  force: force
+                  permanent: permanent
                 };
-                _context6.next = 7;
-                return _jqueryLib.$.post({
-                  url: _environment.environment.backend_url + '/?do=model_update',
+                _context6.next = 5;
+                return _jqueryLib.$.get({
+                  url: _environment.environment.backend_url + '/?do=model_delete',
                   dataType: 'json',
                   data: params,
                   contentType: 'application/x-www-form-urlencoded; charset=utf-8'
                 });
 
-              case 7:
+              case 5:
                 response = _context6.sent;
                 result = response;
-                _context6.next = 14;
+                _context6.next = 12;
                 break;
 
-              case 11:
-                _context6.prev = 11;
-                _context6.t0 = _context6["catch"](3);
+              case 9:
+                _context6.prev = 9;
+                _context6.t0 = _context6["catch"](1);
                 throw _context6.t0.responseJSON;
 
-              case 14:
+              case 12:
                 return _context6.abrupt("return", result);
 
-              case 15:
+              case 13:
               case "end":
                 return _context6.stop();
             }
           }
-        }, _callee6, null, [[3, 11]]);
+        }, _callee6, null, [[1, 9]]);
       }));
 
-      function update(_x10, _x11, _x12) {
-        return _update.apply(this, arguments);
+      function _delete(_x10, _x11) {
+        return _delete2.apply(this, arguments);
       }
 
-      return update;
+      return _delete;
     }()
   }, {
-    key: "clone",
+    key: "archive",
     value: function () {
-      var _clone = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7(entity, ids) {
+      var _archive = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7(entity, ids) {
         var result, params, response;
         return _regenerator.default.wrap(function _callee7$(_context7) {
           while (1) {
@@ -476,12 +463,11 @@ var _ApiService = /*#__PURE__*/function () {
                 _context7.prev = 0;
                 params = {
                   entity: entity,
-                  ids: ids,
-                  lang: _environment.environment.lang
+                  ids: ids
                 };
                 _context7.next = 4;
                 return _jqueryLib.$.get({
-                  url: _environment.environment.backend_url + '/?do=model_clone',
+                  url: _environment.environment.backend_url + '/?do=model_archive',
                   dataType: 'json',
                   data: params,
                   contentType: 'application/x-www-form-urlencoded; charset=utf-8'
@@ -509,13 +495,134 @@ var _ApiService = /*#__PURE__*/function () {
         }, _callee7, null, [[0, 8]]);
       }));
 
-      function clone(_x13, _x14) {
+      function archive(_x12, _x13) {
+        return _archive.apply(this, arguments);
+      }
+
+      return archive;
+    }()
+    /**
+     * 
+     * In practice, only one object is updated at a time (through form or list inline editing)
+     * 
+     * @param entity 
+     * @param ids 
+     * @param fields 
+     */
+
+  }, {
+    key: "update",
+    value: function () {
+      var _update = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee8(entity, ids, fields) {
+        var force,
+            result,
+            params,
+            response,
+            _args8 = arguments;
+        return _regenerator.default.wrap(function _callee8$(_context8) {
+          while (1) {
+            switch (_context8.prev = _context8.next) {
+              case 0:
+                force = _args8.length > 3 && _args8[3] !== undefined ? _args8[3] : false;
+                console.log('ApiService::update', entity, ids, fields);
+                result = true;
+                _context8.prev = 3;
+                params = {
+                  entity: entity,
+                  ids: ids,
+                  fields: fields,
+                  lang: _environment.environment.lang,
+                  force: force
+                };
+                _context8.next = 7;
+                return _jqueryLib.$.post({
+                  url: _environment.environment.backend_url + '/?do=model_update',
+                  dataType: 'json',
+                  data: params,
+                  contentType: 'application/x-www-form-urlencoded; charset=utf-8'
+                });
+
+              case 7:
+                response = _context8.sent;
+                result = response;
+                _context8.next = 14;
+                break;
+
+              case 11:
+                _context8.prev = 11;
+                _context8.t0 = _context8["catch"](3);
+                throw _context8.t0.responseJSON;
+
+              case 14:
+                return _context8.abrupt("return", result);
+
+              case 15:
+              case "end":
+                return _context8.stop();
+            }
+          }
+        }, _callee8, null, [[3, 11]]);
+      }));
+
+      function update(_x14, _x15, _x16) {
+        return _update.apply(this, arguments);
+      }
+
+      return update;
+    }()
+  }, {
+    key: "clone",
+    value: function () {
+      var _clone = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee9(entity, ids) {
+        var result, params, response;
+        return _regenerator.default.wrap(function _callee9$(_context9) {
+          while (1) {
+            switch (_context9.prev = _context9.next) {
+              case 0:
+                _context9.prev = 0;
+                params = {
+                  entity: entity,
+                  ids: ids,
+                  lang: _environment.environment.lang
+                };
+                _context9.next = 4;
+                return _jqueryLib.$.get({
+                  url: _environment.environment.backend_url + '/?do=model_clone',
+                  dataType: 'json',
+                  data: params,
+                  contentType: 'application/x-www-form-urlencoded; charset=utf-8'
+                });
+
+              case 4:
+                response = _context9.sent;
+                result = response;
+                _context9.next = 11;
+                break;
+
+              case 8:
+                _context9.prev = 8;
+                _context9.t0 = _context9["catch"](0);
+                throw _context9.t0.responseJSON;
+
+              case 11:
+                return _context9.abrupt("return", result);
+
+              case 12:
+              case "end":
+                return _context9.stop();
+            }
+          }
+        }, _callee9, null, [[0, 8]]);
+      }));
+
+      function clone(_x17, _x18) {
         return _clone.apply(this, arguments);
       }
 
       return clone;
     }()
     /**
+     * Search for objects matching the given domain and return a list of objects holding requested fields and their values.
      * 
      * @param entity 
      * @param domain 
@@ -531,17 +638,17 @@ var _ApiService = /*#__PURE__*/function () {
   }, {
     key: "collect",
     value: function () {
-      var _collect = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee8(entity, domain, fields, order, sort, start, limit, lang) {
+      var _collect = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee10(entity, domain, fields, order, sort, start, limit, lang) {
         var _this4 = this;
 
         var result, params, response;
-        return _regenerator.default.wrap(function _callee8$(_context8) {
+        return _regenerator.default.wrap(function _callee10$(_context10) {
           while (1) {
-            switch (_context8.prev = _context8.next) {
+            switch (_context10.prev = _context10.next) {
               case 0:
                 console.log('ApiService::collect', entity, domain, fields, order, sort, start, limit, lang);
                 result = [];
-                _context8.prev = 2;
+                _context10.prev = 2;
                 params = {
                   entity: entity,
                   domain: domain,
@@ -552,7 +659,7 @@ var _ApiService = /*#__PURE__*/function () {
                   start: start,
                   limit: limit
                 };
-                _context8.next = 6;
+                _context10.next = 6;
                 return _jqueryLib.$.get({
                   url: _environment.environment.backend_url + '/?get=model_collect',
                   dataType: 'json',
@@ -563,44 +670,56 @@ var _ApiService = /*#__PURE__*/function () {
                 });
 
               case 6:
-                response = _context8.sent;
+                response = _context10.sent;
                 result = response;
-                _context8.next = 13;
+                _context10.next = 13;
                 break;
 
               case 10:
-                _context8.prev = 10;
-                _context8.t0 = _context8["catch"](2);
-                throw _context8.t0.responseJSON;
+                _context10.prev = 10;
+                _context10.t0 = _context10["catch"](2);
+                throw _context10.t0.responseJSON;
 
               case 13:
-                return _context8.abrupt("return", result);
+                return _context10.abrupt("return", result);
 
               case 14:
               case "end":
-                return _context8.stop();
+                return _context10.stop();
             }
           }
-        }, _callee8, null, [[2, 10]]);
+        }, _callee10, null, [[2, 10]]);
       }));
 
-      function collect(_x15, _x16, _x17, _x18, _x19, _x20, _x21, _x22) {
+      function collect(_x19, _x20, _x21, _x22, _x23, _x24, _x25, _x26) {
         return _collect.apply(this, arguments);
       }
 
       return collect;
     }()
+    /**
+     * Search for objects matching the given domain and return a list of identifiers.
+     * 
+     * @param entity 
+     * @param domain 
+     * @param order 
+     * @param sort 
+     * @param start 
+     * @param limit 
+     * @returns 
+     */
+
   }, {
     key: "search",
     value: function () {
-      var _search = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee9(entity, domain, order, sort, start, limit) {
+      var _search = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee11(entity, domain, order, sort, start, limit) {
         var result, params, response;
-        return _regenerator.default.wrap(function _callee9$(_context9) {
+        return _regenerator.default.wrap(function _callee11$(_context11) {
           while (1) {
-            switch (_context9.prev = _context9.next) {
+            switch (_context11.prev = _context11.next) {
               case 0:
                 result = [];
-                _context9.prev = 1;
+                _context11.prev = 1;
                 params = {
                   entity: entity,
                   domain: domain,
@@ -609,7 +728,7 @@ var _ApiService = /*#__PURE__*/function () {
                   start: start,
                   limit: limit
                 };
-                _context9.next = 5;
+                _context11.next = 5;
                 return _jqueryLib.$.get({
                   url: _environment.environment.backend_url + '/?get=model_search',
                   dataType: 'json',
@@ -618,29 +737,29 @@ var _ApiService = /*#__PURE__*/function () {
                 });
 
               case 5:
-                response = _context9.sent;
+                response = _context11.sent;
                 // reponse should be an array of ids
                 result = response;
-                _context9.next = 12;
+                _context11.next = 12;
                 break;
 
               case 9:
-                _context9.prev = 9;
-                _context9.t0 = _context9["catch"](1);
-                throw _context9.t0.responseJSON;
+                _context11.prev = 9;
+                _context11.t0 = _context11["catch"](1);
+                throw _context11.t0.responseJSON;
 
               case 12:
-                return _context9.abrupt("return", result);
+                return _context11.abrupt("return", result);
 
               case 13:
               case "end":
-                return _context9.stop();
+                return _context11.stop();
             }
           }
-        }, _callee9, null, [[1, 9]]);
+        }, _callee11, null, [[1, 9]]);
       }));
 
-      function search(_x23, _x24, _x25, _x26, _x27, _x28) {
+      function search(_x27, _x28, _x29, _x30, _x31, _x32) {
         return _search.apply(this, arguments);
       }
 
@@ -684,7 +803,7 @@ var _defineProperty2 = _interopRequireDefault(__webpack_require__(/*! @babel/run
 
 var _jqueryLib = __webpack_require__(/*! ./jquery-lib */ "./build/jquery-lib.js");
 
-var _View = __webpack_require__(/*! ./View */ "./build/View.js");
+var _equalLib = __webpack_require__(/*! ./equal-lib */ "./build/equal-lib.js");
 
 var _environment = __webpack_require__(/*! ./environment */ "./build/environment.js");
 
@@ -710,34 +829,55 @@ var Context = /*#__PURE__*/function () {
           * {purpose = update}: Update an existing object : only available actions should be 'save' and 'cancel'
   
    */
-  function Context(entity, type, name, domain) {
-    var mode = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : 'view';
-    var purpose = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : 'view';
-    var lang = arguments.length > 6 && arguments[6] !== undefined ? arguments[6] : _environment.environment.lang;
-    var callback = arguments.length > 7 && arguments[7] !== undefined ? arguments[7] : function () {
+  function Context(frame, entity, type, name, domain) {
+    var mode = arguments.length > 5 && arguments[5] !== undefined ? arguments[5] : 'view';
+    var purpose = arguments.length > 6 && arguments[6] !== undefined ? arguments[6] : 'view';
+    var lang = arguments.length > 7 && arguments[7] !== undefined ? arguments[7] : _environment.environment.lang;
+    var callback = arguments.length > 8 && arguments[8] !== undefined ? arguments[8] : function () {
       var data = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : null;
     };
-    var config = arguments.length > 8 && arguments[8] !== undefined ? arguments[8] : null;
+    var config = arguments.length > 9 && arguments[9] !== undefined ? arguments[9] : null;
     (0, _classCallCheck2.default)(this, Context);
     (0, _defineProperty2.default)(this, "$container", void 0);
+    (0, _defineProperty2.default)(this, "frame", void 0);
     (0, _defineProperty2.default)(this, "view", void 0);
     (0, _defineProperty2.default)(this, "callback", void 0);
     this.$container = (0, _jqueryLib.$)('<div />').addClass('sb-context');
     this.callback = callback;
-    this.view = new _View.View(entity, type, name, domain, mode, purpose, lang, config); // inject View in parent Context object
+    this.frame = frame;
+    this.view = new _equalLib.View(this, entity, type, name, domain, mode, purpose, lang, config); // inject View in parent Context object
 
     this.$container.append(this.view.getContainer());
   }
+  /**
+   * Close current context.    
+   * Should be called only by parent Frame.
+   * 
+   */
+
 
   (0, _createClass2.default)(Context, [{
     key: "close",
     value: function close(data) {
-      console.log('close', data);
-      this.$container.remove(); // callbacks are used to relay events across contexts (select, add, ...)
+      console.log('close', data); // remove Context container
+
+      this.$container.remove(); // invoke callback to relay events across contexts (select, add, ...)
 
       if ({}.toString.call(this.callback) === '[object Function]') {
         this.callback(data);
       }
+    }
+    /**
+     * Relay closing request to parent Frame.
+     * 
+     * @param data 
+     */
+
+  }, {
+    key: "closeContext",
+    value: function closeContext() {
+      var data = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+      this.frame.closeContext(data);
     }
     /**
      * 
@@ -785,6 +925,11 @@ var Context = /*#__PURE__*/function () {
       return this.$container;
     }
   }, {
+    key: "getFrame",
+    value: function getFrame() {
+      return this.frame;
+    }
+  }, {
     key: "getView",
     value: function getView() {
       return this.view;
@@ -818,6 +963,17 @@ var Context = /*#__PURE__*/function () {
 
       return refresh;
     }()
+    /**
+     * Relay Context opening requests to parent Frame.
+     * 
+     * @param config 
+     */
+
+  }, {
+    key: "openContext",
+    value: function openContext(config) {
+      this.frame.openContext(config);
+    }
   }]);
   return Context;
 }();
@@ -1260,6 +1416,617 @@ exports.default = _default;
 
 /***/ }),
 
+/***/ "./build/Frame.js":
+/*!************************!*\
+  !*** ./build/Frame.js ***!
+  \************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+var _interopRequireDefault = __webpack_require__(/*! @babel/runtime/helpers/interopRequireDefault */ "./node_modules/@babel/runtime/helpers/interopRequireDefault.js");
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.default = exports.Frame = void 0;
+
+var _regenerator = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/regenerator */ "./node_modules/@babel/runtime/regenerator/index.js"));
+
+var _asyncToGenerator2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/asyncToGenerator */ "./node_modules/@babel/runtime/helpers/asyncToGenerator.js"));
+
+var _classCallCheck2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/classCallCheck */ "./node_modules/@babel/runtime/helpers/classCallCheck.js"));
+
+var _createClass2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/createClass */ "./node_modules/@babel/runtime/helpers/createClass.js"));
+
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/defineProperty */ "./node_modules/@babel/runtime/helpers/defineProperty.js"));
+
+var _jqueryLib = __webpack_require__(/*! ./jquery-lib */ "./build/jquery-lib.js");
+
+var _equalLib = __webpack_require__(/*! ./equal-lib */ "./build/equal-lib.js");
+
+var _equalServices = __webpack_require__(/*! ./equal-services */ "./build/equal-services.js");
+
+var _materialLib = __webpack_require__(/*! ./material-lib */ "./build/material-lib.js");
+
+var _environment = __webpack_require__(/*! ./environment */ "./build/environment.js");
+
+/**
+ * Frames handle a stack of contexts. They're in charge of their header.
+ * 
+ */
+var Frame = /*#__PURE__*/function () {
+  // temporary var for computing width of rendered strings
+  // stack of Context (only current context is visible)
+  // root context
+  // DOM selector of the element to which current Frame relates
+  function Frame() {
+    var domContainerSelector = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '#sb-container';
+    (0, _classCallCheck2.default)(this, Frame);
+    (0, _defineProperty2.default)(this, "$headerContainer", void 0);
+    (0, _defineProperty2.default)(this, "$canvas", void 0);
+    (0, _defineProperty2.default)(this, "stack", void 0);
+    (0, _defineProperty2.default)(this, "context", void 0);
+    (0, _defineProperty2.default)(this, "domContainerSelector", void 0);
+    this.context = {};
+    this.stack = []; // As a convention, DOM element referenced by given selector must be present in the document.
+
+    this.domContainerSelector = domContainerSelector;
+    this.init();
+  }
+
+  (0, _createClass2.default)(Frame, [{
+    key: "init",
+    value: function () {
+      var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
+        var _this = this;
+
+        var resize_debounce;
+        return _regenerator.default.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                // trigger header re-draw when available horizontal space changes
+                (0, _jqueryLib.$)(window).on('resize', function () {
+                  clearTimeout(resize_debounce);
+                  resize_debounce = setTimeout( /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
+                    return _regenerator.default.wrap(function _callee$(_context) {
+                      while (1) {
+                        switch (_context.prev = _context.next) {
+                          case 0:
+                            return _context.abrupt("return", _this.updateHeader());
+
+                          case 1:
+                          case "end":
+                            return _context.stop();
+                        }
+                      }
+                    }, _callee);
+                  })), 100);
+                });
+
+              case 1:
+              case "end":
+                return _context2.stop();
+            }
+          }
+        }, _callee2);
+      }));
+
+      function init() {
+        return _init.apply(this, arguments);
+      }
+
+      return init;
+    }()
+  }, {
+    key: "getTextWidth",
+    value: function getTextWidth(text, font) {
+      var result = 0; // re-use canvas object for better performance
+
+      var canvas = this.$canvas || (this.$canvas = document.createElement("canvas"));
+      var context = canvas.getContext("2d");
+      context.font = font;
+      var metrics = context.measureText(text);
+      result = metrics.width;
+      return result;
+    }
+  }, {
+    key: "getPurposeString",
+    value: function () {
+      var _getPurposeString = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3(context) {
+        var result, entity, type, name, purpose, view_schema, translation, parts, purpose_const, translated_purpose, objects, object;
+        return _regenerator.default.wrap(function _callee3$(_context3) {
+          while (1) {
+            switch (_context3.prev = _context3.next) {
+              case 0:
+                result = '';
+                entity = context.getEntity();
+                type = context.getType();
+                name = context.getName();
+                purpose = context.getPurpose();
+                _context3.next = 7;
+                return _equalServices.ApiService.getView(entity, type + '.' + name);
+
+              case 7:
+                view_schema = _context3.sent;
+                _context3.next = 10;
+                return _equalServices.ApiService.getTranslation(entity, _environment.environment.lang);
+
+              case 10:
+                translation = _context3.sent;
+
+                if (translation.hasOwnProperty('name')) {
+                  entity = translation['name'];
+                } else if (view_schema.hasOwnProperty('name')) {
+                  entity = view_schema['name'];
+                } else {
+                  parts = entity.split('\\');
+                  entity = parts.pop(); // set the first letter uppercase
+
+                  entity = entity.charAt(0).toUpperCase() + entity.slice(1);
+                }
+
+                if (!(purpose == 'view')) {
+                  _context3.next = 17;
+                  break;
+                }
+
+                result = entity;
+
+                if (type == 'list') {
+                  if (translation.hasOwnProperty('plural')) {
+                    result = translation['plural'];
+                  }
+                }
+
+                _context3.next = 33;
+                break;
+
+              case 17:
+                // i18n: look in config translation file
+                purpose_const = '';
+                _context3.t0 = purpose;
+                _context3.next = _context3.t0 === 'create' ? 21 : _context3.t0 === 'update' ? 23 : _context3.t0 === 'select' ? 25 : _context3.t0 === 'add' ? 27 : 29;
+                break;
+
+              case 21:
+                purpose_const = 'SB_PURPOSE_CREATE';
+                return _context3.abrupt("break", 29);
+
+              case 23:
+                purpose_const = 'SB_PURPOSE_UPDATE';
+                return _context3.abrupt("break", 29);
+
+              case 25:
+                purpose_const = 'SB_PURPOSE_SELECT';
+                return _context3.abrupt("break", 29);
+
+              case 27:
+                purpose_const = 'SB_PURPOSE_ADD';
+                return _context3.abrupt("break", 29);
+
+              case 29:
+                _context3.next = 31;
+                return _equalServices.TranslationService.translate(purpose_const);
+
+              case 31:
+                translated_purpose = _context3.sent;
+
+                if (translated_purpose.length) {
+                  result = translated_purpose + ' ' + entity;
+                } else {
+                  result = purpose.charAt(0).toUpperCase() + purpose.slice(1) + ' ' + entity;
+                }
+
+              case 33:
+                if (!(type == 'form')) {
+                  _context3.next = 38;
+                  break;
+                }
+
+                _context3.next = 36;
+                return context.getView().getModel().get();
+
+              case 36:
+                objects = _context3.sent;
+
+                if (objects.length) {
+                  object = objects[0]; // by convention, collections should always request the `name` field
+
+                  if (object.hasOwnProperty('name') && purpose != 'create') {
+                    result += ' <small>[' + object['name'] + ']</small>';
+                  }
+                }
+
+              case 38:
+                return _context3.abrupt("return", result);
+
+              case 39:
+              case "end":
+                return _context3.stop();
+            }
+          }
+        }, _callee3);
+      }));
+
+      function getPurposeString(_x) {
+        return _getPurposeString.apply(this, arguments);
+      }
+
+      return getPurposeString;
+    }()
+    /**
+     * Refresh the header breadcrumb, according to available space.
+     * .sb-container-header is managed automatically and shows the breadcrumb of the stack
+     * 
+     * @returns 
+     */
+
+  }, {
+    key: "updateHeader",
+    value: function () {
+      var _updateHeader = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5() {
+        var _this2 = this;
+
+        var $elem, $temp, current_purpose_string, available_width, font, total_text_width, prepend_contexts_count, char_width, max_chars, _loop, i, _ret;
+
+        return _regenerator.default.wrap(function _callee5$(_context6) {
+          while (1) {
+            switch (_context6.prev = _context6.next) {
+              case 0:
+                console.log('update header');
+
+                if ((0, _jqueryLib.$)('.sb-container-header').length == 0) {
+                  this.$headerContainer = (0, _jqueryLib.$)('<div/>').addClass('sb-container-header').appendTo((0, _jqueryLib.$)(this.domContainerSelector));
+                }
+
+                if (!(this.stack.length == 0 || !this.context.hasOwnProperty('$container'))) {
+                  _context6.next = 5;
+                  break;
+                }
+
+                // hide header if there is no context
+                this.$headerContainer.empty().hide();
+                return _context6.abrupt("return");
+
+              case 5:
+                // make sure header is visible
+                this.$headerContainer.show();
+                $elem = (0, _jqueryLib.$)('<h3 />').css({
+                  display: 'flex'
+                }); // add temporary, invisible header for font size computations
+
+                $temp = (0, _jqueryLib.$)('<h3 />').css({
+                  visibility: 'hidden'
+                }).appendTo(this.$headerContainer);
+                _context6.next = 10;
+                return this.getPurposeString(this.context);
+
+              case 10:
+                current_purpose_string = _context6.sent;
+                available_width = this.$headerContainer[0].clientWidth * 0.8;
+                font = $temp.css("font-weight") + ' ' + $temp.css("font-size") + ' ' + $temp.css("font-family");
+                total_text_width = this.getTextWidth(current_purpose_string, font);
+                prepend_contexts_count = 0;
+
+                if (!(total_text_width > available_width)) {
+                  _context6.next = 21;
+                  break;
+                }
+
+                char_width = total_text_width / current_purpose_string.length;
+                max_chars = available_width / char_width;
+                current_purpose_string = current_purpose_string.substr(0, max_chars - 1) + '...';
+                _context6.next = 31;
+                break;
+
+              case 21:
+                _loop = /*#__PURE__*/_regenerator.default.mark(function _loop(i) {
+                  var context, context_purpose_string, text_width, overflow;
+                  return _regenerator.default.wrap(function _loop$(_context5) {
+                    while (1) {
+                      switch (_context5.prev = _context5.next) {
+                        case 0:
+                          context = _this2.stack[i];
+
+                          if (!context.hasOwnProperty('$container')) {
+                            _context5.next = 19;
+                            break;
+                          }
+
+                          _context5.next = 4;
+                          return _this2.getPurposeString(context);
+
+                        case 4:
+                          context_purpose_string = _context5.sent;
+                          text_width = _this2.getTextWidth(context_purpose_string + ' > ', font);
+                          overflow = false;
+
+                          if (!(text_width + total_text_width >= available_width)) {
+                            _context5.next = 13;
+                            break;
+                          }
+
+                          overflow = true;
+                          context_purpose_string = '...';
+                          text_width = _this2.getTextWidth(context_purpose_string + ' > ', font);
+
+                          if (!(text_width + total_text_width >= available_width)) {
+                            _context5.next = 13;
+                            break;
+                          }
+
+                          return _context5.abrupt("return", "break");
+
+                        case 13:
+                          total_text_width += text_width;
+                          prepend_contexts_count++;
+                          (0, _jqueryLib.$)('<a>' + context_purpose_string + '</a>').prependTo($elem).on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
+                            var j, validation;
+                            return _regenerator.default.wrap(function _callee4$(_context4) {
+                              while (1) {
+                                switch (_context4.prev = _context4.next) {
+                                  case 0:
+                                    j = _this2.stack.length - 1;
+
+                                  case 1:
+                                    if (!(j > i)) {
+                                      _context4.next = 13;
+                                      break;
+                                    }
+
+                                    if (!_this2.context.hasChanged()) {
+                                      _context4.next = 9;
+                                      break;
+                                    }
+
+                                    validation = confirm(_equalServices.TranslationService.instant('SB_ACTIONS_MESSAGE_ABANDON_CHANGE'));
+
+                                    if (validation) {
+                                      _context4.next = 6;
+                                      break;
+                                    }
+
+                                    return _context4.abrupt("return");
+
+                                  case 6:
+                                    _this2.closeContext(true);
+
+                                    _context4.next = 10;
+                                    break;
+
+                                  case 9:
+                                    _this2.closeContext(true);
+
+                                  case 10:
+                                    --j;
+                                    _context4.next = 1;
+                                    break;
+
+                                  case 13:
+                                    _this2.closeContext();
+
+                                  case 14:
+                                  case "end":
+                                    return _context4.stop();
+                                }
+                              }
+                            }, _callee4);
+                          })));
+
+                          if (!overflow) {
+                            _context5.next = 18;
+                            break;
+                          }
+
+                          return _context5.abrupt("return", "break");
+
+                        case 18:
+                          if (i > 1) {
+                            (0, _jqueryLib.$)('<span> › </span>').css({
+                              'margin': '0 10px'
+                            }).prependTo($elem);
+                          }
+
+                        case 19:
+                        case "end":
+                          return _context5.stop();
+                      }
+                    }
+                  }, _loop);
+                });
+                i = this.stack.length - 1;
+
+              case 23:
+                if (!(i >= 0)) {
+                  _context6.next = 31;
+                  break;
+                }
+
+                return _context6.delegateYield(_loop(i), "t0", 25);
+
+              case 25:
+                _ret = _context6.t0;
+
+                if (!(_ret === "break")) {
+                  _context6.next = 28;
+                  break;
+                }
+
+                return _context6.abrupt("break", 31);
+
+              case 28:
+                --i;
+                _context6.next = 23;
+                break;
+
+              case 31:
+                // ... plus the active context
+                if (prepend_contexts_count > 0) {
+                  (0, _jqueryLib.$)('<span> › </span>').css({
+                    'margin': '0 10px'
+                  }).appendTo($elem);
+                }
+
+                (0, _jqueryLib.$)('<span>' + current_purpose_string + '</span>').appendTo($elem);
+
+                if (this.stack.length > 1) {
+                  _materialLib.UIHelper.createButton('context-close', '', 'mini-fab', 'close').css({
+                    'transform': 'scale(0.5)',
+                    'margin-top': '3px',
+                    'background': '#bababa',
+                    'box-shadow': 'none'
+                  }).appendTo($elem).on('click', function () {
+                    var validation = true;
+
+                    if (_this2.context.hasChanged()) {
+                      validation = confirm(_equalServices.TranslationService.instant('SB_ACTIONS_MESSAGE_ABANDON_CHANGE'));
+                    }
+
+                    if (!validation) return;
+
+                    _this2.closeContext();
+                  });
+                }
+
+                this.$headerContainer.show().empty().append($elem);
+
+              case 35:
+              case "end":
+                return _context6.stop();
+            }
+          }
+        }, _callee5, this);
+      }));
+
+      function updateHeader() {
+        return _updateHeader.apply(this, arguments);
+      }
+
+      return updateHeader;
+    }()
+  }, {
+    key: "closeAll",
+    value: function closeAll() {
+      // close all contexts silently
+      while (this.stack.length) {
+        this.closeContext(true);
+      }
+    }
+  }, {
+    key: "openContext",
+    value:
+    /**
+     * Instanciate a new context and push it on the contexts stack.
+     * 
+     * @param config 
+     */
+    function openContext(config) {
+      var _this3 = this;
+
+      var context = new _equalLib.Context(this, config.entity, config.type, config.name, config.domain, config.mode, config.purpose, config.lang, config.callback, config);
+      var prev_context = this.context; // stack received context        
+
+      if (this.context) {
+        this.stack.push(this.context);
+      }
+
+      this.context = context;
+      this.context.isReady().then(function () {
+        if (prev_context && prev_context.hasOwnProperty('$container')) {
+          // conainers are hidden and not detached in order to maintain the listeners
+          prev_context.$container.hide();
+        }
+
+        (0, _jqueryLib.$)(_this3.domContainerSelector).append(_this3.context.getContainer());
+      });
+      this.updateHeader();
+    }
+    /**
+     * Handler for request for closing current context (top of stack).
+     * When closing, a context might transmit some value (its the case, for instance, when selecting one or more records for m2m or o2m fields).
+     * 
+     * @param silent do not show the pop-ed context and do not refresh the header 
+     */
+
+  }, {
+    key: "closeContext",
+    value: function () {
+      var _closeContext = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6() {
+        var data,
+            silent,
+            has_changed,
+            _args7 = arguments;
+        return _regenerator.default.wrap(function _callee6$(_context7) {
+          while (1) {
+            switch (_context7.prev = _context7.next) {
+              case 0:
+                data = _args7.length > 0 && _args7[0] !== undefined ? _args7[0] : null;
+                silent = _args7.length > 1 && _args7[1] !== undefined ? _args7[1] : false;
+
+                if (!this.stack.length) {
+                  _context7.next = 14;
+                  break;
+                }
+
+                has_changed = this.context.hasChanged(); // destroy current context and run callback, if any
+
+                this.context.close(data); // restore previous context
+
+                this.context = this.stack.pop();
+
+                if (silent) {
+                  _context7.next = 14;
+                  break;
+                }
+
+                console.log(this.context);
+
+                if (!(this.context != undefined && this.context.hasOwnProperty('$container'))) {
+                  _context7.next = 13;
+                  break;
+                }
+
+                if (!(has_changed && this.context.getMode() == 'view')) {
+                  _context7.next = 12;
+                  break;
+                }
+
+                _context7.next = 12;
+                return this.context.refresh();
+
+              case 12:
+                this.context.$container.show();
+
+              case 13:
+                this.updateHeader();
+
+              case 14:
+              case "end":
+                return _context7.stop();
+            }
+          }
+        }, _callee6, this);
+      }));
+
+      function closeContext() {
+        return _closeContext.apply(this, arguments);
+      }
+
+      return closeContext;
+    }()
+  }]);
+  return Frame;
+}();
+
+exports.Frame = Frame;
+var _default = Frame;
+exports.default = _default;
+
+/***/ }),
+
 /***/ "./build/Layout.js":
 /*!*************************!*\
   !*** ./build/Layout.js ***!
@@ -1363,6 +2130,22 @@ var Layout = /*#__PURE__*/function () {
 
       return init;
     }()
+  }, {
+    key: "getView",
+    value: function getView() {
+      return this.view;
+    }
+    /**
+     * Relay Context opening requests to parent View.
+     * 
+     * @param config 
+     */
+
+  }, {
+    key: "openContext",
+    value: function openContext(config) {
+      this.view.openContext(config);
+    }
     /**
      * 
      * @param field 
@@ -1387,6 +2170,22 @@ var Layout = /*#__PURE__*/function () {
   }, {
     key: "updateFieldValue",
     value: function updateFieldValue(object_id, field, value) {
+      var model_fields = this.view.getModelFields();
+
+      if (!model_fields || !model_fields.hasOwnProperty(field)) {
+        return null;
+      }
+
+      var def = model_fields[field];
+
+      if (['one2many', 'many2one', 'many2many'].indexOf(def.type) > -1) {
+        // by convention, `name` subfield is always loaded for relational fields
+        if (def.type == 'many2one') {
+          value = value['name'];
+        } else {// #todo : this method should use the same logic as the feed* methods.
+        }
+      }
+
       if (this.model_widgets[object_id][field]) {
         this.model_widgets[object_id][field].setValue(value);
       }
@@ -1514,7 +2313,21 @@ var Layout = /*#__PURE__*/function () {
 
       if (config.hasOwnProperty('selection')) {
         config.type = 'select';
-        config.values = _equalServices.TranslationService.resolve(translation, 'model', field, config.selection, 'selection');
+
+        var translated = _equalServices.TranslationService.resolve(translation, 'model', field, config.selection, 'selection');
+
+        var values = translated;
+
+        if (Array.isArray(translated)) {
+          // convert array to a Map (original values as keys and translations as values)
+          values = {};
+
+          for (var i = 0, n = config.selection.length; i < n; ++i) {
+            values[config.selection[i]] = translated[i];
+          }
+        }
+
+        config.values = values;
       } // ready property is set to true during the 'feed' phase
 
 
@@ -1654,7 +2467,7 @@ var Layout = /*#__PURE__*/function () {
                     var config = _this.getWidgetConfig(item);
 
                     if (config) {
-                      var widget = _equalWidgets.WidgetFactory.getWidget(config.type, config.title, '', config);
+                      var widget = _equalWidgets.WidgetFactory.getWidget(_this, config.type, config.title, '', config);
 
                       widget.setReadonly(config.readonly); // store widget in widgets Map, using field name as key
 
@@ -1834,7 +2647,7 @@ var Layout = /*#__PURE__*/function () {
             var $this = (0, _jqueryLib.$)(event.currentTarget); // discard click when row is being edited
 
             if ($this.attr('data-edit') == '0') {
-              (0, _jqueryLib.$)('#sb-events').trigger('_openContext', {
+              _this3.openContext({
                 entity: _this3.view.getEntity(),
                 type: 'form',
                 name: _this3.view.getName(),
@@ -1881,15 +2694,7 @@ var Layout = /*#__PURE__*/function () {
                 }
               }
 
-              if (config.type == 'select' && _this3.view.getMode() == 'view') {
-                if (config.values && !Array.isArray(config.values)) {
-                  if (config.values.hasOwnProperty(value)) {
-                    value = config.values[value];
-                  }
-                }
-              }
-
-              var widget = _equalWidgets.WidgetFactory.getWidget(config.type, '', value, config); // store widget in widgets Map, using widget id as key (there are several rows for each field)
+              var widget = _equalWidgets.WidgetFactory.getWidget(_this3, config.type, '', value, config); // store widget in widgets Map, using widget id as key (there are several rows for each field)
 
 
               if (typeof _this3.model_widgets[object.id] == 'undefined') {
@@ -1948,7 +2753,7 @@ var Layout = /*#__PURE__*/function () {
     value: function feedForm(objects) {
       var _this4 = this;
 
-      console.log('Layout::feedForm'); // display the first object from the collection
+      console.log('Layout::feedForm', objects); // display the first object from the collection
 
       var fields = Object.keys(this.view.getViewFields());
       var model_schema = this.view.getModelFields(); // remember which element has focus (DOM is going to be modified)
@@ -2001,14 +2806,6 @@ var Layout = /*#__PURE__*/function () {
                     // #todo : merge domains instead of override
                     domain: ['id', 'in', target_ids]
                   });
-                }
-              }
-
-              if (config.type == 'select' && _this4.view.getMode() == 'view') {
-                if (config.values && !Array.isArray(config.values)) {
-                  if (config.values.hasOwnProperty(value)) {
-                    value = config.values[value];
-                  }
                 }
               }
 
@@ -2395,6 +3192,30 @@ var Model = /*#__PURE__*/function () {
         }
       }
     }
+    /**
+     * Handler for resetting change status and modified field of a given object, when an update occured and was accepted by server.
+     * 
+     * @param id 
+     * @param values 
+     */
+
+  }, {
+    key: "reset",
+    value: function reset(id, values) {
+      console.log('Model::reset', values);
+
+      for (var index in this.objects) {
+        var object = this.objects[index];
+
+        if (object.hasOwnProperty('id') && object.id == id) {
+          this.has_changed[id] = [];
+
+          for (var field in values) {
+            object[field] = values[field];
+          }
+        }
+      }
+    }
   }, {
     key: "ids",
     value: function ids() {
@@ -2438,7 +3259,7 @@ var Model = /*#__PURE__*/function () {
       return promise;
     }
     /**
-     * Manually assign an object (value) to a list of ids martching objects from the current set.
+     * Manually assign a list of objects from the current set (identified by their ids) to a given value (object).
      * 
      * @param ids 
      * @param object 
@@ -2792,11 +3613,7 @@ var _environment = __webpack_require__(/*! ./environment */ "./build/environment
 
 var _equalServices = __webpack_require__(/*! ./equal-services */ "./build/equal-services.js");
 
-var _Domain = _interopRequireDefault(__webpack_require__(/*! ./Domain */ "./build/Domain.js"));
-
-var _Layout = _interopRequireDefault(__webpack_require__(/*! ./Layout */ "./build/Layout.js"));
-
-var _Model = _interopRequireDefault(__webpack_require__(/*! ./Model */ "./build/Model.js"));
+var _equalLib = __webpack_require__(/*! ./equal-lib */ "./build/equal-lib.js");
 
 function _createForOfIteratorHelper(o, allowArrayLike) { var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"]; if (!it) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = it.call(o); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
 
@@ -2830,11 +3647,12 @@ var View = /*#__PURE__*/function () {
    * @param lang
    * @param config        extra parameters related to contexts communications
    */
-  function View(entity, type, name, domain, mode, purpose, lang) {
+  function View(context, entity, type, name, domain, mode, purpose, lang) {
     var _this = this;
 
-    var config = arguments.length > 7 && arguments[7] !== undefined ? arguments[7] : null;
+    var config = arguments.length > 8 && arguments[8] !== undefined ? arguments[8] : null;
     (0, _classCallCheck2.default)(this, View);
+    (0, _defineProperty2.default)(this, "context", void 0);
     (0, _defineProperty2.default)(this, "entity", void 0);
     (0, _defineProperty2.default)(this, "type", void 0);
     (0, _defineProperty2.default)(this, "name", void 0);
@@ -2862,6 +3680,7 @@ var View = /*#__PURE__*/function () {
     (0, _defineProperty2.default)(this, "$headerContainer", void 0);
     (0, _defineProperty2.default)(this, "$layoutContainer", void 0);
     (0, _defineProperty2.default)(this, "$footerContainer", void 0);
+    this.context = context;
     this.entity = entity;
     this.type = type;
     this.name = name;
@@ -2885,7 +3704,8 @@ var View = /*#__PURE__*/function () {
         primary: false,
         handler: function handler(event) {
           var selected_id = _this.selected_ids[0];
-          (0, _jqueryLib.$)('#sb-events').trigger('_openContext', {
+
+          _this.openContext({
             entity: _this.entity,
             type: 'form',
             name: _this.name,
@@ -2900,7 +3720,6 @@ var View = /*#__PURE__*/function () {
         primary: false,
         handler: function () {
           var _handler = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(event) {
-            var response;
             return _regenerator.default.wrap(function _callee$(_context) {
               while (1) {
                 switch (_context.prev = _context.next) {
@@ -2911,27 +3730,26 @@ var View = /*#__PURE__*/function () {
                     return _equalServices.ApiService.clone(_this.entity, _this.selected_ids);
 
                   case 4:
-                    response = _context.sent;
-                    _context.next = 7;
+                    _context.next = 6;
                     return _this.onchangeView();
 
-                  case 7:
-                    _context.next = 13;
+                  case 6:
+                    _context.next = 12;
                     break;
 
-                  case 9:
-                    _context.prev = 9;
+                  case 8:
+                    _context.prev = 8;
                     _context.t0 = _context["catch"](0);
                     console.log('unexpected error', _context.t0);
 
                     _this.displayErrorFeedback(_context.t0);
 
-                  case 13:
+                  case 12:
                   case "end":
                     return _context.stop();
                 }
               }
-            }, _callee, null, [[0, 9]]);
+            }, _callee, null, [[0, 8]]);
           }));
 
           function handler(_x) {
@@ -2944,16 +3762,111 @@ var View = /*#__PURE__*/function () {
         title: 'SB_ACTIONS_BUTTON_ARCHIVE',
         icon: 'archive',
         primary: true,
-        handler: function handler(event) {
-          var selected_id = _this.selected_ids[0]; // #todo
-        }
+        handler: function () {
+          var _handler2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2(event) {
+            return _regenerator.default.wrap(function _callee2$(_context2) {
+              while (1) {
+                switch (_context2.prev = _context2.next) {
+                  case 0:
+                    _context2.prev = 0;
+                    _context2.next = 3;
+                    return _equalServices.ApiService.archive(_this.entity, _this.selected_ids);
+
+                  case 3:
+                    _context2.next = 5;
+                    return _this.onchangeView();
+
+                  case 5:
+                    _context2.next = 11;
+                    break;
+
+                  case 7:
+                    _context2.prev = 7;
+                    _context2.t0 = _context2["catch"](0);
+                    console.log('unexpected error', _context2.t0);
+
+                    _this.displayErrorFeedback(_context2.t0);
+
+                  case 11:
+                  case "end":
+                    return _context2.stop();
+                }
+              }
+            }, _callee2, null, [[0, 7]]);
+          }));
+
+          function handler(_x2) {
+            return _handler2.apply(this, arguments);
+          }
+
+          return handler;
+        }()
       }, {
         title: 'SB_ACTIONS_BUTTON_DELETE',
         icon: 'delete',
         primary: true,
-        handler: function handler(event) {
-          var selected_id = _this.selected_ids[0]; // #todo
-        }
+        handler: function () {
+          var _handler3 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4(event) {
+            var $dialog;
+            return _regenerator.default.wrap(function _callee4$(_context4) {
+              while (1) {
+                switch (_context4.prev = _context4.next) {
+                  case 0:
+                    try {
+                      // display confirmation dialog with checkbox for permanent deletion                            
+                      $dialog = _materialLib.UIHelper.createDialog('confirm_deletion_dialog', _equalServices.TranslationService.instant('SB_ACTIONS_DELETION_CONFIRM'));
+                      $dialog.appendTo(_this.$container); // inject component as dialog content
+
+                      _this.decorateDialogDeletionConfirm($dialog);
+
+                      $dialog.trigger('_open').on('_ok', /*#__PURE__*/function () {
+                        var _ref = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3(event, result) {
+                          var permanent;
+                          return _regenerator.default.wrap(function _callee3$(_context3) {
+                            while (1) {
+                              switch (_context3.prev = _context3.next) {
+                                case 0:
+                                  permanent = result.permanent ? result.permanent : false;
+                                  console.log(result, permanent);
+                                  _context3.next = 4;
+                                  return _equalServices.ApiService.delete(_this.entity, _this.selected_ids, permanent);
+
+                                case 4:
+                                  _context3.next = 6;
+                                  return _this.onchangeView();
+
+                                case 6:
+                                case "end":
+                                  return _context3.stop();
+                              }
+                            }
+                          }, _callee3);
+                        }));
+
+                        return function (_x4, _x5) {
+                          return _ref.apply(this, arguments);
+                        };
+                      }());
+                    } catch (response) {
+                      console.log('unexpected error', response);
+
+                      _this.displayErrorFeedback(response);
+                    }
+
+                  case 1:
+                  case "end":
+                    return _context4.stop();
+                }
+              }
+            }, _callee4);
+          }));
+
+          function handler(_x3) {
+            return _handler3.apply(this, arguments);
+          }
+
+          return handler;
+        }()
       }] // selected_sections: {1: 2}
 
     }; // override config options, if other are given
@@ -2977,52 +3890,52 @@ var View = /*#__PURE__*/function () {
     this.$headerContainer = (0, _jqueryLib.$)('<div />').addClass('sb-view-header').appendTo(this.$container);
     this.$layoutContainer = (0, _jqueryLib.$)('<div />').addClass('sb-view-layout').appendTo(this.$container);
     this.$footerContainer = (0, _jqueryLib.$)('<div />').addClass('sb-view-footer').appendTo(this.$container);
-    this.layout = new _Layout.default(this);
-    this.model = new _Model.default(this);
+    this.layout = new _equalLib.Layout(this);
+    this.model = new _equalLib.Model(this);
     this.init();
   }
 
   (0, _createClass2.default)(View, [{
     key: "init",
     value: function () {
-      var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
+      var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5() {
         var _iterator, _step, filter, domain, tmpDomain;
 
-        return _regenerator.default.wrap(function _callee2$(_context2) {
+        return _regenerator.default.wrap(function _callee5$(_context5) {
           while (1) {
-            switch (_context2.prev = _context2.next) {
+            switch (_context5.prev = _context5.next) {
               case 0:
                 console.log('View::init');
-                _context2.prev = 1;
-                _context2.next = 4;
+                _context5.prev = 1;
+                _context5.next = 4;
                 return _equalServices.ApiService.getTranslation(this.entity, _environment.environment.lang);
 
               case 4:
-                this.translation = _context2.sent;
-                _context2.prev = 5;
-                _context2.next = 8;
+                this.translation = _context5.sent;
+                _context5.prev = 5;
+                _context5.next = 8;
                 return _equalServices.ApiService.getView(this.entity, this.type + '.' + this.name);
 
               case 8:
-                this.view_schema = _context2.sent;
-                _context2.next = 16;
+                this.view_schema = _context5.sent;
+                _context5.next = 16;
                 break;
 
               case 11:
-                _context2.prev = 11;
-                _context2.t0 = _context2["catch"](5);
-                _context2.next = 15;
+                _context5.prev = 11;
+                _context5.t0 = _context5["catch"](5);
+                _context5.next = 15;
                 return _equalServices.ApiService.getView(this.entity, this.type + '.default');
 
               case 15:
-                this.view_schema = _context2.sent;
+                this.view_schema = _context5.sent;
 
               case 16:
-                _context2.next = 18;
+                _context5.next = 18;
                 return _equalServices.ApiService.getSchema(this.entity);
 
               case 18:
-                this.model_schema = _context2.sent;
+                this.model_schema = _context5.sent;
                 this.loadViewFields(this.view_schema);
                 this.loadModelFields(this.model_schema);
 
@@ -3046,12 +3959,12 @@ var View = /*#__PURE__*/function () {
                   // domain attribute is either a string or an array 
                   domain = eval(this.view_schema.domain); // merge domains
 
-                  tmpDomain = new _Domain.default(this.domain);
-                  tmpDomain.merge(new _Domain.default(domain));
+                  tmpDomain = new _equalLib.Domain(this.domain);
+                  tmpDomain.merge(new _equalLib.Domain(domain));
                   this.domain = tmpDomain.toArray();
                 }
 
-                if (['list', 'kanban'].indexOf(this.type) >= 0) {
+                if (['list', 'cards'].indexOf(this.type) >= 0) {
                   this.$layoutContainer.addClass('sb-view-layout-list');
                   this.layoutListHeader();
                   this.layoutListFooter();
@@ -3062,21 +3975,21 @@ var View = /*#__PURE__*/function () {
                   this.layoutFormHeader();
                 }
 
-                _context2.next = 27;
+                _context5.next = 27;
                 return this.layout.init();
 
               case 27:
-                _context2.next = 29;
+                _context5.next = 29;
                 return this.model.init();
 
               case 29:
-                _context2.next = 34;
+                _context5.next = 34;
                 break;
 
               case 31:
-                _context2.prev = 31;
-                _context2.t1 = _context2["catch"](1);
-                console.log('Unable to init view (' + this.entity + '.' + this.type + '.' + this.name + ')', _context2.t1);
+                _context5.prev = 31;
+                _context5.t1 = _context5["catch"](1);
+                console.log('Unable to init view (' + this.entity + '.' + this.type + '.' + this.name + ')', _context5.t1);
 
               case 34:
                 this.is_ready_promise.resolve();
@@ -3085,10 +3998,10 @@ var View = /*#__PURE__*/function () {
 
               case 37:
               case "end":
-                return _context2.stop();
+                return _context5.stop();
             }
           }
-        }, _callee2, this, [[1, 31], [5, 11]]);
+        }, _callee5, this, [[1, 31], [5, 11]]);
       }));
 
       function init() {
@@ -3138,6 +4051,28 @@ var View = /*#__PURE__*/function () {
     key: "isReady",
     value: function isReady() {
       return this.is_ready_promise;
+    }
+  }, {
+    key: "getContext",
+    value: function getContext() {
+      return this.context;
+    }
+    /**
+     * Relay Context opening requests to parent Context.
+     * 
+     * @param config 
+     */
+
+  }, {
+    key: "openContext",
+    value: function openContext(config) {
+      this.context.openContext(config);
+    }
+  }, {
+    key: "closeContext",
+    value: function closeContext() {
+      var data = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+      this.context.closeContext(data);
     }
   }, {
     key: "getConfig",
@@ -3417,95 +4352,14 @@ var View = /*#__PURE__*/function () {
       if (this.config.show_actions) {
         switch (this.purpose) {
           case 'view':
-            $actions_set.prepend(_materialLib.UIHelper.createButton('action-edit', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_CREATE'), 'raised').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3() {
-              return _regenerator.default.wrap(function _callee3$(_context3) {
-                while (1) {
-                  switch (_context3.prev = _context3.next) {
-                    case 0:
-                      try {
-                        // request a new Context for editing a new object
-                        (0, _jqueryLib.$)('#sb-events').trigger('_openContext', {
-                          entity: _this2.entity,
-                          type: 'form',
-                          name: _this2.name,
-                          domain: _this2.domain,
-                          mode: 'edit',
-                          purpose: 'create'
-                        });
-                      } catch (response) {
-                        _this2.displayErrorFeedback(response);
-                      }
-
-                    case 1:
-                    case "end":
-                      return _context3.stop();
-                  }
-                }
-              }, _callee3);
-            }))));
-            break;
-
-          case 'select':
-            $actions_set.prepend(_materialLib.UIHelper.createButton('action-create', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_CREATE'), 'text').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
-              return _regenerator.default.wrap(function _callee4$(_context4) {
-                while (1) {
-                  switch (_context4.prev = _context4.next) {
-                    case 0:
-                      try {
-                        // request a new Context for editing a new object
-                        (0, _jqueryLib.$)('#sb-events').trigger('_openContext', {
-                          entity: _this2.entity,
-                          type: 'form',
-                          name: _this2.name,
-                          domain: _this2.domain,
-                          mode: 'edit',
-                          purpose: 'create'
-                        });
-                      } catch (response) {
-                        _this2.displayErrorFeedback(response);
-                      }
-
-                    case 1:
-                    case "end":
-                      return _context4.stop();
-                  }
-                }
-              }, _callee4);
-            })))).prepend(_materialLib.UIHelper.createButton('action-select', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_SELECT'), 'raised', 'check').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5() {
-              var objects, context;
-              return _regenerator.default.wrap(function _callee5$(_context5) {
-                while (1) {
-                  switch (_context5.prev = _context5.next) {
-                    case 0:
-                      _context5.next = 2;
-                      return _this2.model.get(_this2.selected_ids);
-
-                    case 2:
-                      objects = _context5.sent;
-                      context = {
-                        selection: _this2.selected_ids,
-                        objects: objects
-                      };
-                      (0, _jqueryLib.$)('#sb-events').trigger('_closeContext', context);
-
-                    case 5:
-                    case "end":
-                      return _context5.stop();
-                  }
-                }
-              }, _callee5);
-            }))));
-            break;
-
-          case 'add':
-            $actions_set.prepend(_materialLib.UIHelper.createButton('action-create', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_CREATE'), 'text').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6() {
+            $actions_set.prepend(_materialLib.UIHelper.createButton('action-edit', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_CREATE'), 'raised').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6() {
               return _regenerator.default.wrap(function _callee6$(_context6) {
                 while (1) {
                   switch (_context6.prev = _context6.next) {
                     case 0:
                       try {
                         // request a new Context for editing a new object
-                        (0, _jqueryLib.$)('#sb-events').trigger('_openContext', {
+                        _this2.openContext({
                           entity: _this2.entity,
                           type: 'form',
                           name: _this2.name,
@@ -3523,28 +4377,110 @@ var View = /*#__PURE__*/function () {
                   }
                 }
               }, _callee6);
-            })))).prepend(_materialLib.UIHelper.createButton('action-add', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_ADD'), 'raised', 'check').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7() {
-              var objects;
+            }))));
+            break;
+
+          case 'select':
+            $actions_set.prepend(_materialLib.UIHelper.createButton('action-create', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_CREATE'), 'text').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7() {
               return _regenerator.default.wrap(function _callee7$(_context7) {
                 while (1) {
                   switch (_context7.prev = _context7.next) {
                     case 0:
-                      _context7.next = 2;
+                      try {
+                        // request a new Context for editing a new object
+                        _this2.openContext({
+                          entity: _this2.entity,
+                          type: 'form',
+                          name: _this2.name,
+                          domain: _this2.domain,
+                          mode: 'edit',
+                          purpose: 'create'
+                        });
+                      } catch (response) {
+                        _this2.displayErrorFeedback(response);
+                      }
+
+                    case 1:
+                    case "end":
+                      return _context7.stop();
+                  }
+                }
+              }, _callee7);
+            })))).prepend(_materialLib.UIHelper.createButton('action-select', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_SELECT'), 'raised', 'check').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee8() {
+              var objects;
+              return _regenerator.default.wrap(function _callee8$(_context8) {
+                while (1) {
+                  switch (_context8.prev = _context8.next) {
+                    case 0:
+                      _context8.next = 2;
                       return _this2.model.get(_this2.selected_ids);
 
                     case 2:
-                      objects = _context7.sent;
-                      (0, _jqueryLib.$)('#sb-events').trigger('_closeContext', {
+                      objects = _context8.sent;
+
+                      _this2.closeContext({
                         selection: _this2.selected_ids,
                         objects: objects
                       });
 
                     case 4:
                     case "end":
-                      return _context7.stop();
+                      return _context8.stop();
                   }
                 }
-              }, _callee7);
+              }, _callee8);
+            }))));
+            break;
+
+          case 'add':
+            $actions_set.prepend(_materialLib.UIHelper.createButton('action-create', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_CREATE'), 'text').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee9() {
+              return _regenerator.default.wrap(function _callee9$(_context9) {
+                while (1) {
+                  switch (_context9.prev = _context9.next) {
+                    case 0:
+                      try {
+                        // request a new Context for editing a new object
+                        _this2.openContext({
+                          entity: _this2.entity,
+                          type: 'form',
+                          name: _this2.name,
+                          domain: _this2.domain,
+                          mode: 'edit',
+                          purpose: 'create'
+                        });
+                      } catch (response) {
+                        _this2.displayErrorFeedback(response);
+                      }
+
+                    case 1:
+                    case "end":
+                      return _context9.stop();
+                  }
+                }
+              }, _callee9);
+            })))).prepend(_materialLib.UIHelper.createButton('action-add', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_ADD'), 'raised', 'check').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee10() {
+              var objects;
+              return _regenerator.default.wrap(function _callee10$(_context10) {
+                while (1) {
+                  switch (_context10.prev = _context10.next) {
+                    case 0:
+                      _context10.next = 2;
+                      return _this2.model.get(_this2.selected_ids);
+
+                    case 2:
+                      objects = _context10.sent;
+
+                      _this2.closeContext({
+                        selection: _this2.selected_ids,
+                        objects: objects
+                      });
+
+                    case 4:
+                    case "end":
+                      return _context10.stop();
+                  }
+                }
+              }, _callee10);
             }))));
             break;
 
@@ -3821,7 +4757,7 @@ var View = /*#__PURE__*/function () {
       switch (this.mode) {
         case 'view':
           $actions_set.append(_materialLib.UIHelper.createButton('action-edit', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_UPDATE'), 'raised').on('click', function () {
-            (0, _jqueryLib.$)('#sb-events').trigger('_openContext', {
+            _this4.openContext({
               entity: _this4.entity,
               type: _this4.type,
               name: _this4.name,
@@ -3835,23 +4771,23 @@ var View = /*#__PURE__*/function () {
           break;
 
         case 'edit':
-          $actions_set.append(_materialLib.UIHelper.createButton('action-save', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_SAVE'), 'raised').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee8() {
-            var objects, object, response, context;
-            return _regenerator.default.wrap(function _callee8$(_context8) {
+          $actions_set.append(_materialLib.UIHelper.createButton('action-save', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_SAVE'), 'raised').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee11() {
+            var objects, object, response;
+            return _regenerator.default.wrap(function _callee11$(_context11) {
               while (1) {
-                switch (_context8.prev = _context8.next) {
+                switch (_context11.prev = _context11.next) {
                   case 0:
                     if (!(_this4.purpose == 'create')) {
-                      _context8.next = 6;
+                      _context11.next = 6;
                       break;
                     }
 
-                    _context8.next = 3;
+                    _context11.next = 3;
                     return _this4.model.get();
 
                   case 3:
-                    objects = _context8.sent;
-                    _context8.next = 7;
+                    objects = _context11.sent;
+                    _context11.next = 7;
                     break;
 
                   case 6:
@@ -3860,50 +4796,51 @@ var View = /*#__PURE__*/function () {
 
                   case 7:
                     if (objects.length) {
-                      _context8.next = 11;
+                      _context11.next = 11;
                       break;
                     }
 
                     // no change : close context
-                    (0, _jqueryLib.$)('#sb-events').trigger('_closeContext');
-                    _context8.next = 24;
+                    _this4.closeContext();
+
+                    _context11.next = 22;
                     break;
 
                   case 11:
                     // we're in edit mode for single object (form)
                     object = objects[0];
-                    _context8.prev = 12;
-                    _context8.next = 15;
+                    _context11.prev = 12;
+                    _context11.next = 15;
                     return _equalServices.ApiService.update(_this4.entity, [object['id']], _this4.model.export(object));
 
                   case 15:
-                    response = _context8.sent;
+                    response = _context11.sent;
+
                     // relay new object_id to parent view
-                    context = {
+                    _this4.closeContext({
                       object_id: object.id
-                    };
-                    (0, _jqueryLib.$)('#sb-events').trigger('_closeContext', context);
-                    _context8.next = 24;
+                    });
+
+                    _context11.next = 22;
                     break;
 
-                  case 20:
-                    _context8.prev = 20;
-                    _context8.t0 = _context8["catch"](12);
-                    console.log('catched response', _context8.t0);
+                  case 19:
+                    _context11.prev = 19;
+                    _context11.t0 = _context11["catch"](12);
 
-                    _this4.displayErrorFeedback(_context8.t0, object, false);
+                    _this4.displayErrorFeedback(_context11.t0, object, false);
 
-                  case 24:
+                  case 22:
                   case "end":
-                    return _context8.stop();
+                    return _context11.stop();
                 }
               }
-            }, _callee8, null, [[12, 20]]);
-          })))).append(_materialLib.UIHelper.createButton('action-cancel', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_CANCEL'), 'outlined').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee9() {
+            }, _callee11, null, [[12, 19]]);
+          })))).append(_materialLib.UIHelper.createButton('action-cancel', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_CANCEL'), 'outlined').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee12() {
             var validation;
-            return _regenerator.default.wrap(function _callee9$(_context9) {
+            return _regenerator.default.wrap(function _callee12$(_context12) {
               while (1) {
-                switch (_context9.prev = _context9.next) {
+                switch (_context12.prev = _context12.next) {
                   case 0:
                     validation = true;
 
@@ -3912,21 +4849,21 @@ var View = /*#__PURE__*/function () {
                     }
 
                     if (validation) {
-                      _context9.next = 4;
+                      _context12.next = 4;
                       break;
                     }
 
-                    return _context9.abrupt("return");
+                    return _context12.abrupt("return");
 
                   case 4:
-                    (0, _jqueryLib.$)('#sb-events').trigger('_closeContext');
+                    _this4.closeContext();
 
                   case 5:
                   case "end":
-                    return _context9.stop();
+                    return _context12.stop();
                 }
               }
-            }, _callee9);
+            }, _callee12);
           }))));
           break;
       } // attach elements to header toolbar
@@ -3937,28 +4874,28 @@ var View = /*#__PURE__*/function () {
   }, {
     key: "layoutRefresh",
     value: function () {
-      var _layoutRefresh = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee10() {
+      var _layoutRefresh = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee13() {
         var full,
-            _args10 = arguments;
-        return _regenerator.default.wrap(function _callee10$(_context10) {
+            _args13 = arguments;
+        return _regenerator.default.wrap(function _callee13$(_context13) {
           while (1) {
-            switch (_context10.prev = _context10.next) {
+            switch (_context13.prev = _context13.next) {
               case 0:
-                full = _args10.length > 0 && _args10[0] !== undefined ? _args10[0] : false;
-                _context10.next = 3;
+                full = _args13.length > 0 && _args13[0] !== undefined ? _args13[0] : false;
+                _context13.next = 3;
                 return this.layout.refresh(full);
 
               case 3:
-                if (['list', 'kanban'].indexOf(this.type) >= 0) {
+                if (['list', 'cards'].indexOf(this.type) >= 0) {
                   this.layoutListRefresh();
                 }
 
               case 4:
               case "end":
-                return _context10.stop();
+                return _context13.stop();
             }
           }
-        }, _callee10, this);
+        }, _callee13, this);
       }));
 
       function layoutRefresh() {
@@ -4061,6 +4998,20 @@ var View = /*#__PURE__*/function () {
         _this5.applyFilter(filter.id);
       });
     }
+  }, {
+    key: "decorateDialogDeletionConfirm",
+    value: function decorateDialogDeletionConfirm($dialog) {
+      var $elem = (0, _jqueryLib.$)('<div />');
+
+      var $checkbox_permanent = _materialLib.UIHelper.createCheckbox('action-selected-delete-permanent', _equalServices.TranslationService.instant('SB_ACTIONS_DELETION_DIALOG_IS_PERMANENT')).appendTo($elem);
+
+      $dialog.find('.mdc-dialog__content').append($elem);
+      $dialog.on('_accept', function () {
+        $dialog.trigger('_ok', [{
+          permanent: $checkbox_permanent.find('input').is(":checked")
+        }]);
+      });
+    }
     /**
      * Callback for requesting a Model update.
      * Requested from layout when a change occured in the widgets.
@@ -4072,33 +5023,33 @@ var View = /*#__PURE__*/function () {
   }, {
     key: "onchangeViewModel",
     value: function () {
-      var _onchangeViewModel = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee11(ids, values) {
+      var _onchangeViewModel = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee14(ids, values) {
         var refresh,
-            _args11 = arguments;
-        return _regenerator.default.wrap(function _callee11$(_context11) {
+            _args14 = arguments;
+        return _regenerator.default.wrap(function _callee14$(_context14) {
           while (1) {
-            switch (_context11.prev = _context11.next) {
+            switch (_context14.prev = _context14.next) {
               case 0:
-                refresh = _args11.length > 2 && _args11[2] !== undefined ? _args11[2] : true;
+                refresh = _args14.length > 2 && _args14[2] !== undefined ? _args14[2] : true;
                 this.model.change(ids, values); // model has changed : forms need to re-check the visibility attributes
 
                 if (!refresh) {
-                  _context11.next = 5;
+                  _context14.next = 5;
                   break;
                 }
 
-                _context11.next = 5;
+                _context14.next = 5;
                 return this.onchangeModel();
 
               case 5:
               case "end":
-                return _context11.stop();
+                return _context14.stop();
             }
           }
-        }, _callee11, this);
+        }, _callee14, this);
       }));
 
-      function onchangeViewModel(_x2, _x3) {
+      function onchangeViewModel(_x6, _x7) {
         return _onchangeViewModel.apply(this, arguments);
       }
 
@@ -4114,24 +5065,24 @@ var View = /*#__PURE__*/function () {
   }, {
     key: "onchangeModel",
     value: function () {
-      var _onchangeModel = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee12() {
+      var _onchangeModel = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee15() {
         var full,
-            _args12 = arguments;
-        return _regenerator.default.wrap(function _callee12$(_context12) {
+            _args15 = arguments;
+        return _regenerator.default.wrap(function _callee15$(_context15) {
           while (1) {
-            switch (_context12.prev = _context12.next) {
+            switch (_context15.prev = _context15.next) {
               case 0:
-                full = _args12.length > 0 && _args12[0] !== undefined ? _args12[0] : false;
+                full = _args15.length > 0 && _args15[0] !== undefined ? _args15[0] : false;
                 console.log('View::onchangeModel', full);
-                _context12.next = 4;
+                _context15.next = 4;
                 return this.layoutRefresh(full);
 
               case 4:
               case "end":
-                return _context12.stop();
+                return _context15.stop();
             }
           }
-        }, _callee12, this);
+        }, _callee15, this);
       }));
 
       function onchangeModel() {
@@ -4149,22 +5100,22 @@ var View = /*#__PURE__*/function () {
   }, {
     key: "onchangeView",
     value: function () {
-      var _onchangeView = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee13() {
-        return _regenerator.default.wrap(function _callee13$(_context13) {
+      var _onchangeView = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee16() {
+        return _regenerator.default.wrap(function _callee16$(_context16) {
           while (1) {
-            switch (_context13.prev = _context13.next) {
+            switch (_context16.prev = _context16.next) {
               case 0:
                 // reset selection
                 this.onchangeSelection([]);
-                _context13.next = 3;
+                _context16.next = 3;
                 return this.model.refresh();
 
               case 3:
               case "end":
-                return _context13.stop();
+                return _context16.stop();
             }
           }
-        }, _callee13, this);
+        }, _callee16, this);
       }));
 
       function onchangeView() {
@@ -4199,13 +5150,13 @@ var View = /*#__PURE__*/function () {
   }, {
     key: "applyFilter",
     value: function () {
-      var _applyFilter = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee14(filter_id) {
+      var _applyFilter = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee17(filter_id) {
         var _this6 = this;
 
         var filter, $filters_set;
-        return _regenerator.default.wrap(function _callee14$(_context14) {
+        return _regenerator.default.wrap(function _callee17$(_context17) {
           while (1) {
-            switch (_context14.prev = _context14.next) {
+            switch (_context17.prev = _context17.next) {
               case 0:
                 filter = this.filters[filter_id];
                 $filters_set = this.$headerContainer.find('.sb-view-header-list-filters-set');
@@ -4231,13 +5182,13 @@ var View = /*#__PURE__*/function () {
 
               case 6:
               case "end":
-                return _context14.stop();
+                return _context17.stop();
             }
           }
-        }, _callee14, this);
+        }, _callee17, this);
       }));
 
-      function applyFilter(_x4) {
+      function applyFilter(_x8) {
         return _applyFilter.apply(this, arguments);
       }
 
@@ -4246,14 +5197,14 @@ var View = /*#__PURE__*/function () {
   }, {
     key: "actionListInlineEdit",
     value: function () {
-      var _actionListInlineEdit = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee20(event, selection) {
+      var _actionListInlineEdit = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee23(event, selection) {
         var _this7 = this;
 
         var $action_set, $action_set_selected_edit_actions, $button_save, $button_cancel, _iterator11, _step11, _loop6;
 
-        return _regenerator.default.wrap(function _callee20$(_context20) {
+        return _regenerator.default.wrap(function _callee23$(_context23) {
           while (1) {
-            switch (_context20.prev = _context20.next) {
+            switch (_context23.prev = _context23.next) {
               case 0:
                 if (selection.length && !this.$container.find('.sb-view-header-list-actions-selected-edit').length) {
                   $action_set = this.$container.find('.sb-view-header-list-actions-set');
@@ -4261,118 +5212,130 @@ var View = /*#__PURE__*/function () {
                   $button_save = _materialLib.UIHelper.createButton('action-selected-edit-save', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_SAVE'), 'raised').appendTo($action_set_selected_edit_actions);
                   $button_cancel = _materialLib.UIHelper.createButton('action-selected-edit-cancel', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_CANCEL'), 'outlined').appendTo($action_set_selected_edit_actions);
                   $action_set.append($action_set_selected_edit_actions);
-                  $button_save.on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee16() {
-                    var objects, promises, _iterator9, _step9, _loop4;
+                  $button_save.on('click', function () {
+                    // handle changed objects
+                    var objects = _this7.model.getChanges(selection);
 
-                    return _regenerator.default.wrap(function _callee16$(_context16) {
-                      while (1) {
-                        switch (_context16.prev = _context16.next) {
-                          case 0:
-                            // handle changed objects
-                            objects = _this7.model.getChanges(selection);
-                            promises = [];
-                            _iterator9 = _createForOfIteratorHelper(selection);
+                    var promises = [];
 
-                            try {
-                              _loop4 = function _loop4() {
-                                var object_id = _step9.value;
-                                var promise = new Promise(function (resolve, reject) {
-                                  var object = objects.find(function (o) {
-                                    return o.id == object_id;
-                                  });
+                    var _iterator9 = _createForOfIteratorHelper(selection),
+                        _step9;
 
-                                  _this7.$layoutContainer.find('tr[data-id="' + object_id + '"]').each( /*#__PURE__*/function () {
-                                    var _ref9 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee15(i, tr) {
-                                      var $tr;
-                                      return _regenerator.default.wrap(function _callee15$(_context15) {
-                                        while (1) {
-                                          switch (_context15.prev = _context15.next) {
-                                            case 0:
-                                              $tr = (0, _jqueryLib.$)(tr);
+                    try {
+                      var _loop4 = function _loop4() {
+                        var object_id = _step9.value;
+                        var promise = new Promise( /*#__PURE__*/function () {
+                          var _ref9 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee19(resolve, reject) {
+                            var object;
+                            return _regenerator.default.wrap(function _callee19$(_context19) {
+                              while (1) {
+                                switch (_context19.prev = _context19.next) {
+                                  case 0:
+                                    object = objects.find(function (o) {
+                                      return o.id == object_id;
+                                    });
 
-                                              if (object) {
-                                                _context15.next = 7;
+                                    _this7.$layoutContainer.find('tr[data-id="' + object_id + '"]').each( /*#__PURE__*/function () {
+                                      var _ref10 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee18(i, tr) {
+                                        var $tr, response, result;
+                                        return _regenerator.default.wrap(function _callee18$(_context18) {
+                                          while (1) {
+                                            switch (_context18.prev = _context18.next) {
+                                              case 0:
+                                                $tr = (0, _jqueryLib.$)(tr);
+
+                                                if (object) {
+                                                  _context18.next = 7;
+                                                  break;
+                                                }
+
+                                                $tr.find('.sb-widget-cell').each(function (i, cell) {
+                                                  return (0, _jqueryLib.$)(cell).trigger('_toggle_mode', 'view');
+                                                });
+                                                $tr.attr('data-edit', '0');
+                                                resolve(true);
+                                                _context18.next = 29;
                                                 break;
-                                              }
 
-                                              $tr.find('.sb-widget-cell').each(function (i, cell) {
-                                                return (0, _jqueryLib.$)(cell).trigger('_toggle_mode', 'view');
-                                              });
-                                              $tr.attr('data-edit', '0');
-                                              resolve(true);
-                                              _context15.next = 19;
-                                              break;
+                                              case 7:
+                                                _context18.prev = 7;
+                                                _context18.next = 10;
+                                                return _equalServices.ApiService.update(_this7.entity, [object_id], _this7.model.export(object));
 
-                                            case 7:
-                                              _context15.prev = 7;
-                                              _context15.next = 10;
-                                              return _equalServices.ApiService.update(_this7.entity, [object_id], _this7.model.export(object));
+                                              case 10:
+                                                response = _context18.sent;
+                                                $tr.find('.sb-widget-cell').each(function (i, cell) {
+                                                  return (0, _jqueryLib.$)(cell).trigger('_toggle_mode', 'view');
+                                                });
+                                                $tr.attr('data-edit', '0'); // update the modfied field otherwise a confirmation will be displayed at next update                                    
 
-                                            case 10:
-                                              $tr.find('.sb-widget-cell').each(function (i, cell) {
-                                                return (0, _jqueryLib.$)(cell).trigger('_toggle_mode', 'view');
-                                              });
-                                              $tr.attr('data-edit', '0');
-                                              resolve(true);
-                                              _context15.next = 19;
-                                              break;
+                                                if (Array.isArray(response) && response.length) {
+                                                  _this7.model.reset(object_id, response[0]);
+                                                }
 
-                                            case 15:
-                                              _context15.prev = 15;
-                                              _context15.t0 = _context15["catch"](7);
+                                                resolve(true);
+                                                _context18.next = 29;
+                                                break;
 
-                                              _this7.displayErrorFeedback(_context15.t0, object, true);
+                                              case 17:
+                                                _context18.prev = 17;
+                                                _context18.t0 = _context18["catch"](7);
+                                                _context18.prev = 19;
+                                                _context18.next = 22;
+                                                return _this7.displayErrorFeedback(_context18.t0, object, true);
 
-                                              reject();
+                                              case 22:
+                                                result = _context18.sent;
+                                                resolve(true);
+                                                _context18.next = 29;
+                                                break;
 
-                                            case 19:
-                                            case "end":
-                                              return _context15.stop();
+                                              case 26:
+                                                _context18.prev = 26;
+                                                _context18.t1 = _context18["catch"](19);
+                                                reject();
+
+                                              case 29:
+                                              case "end":
+                                                return _context18.stop();
+                                            }
                                           }
-                                        }
-                                      }, _callee15, null, [[7, 15]]);
-                                    }));
+                                        }, _callee18, null, [[7, 17], [19, 26]]);
+                                      }));
 
-                                    return function (_x7, _x8) {
-                                      return _ref9.apply(this, arguments);
-                                    };
-                                  }());
-                                });
-                                promises.push(promise);
-                              };
+                                      return function (_x13, _x14) {
+                                        return _ref10.apply(this, arguments);
+                                      };
+                                    }());
 
-                              for (_iterator9.s(); !(_step9 = _iterator9.n()).done;) {
-                                _loop4();
+                                  case 2:
+                                  case "end":
+                                    return _context19.stop();
+                                }
                               }
-                            } catch (err) {
-                              _iterator9.e(err);
-                            } finally {
-                              _iterator9.f();
-                            }
+                            }, _callee19);
+                          }));
 
-                            _context16.prev = 4;
-                            _context16.next = 7;
-                            return Promise.all(promises);
+                          return function (_x11, _x12) {
+                            return _ref9.apply(this, arguments);
+                          };
+                        }());
+                        promises.push(promise);
+                      };
 
-                          case 7:
-                            $action_set_selected_edit_actions.remove();
-                            _context16.next = 12;
-                            break;
-
-                          case 10:
-                            _context16.prev = 10;
-                            _context16.t0 = _context16["catch"](4);
-
-                          case 12:
-                            return _context16.abrupt("return", false);
-
-                          case 13:
-                          case "end":
-                            return _context16.stop();
-                        }
+                      for (_iterator9.s(); !(_step9 = _iterator9.n()).done;) {
+                        _loop4();
                       }
-                    }, _callee16, null, [[4, 10]]);
-                  })));
+                    } catch (err) {
+                      _iterator9.e(err);
+                    } finally {
+                      _iterator9.f();
+                    }
+
+                    Promise.all(promises).then(function () {
+                      $action_set_selected_edit_actions.remove();
+                    }).catch(function () {});
+                  });
                   $button_cancel.on('click', function () {
                     // restore original values for changed objects
                     var objects = _this7.model.getChanges(selection);
@@ -4386,12 +5349,12 @@ var View = /*#__PURE__*/function () {
                         var object_id = object.id;
 
                         _this7.$layoutContainer.find('tr[data-id="' + object_id + '"]').each( /*#__PURE__*/function () {
-                          var _ref11 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee18(i, tr) {
+                          var _ref12 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee21(i, tr) {
                             var $tr, original, _i, _Object$keys, field;
 
-                            return _regenerator.default.wrap(function _callee18$(_context18) {
+                            return _regenerator.default.wrap(function _callee21$(_context21) {
                               while (1) {
-                                switch (_context18.prev = _context18.next) {
+                                switch (_context21.prev = _context21.next) {
                                   case 0:
                                     $tr = (0, _jqueryLib.$)(tr);
                                     original = $tr.data('original');
@@ -4404,14 +5367,14 @@ var View = /*#__PURE__*/function () {
 
                                   case 3:
                                   case "end":
-                                    return _context18.stop();
+                                    return _context21.stop();
                                 }
                               }
-                            }, _callee18);
+                            }, _callee21);
                           }));
 
-                          return function (_x11, _x12) {
-                            return _ref11.apply(this, arguments);
+                          return function (_x17, _x18) {
+                            return _ref12.apply(this, arguments);
                           };
                         }());
                       };
@@ -4426,11 +5389,11 @@ var View = /*#__PURE__*/function () {
                     }
 
                     _this7.$layoutContainer.find('tr.sb-view-layout-list-row').each( /*#__PURE__*/function () {
-                      var _ref10 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee17(i, tr) {
+                      var _ref11 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee20(i, tr) {
                         var $tr;
-                        return _regenerator.default.wrap(function _callee17$(_context17) {
+                        return _regenerator.default.wrap(function _callee20$(_context20) {
                           while (1) {
-                            switch (_context17.prev = _context17.next) {
+                            switch (_context20.prev = _context20.next) {
                               case 0:
                                 $tr = (0, _jqueryLib.$)(tr);
                                 $tr.find('.sb-widget-cell').each(function (i, cell) {
@@ -4440,14 +5403,14 @@ var View = /*#__PURE__*/function () {
 
                               case 3:
                               case "end":
-                                return _context17.stop();
+                                return _context20.stop();
                             }
                           }
-                        }, _callee17);
+                        }, _callee20);
                       }));
 
-                      return function (_x9, _x10) {
-                        return _ref10.apply(this, arguments);
+                      return function (_x15, _x16) {
+                        return _ref11.apply(this, arguments);
                       };
                     }());
 
@@ -4463,26 +5426,26 @@ var View = /*#__PURE__*/function () {
                     var object_id = _step11.value;
 
                     _this7.$layoutContainer.find('tr[data-id="' + object_id + '"]').each( /*#__PURE__*/function () {
-                      var _ref12 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee19(i, tr) {
+                      var _ref13 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee22(i, tr) {
                         var $tr, $td, collection, object;
-                        return _regenerator.default.wrap(function _callee19$(_context19) {
+                        return _regenerator.default.wrap(function _callee22$(_context22) {
                           while (1) {
-                            switch (_context19.prev = _context19.next) {
+                            switch (_context22.prev = _context22.next) {
                               case 0:
                                 $tr = (0, _jqueryLib.$)(tr);
                                 $tr.addClass('sb-widget'); // not already in edit mode
 
                                 if (!($tr.attr('data-edit') != '1')) {
-                                  _context19.next = 11;
+                                  _context22.next = 11;
                                   break;
                                 }
 
                                 $td = $tr.children().first();
-                                _context19.next = 6;
+                                _context22.next = 6;
                                 return _this7.model.get([object_id]);
 
                               case 6:
-                                collection = _context19.sent;
+                                collection = _context22.sent;
                                 object = collection[0]; // save original object in the row
 
                                 $tr.data('original', _this7.deepCopy(object)); // mark row as being edited (prevent click handling)
@@ -4495,14 +5458,14 @@ var View = /*#__PURE__*/function () {
 
                               case 11:
                               case "end":
-                                return _context19.stop();
+                                return _context22.stop();
                             }
                           }
-                        }, _callee19);
+                        }, _callee22);
                       }));
 
-                      return function (_x13, _x14) {
-                        return _ref12.apply(this, arguments);
+                      return function (_x19, _x20) {
+                        return _ref13.apply(this, arguments);
                       };
                     }());
                   };
@@ -4518,13 +5481,13 @@ var View = /*#__PURE__*/function () {
 
               case 3:
               case "end":
-                return _context20.stop();
+                return _context23.stop();
             }
           }
-        }, _callee20, this);
+        }, _callee23, this);
       }));
 
-      function actionListInlineEdit(_x5, _x6) {
+      function actionListInlineEdit(_x9, _x10) {
         return _actionListInlineEdit.apply(this, arguments);
       }
 
@@ -4533,7 +5496,7 @@ var View = /*#__PURE__*/function () {
   }, {
     key: "displayErrorFeedback",
     value: function () {
-      var _displayErrorFeedback = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee21(response) {
+      var _displayErrorFeedback = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee24(response) {
         var object,
             snack,
             errors,
@@ -4554,26 +5517,25 @@ var View = /*#__PURE__*/function () {
             _msg2,
             _title,
             _$snack2,
-            validation,
             _response,
-            _args21 = arguments;
+            _args24 = arguments;
 
-        return _regenerator.default.wrap(function _callee21$(_context21) {
+        return _regenerator.default.wrap(function _callee24$(_context24) {
           while (1) {
-            switch (_context21.prev = _context21.next) {
+            switch (_context24.prev = _context24.next) {
               case 0:
-                object = _args21.length > 1 && _args21[1] !== undefined ? _args21[1] : null;
-                snack = _args21.length > 2 && _args21[2] !== undefined ? _args21[2] : true;
+                object = _args24.length > 1 && _args24[1] !== undefined ? _args24[1] : null;
+                snack = _args24.length > 2 && _args24[2] !== undefined ? _args24[2] : true;
 
                 if (!(response && response.hasOwnProperty('errors'))) {
-                  _context21.next = 37;
+                  _context24.next = 35;
                   break;
                 }
 
                 errors = response['errors'];
 
                 if (!errors.hasOwnProperty('INVALID_PARAM')) {
-                  _context21.next = 10;
+                  _context24.next = 10;
                   break;
                 }
 
@@ -4600,29 +5562,29 @@ var View = /*#__PURE__*/function () {
                   ++i;
                 }
 
-                _context21.next = 37;
+                _context24.next = 35;
                 break;
 
               case 10:
                 if (!errors.hasOwnProperty('NOT_ALLOWED')) {
-                  _context21.next = 16;
+                  _context24.next = 16;
                   break;
                 }
 
                 _msg = _equalServices.TranslationService.instant('SB_ERROR_NOT_ALLOWED');
                 _$snack = _materialLib.UIHelper.createSnackbar(_msg, '', '', 4000);
                 this.$container.append(_$snack);
-                _context21.next = 37;
+                _context24.next = 35;
                 break;
 
               case 16:
                 if (!errors.hasOwnProperty('CONFLICT_OBJECT')) {
-                  _context21.next = 37;
+                  _context24.next = 35;
                   break;
                 }
 
                 if (!(typeof errors['CONFLICT_OBJECT'] == 'object')) {
-                  _context21.next = 23;
+                  _context24.next = 23;
                   break;
                 }
 
@@ -4645,43 +5607,42 @@ var View = /*#__PURE__*/function () {
                   ++_i2;
                 }
 
-                _context21.next = 37;
+                _context24.next = 35;
                 break;
 
               case 23:
-                validation = false;
-                validation = confirm(_equalServices.TranslationService.instant('SB_ACTIONS_MESSAGE_ERASE_CONUCRRENT_CHANGES'));
+                _context24.prev = 23;
+                _context24.next = 26;
+                return new Promise(function (resolve, reject) {
+                  var confirmed = confirm(_equalServices.TranslationService.instant('SB_ACTIONS_MESSAGE_ERASE_CONUCRRENT_CHANGES'));
+                  return confirmed ? resolve(true) : reject(false);
+                });
 
-                if (!validation) {
-                  _context21.next = 37;
-                  break;
-                }
-
-                _context21.prev = 26;
-                _context21.next = 29;
+              case 26:
+                _context24.next = 28;
                 return _equalServices.ApiService.update(this.entity, [object['id']], this.model.export(object), true);
 
-              case 29:
-                _response = _context21.sent;
-                (0, _jqueryLib.$)('#sb-events').trigger('_closeContext');
-                _context21.next = 37;
-                break;
+              case 28:
+                _response = _context24.sent;
+                return _context24.abrupt("return", _response);
 
-              case 33:
-                _context21.prev = 33;
-                _context21.t0 = _context21["catch"](26);
-                _context21.next = 37;
-                return this.displayErrorFeedback(_context21.t0, object, snack);
+              case 32:
+                _context24.prev = 32;
+                _context24.t0 = _context24["catch"](23);
+                throw _context24.t0;
 
-              case 37:
+              case 35:
+                return _context24.abrupt("return", false);
+
+              case 36:
               case "end":
-                return _context21.stop();
+                return _context24.stop();
             }
           }
-        }, _callee21, this, [[26, 33]]);
+        }, _callee24, this, [[23, 32]]);
       }));
 
-      function displayErrorFeedback(_x15) {
+      function displayErrorFeedback(_x21) {
         return _displayErrorFeedback.apply(this, arguments);
       }
 
@@ -4741,6 +5702,12 @@ Object.defineProperty(exports, "Domain", ({
     return _Domain.default;
   }
 }));
+Object.defineProperty(exports, "Frame", ({
+  enumerable: true,
+  get: function get() {
+    return _Frame.default;
+  }
+}));
 Object.defineProperty(exports, "Context", ({
   enumerable: true,
   get: function get() {
@@ -4767,6 +5734,8 @@ Object.defineProperty(exports, "View", ({
 }));
 
 var _Domain = _interopRequireDefault(__webpack_require__(/*! ./Domain */ "./build/Domain.js"));
+
+var _Frame = _interopRequireDefault(__webpack_require__(/*! ./Frame */ "./build/Frame.js"));
 
 var _Context = _interopRequireDefault(__webpack_require__(/*! ./Context */ "./build/Context.js"));
 
@@ -4886,44 +5855,44 @@ var WidgetFactory = /*#__PURE__*/function () {
      * @param type 
      * @param value 
      */
-    function getWidget(type, label) {
-      var value = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : null;
-      var config = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
+    function getWidget(layout, type, label) {
+      var value = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
+      var config = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : {};
 
       switch (type) {
         case 'boolean':
-          return new _WidgetBoolean.default(label, value, config);
+          return new _WidgetBoolean.default(layout, label, value, config);
 
         case 'date':
-          return new _WidgetDate.default(label, value, config);
+          return new _WidgetDate.default(layout, label, value, config);
 
         case 'datetime':
-          return new _WidgetDateTime.default(label, value, config);
+          return new _WidgetDateTime.default(layout, label, value, config);
 
         case 'one2many':
-          return new _WidgetOne2Many.default(label, value, config);
+          return new _WidgetOne2Many.default(layout, label, value, config);
 
         case 'many2one':
-          return new _WidgetMany2One.default(label, value, config);
+          return new _WidgetMany2One.default(layout, label, value, config);
 
         case 'many2many':
-          return new _WidgetMany2Many.default(label, value, config);
+          return new _WidgetMany2Many.default(layout, label, value, config);
 
         case 'text':
-          return new _WidgetText.default(label, value, config);
+          return new _WidgetText.default(layout, label, value, config);
 
         case 'select':
-          return new _WidgetSelect.default(label, value, config);
+          return new _WidgetSelect.default(layout, label, value, config);
 
         case 'integer':
-          return new _WidgetInteger.default(label, value, config);
+          return new _WidgetInteger.default(layout, label, value, config);
 
         case 'float':
-          return new _WidgetFloat.default(label, value, config);
+          return new _WidgetFloat.default(layout, label, value, config);
 
         case 'string':
         default:
-          return new _WidgetString.default(label, value, config);
+          return new _WidgetString.default(layout, label, value, config);
       }
     }
   }]);
@@ -4961,8 +5930,6 @@ var _equalLib = __webpack_require__(/*! ./equal-lib */ "./build/equal-lib.js");
 
 var _environment = __webpack_require__(/*! ./environment */ "./build/environment.js");
 
-var _materialLib = __webpack_require__(/*! ./material-lib */ "./build/material-lib.js");
-
 var _equalServices = __webpack_require__(/*! ./equal-services */ "./build/equal-services.js");
 
 var _moment = _interopRequireDefault(__webpack_require__(/*! moment/moment.js */ "./node_modules/moment/moment.js"));
@@ -4983,61 +5950,40 @@ __webpack_require__(/*! ../timepicker.js */ "./timepicker.js");
 
 __webpack_require__(/*! ../css/material-basics.css */ "./css/material-basics.css");
 
-__webpack_require__(/*! ../css/equal.css */ "./css/equal.css"); // We use MDC (material design components)
+__webpack_require__(/*! ../css/equal.css */ "./css/equal.css"); // This project uses MDC library (material design components)
 // @see https://github.com/material-components/material-components-web/blob/master/docs/getting-started.md
+
+/**
+ * eQ is a factory facade for relaying event to the Frames they relate to.
+ * 
+ */
 
 
 var eQ = /*#__PURE__*/function () {
-  // jquery object for components communication
-  // temporary var for computing width of rendered strings
-  // stack of Context (only current context is visible)
-  // current context
-  function eQ(entity) {
+  // jquery object for components communication (Views and Widgets)
+  // map of Frames : mapping DOM selectors with Frame instances
+  function eQ() {
     (0, _classCallCheck2.default)(this, eQ);
     (0, _defineProperty2.default)(this, "$sbEvents", void 0);
-    (0, _defineProperty2.default)(this, "$headerContainer", void 0);
-    (0, _defineProperty2.default)(this, "$canvas", void 0);
-    (0, _defineProperty2.default)(this, "stack", void 0);
-    (0, _defineProperty2.default)(this, "context", void 0);
-    // As a convention element `#sb-container` must be present in the DOM.
-    this.context = {};
-    this.stack = [];
+    (0, _defineProperty2.default)(this, "frames", void 0);
+    this.frames = {};
     this.init();
   }
 
   (0, _createClass2.default)(eQ, [{
     key: "init",
     value: function () {
-      var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3() {
+      var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
         var _this = this;
 
-        var resize_debounce;
-        return _regenerator.default.wrap(function _callee3$(_context3) {
+        return _regenerator.default.wrap(function _callee2$(_context2) {
           while (1) {
-            switch (_context3.prev = _context3.next) {
+            switch (_context2.prev = _context2.next) {
               case 0:
                 // init locale
-                _moment.default.locale(_environment.environment.locale); // trigger header re-draw when available horizontal space changes
-
-
-                (0, _jqueryLib.$)(window).on('resize', function () {
-                  clearTimeout(resize_debounce);
-                  resize_debounce = setTimeout( /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
-                    return _regenerator.default.wrap(function _callee$(_context) {
-                      while (1) {
-                        switch (_context.prev = _context.next) {
-                          case 0:
-                            return _context.abrupt("return", _this.updateHeader());
-
-                          case 1:
-                          case "end":
-                            return _context.stop();
-                        }
-                      }
-                    }, _callee);
-                  })), 100);
-                }); // $sbEvents is a jQuery object used to communicate: it allows an both internal services and external lib to connect with eQ-UI
+                _moment.default.locale(_environment.environment.locale); // $sbEvents is a jQuery object used to communicate: it allows an both internal services and external lib to connect with eQ-UI
                 // $('#sb-events').trigger(event, data);
+
 
                 this.$sbEvents = (0, _jqueryLib.$)('<div/>').attr('id', 'sb-events').css('display', 'none').appendTo('body');
                 /**
@@ -5046,11 +5992,11 @@ var eQ = /*#__PURE__*/function () {
                  */
 
                 this.$sbEvents.on('_openContext', /*#__PURE__*/function () {
-                  var _ref2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2(event, config) {
-                    var params, defaults, object, context;
-                    return _regenerator.default.wrap(function _callee2$(_context2) {
+                  var _ref = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(event, config) {
+                    var params, defaults, object;
+                    return _regenerator.default.wrap(function _callee$(_context) {
                       while (1) {
-                        switch (_context2.prev = _context2.next) {
+                        switch (_context.prev = _context.next) {
                           case 0:
                             console.log('eQ: received _openContext', config);
                             params = {
@@ -5059,47 +6005,51 @@ var eQ = /*#__PURE__*/function () {
                               name: 'default',
                               domain: [],
                               mode: 'view',
+                              // view, edit
                               purpose: 'view',
+                              // view, select, add
                               lang: _environment.environment.lang,
-                              callback: null
+                              callback: null,
+                              domContainerSelector: '#sb-container'
                             }; // extend default params with received config
 
-                            config = _objectSpread(_objectSpread({}, params), config); // create a draft object if required: Edition is based on asynchronous creation: a draft is created (or recylcled) and is turn into an instance if 'update' action is triggered.
+                            config = _objectSpread(_objectSpread({}, params), config); // create a draft object if required: Edition is based on asynchronous creation: a draft is created (or recylcled) and is turned into an instance if 'update' action is triggered.
 
                             if (!(config.purpose == 'create')) {
-                              _context2.next = 12;
+                              _context.next = 12;
                               break;
                             }
 
                             console.log('requesting dratf object');
-                            _context2.next = 7;
+                            _context.next = 7;
                             return _this.getNewObjectDefaults(config.entity, config.domain);
 
                           case 7:
-                            defaults = _context2.sent;
-                            _context2.next = 10;
+                            defaults = _context.sent;
+                            _context.next = 10;
                             return _equalServices.ApiService.create(config.entity, defaults);
 
                           case 10:
-                            object = _context2.sent;
+                            object = _context.sent;
                             config.domain = [['id', '=', object.id], ['state', '=', 'draft']];
 
                           case 12:
-                            // instanciate a new context and push it on the contexts stack
-                            context = new _equalLib.Context(config.entity, config.type, config.name, config.domain, config.mode, config.purpose, config.lang, config.callback, config);
+                            if (!_this.frames.hasOwnProperty(config.domContainerSelector)) {
+                              _this.frames[config.domContainerSelector] = new _equalLib.Frame(config.domContainerSelector);
+                            }
 
-                            _this.openContext(context);
+                            _this.frames[config.domContainerSelector].openContext(config);
 
                           case 14:
                           case "end":
-                            return _context2.stop();
+                            return _context.stop();
                         }
                       }
-                    }, _callee2);
+                    }, _callee);
                   }));
 
                   return function (_x, _x2) {
-                    return _ref2.apply(this, arguments);
+                    return _ref.apply(this, arguments);
                   };
                 }());
                 /**
@@ -5109,24 +6059,36 @@ var eQ = /*#__PURE__*/function () {
                  */
 
                 this.$sbEvents.on('_closeContext', function (event) {
-                  var data = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : null;
-
+                  var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
                   // close context non-silently with relayed data
-                  _this.closeContext(false, data);
+                  params = _objectSpread(_objectSpread({}, {
+                    domContainerSelector: '#sb-container',
+                    data: {}
+                  }), params);
+
+                  if (_this.frames.hasOwnProperty(params.domContainerSelector)) {
+                    _this.frames[params.domContainerSelector].closeContext(params.data);
+                  }
                 });
                 this.$sbEvents.on('_closeAll', function (event) {
+                  var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
                   // close all contexts silently
-                  while (_this.stack.length) {
-                    _this.closeContext(true);
+                  params = _objectSpread(_objectSpread({}, {
+                    domContainerSelector: '#sb-container',
+                    silent: true
+                  }), params);
+
+                  if (_this.frames.hasOwnProperty(params.domContainerSelector)) {
+                    _this.frames[params.domContainerSelector].closeContext(params.silent);
                   }
                 });
 
-              case 6:
+              case 5:
               case "end":
-                return _context3.stop();
+                return _context2.stop();
             }
           }
-        }, _callee3, this);
+        }, _callee2, this);
       }));
 
       function init() {
@@ -5135,415 +6097,6 @@ var eQ = /*#__PURE__*/function () {
 
       return init;
     }()
-  }, {
-    key: "getTextWidth",
-    value: function getTextWidth(text, font) {
-      var result = 0; // re-use canvas object for better performance
-
-      var canvas = this.$canvas || (this.$canvas = document.createElement("canvas"));
-      var context = canvas.getContext("2d");
-      context.font = font;
-      var metrics = context.measureText(text);
-      result = metrics.width;
-      return result;
-    }
-  }, {
-    key: "getPurposeString",
-    value: function () {
-      var _getPurposeString = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4(context) {
-        var result, entity, type, name, purpose, view_schema, translation, parts, purpose_const, translated_purpose, objects, object;
-        return _regenerator.default.wrap(function _callee4$(_context4) {
-          while (1) {
-            switch (_context4.prev = _context4.next) {
-              case 0:
-                result = '';
-                entity = context.getEntity();
-                type = context.getType();
-                name = context.getName();
-                purpose = context.getPurpose();
-                _context4.next = 7;
-                return _equalServices.ApiService.getView(entity, type + '.' + name);
-
-              case 7:
-                view_schema = _context4.sent;
-                _context4.next = 10;
-                return _equalServices.ApiService.getTranslation(entity, _environment.environment.lang);
-
-              case 10:
-                translation = _context4.sent;
-
-                if (translation.hasOwnProperty('name')) {
-                  entity = translation['name'];
-                } else if (view_schema.hasOwnProperty('name')) {
-                  entity = view_schema['name'];
-                } else {
-                  parts = entity.split('\\');
-                  entity = parts.pop(); // set the first letter uppercase
-
-                  entity = entity.charAt(0).toUpperCase() + entity.slice(1);
-                }
-
-                if (!(purpose == 'view')) {
-                  _context4.next = 17;
-                  break;
-                }
-
-                result = entity;
-
-                if (type == 'list') {
-                  if (translation.hasOwnProperty('plural')) {
-                    result = translation['plural'];
-                  }
-                }
-
-                _context4.next = 33;
-                break;
-
-              case 17:
-                // i18n: look in config translation file
-                purpose_const = '';
-                _context4.t0 = purpose;
-                _context4.next = _context4.t0 === 'create' ? 21 : _context4.t0 === 'update' ? 23 : _context4.t0 === 'select' ? 25 : _context4.t0 === 'add' ? 27 : 29;
-                break;
-
-              case 21:
-                purpose_const = 'SB_PURPOSE_CREATE';
-                return _context4.abrupt("break", 29);
-
-              case 23:
-                purpose_const = 'SB_PURPOSE_UPDATE';
-                return _context4.abrupt("break", 29);
-
-              case 25:
-                purpose_const = 'SB_PURPOSE_SELECT';
-                return _context4.abrupt("break", 29);
-
-              case 27:
-                purpose_const = 'SB_PURPOSE_ADD';
-                return _context4.abrupt("break", 29);
-
-              case 29:
-                _context4.next = 31;
-                return _equalServices.TranslationService.translate(purpose_const);
-
-              case 31:
-                translated_purpose = _context4.sent;
-
-                if (translated_purpose.length) {
-                  result = translated_purpose + ' ' + entity;
-                } else {
-                  result = purpose.charAt(0).toUpperCase() + purpose.slice(1) + ' ' + entity;
-                }
-
-              case 33:
-                if (!(type == 'form')) {
-                  _context4.next = 38;
-                  break;
-                }
-
-                _context4.next = 36;
-                return context.getView().getModel().get();
-
-              case 36:
-                objects = _context4.sent;
-
-                if (objects.length) {
-                  object = objects[0]; // by convention, collections should always request the `name` field
-
-                  if (object.hasOwnProperty('name') && purpose != 'create') {
-                    result += ' <small>[' + object['name'] + ']</small>';
-                  }
-                }
-
-              case 38:
-                return _context4.abrupt("return", result);
-
-              case 39:
-              case "end":
-                return _context4.stop();
-            }
-          }
-        }, _callee4);
-      }));
-
-      function getPurposeString(_x3) {
-        return _getPurposeString.apply(this, arguments);
-      }
-
-      return getPurposeString;
-    }()
-    /**
-     * Refresh the header breadcrumb, according to available space.
-     * #sb-container-header is managed automatically and shows the breadcrumb of the stack
-     * 
-     * @returns 
-     */
-
-  }, {
-    key: "updateHeader",
-    value: function () {
-      var _updateHeader = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6() {
-        var _this2 = this;
-
-        var $elem, $temp, current_purpose_string, available_width, font, total_text_width, prepend_contexts_count, char_width, max_chars, _loop, i, _ret;
-
-        return _regenerator.default.wrap(function _callee6$(_context7) {
-          while (1) {
-            switch (_context7.prev = _context7.next) {
-              case 0:
-                console.log('update header');
-
-                if ((0, _jqueryLib.$)('.sb-container-header').length == 0) {
-                  this.$headerContainer = (0, _jqueryLib.$)('<div/>').addClass('sb-container-header').appendTo((0, _jqueryLib.$)('#sb-container'));
-                }
-
-                if (!(this.stack.length == 0 || !this.context.hasOwnProperty('$container'))) {
-                  _context7.next = 5;
-                  break;
-                }
-
-                // hide header if there is no context
-                this.$headerContainer.empty().hide();
-                return _context7.abrupt("return");
-
-              case 5:
-                // make sure header is visible
-                this.$headerContainer.show();
-                $elem = (0, _jqueryLib.$)('<h3 />').css({
-                  display: 'flex'
-                }); // add temporary, invisible header for font size computations
-
-                $temp = (0, _jqueryLib.$)('<h3 />').css({
-                  visibility: 'hidden'
-                }).appendTo(this.$headerContainer);
-                _context7.next = 10;
-                return this.getPurposeString(this.context);
-
-              case 10:
-                current_purpose_string = _context7.sent;
-                available_width = this.$headerContainer[0].clientWidth * 0.8;
-                font = $temp.css("font-weight") + ' ' + $temp.css("font-size") + ' ' + $temp.css("font-family");
-                total_text_width = this.getTextWidth(current_purpose_string, font);
-                prepend_contexts_count = 0;
-
-                if (!(total_text_width > available_width)) {
-                  _context7.next = 21;
-                  break;
-                }
-
-                char_width = total_text_width / current_purpose_string.length;
-                max_chars = available_width / char_width;
-                current_purpose_string = current_purpose_string.substr(0, max_chars - 1) + '...';
-                _context7.next = 31;
-                break;
-
-              case 21:
-                _loop = /*#__PURE__*/_regenerator.default.mark(function _loop(i) {
-                  var context, context_purpose_string, text_width, overflow;
-                  return _regenerator.default.wrap(function _loop$(_context6) {
-                    while (1) {
-                      switch (_context6.prev = _context6.next) {
-                        case 0:
-                          context = _this2.stack[i];
-
-                          if (!context.hasOwnProperty('$container')) {
-                            _context6.next = 19;
-                            break;
-                          }
-
-                          _context6.next = 4;
-                          return _this2.getPurposeString(context);
-
-                        case 4:
-                          context_purpose_string = _context6.sent;
-                          text_width = _this2.getTextWidth(context_purpose_string + ' > ', font);
-                          overflow = false;
-
-                          if (!(text_width + total_text_width >= available_width)) {
-                            _context6.next = 13;
-                            break;
-                          }
-
-                          overflow = true;
-                          context_purpose_string = '...';
-                          text_width = _this2.getTextWidth(context_purpose_string + ' > ', font);
-
-                          if (!(text_width + total_text_width >= available_width)) {
-                            _context6.next = 13;
-                            break;
-                          }
-
-                          return _context6.abrupt("return", "break");
-
-                        case 13:
-                          total_text_width += text_width;
-                          prepend_contexts_count++;
-                          (0, _jqueryLib.$)('<a>' + context_purpose_string + '</a>').prependTo($elem).on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5() {
-                            var j, validation;
-                            return _regenerator.default.wrap(function _callee5$(_context5) {
-                              while (1) {
-                                switch (_context5.prev = _context5.next) {
-                                  case 0:
-                                    j = _this2.stack.length - 1;
-
-                                  case 1:
-                                    if (!(j > i)) {
-                                      _context5.next = 13;
-                                      break;
-                                    }
-
-                                    if (!_this2.context.hasChanged()) {
-                                      _context5.next = 9;
-                                      break;
-                                    }
-
-                                    validation = confirm(_equalServices.TranslationService.instant('SB_ACTIONS_MESSAGE_ABANDON_CHANGE'));
-
-                                    if (validation) {
-                                      _context5.next = 6;
-                                      break;
-                                    }
-
-                                    return _context5.abrupt("return");
-
-                                  case 6:
-                                    _this2.closeContext(true);
-
-                                    _context5.next = 10;
-                                    break;
-
-                                  case 9:
-                                    _this2.closeContext(true);
-
-                                  case 10:
-                                    --j;
-                                    _context5.next = 1;
-                                    break;
-
-                                  case 13:
-                                    _this2.closeContext();
-
-                                  case 14:
-                                  case "end":
-                                    return _context5.stop();
-                                }
-                              }
-                            }, _callee5);
-                          })));
-
-                          if (!overflow) {
-                            _context6.next = 18;
-                            break;
-                          }
-
-                          return _context6.abrupt("return", "break");
-
-                        case 18:
-                          if (i > 1) {
-                            (0, _jqueryLib.$)('<span> › </span>').css({
-                              'margin': '0 10px'
-                            }).prependTo($elem);
-                          }
-
-                        case 19:
-                        case "end":
-                          return _context6.stop();
-                      }
-                    }
-                  }, _loop);
-                });
-                i = this.stack.length - 1;
-
-              case 23:
-                if (!(i >= 0)) {
-                  _context7.next = 31;
-                  break;
-                }
-
-                return _context7.delegateYield(_loop(i), "t0", 25);
-
-              case 25:
-                _ret = _context7.t0;
-
-                if (!(_ret === "break")) {
-                  _context7.next = 28;
-                  break;
-                }
-
-                return _context7.abrupt("break", 31);
-
-              case 28:
-                --i;
-                _context7.next = 23;
-                break;
-
-              case 31:
-                // ... plus the active context
-                if (prepend_contexts_count > 0) {
-                  (0, _jqueryLib.$)('<span> › </span>').css({
-                    'margin': '0 10px'
-                  }).appendTo($elem);
-                }
-
-                (0, _jqueryLib.$)('<span>' + current_purpose_string + '</span>').appendTo($elem);
-
-                if (this.stack.length > 1) {
-                  _materialLib.UIHelper.createButton('context-close', '', 'mini-fab', 'close').css({
-                    'transform': 'scale(0.5)',
-                    'margin-top': '3px',
-                    'background': '#bababa',
-                    'box-shadow': 'none'
-                  }).appendTo($elem).on('click', function () {
-                    var validation = true;
-
-                    if (_this2.context.hasChanged()) {
-                      validation = confirm(_equalServices.TranslationService.instant('SB_ACTIONS_MESSAGE_ABANDON_CHANGE'));
-                    }
-
-                    if (!validation) return;
-
-                    _this2.closeContext();
-                  });
-                }
-
-                this.$headerContainer.show().empty().append($elem);
-
-              case 35:
-              case "end":
-                return _context7.stop();
-            }
-          }
-        }, _callee6, this);
-      }));
-
-      function updateHeader() {
-        return _updateHeader.apply(this, arguments);
-      }
-
-      return updateHeader;
-    }()
-  }, {
-    key: "openContext",
-    value: function openContext(context) {
-      var _this3 = this;
-
-      var prev_context = this.context; // stack received context        
-
-      if (this.context) {
-        this.stack.push(this.context);
-      }
-
-      this.context = context;
-      this.context.isReady().then(function () {
-        if (prev_context && prev_context.hasOwnProperty('$container')) {
-          // conainers are hidden and not detached in order to maintain the listeners
-          prev_context.$container.hide();
-        }
-
-        (0, _jqueryLib.$)('#sb-container').append(_this3.context.getContainer());
-      });
-      this.updateHeader();
-    }
     /**
      * Generate an object mapping fields of current entity with default values, based on current domain.
      * 
@@ -5553,7 +6106,7 @@ var eQ = /*#__PURE__*/function () {
   }, {
     key: "getNewObjectDefaults",
     value: function () {
-      var _getNewObjectDefaults = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7(entity) {
+      var _getNewObjectDefaults = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3(entity) {
         var domain,
             fields,
             model_schema,
@@ -5566,46 +6119,46 @@ var eQ = /*#__PURE__*/function () {
             _step2,
             condition,
             field,
-            _args8 = arguments;
+            _args3 = arguments;
 
-        return _regenerator.default.wrap(function _callee7$(_context8) {
+        return _regenerator.default.wrap(function _callee3$(_context3) {
           while (1) {
-            switch (_context8.prev = _context8.next) {
+            switch (_context3.prev = _context3.next) {
               case 0:
-                domain = _args8.length > 1 && _args8[1] !== undefined ? _args8[1] : [];
+                domain = _args3.length > 1 && _args3[1] !== undefined ? _args3[1] : [];
                 // create a new object as draft
                 fields = {
                   state: 'draft'
                 }; // retrieve fields definition
 
-                _context8.next = 4;
+                _context3.next = 4;
                 return _equalServices.ApiService.getSchema(entity);
 
               case 4:
-                model_schema = _context8.sent;
+                model_schema = _context3.sent;
                 model_fields = model_schema.fields; // use View domain for setting default values  
 
                 tmpDomain = new _equalLib.Domain(domain);
                 _iterator = _createForOfIteratorHelper(tmpDomain.getClauses());
-                _context8.prev = 8;
+                _context3.prev = 8;
 
                 _iterator.s();
 
               case 10:
                 if ((_step = _iterator.n()).done) {
-                  _context8.next = 33;
+                  _context3.next = 33;
                   break;
                 }
 
                 clause = _step.value;
                 _iterator2 = _createForOfIteratorHelper(clause.getConditions());
-                _context8.prev = 13;
+                _context3.prev = 13;
 
                 _iterator2.s();
 
               case 15:
                 if ((_step2 = _iterator2.n()).done) {
-                  _context8.next = 23;
+                  _context3.next = 23;
                   break;
                 }
 
@@ -5613,11 +6166,11 @@ var eQ = /*#__PURE__*/function () {
                 field = condition.getOperand();
 
                 if (!(field == 'id')) {
-                  _context8.next = 20;
+                  _context3.next = 20;
                   break;
                 }
 
-                return _context8.abrupt("continue", 21);
+                return _context3.abrupt("continue", 21);
 
               case 20:
                 if (['ilike', 'like', '=', 'is'].includes(condition.getOperator()) && model_fields.hasOwnProperty(field)) {
@@ -5625,204 +6178,64 @@ var eQ = /*#__PURE__*/function () {
                 }
 
               case 21:
-                _context8.next = 15;
+                _context3.next = 15;
                 break;
 
               case 23:
-                _context8.next = 28;
+                _context3.next = 28;
                 break;
 
               case 25:
-                _context8.prev = 25;
-                _context8.t0 = _context8["catch"](13);
+                _context3.prev = 25;
+                _context3.t0 = _context3["catch"](13);
 
-                _iterator2.e(_context8.t0);
+                _iterator2.e(_context3.t0);
 
               case 28:
-                _context8.prev = 28;
+                _context3.prev = 28;
 
                 _iterator2.f();
 
-                return _context8.finish(28);
+                return _context3.finish(28);
 
               case 31:
-                _context8.next = 10;
+                _context3.next = 10;
                 break;
 
               case 33:
-                _context8.next = 38;
+                _context3.next = 38;
                 break;
 
               case 35:
-                _context8.prev = 35;
-                _context8.t1 = _context8["catch"](8);
+                _context3.prev = 35;
+                _context3.t1 = _context3["catch"](8);
 
-                _iterator.e(_context8.t1);
+                _iterator.e(_context3.t1);
 
               case 38:
-                _context8.prev = 38;
+                _context3.prev = 38;
 
                 _iterator.f();
 
-                return _context8.finish(38);
+                return _context3.finish(38);
 
               case 41:
-                return _context8.abrupt("return", fields);
+                return _context3.abrupt("return", fields);
 
               case 42:
               case "end":
-                return _context8.stop();
+                return _context3.stop();
             }
           }
-        }, _callee7, null, [[8, 35, 38, 41], [13, 25, 28, 31]]);
+        }, _callee3, null, [[8, 35, 38, 41], [13, 25, 28, 31]]);
       }));
 
-      function getNewObjectDefaults(_x4) {
+      function getNewObjectDefaults(_x3) {
         return _getNewObjectDefaults.apply(this, arguments);
       }
 
       return getNewObjectDefaults;
     }()
-    /**
-     * 
-     * @param silent do not show the pop-ed context and do not refresh the header 
-     */
-
-  }, {
-    key: "closeContext",
-    value: function () {
-      var _closeContext = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee8() {
-        var silent,
-            data,
-            has_changed,
-            _args9 = arguments;
-        return _regenerator.default.wrap(function _callee8$(_context9) {
-          while (1) {
-            switch (_context9.prev = _context9.next) {
-              case 0:
-                silent = _args9.length > 0 && _args9[0] !== undefined ? _args9[0] : false;
-                data = _args9.length > 1 && _args9[1] !== undefined ? _args9[1] : null;
-                console.log('closeContext', silent, data);
-
-                if (!this.stack.length) {
-                  _context9.next = 15;
-                  break;
-                }
-
-                has_changed = this.context.hasChanged(); // destroy current context and run callback, if any
-
-                this.context.close(data); // restore previous context
-
-                this.context = this.stack.pop();
-
-                if (silent) {
-                  _context9.next = 15;
-                  break;
-                }
-
-                console.log(this.context);
-
-                if (!(this.context != undefined && this.context.hasOwnProperty('$container'))) {
-                  _context9.next = 14;
-                  break;
-                }
-
-                if (!(has_changed && this.context.getMode() == 'view')) {
-                  _context9.next = 13;
-                  break;
-                }
-
-                _context9.next = 13;
-                return this.context.refresh();
-
-              case 13:
-                this.context.$container.show();
-
-              case 14:
-                this.updateHeader();
-
-              case 15:
-              case "end":
-                return _context9.stop();
-            }
-          }
-        }, _callee8, this);
-      }));
-
-      function closeContext() {
-        return _closeContext.apply(this, arguments);
-      }
-
-      return closeContext;
-    }()
-    /**
-     * Generates a menu to be displayed inside the #sb-emnu container.
-     * Items of the menu trigger _openContext calls, independantly from any existing listener
-     * 
-     * @param menu Menu object (JSON structure) describing the entries of each section.
-     */
-
-  }, {
-    key: "loadMenu",
-    value: function loadMenu(menu) {
-      var _loop2 = function _loop2() {
-        item = menu[i];
-        var $link = (0, _jqueryLib.$)('<div/>').addClass('sb-menu-button mdc-menu-surface--anchor').append(_materialLib.UIHelper.createButton('menu-entry' + '-' + item.name + '-' + item.target, item.name, 'text', item.icon)).appendTo((0, _jqueryLib.$)('#sb-menu')); // create floating menu for filters selection
-
-        var $menu = _materialLib.UIHelper.createMenu('nav-menu').addClass('sb-view-header-list-filters-menu').css({
-          "margin-top": '48px'
-        }).appendTo($link);
-
-        var $list = _materialLib.UIHelper.createList('nav-list').appendTo($menu);
-
-        for (j = 0; j < menu[i].children.length; ++j) {
-          item = menu[i].children[j];
-
-          _materialLib.UIHelper.createListItem(item.name + ' (' + item.entity + ')', item.icon).data('item', item).appendTo($list).on('click', function (event) {
-            var $this = (0, _jqueryLib.$)(event.currentTarget);
-            var item = $this.data('item');
-
-            if (!item.hasOwnProperty('domain')) {
-              item.domain = [];
-            }
-
-            var type = 'list';
-            var name = 'default';
-
-            if (item.hasOwnProperty('target')) {
-              var parts = item.target.split('.');
-              if (parts.length) type = parts.shift();
-              if (parts.length) name = parts.shift();
-            }
-
-            (0, _jqueryLib.$)('#sb-events').trigger('_closeAll');
-            setTimeout(function () {
-              (0, _jqueryLib.$)('#sb-events').trigger('_openContext', {
-                entity: item.entity,
-                type: type,
-                name: name,
-                domain: item.domain
-              });
-            });
-          });
-        }
-
-        _materialLib.UIHelper.decorateMenu($menu);
-
-        $link.find('button').on('click', function () {
-          return $menu.trigger('_toggle');
-        });
-      };
-
-      // generate a menu
-      for (var i = 0; i < menu.length; ++i) {
-        var item;
-        var j;
-        var item;
-
-        _loop2();
-      }
-    }
     /**
      * Interface method for integration with external tools.
      * @param context 
@@ -5832,7 +6245,6 @@ var eQ = /*#__PURE__*/function () {
     key: "open",
     value: function open(context) {
       console.log("eQ::open");
-      this.$sbEvents.trigger('_closeAll');
       this.$sbEvents.trigger('_openContext', context);
     }
   }]);
@@ -6152,6 +6564,7 @@ var UIHelper = /*#__PURE__*/function () {
                 <span class="mdc-line-ripple"></span> \
             </label> \
             <div class="mdc-text-field-helper-line"> \
+              <div class="mdc-text-field-helper-text" aria-hidden="true" title="' + helper + '">' + helper + '</div> \
               <div class="mdc-text-field-character-counter">0 / 255</div> \
           </div> \
         </div>');
@@ -6331,9 +6744,9 @@ var UIHelper = /*#__PURE__*/function () {
                 <ul class="mdc-list"></ul> \
             </div> \
         </div>');
-      var $list = $elem.find('ul.mdc-list'); // we recevied an object as param
+      var $list = $elem.find('ul.mdc-list'); // we recevied an object as param (map)
 
-      if (!!values && values.constructor === Object) {
+      if (!Array.isArray(values)) {
         for (var key in values) {
           var $line = (0, _jqueryLib.$)(' \
                 <li class="mdc-list-item" role="option" data-value="' + key + '"> \
@@ -6478,7 +6891,6 @@ var UIHelper = /*#__PURE__*/function () {
         </div');
       var dialog = new _dialog.MDCDialog($elem[0]);
       dialog.listen('MDCDialog:opened', function () {
-        // list.layout();
         dialog.layout();
       });
       dialog.listen('MDCDialog:closed', function (event) {
@@ -6666,8 +7078,9 @@ var _createClass2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtim
 var _defineProperty2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/defineProperty */ "./node_modules/@babel/runtime/helpers/defineProperty.js"));
 
 var Widget = /*#__PURE__*/function () {
-  function Widget(type, label, value, config) {
+  function Widget(layout, type, label, value, config) {
     (0, _classCallCheck2.default)(this, Widget);
+    (0, _defineProperty2.default)(this, "layout", void 0);
     (0, _defineProperty2.default)(this, "value", void 0);
     (0, _defineProperty2.default)(this, "label", void 0);
     (0, _defineProperty2.default)(this, "type", void 0);
@@ -6676,6 +7089,7 @@ var Widget = /*#__PURE__*/function () {
     (0, _defineProperty2.default)(this, "readonly", false);
     (0, _defineProperty2.default)(this, "config", void 0);
     console.log('Widget constructor', type, label, value, config);
+    this.layout = layout;
     this.value = value;
     this.label = label;
     this.type = type;
@@ -6694,6 +7108,11 @@ var Widget = /*#__PURE__*/function () {
 
 
       this.id = S4() + S4() + "-" + S4() + "-" + S4() + "-" + S4() + "-" + S4() + S4() + S4();
+    }
+  }, {
+    key: "getLayout",
+    value: function getLayout() {
+      return this.layout;
     }
   }, {
     key: "getId",
@@ -6824,9 +7243,9 @@ var WidgetBoolean = /*#__PURE__*/function (_Widget) {
 
   var _super = _createSuper(WidgetBoolean);
 
-  function WidgetBoolean(label, value, config) {
+  function WidgetBoolean(layout, label, value, config) {
     (0, _classCallCheck2.default)(this, WidgetBoolean);
-    return _super.call(this, 'boolean', label, value, config);
+    return _super.call(this, layout, 'boolean', label, value, config);
   }
 
   (0, _createClass2.default)(WidgetBoolean, [{
@@ -6919,9 +7338,9 @@ var WidgetDate = /*#__PURE__*/function (_Widget) {
 
   var _super = _createSuper(WidgetDate);
 
-  function WidgetDate(label, value, config) {
+  function WidgetDate(layout, label, value, config) {
     (0, _classCallCheck2.default)(this, WidgetDate);
-    return _super.call(this, 'date', label, value, config);
+    return _super.call(this, layout, 'date', label, value, config);
   }
 
   (0, _createClass2.default)(WidgetDate, [{
@@ -7026,9 +7445,9 @@ var WidgetDateTime = /*#__PURE__*/function (_Widget) {
 
   var _super = _createSuper(WidgetDateTime);
 
-  function WidgetDateTime(label, value, config) {
+  function WidgetDateTime(layout, label, value, config) {
     (0, _classCallCheck2.default)(this, WidgetDateTime);
-    return _super.call(this, 'date', label, value, config);
+    return _super.call(this, layout, 'date', label, value, config);
   }
 
   (0, _createClass2.default)(WidgetDateTime, [{
@@ -7150,9 +7569,9 @@ var WidgetFloat = /*#__PURE__*/function (_WidgetString) {
 
   var _super = _createSuper(WidgetFloat);
 
-  function WidgetFloat(label, value, config) {
+  function WidgetFloat(layout, label, value, config) {
     (0, _classCallCheck2.default)(this, WidgetFloat);
-    return _super.call(this, label, value, config);
+    return _super.call(this, layout, label, value, config);
   }
 
   (0, _createClass2.default)(WidgetFloat, [{
@@ -7209,9 +7628,9 @@ var WidgetInteger = /*#__PURE__*/function (_WidgetString) {
 
   var _super = _createSuper(WidgetInteger);
 
-  function WidgetInteger(label, value, config) {
+  function WidgetInteger(layout, label, value, config) {
     (0, _classCallCheck2.default)(this, WidgetInteger);
-    return _super.call(this, label, value, config);
+    return _super.call(this, layout, label, value, config);
   }
 
   (0, _createClass2.default)(WidgetInteger, [{
@@ -7286,11 +7705,11 @@ var WidgetMany2Many = /*#__PURE__*/function (_Widget) {
 
   var _super = _createSuper(WidgetMany2Many);
 
-  function WidgetMany2Many(label, value, config) {
+  function WidgetMany2Many(layout, label, value, config) {
     var _this;
 
     (0, _classCallCheck2.default)(this, WidgetMany2Many);
-    _this = _super.call(this, 'many2many', label, value, config);
+    _this = _super.call(this, layout, 'many2many', label, value, config);
     (0, _defineProperty2.default)((0, _assertThisInitialized2.default)(_this), "rel_type", void 0);
     _this.rel_type = 'many2many';
     return _this;
@@ -7344,7 +7763,7 @@ var WidgetMany2Many = /*#__PURE__*/function (_Widget) {
             }
           }]
         };
-        var view = new _View.default(this.config.entity, this.config.view_type, this.config.view_name, this.config.domain, this.mode, 'widget', this.config.lang, view_config);
+        var view = new _View.default(this.getLayout().getView().getContext(), this.config.entity, this.config.view_type, this.config.view_name, this.config.domain, this.mode, 'widget', this.config.lang, view_config);
         view.isReady().then(function () {
           var $container = view.getContainer();
 
@@ -7358,7 +7777,7 @@ var WidgetMany2Many = /*#__PURE__*/function (_Widget) {
                     case 0:
                       purpose = _this2.rel_type == 'many2many' ? 'add' : 'select'; // request a new Context for selecting an existing object to add to current selection
 
-                      $('#sb-events').trigger('_openContext', {
+                      _this2.getLayout().openContext({
                         entity: _this2.config.entity,
                         type: 'list',
                         name: 'default',
@@ -7407,7 +7826,7 @@ var WidgetMany2Many = /*#__PURE__*/function (_Widget) {
                     switch (_context2.prev = _context2.next) {
                       case 0:
                         // request a new Context for selecting an existing object to add to current selection
-                        $('#sb-events').trigger('_openContext', {
+                        _this2.getLayout().openContext({
                           entity: _this2.config.entity,
                           type: 'form',
                           name: 'default',
@@ -7513,9 +7932,9 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
 
   var _super = _createSuper(WidgetMany2One);
 
-  function WidgetMany2One(label, value, config) {
+  function WidgetMany2One(layout, label, value, config) {
     (0, _classCallCheck2.default)(this, WidgetMany2One);
-    return _super.call(this, 'many2one', label, value, config);
+    return _super.call(this, layout, 'many2one', label, value, config);
   }
 
   (0, _createClass2.default)(WidgetMany2One, [{
@@ -7645,7 +8064,8 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
                       _object = objects.find(function (o) {
                         return o.name == value;
                       });
-                      $('#sb-events').trigger('_openContext', {
+
+                      _this.getLayout().openContext({
                         entity: _this.config.foreign_object,
                         type: 'form',
                         name: _this.config.hasOwnProperty('view_name') ? _this.config.view_name : 'default',
@@ -7666,7 +8086,7 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
               while (1) {
                 switch (_context2.prev = _context2.next) {
                   case 0:
-                    $('#sb-events').trigger('_openContext', {
+                    _this.getLayout().openContext({
                       entity: _this.config.foreign_object,
                       type: _this.config.hasOwnProperty('view_type') ? _this.config.view_type : 'list',
                       name: _this.config.hasOwnProperty('view_name') ? _this.config.view_name : 'default',
@@ -7687,6 +8107,7 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
                         }
                       }
                     });
+
                     return _context2.abrupt("return", false);
 
                   case 2:
@@ -7704,7 +8125,7 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
         default:
           $elem = $('<div />');
 
-          var $input = _materialLib.UIHelper.createInputView('', this.label, value);
+          var $input = _materialLib.UIHelper.createInputView('', this.label, value.toString());
 
           switch (this.config.layout) {
             case 'form':
@@ -7723,7 +8144,7 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
                         console.log(_this.config);
 
                         if (_this.config.hasOwnProperty('object_id') && _this.config.object_id && _this.config.object_id > 0) {
-                          $('#sb-events').trigger('_openContext', {
+                          _this.getLayout().openContext({
                             entity: _this.config.foreign_object,
                             type: 'form',
                             name: _this.config.hasOwnProperty('view_name') ? _this.config.view_name : 'default',
@@ -7794,11 +8215,11 @@ var WidgetOne2Many = /*#__PURE__*/function (_WidgetMany2Many) {
 
   var _super = _createSuper(WidgetOne2Many);
 
-  function WidgetOne2Many(label, value, config) {
+  function WidgetOne2Many(layout, label, value, config) {
     var _this;
 
     (0, _classCallCheck2.default)(this, WidgetOne2Many);
-    _this = _super.call(this, label, value, config);
+    _this = _super.call(this, layout, label, value, config);
     _this.rel_type = 'one2many';
     return _this;
   }
@@ -7849,9 +8270,9 @@ var WidgetSelect = /*#__PURE__*/function (_Widget) {
 
   var _super = _createSuper(WidgetSelect);
 
-  function WidgetSelect(label, value, config) {
+  function WidgetSelect(layout, label, value, config) {
     (0, _classCallCheck2.default)(this, WidgetSelect);
-    return _super.call(this, 'select', label, value, config);
+    return _super.call(this, layout, 'select', label, value, config);
   }
 
   (0, _createClass2.default)(WidgetSelect, [{
@@ -7859,7 +8280,7 @@ var WidgetSelect = /*#__PURE__*/function (_Widget) {
     value: function render() {
       var _this = this;
 
-      console.log('WidgetSelect::render', this.config, this.mode);
+      console.log('WidgetSelect::render', this.config, this.mode, this.value);
       var $elem;
       var value = this.value ? this.value : '';
 
@@ -7877,8 +8298,8 @@ var WidgetSelect = /*#__PURE__*/function (_Widget) {
 
         case 'view':
         default:
-          $elem = $('<span/>').text(value);
-          $elem = _materialLib.UIHelper.createInputView('', this.label, value);
+          var val = Array.isArray(this.config.values) ? value : this.config.values[value];
+          $elem = _materialLib.UIHelper.createInputView('', this.label, val);
           break;
       }
 
@@ -7932,9 +8353,9 @@ var WidgetString = /*#__PURE__*/function (_Widget) {
 
   var _super = _createSuper(WidgetString);
 
-  function WidgetString(label, value, config) {
+  function WidgetString(layout, label, value, config) {
     (0, _classCallCheck2.default)(this, WidgetString);
-    return _super.call(this, 'string', label, value, config);
+    return _super.call(this, layout, 'string', label, value, config);
   }
 
   (0, _createClass2.default)(WidgetString, [{
@@ -8016,9 +8437,9 @@ var WidgetText = /*#__PURE__*/function (_Widget) {
 
   var _super = _createSuper(WidgetText);
 
-  function WidgetText(label, value, config) {
+  function WidgetText(layout, label, value, config) {
     (0, _classCallCheck2.default)(this, WidgetText);
-    return _super.call(this, 'text', label, value, config);
+    return _super.call(this, layout, 'text', label, value, config);
   }
 
   (0, _createClass2.default)(WidgetText, [{
@@ -8031,7 +8452,7 @@ var WidgetText = /*#__PURE__*/function (_Widget) {
 
       switch (this.mode) {
         case 'edit':
-          $elem = _materialLib.UIHelper.createTextArea('', this.label, value); // setup handler for relaying value update to parent layout
+          $elem = _materialLib.UIHelper.createTextArea('', this.label, value, this.config.helper); // setup handler for relaying value update to parent layout
 
           $elem.find('textarea').on('change', function (event) {
             var $this = $(event.currentTarget);
@@ -26515,7 +26936,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1___default()((_node_modules_css_loader_dist_runtime_cssWithMappingToString_js__WEBPACK_IMPORTED_MODULE_0___default()));
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, ":root {\r\n    /* colored buttons */\r\n    --mdc-theme-primary: #3f51b5;\r\n    --mdc-theme-primary-hover: #4f61c5;\r\n\r\n    --mdc-theme-primary-selected: #f5f5ff;\r\n    --mdc-theme-primary-outline: #b1b1dc;\r\n\r\n    /* checkbox background */\r\n    --mdc-theme-secondary: #3f51b5;\r\n    /* menus */\r\n    --mdc-typography-subtitle1-font-size: 14px;\r\n    /* table headers */\r\n    --mdc-typography-subtitle2-font-weight: 600;\r\n\r\n\r\n    --mdc-layout-grid-margin-desktop: 12px;\r\n    --mdc-layout-grid-gutter-desktop: 24px;\r\n    --mdc-layout-grid-margin-tablet: 12px;\r\n    --mdc-layout-grid-gutter-tablet: 18px;\r\n    --mdc-layout-grid-margin-phone: 12px;\r\n    --mdc-layout-grid-gutter-phone: 16px;\r\n\r\n}\r\n    \r\nbody, html {\r\n    margin: 0;\r\n    padding: 0;\r\n    height:100%;\r\n}\r\n\r\n#sb-root {\r\n    display: flex;\r\n    height: 100%;\r\n    flex-flow: column nowrap;\r\n}\r\n\r\n#sb-menu .sb-menu-button {\r\n    display: inline-block;\r\n}\r\n\r\n#sb-container {\r\n    width: 100%;\r\n    height: 100%;\r\n    overflow: hidden;\r\n    flex: 1 1 100%;\r\n    box-sizing: border-box;\r\n}\r\n\r\n.sb-container-header {\r\n    padding-left: 12px;\r\n    height: 48px;\r\n    border-bottom: solid 1px lightgrey;\r\n}\r\n\r\n.sb-container-header h3 {\r\n    line-height: 48px;\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n.sb-container-header a {\r\n    cursor: pointer;\r\n    text-decoration: none;\r\n    color: var(--mdc-theme-primary);\r\n}\r\n\r\n.sb-container-header a:hover {\r\n\r\n}\r\n\r\n.sb-context {\r\n    /* container height minus the header */\r\n    height: calc(100% - 48px);\r\n}\r\n\r\n.sb-view { \r\n    position: relative;\r\n    height: 100%;\r\n}\r\n\r\n.sb-view-layout-list {\r\n    /* height must be decremented by height of other elements from parent (header and footer) */\r\n    height: calc(100% - 112px);\r\n}\r\n\r\n.sb-view-layout-form {\r\n    /* height must be decremented by height of other elements from parent (header and footer) */\r\n    height: calc(100% - 56px);\r\n    padding-bottom: 10px;\r\n}\r\n\r\n.sb-view-list-inline-actions-button {\r\n    transform: scale(0.7);\r\n}\r\n\r\n.sb-layout {\r\n    position: relative;\r\n    height: 100%;\r\n}\r\n\r\n\r\n\r\n\r\n.sb-view-layout-list table th {\r\n    cursor: pointer;\r\n    user-select: none;\r\n    position: sticky;\r\n    top: 0;\r\n    z-index: 3;\r\n}\r\n\r\n.sb-view-layout-list table th.sortable.hover {\r\n    background-color: #f0f0f0;\r\n}\r\n\r\n.sb-view-layout-list table th.sorted {\r\n    color: black;\r\n}\r\n\r\n.sb-view-layout-list table th.asc::after, .sb-view-layout-list table th.desc::after {\r\n    position: absolute;\r\n    margin-left: 6px;\r\n    font-family: FontAwesome;\r\n    opacity: 0.3;\r\n}\r\n\r\n.sb-view-layout-list table th.asc::after {\r\n    content: \"\\f0d7\";\r\n}\r\n\r\n.sb-view-layout-list table th.desc::after {\r\n    content: \"\\f0d8\";\r\n}\r\n\r\n.sb-view-layout-list table tr {\r\n    cursor: pointer;\r\n}\r\n\r\n.sb-view-header-list {\r\n    position: relative;\r\n    max-height: 112px;\r\n    /*\r\n    height: 112px;\r\n    line-height: 112px;\r\n    */\r\n}\r\n\r\n.sb-view-header-list-actions {\r\n    margin-left: 12px;\r\n    max-height: 56px;\r\n}\r\n\r\n.sb-view-header-list-actions-set {\r\n    display: flex;\r\n    margin-top: 10px;\r\n}\r\n\r\n.sb-view-header-list-actions button {\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-header-list-actions-selected {\r\n    position: relative;\r\n    display: flex;\r\n}\r\n\r\n/* todo: improve this (add a custom class)*/\r\n.sb-view-header-list-actions-selected .mdc-button__label {\r\n    padding-right: 10px;\r\n}\r\n\r\n.sb-view-header-list-actions-selected .mdc-button__label::after {\r\n    content: \"\\f0d7\";\r\n}\r\n\r\n.sb-view-header-list-actions-selected .mdc-button__label::after {\r\n    position: absolute;\r\n    margin-left: 6px;\r\n    font-family: FontAwesome;\r\n    opacity: 0.5;\r\n}\r\n\r\n.sb-view-header-list-navigation {\r\n    height: 56px;\r\n    line-height: 56px;\r\n    display: flex;\r\n}\r\n\r\n.sb-view-header-list-filters {\r\n    margin-top: 4px;\r\n}\r\n\r\n.sb-view-header-list-filters .sb-view-header-list-filters-menu {\r\n    min-width: 250px;\r\n}\r\n\r\n.sb-view-header-list-filters-set {\r\n    margin-top: 4px;\r\n}\r\n\r\n\r\n.sb-view-header-list-fields_toggle {\r\n    /* flex-grow: 1; */\r\n    margin-top: 4px;\r\n    margin-right: 10px;\r\n    text-align: right;\r\n}\r\n\r\n\r\n.sb-view-header-list-fields_toggle .sb-view-header-list-fields_toggle-menu {\r\n    min-width: 250px !important;\r\n    max-width: 250px !important;\r\n}\r\n\r\n.sb-view-header-list-pagination {\r\n    flex: 1;\r\n    flex-grow: 1;\r\n\r\n}\r\n\r\n.sb-view-header-list-pagination-limit_select {\r\n    margin-left: 12px;\r\n}\r\n\r\n.sb-view-header-list-pagination .pagination-navigation {\r\n    user-select: none; \r\n}\r\n\r\n\r\n.sb-widget-mode-view input {\r\n    color: black !important;\r\n    user-select: none;\r\n}\r\n\r\n.sb-widget-mode-view .mdc-text-field .mdc-floating-label,\r\n.sb-widget-mode-view.mdc-select .mdc-floating-label {\r\n    color: rgba(0,0,0,0.5) !important;\r\n    user-select: none;\r\n    font-size: 16px;\r\n    font-weight: 400;\r\n}\r\n\r\n.sb-widget-mode-edit .mdc-text-field .mdc-floating-label, \r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label {\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n}\r\n\r\n.sb-widget-mode-view .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above, \r\n.sb-widget-mode-view.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n}\r\n\r\n.sb-widget-mode-edit .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above, \r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.6) !important;\r\n    font-weight: 400;\r\n}\r\n\r\n\r\n.sb-view-header-form {\r\n    height: 56px;\r\n    line-height: 56px;\r\n}\r\n\r\n.sb-view-header-form-actions {\r\n    display: flex;\r\n    flex-direction: row;\r\n    align-items: center;\r\n    margin-left: 12px;\r\n    max-width: 250px;\r\n    height: 56px;\r\n    line-height: 56px;\r\n}\r\n\r\n.sb-view-header-form-actions button {\r\n    flex: 0 1 auto;\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-form-group {\r\n    padding: 12px;\r\n}\r\n\r\n.sb-view-form-row:not(:first-child) {\r\n    padding-top: 24px;\r\n}\r\n\r\n.sb-view-form-group-title {\r\n    font-size: 20px;\r\n    margin-bottom: 12px;\r\n}\r\n\r\n.sb-view-form-sections-tabbar {\r\n    margin-bottom: 12px;\r\n}\r\n\r\n.sb-view-layout-list .mdc-line-ripple::before, .sb-view-layout-list .mdc-line-ripple::after {\r\n  border: none !important;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget label.mdc-text-field .mdc-floating-label {\r\n    display: none !important;\r\n}\r\n.sb-view-layout-list .sb-widget-mode-view label.mdc-text-field::before {\r\n    display: none !important;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget-mode-view input {\r\n    height: 100%;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget-mode-edit button.mdc-icon-button {\r\n    padding: 0 0 0 5px;\r\n    height: auto;\r\n    width: auto;\r\n    position: absolute;\r\n}\r\n\r\n.sb-view-layout-form-input-button {\r\n    width: 25px;\r\n    height: 30px;\r\n    position: absolute;\r\n    right: 12px;\r\n    top: calc(50% - 15px);\r\n}\r\n\r\n.sb-view-layout-form-input-decoy {\r\n    position: absolute;\r\n    left: 16px;\r\n    bottom: 10px;\r\n    z-index: -1;\r\n    opacity: 0;\r\n}\r\n\r\n\r\n.sb-widget {\r\n    position: relative;\r\n}\r\n\r\n.sb-ui-checkbox {\r\n    position: relative;\r\n}\r\n\r\n.sb-ui-menu.mdc-menu-surface--is-open-below {\r\n    margin-top: 48px;\r\n}\r\n\r\n.sb-ui-menu.mdc-menu-surface--open {\r\n    margin-bottom: 48px;\r\n}\r\n\r\n\r\n/* Material Components customizations */\r\n\r\n/* fix for ripple not working on icon-button */\r\nbutton.mdc-icon-button:hover, button.mdc-icon-button:active, button.mdc-icon-button:focus {\r\n    border-radius: 50%;\r\n    background-color: rgba(0,0,0,0.10);\r\n}\r\n\r\n/* fix tooltip not hiding */\r\n.mdc-tooltip--hide {\r\n    opacity: 0;\r\n}\r\n\r\n/* Special SB widgets customizations */\r\n\r\n/* support for title strings */\r\n.sb-widget.title {\r\n    margin-top: -14px; \r\n}\r\n\r\n.sb-widget.title span.mdc-floating-label--float-above {\r\n    transform: translateY(-166%) !important;\r\n}\r\n.sb-widget.title label.mdc-text-field {\r\n  height: 70px;\r\n}\r\n.sb-widget.title input.mdc-text-field__input {\r\n  font-size: 30px;\r\n  margin-top: auto; \r\n  height: 60px;\r\n}\r\n\r\n.sb-view-layout-form {\r\n    overflow-y: scroll;\r\n}\r\n\r\n\r\n.sb-view-layout-form::-webkit-scrollbar {\r\n    width: 6px;\r\n    overflow-y: scroll;\r\n    background: #EAEAEA;\r\n\r\n}\r\n\r\n.sb-view-layout-form::-webkit-scrollbar-thumb {\r\n    background: var(--mdc-theme-primary, #6200ee);\r\n    border-radius: 10px;\r\n}\r\n\r\n\r\n.sb-view-layout-form .sb-widget.sb-widget-type-boolean {\r\n    height: 56px;\r\n    vertical-align: middle;\r\n    display: table-cell;\r\n    padding-left: 16px;\r\n}\r\n\r\n\r\n/* adapt inputs for inline editing */\r\n.sb-widget-cell .mdc-text-field {\r\n  height: 100%;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field {\r\n    padding-left: 0;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-text-field {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    padding-left: 5px;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-select__anchor {\r\n    padding-left: 5px;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field-helper-line {\r\n  display: none;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--filled::before {\r\n  display: none;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--filled:not(.mdc-text-field--disabled) {\r\n    background-color: inherit;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-text-field--filled:not(.mdc-text-field--disabled) {\r\n    background-color: white;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--invalid .mdc-text-field__input {\r\n    color: var(--mdc-theme-error, #b00020);\r\n}\r\n\r\n.sb-widget-cell .mdc-select {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    margin-top: -14px;\r\n}\r\n\r\n.sb-widget-cell .mdc-select {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    margin-top: -14px;\r\n}\r\n\r\n\r\n.sb-widget-cell .mdc-select__anchor {\r\n    height: 100%;\r\n}\r\n\r\n/* make mini-fab flat (mini save buttons) */ \r\n.sb-view-layout-list-row-checkbox .mdc-fab--mini {\r\n    box-shadow: none !important;\r\n    margin: 2px 0;\r\n}\r\n\r\n.mdc-data-table {\r\n    height: 100%;\r\n}\r\n\r\n\r\n.mdc-data-table__table-container::-webkit-scrollbar {\r\n    width: 6px;\r\n    overflow-y: scroll;\r\n    background: #EAEAEA;\r\n\r\n}\r\n\r\n.mdc-data-table__table-container::-webkit-scrollbar-thumb {\r\n    background: var(--mdc-theme-primary, #6200ee);\r\n    border-radius: 10px;\r\n}\r\n\r\n\r\n\r\n/* custom style for special button with icon only */\r\n.mdc-button-icon {\r\n\tmin-width: 36px;\r\n}\r\n\r\n.mdc-button-icon  .mdc-button__ripple {\r\n\tborder-radius: 50%;\r\n    width: 36px;\r\n}\r\n\r\n\r\n\r\n.mdc-menu {\r\n    min-width: var(--mdc-menu-min-width, 200px) !important;\r\n    max-width: calc(100vw - 32px) !important;\r\n}\r\n\r\n.mdc-text-field:not(.mdc-text-field--disabled) .mdc-text-field__icon {\r\n    color: rgba(0,0,0,.54);\r\n    background-color: white;\r\n}\r\n\r\n.mdc-text-field--focused .mdc-text-field-helper-line .mdc-text-field-helper-text {\r\n    opacity: 1 !important;\r\n}\r\n\r\n.mdc-text-field--with-trailing-icon .mdc-text-field__icon {\r\n    left: initial;\r\n    right: 12px;\r\n}\r\n\r\n.mdc-text-field--with-leading-icon .mdc-text-field__icon, .mdc-text-field--with-trailing-icon .mdc-text-field__icon {\r\n    position: absolute;\r\n    top: 50%;\r\n    transform: translateY(-50%);\r\n    cursor: pointer;\r\n}\r\n\r\n.mdc-text-field--textarea {\r\n    outline: solid 1px rgba(0, 0,0,0.1);\r\n}\r\n\r\n.sb-view-layout.sb-view-layout-form .mdc-text-field--filled:not(.mdc-text-field--disabled), .mdc-select--filled:not(.mdc-select--disabled) .mdc-select__anchor {\r\n    background: transparent !important;\r\n}\r\n\r\n.mdc-layout-grid__cell {\r\n    position: relative;\r\n}\r\n\r\n.mdc-text-field-helper-line {\r\n    position: absolute;\r\n    width: 100%;\r\n    max-width: 100%;\r\n    padding-left: 0 !important;    \r\n    padding-right: 0 !important;    \r\n}\r\n\r\n.mdc-data-table__header-cell--checkbox {\r\n    width: 44px;\r\n}\r\n.mdc-data-table__row--selected {\r\n    background-color: var(--mdc-theme-primary-selected) !important;\r\n}\r\n.mdc-list-item .mdc-checkbox {\r\n    margin-left: -11px;\r\n}\r\n\r\n.mdc-list-item__graphic {\r\n    color: rgba(0,0,0,.54) !important;\r\n    margin-right: 12px;\r\n}\r\n\r\n.mdc-list-item__text {\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;    \r\n}\r\n\r\n.mdc-chip .mdc-chip__icon {\r\n    font-size: 22px;\r\n    height: 22px;\r\n}\r\n\r\n.mdc-list-item {\r\n    height: 44px;\r\n    align-items: center !important;\r\n}\r\n\r\n.mdc-data-table__cell {\r\n    height: 44px;\r\n}\r\n\r\n\r\n.mdc-data-table__pagination {\r\n    border-top: 0;\r\n}\r\n\r\n.mdc-text-field {\r\n    width: 100%;\r\n}\r\n\r\n.mdc-floating-label {\r\n    font-size: 16px !important;\r\n    /* color: rgba(0, 0, 0, 0.8) !important;*/\r\n}\r\n\r\n\r\n.mdc-text-field-helper-line .mdc-text-field-helper-text {\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n\r\n.mdc-text-field--invalid:not(.mdc-text-field--disabled) .mdc-text-field-helper-line .mdc-text-field-helper-text--validation-msg {\r\n    color: var(--mdc-theme-error, #b00020) !important;\r\n}\r\n\r\n.mdc-text-field--focused:not(.mdc-text-field--disabled) .mdc-floating-label {\r\n    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;\r\n}\r\n\r\n.mdc-select--focused:not(.mdc-text-field--disabled) .mdc-floating-label {\r\n    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;\r\n}\r\n\r\n.mdc-select {\r\n    width: 100%;\r\n}\r\n\r\n.mdc-tab {\r\n    max-width: 280px;\r\n}\r\n\r\n.mdc-tab-bar {\r\n    margin-top: 12px;\r\n    border-bottom: 1px solid rgba(0, 0, 0, 0.12);\r\n}\r\n\r\n.mdc-tab__text-label {\r\n    user-select: none;\r\n}\r\n.mdc-tab.mdc-tab--active .mdc-tab__ripple {\r\n    background-color: var(--mdc-ripple-color, var(--mdc-theme-primary, #6200ee));\r\n    opacity: 0.1;\r\n}\r\n\r\n\r\n\r\n/* jqueryui datepicker material styling */\r\n\r\n\r\n.ui-datepicker {\r\n    z-index: 3 !important;\r\n    font-family: \"Roboto\";\r\n}\r\n\r\n.ui-datepicker {\r\n    padding: 0;\r\n    border: none;  \r\n    width: 325px;\r\n    box-shadow: 4px 4px 10px 2px rgba(0, 0, 0, 0.24);\r\n    margin-left: -16px;\r\n    margin-top: 6px;\r\n    font-size: 14px;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-title {\r\n    font-size: 17px;\r\n}\r\n\r\n.ui-datepicker-trigger {\r\n    position: absolute;\r\n    right: 12px;\r\n    top: 50%;\r\n    opacity: 0;\r\n    margin-top: -10px;\r\n    cursor: pointer;\r\n}\r\n\r\n.ui-corner-all {\r\n  border-radius: 0;\r\n}\r\n\r\n.ui-widget-header {\r\n  border: 0;\r\n}\r\n\r\n.ui-datepicker-header {\r\n  text-align: center;\r\n  background: white;\r\n  padding-bottom: 15px;\r\n  font-weight: 300;\r\n}\r\n.ui-datepicker-header .ui-datepicker-prev,\r\n.ui-datepicker-header .ui-datepicker-next,\r\n.ui-datepicker-header .ui-datepicker-title {\r\n  border: none;\r\n  outline: none;\r\n  margin: 5px;\r\n}\r\n\r\n.ui-datepicker-prev.ui-state-hover,\r\n.ui-datepicker-next.ui-state-hover {\r\n  border: none;\r\n  outline: none;\r\n  background: #b4cbe5;\r\n}\r\n\r\n.ui-datepicker .ui-state-default {\r\n  background: none;\r\n  border: none;\r\n  text-align: center;\r\n  height: 33px;\r\n  width: 33px;\r\n  line-height: 30px;\r\n}\r\n.ui-datepicker .ui-state-highlight {\r\n  color: var(--mdc-theme-primary);\r\n}\r\n.ui-datepicker .ui-state-active {\r\n  color: white;\r\n}\r\n\r\n\r\n\r\n.ui-datepicker-calendar thead th {\r\n    color: #999999;\r\n    font-weight: 200;\r\n}\r\n\r\n.ui-datepicker-buttonpane {\r\n  border: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-state-default {\r\n  background: white;\r\n  border: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-datepicker-close,\r\n.ui-datepicker-buttonpane .ui-datepicker-current {\r\n  background: white;\r\n  color: #284B72;\r\n  text-transform: uppercase;\r\n  border: none;\r\n  opacity: 1;\r\n  font-weight: 200;\r\n  outline: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-datepicker-close:hover,\r\n.ui-datepicker-buttonpane .ui-datepicker-current:hover {\r\n  background: #b4cbe5;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev {\r\n    text-decoration: none;\r\n    height: auto !important;\r\n    width: auto !important;\r\n\tleft: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-next {\r\n    text-decoration: none;\r\n    height: auto !important;\r\n    width: auto !important;\r\n\tright: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev .ui-icon, .ui-datepicker .ui-datepicker-next .ui-icon {\r\n    display: none !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev::after {\r\n    font-family: FontAwesome;\r\n\tcontent: \"\\f053\";\r\n\tdisplay: block;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-next::after {\r\n    font-family: FontAwesome;\r\n\tcontent: \"\\f054\";\r\n\tdisplay: block;\r\n}\r\n\r\n\r\n.ui-datepicker .ui-datepicker-prev.ui-state-hover, .ui-datepicker .ui-datepicker-next.ui-state-hover {\r\n    background: none;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev-hover {\r\n\tleft: 8px !important;\r\n    top: 8px !important;\r\n}\r\n.ui-datepicker .ui-datepicker-next-hover {\r\n\tright: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n\r\n\r\n\r\n\r\nbutton.ui-state-hover {\r\n    background: unset !important;\r\n    background-color: var(--mdc-theme-primary-hover) !important;\r\n    border: unset !important;\r\n    color: white !important;\r\n    box-shadow: 0px 3px 1px -2px rgb(0 0 0 / 20%), 0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%) !important;\r\n}\r\n\r\n\r\n\r\n/* jquery ui datepicker month year picker */\r\n.ui-datepicker .ui-datepicker-select-month td ,\r\n.ui-datepicker .ui-datepicker-select-year td {\r\n\theight: 33px;\r\n}\r\n.ui-datepicker .ui-datepicker-select-month td span,\r\n.ui-datepicker .ui-datepicker-select-month td a,\r\n.ui-datepicker .ui-datepicker-select-year td span,\r\n.ui-datepicker .ui-datepicker-select-year td a  {\r\n\ttext-align: center;\r\n}\r\n.ui-datepicker .ui-datepicker-select-year td.outoffocus {\r\n\topacity: 0.5;\r\n}\r\n\r\n.ui-datepicker-select-month .ui-state-default, .ui-datepicker-select-year .ui-state-default {\r\n    margin: auto;\r\n}\r\n\r\n.ui-datepicker td {\r\n    font-size: 14px !important;\r\n}\r\n\r\n.ui-datepicker .ui-state-default, .ui-datepicker .ui-state-active {\r\n    position: relative;\r\n    border: 0 !important;\r\n    background: none !important;\r\n}\r\n\r\n.ui-datepicker .ui-state-active::after {\r\n    position: absolute;\r\n    display: block;\r\n    content: '';\r\n    background-color:var(--mdc-theme-primary);\r\n    border-radius: 50%;\r\n    width: 34px;\r\n    height: 34px;\r\n    z-index: -1;\r\n    top: 0;\r\n    left: calc(50% - 16px)\r\n}\r\n\r\n\r\n.ui-datepicker .ui-state-default:not(.ui-state-active).ui-state-hover::after {\r\n    position: absolute;\r\n    display: block;\r\n    content: '';\r\n    background-color: rgba(0,0,0,0.05);\r\n    border-radius: 50%;\r\n    width: 34px;\r\n    height: 34px;\r\n    z-index: -1;\r\n    top: 0;\r\n    left: calc(50% - 16px)\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header {\r\n    display: flex;\r\n    align-items: center;\r\n    padding: 4px 24px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header .ui-datepicker-title {\r\n    flex: 1;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header-time-switch {\r\n    flex: 1;\r\n    line-height: 100%;\r\n    height: 100%;\r\n    align-self: center;\r\n}\r\n\r\n\r\n.timepicker{\r\n    display:block;\r\n    user-select:none;\r\n    margin:0 auto;\r\n    width:100%;\r\n    height:100%;\r\n    font-size:14px;\r\n}\r\n.timepicker__title{background-image:-webkit-linear-gradient(top,#fff 0,#f2f2f2 100%);position:relative;background:#f2f2f2;margin:0 auto;border-bottom:1px solid #e5e5e5;padding:12px 11px 10px 15px;color:#4C4C4C;font-size:inherit}\r\n.timepicker__close{-webkit-transform:translateY(-25%);-moz-transform:translateY(-25%);-ms-transform:translateY(-25%);-o-transform:translateY(-25%);transform:translateY(-25%);position:absolute;top:25%;right:10px;color:#34495e;cursor:pointer}\r\n.timepicker__close:before{content:'\\00d7'}\r\n.timepicker__controls{padding:10px 0;line-height:normal;margin:0}\r\n.timepicker__controls__control,.timepicker__controls__control--separator{vertical-align:middle;display:inline-block;font-size:inherit;margin:0 auto;width:35px;letter-spacing:1.3px}\r\n.timepicker__controls__control-down,.timepicker__controls__control-up{color:#34495e;position:relative;display:block;margin:3px auto;font-size:18px;cursor:pointer}\r\n.timepicker__controls__control-up:before{content:'\\f0d8'}\r\n.timepicker__controls__control-down:after{content:'\\f0d7'}\r\n.timepicker__controls__control--separator{width:5px}\r\n.text-center,.timepicker__controls,.timepicker__controls__control,.timepicker__controls__control--separator,.timepicker__controls__control-down,.timepicker__controls__control-up,.timepicker__title{text-align:center}\r\n.hover-state{color:#3498db}\r\n \r\n.fontello-after:after,.fontello:before,.timepicker__controls__control-down:after,.timepicker__controls__control-up:before{font-family:FontAwesome;font-style:normal;font-weight:400;display:inline-block;text-decoration:inherit;width:1em;margin-right:.2em;text-align:center;font-variant:normal;text-transform:none;line-height:1em;margin-left:.2em;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}  \r\n.clearable-picker{position:relative;display:inline-block}  \r\n.clearable-picker>.hastimepicker{padding-right:1em}  \r\n.clearable-picker>.hastimepicker::-ms-clear{display:none}  \r\n.clearable-picker>[data-clear-picker]{position:absolute;top:50%;right:0;transform:translateY(-50%);font-weight:700;font-size:.8em;padding:0 .3em .2em;line-height:1;color:#bababa;cursor:pointer}  \r\n.clearable-picker>[data-clear-picker]:hover{color:#a1a1a1}\r\n.timepicker__controls__control span {\r\n    outline: none;\r\n}", "",{"version":3,"sources":["webpack://./css/equal.css"],"names":[],"mappings":"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","sourcesContent":[":root {\r\n    /* colored buttons */\r\n    --mdc-theme-primary: #3f51b5;\r\n    --mdc-theme-primary-hover: #4f61c5;\r\n\r\n    --mdc-theme-primary-selected: #f5f5ff;\r\n    --mdc-theme-primary-outline: #b1b1dc;\r\n\r\n    /* checkbox background */\r\n    --mdc-theme-secondary: #3f51b5;\r\n    /* menus */\r\n    --mdc-typography-subtitle1-font-size: 14px;\r\n    /* table headers */\r\n    --mdc-typography-subtitle2-font-weight: 600;\r\n\r\n\r\n    --mdc-layout-grid-margin-desktop: 12px;\r\n    --mdc-layout-grid-gutter-desktop: 24px;\r\n    --mdc-layout-grid-margin-tablet: 12px;\r\n    --mdc-layout-grid-gutter-tablet: 18px;\r\n    --mdc-layout-grid-margin-phone: 12px;\r\n    --mdc-layout-grid-gutter-phone: 16px;\r\n\r\n}\r\n    \r\nbody, html {\r\n    margin: 0;\r\n    padding: 0;\r\n    height:100%;\r\n}\r\n\r\n#sb-root {\r\n    display: flex;\r\n    height: 100%;\r\n    flex-flow: column nowrap;\r\n}\r\n\r\n#sb-menu .sb-menu-button {\r\n    display: inline-block;\r\n}\r\n\r\n#sb-container {\r\n    width: 100%;\r\n    height: 100%;\r\n    overflow: hidden;\r\n    flex: 1 1 100%;\r\n    box-sizing: border-box;\r\n}\r\n\r\n.sb-container-header {\r\n    padding-left: 12px;\r\n    height: 48px;\r\n    border-bottom: solid 1px lightgrey;\r\n}\r\n\r\n.sb-container-header h3 {\r\n    line-height: 48px;\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n.sb-container-header a {\r\n    cursor: pointer;\r\n    text-decoration: none;\r\n    color: var(--mdc-theme-primary);\r\n}\r\n\r\n.sb-container-header a:hover {\r\n\r\n}\r\n\r\n.sb-context {\r\n    /* container height minus the header */\r\n    height: calc(100% - 48px);\r\n}\r\n\r\n.sb-view { \r\n    position: relative;\r\n    height: 100%;\r\n}\r\n\r\n.sb-view-layout-list {\r\n    /* height must be decremented by height of other elements from parent (header and footer) */\r\n    height: calc(100% - 112px);\r\n}\r\n\r\n.sb-view-layout-form {\r\n    /* height must be decremented by height of other elements from parent (header and footer) */\r\n    height: calc(100% - 56px);\r\n    padding-bottom: 10px;\r\n}\r\n\r\n.sb-view-list-inline-actions-button {\r\n    transform: scale(0.7);\r\n}\r\n\r\n.sb-layout {\r\n    position: relative;\r\n    height: 100%;\r\n}\r\n\r\n\r\n\r\n\r\n.sb-view-layout-list table th {\r\n    cursor: pointer;\r\n    user-select: none;\r\n    position: sticky;\r\n    top: 0;\r\n    z-index: 3;\r\n}\r\n\r\n.sb-view-layout-list table th.sortable.hover {\r\n    background-color: #f0f0f0;\r\n}\r\n\r\n.sb-view-layout-list table th.sorted {\r\n    color: black;\r\n}\r\n\r\n.sb-view-layout-list table th.asc::after, .sb-view-layout-list table th.desc::after {\r\n    position: absolute;\r\n    margin-left: 6px;\r\n    font-family: FontAwesome;\r\n    opacity: 0.3;\r\n}\r\n\r\n.sb-view-layout-list table th.asc::after {\r\n    content: \"\\f0d7\";\r\n}\r\n\r\n.sb-view-layout-list table th.desc::after {\r\n    content: \"\\f0d8\";\r\n}\r\n\r\n.sb-view-layout-list table tr {\r\n    cursor: pointer;\r\n}\r\n\r\n.sb-view-header-list {\r\n    position: relative;\r\n    max-height: 112px;\r\n    /*\r\n    height: 112px;\r\n    line-height: 112px;\r\n    */\r\n}\r\n\r\n.sb-view-header-list-actions {\r\n    margin-left: 12px;\r\n    max-height: 56px;\r\n}\r\n\r\n.sb-view-header-list-actions-set {\r\n    display: flex;\r\n    margin-top: 10px;\r\n}\r\n\r\n.sb-view-header-list-actions button {\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-header-list-actions-selected {\r\n    position: relative;\r\n    display: flex;\r\n}\r\n\r\n/* todo: improve this (add a custom class)*/\r\n.sb-view-header-list-actions-selected .mdc-button__label {\r\n    padding-right: 10px;\r\n}\r\n\r\n.sb-view-header-list-actions-selected .mdc-button__label::after {\r\n    content: \"\\f0d7\";\r\n}\r\n\r\n.sb-view-header-list-actions-selected .mdc-button__label::after {\r\n    position: absolute;\r\n    margin-left: 6px;\r\n    font-family: FontAwesome;\r\n    opacity: 0.5;\r\n}\r\n\r\n.sb-view-header-list-navigation {\r\n    height: 56px;\r\n    line-height: 56px;\r\n    display: flex;\r\n}\r\n\r\n.sb-view-header-list-filters {\r\n    margin-top: 4px;\r\n}\r\n\r\n.sb-view-header-list-filters .sb-view-header-list-filters-menu {\r\n    min-width: 250px;\r\n}\r\n\r\n.sb-view-header-list-filters-set {\r\n    margin-top: 4px;\r\n}\r\n\r\n\r\n.sb-view-header-list-fields_toggle {\r\n    /* flex-grow: 1; */\r\n    margin-top: 4px;\r\n    margin-right: 10px;\r\n    text-align: right;\r\n}\r\n\r\n\r\n.sb-view-header-list-fields_toggle .sb-view-header-list-fields_toggle-menu {\r\n    min-width: 250px !important;\r\n    max-width: 250px !important;\r\n}\r\n\r\n.sb-view-header-list-pagination {\r\n    flex: 1;\r\n    flex-grow: 1;\r\n\r\n}\r\n\r\n.sb-view-header-list-pagination-limit_select {\r\n    margin-left: 12px;\r\n}\r\n\r\n.sb-view-header-list-pagination .pagination-navigation {\r\n    user-select: none; \r\n}\r\n\r\n\r\n.sb-widget-mode-view input {\r\n    color: black !important;\r\n    user-select: none;\r\n}\r\n\r\n.sb-widget-mode-view .mdc-text-field .mdc-floating-label,\r\n.sb-widget-mode-view.mdc-select .mdc-floating-label {\r\n    color: rgba(0,0,0,0.5) !important;\r\n    user-select: none;\r\n    font-size: 16px;\r\n    font-weight: 400;\r\n}\r\n\r\n.sb-widget-mode-edit .mdc-text-field .mdc-floating-label, \r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label {\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n}\r\n\r\n.sb-widget-mode-view .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above, \r\n.sb-widget-mode-view.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n}\r\n\r\n.sb-widget-mode-edit .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above, \r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.6) !important;\r\n    font-weight: 400;\r\n}\r\n\r\n\r\n.sb-view-header-form {\r\n    height: 56px;\r\n    line-height: 56px;\r\n}\r\n\r\n.sb-view-header-form-actions {\r\n    display: flex;\r\n    flex-direction: row;\r\n    align-items: center;\r\n    margin-left: 12px;\r\n    max-width: 250px;\r\n    height: 56px;\r\n    line-height: 56px;\r\n}\r\n\r\n.sb-view-header-form-actions button {\r\n    flex: 0 1 auto;\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-form-group {\r\n    padding: 12px;\r\n}\r\n\r\n.sb-view-form-row:not(:first-child) {\r\n    padding-top: 24px;\r\n}\r\n\r\n.sb-view-form-group-title {\r\n    font-size: 20px;\r\n    margin-bottom: 12px;\r\n}\r\n\r\n.sb-view-form-sections-tabbar {\r\n    margin-bottom: 12px;\r\n}\r\n\r\n.sb-view-layout-list .mdc-line-ripple::before, .sb-view-layout-list .mdc-line-ripple::after {\r\n  border: none !important;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget label.mdc-text-field .mdc-floating-label {\r\n    display: none !important;\r\n}\r\n.sb-view-layout-list .sb-widget-mode-view label.mdc-text-field::before {\r\n    display: none !important;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget-mode-view input {\r\n    height: 100%;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget-mode-edit button.mdc-icon-button {\r\n    padding: 0 0 0 5px;\r\n    height: auto;\r\n    width: auto;\r\n    position: absolute;\r\n}\r\n\r\n.sb-view-layout-form-input-button {\r\n    width: 25px;\r\n    height: 30px;\r\n    position: absolute;\r\n    right: 12px;\r\n    top: calc(50% - 15px);\r\n}\r\n\r\n.sb-view-layout-form-input-decoy {\r\n    position: absolute;\r\n    left: 16px;\r\n    bottom: 10px;\r\n    z-index: -1;\r\n    opacity: 0;\r\n}\r\n\r\n\r\n.sb-widget {\r\n    position: relative;\r\n}\r\n\r\n.sb-ui-checkbox {\r\n    position: relative;\r\n}\r\n\r\n.sb-ui-menu.mdc-menu-surface--is-open-below {\r\n    margin-top: 48px;\r\n}\r\n\r\n.sb-ui-menu.mdc-menu-surface--open {\r\n    margin-bottom: 48px;\r\n}\r\n\r\n\r\n/* Material Components customizations */\r\n\r\n/* fix for ripple not working on icon-button */\r\nbutton.mdc-icon-button:hover, button.mdc-icon-button:active, button.mdc-icon-button:focus {\r\n    border-radius: 50%;\r\n    background-color: rgba(0,0,0,0.10);\r\n}\r\n\r\n/* fix tooltip not hiding */\r\n.mdc-tooltip--hide {\r\n    opacity: 0;\r\n}\r\n\r\n/* Special SB widgets customizations */\r\n\r\n/* support for title strings */\r\n.sb-widget.title {\r\n    margin-top: -14px; \r\n}\r\n\r\n.sb-widget.title span.mdc-floating-label--float-above {\r\n    transform: translateY(-166%) !important;\r\n}\r\n.sb-widget.title label.mdc-text-field {\r\n  height: 70px;\r\n}\r\n.sb-widget.title input.mdc-text-field__input {\r\n  font-size: 30px;\r\n  margin-top: auto; \r\n  height: 60px;\r\n}\r\n\r\n.sb-view-layout-form {\r\n    overflow-y: scroll;\r\n}\r\n\r\n\r\n.sb-view-layout-form::-webkit-scrollbar {\r\n    width: 6px;\r\n    overflow-y: scroll;\r\n    background: #EAEAEA;\r\n\r\n}\r\n\r\n.sb-view-layout-form::-webkit-scrollbar-thumb {\r\n    background: var(--mdc-theme-primary, #6200ee);\r\n    border-radius: 10px;\r\n}\r\n\r\n\r\n.sb-view-layout-form .sb-widget.sb-widget-type-boolean {\r\n    height: 56px;\r\n    vertical-align: middle;\r\n    display: table-cell;\r\n    padding-left: 16px;\r\n}\r\n\r\n\r\n/* adapt inputs for inline editing */\r\n.sb-widget-cell .mdc-text-field {\r\n  height: 100%;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field {\r\n    padding-left: 0;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-text-field {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    padding-left: 5px;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-select__anchor {\r\n    padding-left: 5px;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field-helper-line {\r\n  display: none;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--filled::before {\r\n  display: none;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--filled:not(.mdc-text-field--disabled) {\r\n    background-color: inherit;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-text-field--filled:not(.mdc-text-field--disabled) {\r\n    background-color: white;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--invalid .mdc-text-field__input {\r\n    color: var(--mdc-theme-error, #b00020);\r\n}\r\n\r\n.sb-widget-cell .mdc-select {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    margin-top: -14px;\r\n}\r\n\r\n.sb-widget-cell .mdc-select {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    margin-top: -14px;\r\n}\r\n\r\n\r\n.sb-widget-cell .mdc-select__anchor {\r\n    height: 100%;\r\n}\r\n\r\n/* make mini-fab flat (mini save buttons) */ \r\n.sb-view-layout-list-row-checkbox .mdc-fab--mini {\r\n    box-shadow: none !important;\r\n    margin: 2px 0;\r\n}\r\n\r\n.mdc-data-table {\r\n    height: 100%;\r\n}\r\n\r\n\r\n.mdc-data-table__table-container::-webkit-scrollbar {\r\n    width: 6px;\r\n    overflow-y: scroll;\r\n    background: #EAEAEA;\r\n\r\n}\r\n\r\n.mdc-data-table__table-container::-webkit-scrollbar-thumb {\r\n    background: var(--mdc-theme-primary, #6200ee);\r\n    border-radius: 10px;\r\n}\r\n\r\n\r\n\r\n/* custom style for special button with icon only */\r\n.mdc-button-icon {\r\n\tmin-width: 36px;\r\n}\r\n\r\n.mdc-button-icon  .mdc-button__ripple {\r\n\tborder-radius: 50%;\r\n    width: 36px;\r\n}\r\n\r\n\r\n\r\n.mdc-menu {\r\n    min-width: var(--mdc-menu-min-width, 200px) !important;\r\n    max-width: calc(100vw - 32px) !important;\r\n}\r\n\r\n.mdc-text-field:not(.mdc-text-field--disabled) .mdc-text-field__icon {\r\n    color: rgba(0,0,0,.54);\r\n    background-color: white;\r\n}\r\n\r\n.mdc-text-field--focused .mdc-text-field-helper-line .mdc-text-field-helper-text {\r\n    opacity: 1 !important;\r\n}\r\n\r\n.mdc-text-field--with-trailing-icon .mdc-text-field__icon {\r\n    left: initial;\r\n    right: 12px;\r\n}\r\n\r\n.mdc-text-field--with-leading-icon .mdc-text-field__icon, .mdc-text-field--with-trailing-icon .mdc-text-field__icon {\r\n    position: absolute;\r\n    top: 50%;\r\n    transform: translateY(-50%);\r\n    cursor: pointer;\r\n}\r\n\r\n.mdc-text-field--textarea {\r\n    outline: solid 1px rgba(0, 0,0,0.1);\r\n}\r\n\r\n.sb-view-layout.sb-view-layout-form .mdc-text-field--filled:not(.mdc-text-field--disabled), .mdc-select--filled:not(.mdc-select--disabled) .mdc-select__anchor {\r\n    background: transparent !important;\r\n}\r\n\r\n.mdc-layout-grid__cell {\r\n    position: relative;\r\n}\r\n\r\n.mdc-text-field-helper-line {\r\n    position: absolute;\r\n    width: 100%;\r\n    max-width: 100%;\r\n    padding-left: 0 !important;    \r\n    padding-right: 0 !important;    \r\n}\r\n\r\n.mdc-data-table__header-cell--checkbox {\r\n    width: 44px;\r\n}\r\n.mdc-data-table__row--selected {\r\n    background-color: var(--mdc-theme-primary-selected) !important;\r\n}\r\n.mdc-list-item .mdc-checkbox {\r\n    margin-left: -11px;\r\n}\r\n\r\n.mdc-list-item__graphic {\r\n    color: rgba(0,0,0,.54) !important;\r\n    margin-right: 12px;\r\n}\r\n\r\n.mdc-list-item__text {\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;    \r\n}\r\n\r\n.mdc-chip .mdc-chip__icon {\r\n    font-size: 22px;\r\n    height: 22px;\r\n}\r\n\r\n.mdc-list-item {\r\n    height: 44px;\r\n    align-items: center !important;\r\n}\r\n\r\n.mdc-data-table__cell {\r\n    height: 44px;\r\n}\r\n\r\n\r\n.mdc-data-table__pagination {\r\n    border-top: 0;\r\n}\r\n\r\n.mdc-text-field {\r\n    width: 100%;\r\n}\r\n\r\n.mdc-floating-label {\r\n    font-size: 16px !important;\r\n    /* color: rgba(0, 0, 0, 0.8) !important;*/\r\n}\r\n\r\n\r\n.mdc-text-field-helper-line .mdc-text-field-helper-text {\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n\r\n.mdc-text-field--invalid:not(.mdc-text-field--disabled) .mdc-text-field-helper-line .mdc-text-field-helper-text--validation-msg {\r\n    color: var(--mdc-theme-error, #b00020) !important;\r\n}\r\n\r\n.mdc-text-field--focused:not(.mdc-text-field--disabled) .mdc-floating-label {\r\n    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;\r\n}\r\n\r\n.mdc-select--focused:not(.mdc-text-field--disabled) .mdc-floating-label {\r\n    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;\r\n}\r\n\r\n.mdc-select {\r\n    width: 100%;\r\n}\r\n\r\n.mdc-tab {\r\n    max-width: 280px;\r\n}\r\n\r\n.mdc-tab-bar {\r\n    margin-top: 12px;\r\n    border-bottom: 1px solid rgba(0, 0, 0, 0.12);\r\n}\r\n\r\n.mdc-tab__text-label {\r\n    user-select: none;\r\n}\r\n.mdc-tab.mdc-tab--active .mdc-tab__ripple {\r\n    background-color: var(--mdc-ripple-color, var(--mdc-theme-primary, #6200ee));\r\n    opacity: 0.1;\r\n}\r\n\r\n\r\n\r\n/* jqueryui datepicker material styling */\r\n\r\n\r\n.ui-datepicker {\r\n    z-index: 3 !important;\r\n    font-family: \"Roboto\";\r\n}\r\n\r\n.ui-datepicker {\r\n    padding: 0;\r\n    border: none;  \r\n    width: 325px;\r\n    box-shadow: 4px 4px 10px 2px rgba(0, 0, 0, 0.24);\r\n    margin-left: -16px;\r\n    margin-top: 6px;\r\n    font-size: 14px;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-title {\r\n    font-size: 17px;\r\n}\r\n\r\n.ui-datepicker-trigger {\r\n    position: absolute;\r\n    right: 12px;\r\n    top: 50%;\r\n    opacity: 0;\r\n    margin-top: -10px;\r\n    cursor: pointer;\r\n}\r\n\r\n.ui-corner-all {\r\n  border-radius: 0;\r\n}\r\n\r\n.ui-widget-header {\r\n  border: 0;\r\n}\r\n\r\n.ui-datepicker-header {\r\n  text-align: center;\r\n  background: white;\r\n  padding-bottom: 15px;\r\n  font-weight: 300;\r\n}\r\n.ui-datepicker-header .ui-datepicker-prev,\r\n.ui-datepicker-header .ui-datepicker-next,\r\n.ui-datepicker-header .ui-datepicker-title {\r\n  border: none;\r\n  outline: none;\r\n  margin: 5px;\r\n}\r\n\r\n.ui-datepicker-prev.ui-state-hover,\r\n.ui-datepicker-next.ui-state-hover {\r\n  border: none;\r\n  outline: none;\r\n  background: #b4cbe5;\r\n}\r\n\r\n.ui-datepicker .ui-state-default {\r\n  background: none;\r\n  border: none;\r\n  text-align: center;\r\n  height: 33px;\r\n  width: 33px;\r\n  line-height: 30px;\r\n}\r\n.ui-datepicker .ui-state-highlight {\r\n  color: var(--mdc-theme-primary);\r\n}\r\n.ui-datepicker .ui-state-active {\r\n  color: white;\r\n}\r\n\r\n\r\n\r\n.ui-datepicker-calendar thead th {\r\n    color: #999999;\r\n    font-weight: 200;\r\n}\r\n\r\n.ui-datepicker-buttonpane {\r\n  border: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-state-default {\r\n  background: white;\r\n  border: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-datepicker-close,\r\n.ui-datepicker-buttonpane .ui-datepicker-current {\r\n  background: white;\r\n  color: #284B72;\r\n  text-transform: uppercase;\r\n  border: none;\r\n  opacity: 1;\r\n  font-weight: 200;\r\n  outline: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-datepicker-close:hover,\r\n.ui-datepicker-buttonpane .ui-datepicker-current:hover {\r\n  background: #b4cbe5;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev {\r\n    text-decoration: none;\r\n    height: auto !important;\r\n    width: auto !important;\r\n\tleft: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-next {\r\n    text-decoration: none;\r\n    height: auto !important;\r\n    width: auto !important;\r\n\tright: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev .ui-icon, .ui-datepicker .ui-datepicker-next .ui-icon {\r\n    display: none !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev::after {\r\n    font-family: FontAwesome;\r\n\tcontent: \"\\f053\";\r\n\tdisplay: block;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-next::after {\r\n    font-family: FontAwesome;\r\n\tcontent: \"\\f054\";\r\n\tdisplay: block;\r\n}\r\n\r\n\r\n.ui-datepicker .ui-datepicker-prev.ui-state-hover, .ui-datepicker .ui-datepicker-next.ui-state-hover {\r\n    background: none;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev-hover {\r\n\tleft: 8px !important;\r\n    top: 8px !important;\r\n}\r\n.ui-datepicker .ui-datepicker-next-hover {\r\n\tright: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n\r\n\r\n\r\n\r\nbutton.ui-state-hover {\r\n    background: unset !important;\r\n    background-color: var(--mdc-theme-primary-hover) !important;\r\n    border: unset !important;\r\n    color: white !important;\r\n    box-shadow: 0px 3px 1px -2px rgb(0 0 0 / 20%), 0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%) !important;\r\n}\r\n\r\n\r\n\r\n/* jquery ui datepicker month year picker */\r\n.ui-datepicker .ui-datepicker-select-month td ,\r\n.ui-datepicker .ui-datepicker-select-year td {\r\n\theight: 33px;\r\n}\r\n.ui-datepicker .ui-datepicker-select-month td span,\r\n.ui-datepicker .ui-datepicker-select-month td a,\r\n.ui-datepicker .ui-datepicker-select-year td span,\r\n.ui-datepicker .ui-datepicker-select-year td a  {\r\n\ttext-align: center;\r\n}\r\n.ui-datepicker .ui-datepicker-select-year td.outoffocus {\r\n\topacity: 0.5;\r\n}\r\n\r\n.ui-datepicker-select-month .ui-state-default, .ui-datepicker-select-year .ui-state-default {\r\n    margin: auto;\r\n}\r\n\r\n.ui-datepicker td {\r\n    font-size: 14px !important;\r\n}\r\n\r\n.ui-datepicker .ui-state-default, .ui-datepicker .ui-state-active {\r\n    position: relative;\r\n    border: 0 !important;\r\n    background: none !important;\r\n}\r\n\r\n.ui-datepicker .ui-state-active::after {\r\n    position: absolute;\r\n    display: block;\r\n    content: '';\r\n    background-color:var(--mdc-theme-primary);\r\n    border-radius: 50%;\r\n    width: 34px;\r\n    height: 34px;\r\n    z-index: -1;\r\n    top: 0;\r\n    left: calc(50% - 16px)\r\n}\r\n\r\n\r\n.ui-datepicker .ui-state-default:not(.ui-state-active).ui-state-hover::after {\r\n    position: absolute;\r\n    display: block;\r\n    content: '';\r\n    background-color: rgba(0,0,0,0.05);\r\n    border-radius: 50%;\r\n    width: 34px;\r\n    height: 34px;\r\n    z-index: -1;\r\n    top: 0;\r\n    left: calc(50% - 16px)\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header {\r\n    display: flex;\r\n    align-items: center;\r\n    padding: 4px 24px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header .ui-datepicker-title {\r\n    flex: 1;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header-time-switch {\r\n    flex: 1;\r\n    line-height: 100%;\r\n    height: 100%;\r\n    align-self: center;\r\n}\r\n\r\n\r\n.timepicker{\r\n    display:block;\r\n    user-select:none;\r\n    margin:0 auto;\r\n    width:100%;\r\n    height:100%;\r\n    font-size:14px;\r\n}\r\n.timepicker__title{background-image:-webkit-linear-gradient(top,#fff 0,#f2f2f2 100%);position:relative;background:#f2f2f2;margin:0 auto;border-bottom:1px solid #e5e5e5;padding:12px 11px 10px 15px;color:#4C4C4C;font-size:inherit}\r\n.timepicker__close{-webkit-transform:translateY(-25%);-moz-transform:translateY(-25%);-ms-transform:translateY(-25%);-o-transform:translateY(-25%);transform:translateY(-25%);position:absolute;top:25%;right:10px;color:#34495e;cursor:pointer}\r\n.timepicker__close:before{content:'\\00d7'}\r\n.timepicker__controls{padding:10px 0;line-height:normal;margin:0}\r\n.timepicker__controls__control,.timepicker__controls__control--separator{vertical-align:middle;display:inline-block;font-size:inherit;margin:0 auto;width:35px;letter-spacing:1.3px}\r\n.timepicker__controls__control-down,.timepicker__controls__control-up{color:#34495e;position:relative;display:block;margin:3px auto;font-size:18px;cursor:pointer}\r\n.timepicker__controls__control-up:before{content:'\\f0d8'}\r\n.timepicker__controls__control-down:after{content:'\\f0d7'}\r\n.timepicker__controls__control--separator{width:5px}\r\n.text-center,.timepicker__controls,.timepicker__controls__control,.timepicker__controls__control--separator,.timepicker__controls__control-down,.timepicker__controls__control-up,.timepicker__title{text-align:center}\r\n.hover-state{color:#3498db}\r\n \r\n.fontello-after:after,.fontello:before,.timepicker__controls__control-down:after,.timepicker__controls__control-up:before{font-family:FontAwesome;font-style:normal;font-weight:400;display:inline-block;text-decoration:inherit;width:1em;margin-right:.2em;text-align:center;font-variant:normal;text-transform:none;line-height:1em;margin-left:.2em;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}  \r\n.clearable-picker{position:relative;display:inline-block}  \r\n.clearable-picker>.hastimepicker{padding-right:1em}  \r\n.clearable-picker>.hastimepicker::-ms-clear{display:none}  \r\n.clearable-picker>[data-clear-picker]{position:absolute;top:50%;right:0;transform:translateY(-50%);font-weight:700;font-size:.8em;padding:0 .3em .2em;line-height:1;color:#bababa;cursor:pointer}  \r\n.clearable-picker>[data-clear-picker]:hover{color:#a1a1a1}\r\n.timepicker__controls__control span {\r\n    outline: none;\r\n}"],"sourceRoot":""}]);
+___CSS_LOADER_EXPORT___.push([module.id, ":root {\r\n    /* colored buttons */\r\n    --mdc-theme-primary: #3f51b5;\r\n    --mdc-theme-primary-hover: #4f61c5;\r\n\r\n    --mdc-theme-primary-selected: #f5f5ff;\r\n    --mdc-theme-primary-outline: #b1b1dc;\r\n\r\n    /* checkbox background */\r\n    --mdc-theme-secondary: #3f51b5;\r\n    /* menus */\r\n    --mdc-typography-subtitle1-font-size: 14px;\r\n    /* table headers */\r\n    --mdc-typography-subtitle2-font-weight: 600;\r\n\r\n\r\n    --mdc-layout-grid-margin-desktop: 12px;\r\n    --mdc-layout-grid-gutter-desktop: 24px;\r\n    --mdc-layout-grid-margin-tablet: 12px;\r\n    --mdc-layout-grid-gutter-tablet: 18px;\r\n    --mdc-layout-grid-margin-phone: 12px;\r\n    --mdc-layout-grid-gutter-phone: 16px;\r\n\r\n}\r\n    \r\nbody, html {\r\n    margin: 0;\r\n    padding: 0;\r\n    height:100%;\r\n}\r\n\r\n#sb-root {\r\n    display: flex;\r\n    height: 100%;\r\n    flex-flow: column nowrap;\r\n}\r\n\r\n#sb-menu .sb-menu-button {\r\n    display: inline-block;\r\n}\r\n\r\n#sb-container, .sb-container {\r\n    width: 100%;\r\n    height: 100%;\r\n    overflow: hidden;\r\n    flex: 1 1 100%;\r\n    box-sizing: border-box;\r\n}\r\n\r\n.sb-container-header {\r\n    padding-left: 12px;\r\n    height: 48px;\r\n    border-bottom: solid 1px lightgrey;\r\n}\r\n\r\n.sb-container-header h3 {\r\n    line-height: 48px;\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n.sb-container-header a {\r\n    cursor: pointer;\r\n    text-decoration: none;\r\n    color: var(--mdc-theme-primary);\r\n}\r\n\r\n.sb-container-header a:hover {\r\n\r\n}\r\n\r\n.sb-context {\r\n    /* container height minus the header */\r\n    height: calc(100% - 48px);\r\n}\r\n\r\n.sb-view { \r\n    position: relative;\r\n    height: 100%;\r\n}\r\n\r\n.sb-view-layout-list {\r\n    /* height must be decremented by height of other elements from parent (header and footer) */\r\n    height: calc(100% - 112px);\r\n}\r\n\r\n.sb-view-layout-form {\r\n    /* height must be decremented by height of other elements from parent (header and footer) */\r\n    height: calc(100% - 56px);\r\n    padding-bottom: 10px;\r\n}\r\n\r\n.sb-view-list-inline-actions-button {\r\n    transform: scale(0.7);\r\n}\r\n\r\n.sb-layout {\r\n    position: relative;\r\n    height: 100%;\r\n}\r\n\r\n\r\n\r\n\r\n.sb-view-layout-list table th {\r\n    cursor: pointer;\r\n    user-select: none;\r\n    position: sticky;\r\n    top: 0;\r\n    z-index: 3;\r\n}\r\n\r\n.sb-view-layout-list table th.sortable.hover {\r\n    background-color: #f0f0f0;\r\n}\r\n\r\n.sb-view-layout-list table th.sorted {\r\n    color: black;\r\n}\r\n\r\n.sb-view-layout-list table th.asc::after, .sb-view-layout-list table th.desc::after {\r\n    position: absolute;\r\n    margin-left: 6px;\r\n    font-family: FontAwesome;\r\n    opacity: 0.3;\r\n}\r\n\r\n.sb-view-layout-list table th.asc::after {\r\n    content: \"\\f0d7\";\r\n}\r\n\r\n.sb-view-layout-list table th.desc::after {\r\n    content: \"\\f0d8\";\r\n}\r\n\r\n.sb-view-layout-list table tr {\r\n    cursor: pointer;\r\n}\r\n\r\n.sb-view-header-list {\r\n    position: relative;\r\n    max-height: 112px;\r\n    /*\r\n    height: 112px;\r\n    line-height: 112px;\r\n    */\r\n}\r\n\r\n.sb-view-header-list-actions {\r\n    margin-left: 12px;\r\n    max-height: 56px;\r\n}\r\n\r\n.sb-view-header-list-actions-set {\r\n    display: flex;\r\n    margin-top: 10px;\r\n}\r\n\r\n.sb-view-header-list-actions button {\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-header-list-actions-selected {\r\n    position: relative;\r\n    display: flex;\r\n}\r\n\r\n/* todo: improve this (add a custom class)*/\r\n.sb-view-header-list-actions-selected .mdc-button__label {\r\n    padding-right: 10px;\r\n}\r\n\r\n.sb-view-header-list-actions-selected .mdc-button__label::after {\r\n    content: \"\\f0d7\";\r\n}\r\n\r\n.sb-view-header-list-actions-selected .mdc-button__label::after {\r\n    position: absolute;\r\n    margin-left: 6px;\r\n    font-family: FontAwesome;\r\n    opacity: 0.5;\r\n}\r\n\r\n.sb-view-header-list-navigation {\r\n    height: 56px;\r\n    line-height: 56px;\r\n    display: flex;\r\n}\r\n\r\n.sb-view-header-list-filters {\r\n    margin-top: 4px;\r\n}\r\n\r\n.sb-view-header-list-filters .sb-view-header-list-filters-menu {\r\n    min-width: 250px;\r\n}\r\n\r\n.sb-view-header-list-filters-set {\r\n    margin-top: 4px;\r\n}\r\n\r\n\r\n.sb-view-header-list-fields_toggle {\r\n    /* flex-grow: 1; */\r\n    margin-top: 4px;\r\n    margin-right: 10px;\r\n    text-align: right;\r\n}\r\n\r\n\r\n.sb-view-header-list-fields_toggle .sb-view-header-list-fields_toggle-menu {\r\n    min-width: 250px !important;\r\n    max-width: 250px !important;\r\n}\r\n\r\n.sb-view-header-list-pagination {\r\n    flex: 1;\r\n    flex-grow: 1;\r\n\r\n}\r\n\r\n.sb-view-header-list-pagination-limit_select {\r\n    margin-left: 12px;\r\n}\r\n\r\n.sb-view-header-list-pagination .pagination-navigation {\r\n    user-select: none; \r\n}\r\n\r\n\r\n.sb-widget-mode-view input {\r\n    color: black !important;\r\n    user-select: none;\r\n}\r\n\r\n.sb-widget-mode-view .mdc-text-field .mdc-floating-label,\r\n.sb-widget-mode-view.mdc-select .mdc-floating-label {\r\n    color: rgba(0,0,0,0.5) !important;\r\n    user-select: none;\r\n    font-size: 16px;\r\n    font-weight: 400;\r\n}\r\n\r\n.sb-widget-mode-edit .mdc-text-field .mdc-floating-label, \r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label {\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n}\r\n\r\n.sb-widget-mode-view .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above, \r\n.sb-widget-mode-view.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n}\r\n\r\n.sb-widget-mode-edit .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above, \r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.6) !important;\r\n    font-weight: 400;\r\n}\r\n\r\n\r\n.sb-view-header-form {\r\n    height: 56px;\r\n    line-height: 56px;\r\n}\r\n\r\n.sb-view-header-form-actions {\r\n    display: flex;\r\n    flex-direction: row;\r\n    align-items: center;\r\n    margin-left: 12px;\r\n    max-width: 250px;\r\n    height: 56px;\r\n    line-height: 56px;\r\n}\r\n\r\n.sb-view-header-form-actions button {\r\n    flex: 0 1 auto;\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-form-group {\r\n    padding: 12px;\r\n}\r\n\r\n.sb-view-form-row:not(:first-child) {\r\n    padding-top: 24px;\r\n}\r\n\r\n.sb-view-form-group-title {\r\n    font-size: 20px;\r\n    margin-bottom: 12px;\r\n}\r\n\r\n.sb-view-form-sections-tabbar {\r\n    margin-bottom: 12px;\r\n}\r\n\r\n.sb-view-layout-list .mdc-line-ripple::before, .sb-view-layout-list .mdc-line-ripple::after {\r\n  border: none !important;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget label.mdc-text-field .mdc-floating-label {\r\n    display: none !important;\r\n}\r\n.sb-view-layout-list .sb-widget-mode-view label.mdc-text-field::before {\r\n    display: none !important;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget-mode-view input {\r\n    height: 100%;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget-mode-edit button.mdc-icon-button {\r\n    padding: 0 0 0 5px;\r\n    height: auto;\r\n    width: auto;\r\n    position: absolute;\r\n}\r\n\r\n.sb-view-layout-form-input-button {\r\n    width: 25px;\r\n    height: 30px;\r\n    position: absolute;\r\n    right: 12px;\r\n    top: calc(50% - 15px);\r\n}\r\n\r\n.sb-view-layout-form-input-decoy {\r\n    position: absolute;\r\n    left: 16px;\r\n    bottom: 10px;\r\n    z-index: -1;\r\n    opacity: 0;\r\n}\r\n\r\n\r\n.sb-widget {\r\n    position: relative;\r\n}\r\n\r\n.sb-ui-checkbox {\r\n    position: relative;\r\n}\r\n\r\n.sb-ui-menu.mdc-menu-surface--is-open-below {\r\n    margin-top: 48px;\r\n}\r\n\r\n.sb-ui-menu.mdc-menu-surface--open {\r\n    margin-bottom: 48px;\r\n}\r\n\r\n\r\n/* Material Components customizations */\r\n\r\n/* fix for ripple not working on icon-button */\r\nbutton.mdc-icon-button:hover, button.mdc-icon-button:active, button.mdc-icon-button:focus {\r\n    border-radius: 50%;\r\n    background-color: rgba(0,0,0,0.10);\r\n}\r\n\r\n/* fix tooltip not hiding */\r\n.mdc-tooltip--hide {\r\n    opacity: 0;\r\n}\r\n\r\n/* Special SB widgets customizations */\r\n\r\n/* support for title strings */\r\n.sb-widget.title {\r\n    margin-top: -14px; \r\n}\r\n\r\n.sb-widget.title span.mdc-floating-label--float-above {\r\n    transform: translateY(-166%) !important;\r\n}\r\n.sb-widget.title label.mdc-text-field {\r\n  height: 70px;\r\n}\r\n.sb-widget.title input.mdc-text-field__input {\r\n  font-size: 30px;\r\n  margin-top: auto; \r\n  height: 60px;\r\n}\r\n\r\n.sb-view-layout-form {\r\n    overflow-y: scroll;\r\n}\r\n\r\n\r\n.sb-view-layout-form::-webkit-scrollbar {\r\n    width: 6px;\r\n    overflow-y: scroll;\r\n    background: #EAEAEA;\r\n\r\n}\r\n\r\n.sb-view-layout-form::-webkit-scrollbar-thumb {\r\n    background: var(--mdc-theme-primary, #6200ee);\r\n    border-radius: 10px;\r\n}\r\n\r\n\r\n.sb-view-layout-form .sb-widget.sb-widget-type-boolean {\r\n    height: 56px;\r\n    vertical-align: middle;\r\n    display: table-cell;\r\n    padding-left: 16px;\r\n}\r\n\r\n\r\n/* adapt inputs for inline editing */\r\n.sb-widget-cell .mdc-text-field {\r\n  height: 100%;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field {\r\n    padding-left: 0;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-text-field {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    padding-left: 5px;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-select__anchor {\r\n    padding-left: 5px;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field-helper-line {\r\n  display: none;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--filled::before {\r\n  display: none;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--filled:not(.mdc-text-field--disabled) {\r\n    background-color: inherit;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-text-field--filled:not(.mdc-text-field--disabled) {\r\n    background-color: white;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--invalid .mdc-text-field__input {\r\n    color: var(--mdc-theme-error, #b00020);\r\n}\r\n\r\n.sb-widget-cell .mdc-select {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    margin-top: -14px;\r\n}\r\n\r\n.sb-widget-cell .mdc-select {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    margin-top: -14px;\r\n}\r\n\r\n\r\n.sb-widget-cell .mdc-select__anchor {\r\n    height: 100%;\r\n}\r\n\r\n/* make mini-fab flat (mini save buttons) */ \r\n.sb-view-layout-list-row-checkbox .mdc-fab--mini {\r\n    box-shadow: none !important;\r\n    margin: 2px 0;\r\n}\r\n\r\n.mdc-data-table {\r\n    height: 100%;\r\n}\r\n\r\n\r\n.mdc-data-table__table-container::-webkit-scrollbar {\r\n    width: 6px;\r\n    overflow-y: scroll;\r\n    background: #EAEAEA;\r\n\r\n}\r\n\r\n.mdc-data-table__table-container::-webkit-scrollbar-thumb {\r\n    background: var(--mdc-theme-primary, #6200ee);\r\n    border-radius: 10px;\r\n}\r\n\r\n\r\n\r\n/* custom style for special button with icon only */\r\n.mdc-button-icon {\r\n\tmin-width: 36px;\r\n}\r\n\r\n.mdc-button-icon  .mdc-button__ripple {\r\n\tborder-radius: 50%;\r\n    width: 36px;\r\n}\r\n\r\n\r\n\r\n.mdc-menu {\r\n    min-width: var(--mdc-menu-min-width, 200px) !important;\r\n    max-width: calc(100vw - 32px) !important;\r\n}\r\n\r\n.mdc-text-field:not(.mdc-text-field--disabled) .mdc-text-field__icon {\r\n    color: rgba(0,0,0,.54);\r\n    background-color: white;\r\n}\r\n\r\n.mdc-text-field--focused .mdc-text-field-helper-line .mdc-text-field-helper-text {\r\n    opacity: 1 !important;\r\n}\r\n\r\n.mdc-text-field--with-trailing-icon .mdc-text-field__icon {\r\n    left: initial;\r\n    right: 12px;\r\n}\r\n\r\n.mdc-text-field--with-leading-icon .mdc-text-field__icon, .mdc-text-field--with-trailing-icon .mdc-text-field__icon {\r\n    position: absolute;\r\n    top: 50%;\r\n    transform: translateY(-50%);\r\n    cursor: pointer;\r\n}\r\n\r\n.mdc-text-field--textarea {\r\n    outline: solid 1px rgba(0, 0,0,0.1);\r\n}\r\n\r\n.sb-view-layout.sb-view-layout-form .mdc-text-field--filled:not(.mdc-text-field--disabled), .mdc-select--filled:not(.mdc-select--disabled) .mdc-select__anchor {\r\n    background: transparent !important;\r\n}\r\n\r\n.mdc-layout-grid__cell {\r\n    position: relative;\r\n}\r\n\r\n.mdc-text-field-helper-line {\r\n    position: absolute;\r\n    width: 100%;\r\n    max-width: 100%;\r\n    padding-left: 0 !important;    \r\n    padding-right: 0 !important;    \r\n}\r\n\r\n.mdc-data-table__header-cell--checkbox {\r\n    width: 44px;\r\n}\r\n.mdc-data-table__row--selected {\r\n    background-color: var(--mdc-theme-primary-selected) !important;\r\n}\r\n.mdc-list-item .mdc-checkbox {\r\n    margin-left: -11px;\r\n}\r\n\r\n.mdc-list-item__graphic {\r\n    color: rgba(0,0,0,.54) !important;\r\n    margin-right: 12px;\r\n}\r\n\r\n.mdc-list-item__text {\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;    \r\n}\r\n\r\n.mdc-chip .mdc-chip__icon {\r\n    font-size: 22px;\r\n    height: 22px;\r\n}\r\n\r\n.mdc-list-item {\r\n    height: 44px;\r\n    align-items: center !important;\r\n}\r\n\r\n.mdc-data-table__cell {\r\n    height: 44px;\r\n}\r\n\r\n\r\n.mdc-data-table__pagination {\r\n    border-top: 0;\r\n}\r\n\r\n.mdc-text-field {\r\n    width: 100%;\r\n}\r\n\r\n.mdc-floating-label {\r\n    font-size: 16px !important;\r\n    /* color: rgba(0, 0, 0, 0.8) !important;*/\r\n}\r\n\r\n\r\n.mdc-text-field-helper-line .mdc-text-field-helper-text {\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n\r\n.mdc-text-field--invalid:not(.mdc-text-field--disabled) .mdc-text-field-helper-line .mdc-text-field-helper-text--validation-msg {\r\n    color: var(--mdc-theme-error, #b00020) !important;\r\n}\r\n\r\n.mdc-text-field--focused:not(.mdc-text-field--disabled) .mdc-floating-label {\r\n    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;\r\n}\r\n\r\n.mdc-select--focused:not(.mdc-text-field--disabled) .mdc-floating-label {\r\n    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;\r\n}\r\n\r\n.mdc-select {\r\n    width: 100%;\r\n}\r\n\r\n.mdc-tab {\r\n    max-width: 280px;\r\n}\r\n\r\n.mdc-tab-bar {\r\n    margin-top: 12px;\r\n    border-bottom: 1px solid rgba(0, 0, 0, 0.12);\r\n}\r\n\r\n.mdc-tab__text-label {\r\n    user-select: none;\r\n}\r\n.mdc-tab.mdc-tab--active .mdc-tab__ripple {\r\n    background-color: var(--mdc-ripple-color, var(--mdc-theme-primary, #6200ee));\r\n    opacity: 0.1;\r\n}\r\n\r\n\r\n\r\n/* jqueryui datepicker material styling */\r\n\r\n\r\n.ui-datepicker {\r\n    z-index: 3 !important;\r\n    font-family: \"Roboto\";\r\n}\r\n\r\n.ui-datepicker {\r\n    padding: 0;\r\n    border: none;  \r\n    width: 325px;\r\n    box-shadow: 4px 4px 10px 2px rgba(0, 0, 0, 0.24);\r\n    margin-left: -16px;\r\n    margin-top: 6px;\r\n    font-size: 14px;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-title {\r\n    font-size: 17px;\r\n}\r\n\r\n.ui-datepicker-trigger {\r\n    position: absolute;\r\n    right: 12px;\r\n    top: 50%;\r\n    opacity: 0;\r\n    margin-top: -10px;\r\n    cursor: pointer;\r\n}\r\n\r\n.ui-corner-all {\r\n  border-radius: 0;\r\n}\r\n\r\n.ui-widget-header {\r\n  border: 0;\r\n}\r\n\r\n.ui-datepicker-header {\r\n  text-align: center;\r\n  background: white;\r\n  padding-bottom: 15px;\r\n  font-weight: 300;\r\n}\r\n.ui-datepicker-header .ui-datepicker-prev,\r\n.ui-datepicker-header .ui-datepicker-next,\r\n.ui-datepicker-header .ui-datepicker-title {\r\n  border: none;\r\n  outline: none;\r\n  margin: 5px;\r\n}\r\n\r\n.ui-datepicker-prev.ui-state-hover,\r\n.ui-datepicker-next.ui-state-hover {\r\n  border: none;\r\n  outline: none;\r\n  background: #b4cbe5;\r\n}\r\n\r\n.ui-datepicker .ui-state-default {\r\n  background: none;\r\n  border: none;\r\n  text-align: center;\r\n  height: 33px;\r\n  width: 33px;\r\n  line-height: 30px;\r\n}\r\n.ui-datepicker .ui-state-highlight {\r\n  color: var(--mdc-theme-primary);\r\n}\r\n.ui-datepicker .ui-state-active {\r\n  color: white;\r\n}\r\n\r\n\r\n\r\n.ui-datepicker-calendar thead th {\r\n    color: #999999;\r\n    font-weight: 200;\r\n}\r\n\r\n.ui-datepicker-buttonpane {\r\n  border: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-state-default {\r\n  background: white;\r\n  border: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-datepicker-close,\r\n.ui-datepicker-buttonpane .ui-datepicker-current {\r\n  background: white;\r\n  color: #284B72;\r\n  text-transform: uppercase;\r\n  border: none;\r\n  opacity: 1;\r\n  font-weight: 200;\r\n  outline: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-datepicker-close:hover,\r\n.ui-datepicker-buttonpane .ui-datepicker-current:hover {\r\n  background: #b4cbe5;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev {\r\n    text-decoration: none;\r\n    height: auto !important;\r\n    width: auto !important;\r\n\tleft: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-next {\r\n    text-decoration: none;\r\n    height: auto !important;\r\n    width: auto !important;\r\n\tright: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev .ui-icon, .ui-datepicker .ui-datepicker-next .ui-icon {\r\n    display: none !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev::after {\r\n    font-family: FontAwesome;\r\n\tcontent: \"\\f053\";\r\n\tdisplay: block;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-next::after {\r\n    font-family: FontAwesome;\r\n\tcontent: \"\\f054\";\r\n\tdisplay: block;\r\n}\r\n\r\n\r\n.ui-datepicker .ui-datepicker-prev.ui-state-hover, .ui-datepicker .ui-datepicker-next.ui-state-hover {\r\n    background: none;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev-hover {\r\n\tleft: 8px !important;\r\n    top: 8px !important;\r\n}\r\n.ui-datepicker .ui-datepicker-next-hover {\r\n\tright: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n\r\n\r\n\r\n\r\nbutton.ui-state-hover {\r\n    background: unset !important;\r\n    background-color: var(--mdc-theme-primary-hover) !important;\r\n    border: unset !important;\r\n    color: white !important;\r\n    box-shadow: 0px 3px 1px -2px rgb(0 0 0 / 20%), 0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%) !important;\r\n}\r\n\r\n\r\n\r\n/* jquery ui datepicker month year picker */\r\n.ui-datepicker .ui-datepicker-select-month td ,\r\n.ui-datepicker .ui-datepicker-select-year td {\r\n\theight: 33px;\r\n}\r\n.ui-datepicker .ui-datepicker-select-month td span,\r\n.ui-datepicker .ui-datepicker-select-month td a,\r\n.ui-datepicker .ui-datepicker-select-year td span,\r\n.ui-datepicker .ui-datepicker-select-year td a  {\r\n\ttext-align: center;\r\n}\r\n.ui-datepicker .ui-datepicker-select-year td.outoffocus {\r\n\topacity: 0.5;\r\n}\r\n\r\n.ui-datepicker-select-month .ui-state-default, .ui-datepicker-select-year .ui-state-default {\r\n    margin: auto;\r\n}\r\n\r\n.ui-datepicker td {\r\n    font-size: 14px !important;\r\n}\r\n\r\n.ui-datepicker .ui-state-default, .ui-datepicker .ui-state-active {\r\n    position: relative;\r\n    border: 0 !important;\r\n    background: none !important;\r\n}\r\n\r\n.ui-datepicker .ui-state-active::after {\r\n    position: absolute;\r\n    display: block;\r\n    content: '';\r\n    background-color:var(--mdc-theme-primary);\r\n    border-radius: 50%;\r\n    width: 34px;\r\n    height: 34px;\r\n    z-index: -1;\r\n    top: 0;\r\n    left: calc(50% - 16px)\r\n}\r\n\r\n\r\n.ui-datepicker .ui-state-default:not(.ui-state-active).ui-state-hover::after {\r\n    position: absolute;\r\n    display: block;\r\n    content: '';\r\n    background-color: rgba(0,0,0,0.05);\r\n    border-radius: 50%;\r\n    width: 34px;\r\n    height: 34px;\r\n    z-index: -1;\r\n    top: 0;\r\n    left: calc(50% - 16px)\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header {\r\n    display: flex;\r\n    align-items: center;\r\n    padding: 4px 24px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header .ui-datepicker-title {\r\n    flex: 1;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header-time-switch {\r\n    flex: 1;\r\n    line-height: 100%;\r\n    height: 100%;\r\n    align-self: center;\r\n}\r\n\r\n\r\n.timepicker{\r\n    display:block;\r\n    user-select:none;\r\n    margin:0 auto;\r\n    width:100%;\r\n    height:100%;\r\n    font-size:14px;\r\n}\r\n.timepicker__title{background-image:-webkit-linear-gradient(top,#fff 0,#f2f2f2 100%);position:relative;background:#f2f2f2;margin:0 auto;border-bottom:1px solid #e5e5e5;padding:12px 11px 10px 15px;color:#4C4C4C;font-size:inherit}\r\n.timepicker__close{-webkit-transform:translateY(-25%);-moz-transform:translateY(-25%);-ms-transform:translateY(-25%);-o-transform:translateY(-25%);transform:translateY(-25%);position:absolute;top:25%;right:10px;color:#34495e;cursor:pointer}\r\n.timepicker__close:before{content:'\\00d7'}\r\n.timepicker__controls{padding:10px 0;line-height:normal;margin:0}\r\n.timepicker__controls__control,.timepicker__controls__control--separator{vertical-align:middle;display:inline-block;font-size:inherit;margin:0 auto;width:35px;letter-spacing:1.3px}\r\n.timepicker__controls__control-down,.timepicker__controls__control-up{color:#34495e;position:relative;display:block;margin:3px auto;font-size:18px;cursor:pointer}\r\n.timepicker__controls__control-up:before{content:'\\f0d8'}\r\n.timepicker__controls__control-down:after{content:'\\f0d7'}\r\n.timepicker__controls__control--separator{width:5px}\r\n.text-center,.timepicker__controls,.timepicker__controls__control,.timepicker__controls__control--separator,.timepicker__controls__control-down,.timepicker__controls__control-up,.timepicker__title{text-align:center}\r\n.hover-state{color:#3498db}\r\n \r\n.fontello-after:after,.fontello:before,.timepicker__controls__control-down:after,.timepicker__controls__control-up:before{font-family:FontAwesome;font-style:normal;font-weight:400;display:inline-block;text-decoration:inherit;width:1em;margin-right:.2em;text-align:center;font-variant:normal;text-transform:none;line-height:1em;margin-left:.2em;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}  \r\n.clearable-picker{position:relative;display:inline-block}  \r\n.clearable-picker>.hastimepicker{padding-right:1em}  \r\n.clearable-picker>.hastimepicker::-ms-clear{display:none}  \r\n.clearable-picker>[data-clear-picker]{position:absolute;top:50%;right:0;transform:translateY(-50%);font-weight:700;font-size:.8em;padding:0 .3em .2em;line-height:1;color:#bababa;cursor:pointer}  \r\n.clearable-picker>[data-clear-picker]:hover{color:#a1a1a1}\r\n.timepicker__controls__control span {\r\n    outline: none;\r\n}", "",{"version":3,"sources":["webpack://./css/equal.css"],"names":[],"mappings":"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","sourcesContent":[":root {\r\n    /* colored buttons */\r\n    --mdc-theme-primary: #3f51b5;\r\n    --mdc-theme-primary-hover: #4f61c5;\r\n\r\n    --mdc-theme-primary-selected: #f5f5ff;\r\n    --mdc-theme-primary-outline: #b1b1dc;\r\n\r\n    /* checkbox background */\r\n    --mdc-theme-secondary: #3f51b5;\r\n    /* menus */\r\n    --mdc-typography-subtitle1-font-size: 14px;\r\n    /* table headers */\r\n    --mdc-typography-subtitle2-font-weight: 600;\r\n\r\n\r\n    --mdc-layout-grid-margin-desktop: 12px;\r\n    --mdc-layout-grid-gutter-desktop: 24px;\r\n    --mdc-layout-grid-margin-tablet: 12px;\r\n    --mdc-layout-grid-gutter-tablet: 18px;\r\n    --mdc-layout-grid-margin-phone: 12px;\r\n    --mdc-layout-grid-gutter-phone: 16px;\r\n\r\n}\r\n    \r\nbody, html {\r\n    margin: 0;\r\n    padding: 0;\r\n    height:100%;\r\n}\r\n\r\n#sb-root {\r\n    display: flex;\r\n    height: 100%;\r\n    flex-flow: column nowrap;\r\n}\r\n\r\n#sb-menu .sb-menu-button {\r\n    display: inline-block;\r\n}\r\n\r\n#sb-container, .sb-container {\r\n    width: 100%;\r\n    height: 100%;\r\n    overflow: hidden;\r\n    flex: 1 1 100%;\r\n    box-sizing: border-box;\r\n}\r\n\r\n.sb-container-header {\r\n    padding-left: 12px;\r\n    height: 48px;\r\n    border-bottom: solid 1px lightgrey;\r\n}\r\n\r\n.sb-container-header h3 {\r\n    line-height: 48px;\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n.sb-container-header a {\r\n    cursor: pointer;\r\n    text-decoration: none;\r\n    color: var(--mdc-theme-primary);\r\n}\r\n\r\n.sb-container-header a:hover {\r\n\r\n}\r\n\r\n.sb-context {\r\n    /* container height minus the header */\r\n    height: calc(100% - 48px);\r\n}\r\n\r\n.sb-view { \r\n    position: relative;\r\n    height: 100%;\r\n}\r\n\r\n.sb-view-layout-list {\r\n    /* height must be decremented by height of other elements from parent (header and footer) */\r\n    height: calc(100% - 112px);\r\n}\r\n\r\n.sb-view-layout-form {\r\n    /* height must be decremented by height of other elements from parent (header and footer) */\r\n    height: calc(100% - 56px);\r\n    padding-bottom: 10px;\r\n}\r\n\r\n.sb-view-list-inline-actions-button {\r\n    transform: scale(0.7);\r\n}\r\n\r\n.sb-layout {\r\n    position: relative;\r\n    height: 100%;\r\n}\r\n\r\n\r\n\r\n\r\n.sb-view-layout-list table th {\r\n    cursor: pointer;\r\n    user-select: none;\r\n    position: sticky;\r\n    top: 0;\r\n    z-index: 3;\r\n}\r\n\r\n.sb-view-layout-list table th.sortable.hover {\r\n    background-color: #f0f0f0;\r\n}\r\n\r\n.sb-view-layout-list table th.sorted {\r\n    color: black;\r\n}\r\n\r\n.sb-view-layout-list table th.asc::after, .sb-view-layout-list table th.desc::after {\r\n    position: absolute;\r\n    margin-left: 6px;\r\n    font-family: FontAwesome;\r\n    opacity: 0.3;\r\n}\r\n\r\n.sb-view-layout-list table th.asc::after {\r\n    content: \"\\f0d7\";\r\n}\r\n\r\n.sb-view-layout-list table th.desc::after {\r\n    content: \"\\f0d8\";\r\n}\r\n\r\n.sb-view-layout-list table tr {\r\n    cursor: pointer;\r\n}\r\n\r\n.sb-view-header-list {\r\n    position: relative;\r\n    max-height: 112px;\r\n    /*\r\n    height: 112px;\r\n    line-height: 112px;\r\n    */\r\n}\r\n\r\n.sb-view-header-list-actions {\r\n    margin-left: 12px;\r\n    max-height: 56px;\r\n}\r\n\r\n.sb-view-header-list-actions-set {\r\n    display: flex;\r\n    margin-top: 10px;\r\n}\r\n\r\n.sb-view-header-list-actions button {\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-header-list-actions-selected {\r\n    position: relative;\r\n    display: flex;\r\n}\r\n\r\n/* todo: improve this (add a custom class)*/\r\n.sb-view-header-list-actions-selected .mdc-button__label {\r\n    padding-right: 10px;\r\n}\r\n\r\n.sb-view-header-list-actions-selected .mdc-button__label::after {\r\n    content: \"\\f0d7\";\r\n}\r\n\r\n.sb-view-header-list-actions-selected .mdc-button__label::after {\r\n    position: absolute;\r\n    margin-left: 6px;\r\n    font-family: FontAwesome;\r\n    opacity: 0.5;\r\n}\r\n\r\n.sb-view-header-list-navigation {\r\n    height: 56px;\r\n    line-height: 56px;\r\n    display: flex;\r\n}\r\n\r\n.sb-view-header-list-filters {\r\n    margin-top: 4px;\r\n}\r\n\r\n.sb-view-header-list-filters .sb-view-header-list-filters-menu {\r\n    min-width: 250px;\r\n}\r\n\r\n.sb-view-header-list-filters-set {\r\n    margin-top: 4px;\r\n}\r\n\r\n\r\n.sb-view-header-list-fields_toggle {\r\n    /* flex-grow: 1; */\r\n    margin-top: 4px;\r\n    margin-right: 10px;\r\n    text-align: right;\r\n}\r\n\r\n\r\n.sb-view-header-list-fields_toggle .sb-view-header-list-fields_toggle-menu {\r\n    min-width: 250px !important;\r\n    max-width: 250px !important;\r\n}\r\n\r\n.sb-view-header-list-pagination {\r\n    flex: 1;\r\n    flex-grow: 1;\r\n\r\n}\r\n\r\n.sb-view-header-list-pagination-limit_select {\r\n    margin-left: 12px;\r\n}\r\n\r\n.sb-view-header-list-pagination .pagination-navigation {\r\n    user-select: none; \r\n}\r\n\r\n\r\n.sb-widget-mode-view input {\r\n    color: black !important;\r\n    user-select: none;\r\n}\r\n\r\n.sb-widget-mode-view .mdc-text-field .mdc-floating-label,\r\n.sb-widget-mode-view.mdc-select .mdc-floating-label {\r\n    color: rgba(0,0,0,0.5) !important;\r\n    user-select: none;\r\n    font-size: 16px;\r\n    font-weight: 400;\r\n}\r\n\r\n.sb-widget-mode-edit .mdc-text-field .mdc-floating-label, \r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label {\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n}\r\n\r\n.sb-widget-mode-view .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above, \r\n.sb-widget-mode-view.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n}\r\n\r\n.sb-widget-mode-edit .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above, \r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.6) !important;\r\n    font-weight: 400;\r\n}\r\n\r\n\r\n.sb-view-header-form {\r\n    height: 56px;\r\n    line-height: 56px;\r\n}\r\n\r\n.sb-view-header-form-actions {\r\n    display: flex;\r\n    flex-direction: row;\r\n    align-items: center;\r\n    margin-left: 12px;\r\n    max-width: 250px;\r\n    height: 56px;\r\n    line-height: 56px;\r\n}\r\n\r\n.sb-view-header-form-actions button {\r\n    flex: 0 1 auto;\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-form-group {\r\n    padding: 12px;\r\n}\r\n\r\n.sb-view-form-row:not(:first-child) {\r\n    padding-top: 24px;\r\n}\r\n\r\n.sb-view-form-group-title {\r\n    font-size: 20px;\r\n    margin-bottom: 12px;\r\n}\r\n\r\n.sb-view-form-sections-tabbar {\r\n    margin-bottom: 12px;\r\n}\r\n\r\n.sb-view-layout-list .mdc-line-ripple::before, .sb-view-layout-list .mdc-line-ripple::after {\r\n  border: none !important;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget label.mdc-text-field .mdc-floating-label {\r\n    display: none !important;\r\n}\r\n.sb-view-layout-list .sb-widget-mode-view label.mdc-text-field::before {\r\n    display: none !important;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget-mode-view input {\r\n    height: 100%;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget-mode-edit button.mdc-icon-button {\r\n    padding: 0 0 0 5px;\r\n    height: auto;\r\n    width: auto;\r\n    position: absolute;\r\n}\r\n\r\n.sb-view-layout-form-input-button {\r\n    width: 25px;\r\n    height: 30px;\r\n    position: absolute;\r\n    right: 12px;\r\n    top: calc(50% - 15px);\r\n}\r\n\r\n.sb-view-layout-form-input-decoy {\r\n    position: absolute;\r\n    left: 16px;\r\n    bottom: 10px;\r\n    z-index: -1;\r\n    opacity: 0;\r\n}\r\n\r\n\r\n.sb-widget {\r\n    position: relative;\r\n}\r\n\r\n.sb-ui-checkbox {\r\n    position: relative;\r\n}\r\n\r\n.sb-ui-menu.mdc-menu-surface--is-open-below {\r\n    margin-top: 48px;\r\n}\r\n\r\n.sb-ui-menu.mdc-menu-surface--open {\r\n    margin-bottom: 48px;\r\n}\r\n\r\n\r\n/* Material Components customizations */\r\n\r\n/* fix for ripple not working on icon-button */\r\nbutton.mdc-icon-button:hover, button.mdc-icon-button:active, button.mdc-icon-button:focus {\r\n    border-radius: 50%;\r\n    background-color: rgba(0,0,0,0.10);\r\n}\r\n\r\n/* fix tooltip not hiding */\r\n.mdc-tooltip--hide {\r\n    opacity: 0;\r\n}\r\n\r\n/* Special SB widgets customizations */\r\n\r\n/* support for title strings */\r\n.sb-widget.title {\r\n    margin-top: -14px; \r\n}\r\n\r\n.sb-widget.title span.mdc-floating-label--float-above {\r\n    transform: translateY(-166%) !important;\r\n}\r\n.sb-widget.title label.mdc-text-field {\r\n  height: 70px;\r\n}\r\n.sb-widget.title input.mdc-text-field__input {\r\n  font-size: 30px;\r\n  margin-top: auto; \r\n  height: 60px;\r\n}\r\n\r\n.sb-view-layout-form {\r\n    overflow-y: scroll;\r\n}\r\n\r\n\r\n.sb-view-layout-form::-webkit-scrollbar {\r\n    width: 6px;\r\n    overflow-y: scroll;\r\n    background: #EAEAEA;\r\n\r\n}\r\n\r\n.sb-view-layout-form::-webkit-scrollbar-thumb {\r\n    background: var(--mdc-theme-primary, #6200ee);\r\n    border-radius: 10px;\r\n}\r\n\r\n\r\n.sb-view-layout-form .sb-widget.sb-widget-type-boolean {\r\n    height: 56px;\r\n    vertical-align: middle;\r\n    display: table-cell;\r\n    padding-left: 16px;\r\n}\r\n\r\n\r\n/* adapt inputs for inline editing */\r\n.sb-widget-cell .mdc-text-field {\r\n  height: 100%;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field {\r\n    padding-left: 0;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-text-field {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    padding-left: 5px;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-select__anchor {\r\n    padding-left: 5px;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field-helper-line {\r\n  display: none;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--filled::before {\r\n  display: none;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--filled:not(.mdc-text-field--disabled) {\r\n    background-color: inherit;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-text-field--filled:not(.mdc-text-field--disabled) {\r\n    background-color: white;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--invalid .mdc-text-field__input {\r\n    color: var(--mdc-theme-error, #b00020);\r\n}\r\n\r\n.sb-widget-cell .mdc-select {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    margin-top: -14px;\r\n}\r\n\r\n.sb-widget-cell .mdc-select {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    margin-top: -14px;\r\n}\r\n\r\n\r\n.sb-widget-cell .mdc-select__anchor {\r\n    height: 100%;\r\n}\r\n\r\n/* make mini-fab flat (mini save buttons) */ \r\n.sb-view-layout-list-row-checkbox .mdc-fab--mini {\r\n    box-shadow: none !important;\r\n    margin: 2px 0;\r\n}\r\n\r\n.mdc-data-table {\r\n    height: 100%;\r\n}\r\n\r\n\r\n.mdc-data-table__table-container::-webkit-scrollbar {\r\n    width: 6px;\r\n    overflow-y: scroll;\r\n    background: #EAEAEA;\r\n\r\n}\r\n\r\n.mdc-data-table__table-container::-webkit-scrollbar-thumb {\r\n    background: var(--mdc-theme-primary, #6200ee);\r\n    border-radius: 10px;\r\n}\r\n\r\n\r\n\r\n/* custom style for special button with icon only */\r\n.mdc-button-icon {\r\n\tmin-width: 36px;\r\n}\r\n\r\n.mdc-button-icon  .mdc-button__ripple {\r\n\tborder-radius: 50%;\r\n    width: 36px;\r\n}\r\n\r\n\r\n\r\n.mdc-menu {\r\n    min-width: var(--mdc-menu-min-width, 200px) !important;\r\n    max-width: calc(100vw - 32px) !important;\r\n}\r\n\r\n.mdc-text-field:not(.mdc-text-field--disabled) .mdc-text-field__icon {\r\n    color: rgba(0,0,0,.54);\r\n    background-color: white;\r\n}\r\n\r\n.mdc-text-field--focused .mdc-text-field-helper-line .mdc-text-field-helper-text {\r\n    opacity: 1 !important;\r\n}\r\n\r\n.mdc-text-field--with-trailing-icon .mdc-text-field__icon {\r\n    left: initial;\r\n    right: 12px;\r\n}\r\n\r\n.mdc-text-field--with-leading-icon .mdc-text-field__icon, .mdc-text-field--with-trailing-icon .mdc-text-field__icon {\r\n    position: absolute;\r\n    top: 50%;\r\n    transform: translateY(-50%);\r\n    cursor: pointer;\r\n}\r\n\r\n.mdc-text-field--textarea {\r\n    outline: solid 1px rgba(0, 0,0,0.1);\r\n}\r\n\r\n.sb-view-layout.sb-view-layout-form .mdc-text-field--filled:not(.mdc-text-field--disabled), .mdc-select--filled:not(.mdc-select--disabled) .mdc-select__anchor {\r\n    background: transparent !important;\r\n}\r\n\r\n.mdc-layout-grid__cell {\r\n    position: relative;\r\n}\r\n\r\n.mdc-text-field-helper-line {\r\n    position: absolute;\r\n    width: 100%;\r\n    max-width: 100%;\r\n    padding-left: 0 !important;    \r\n    padding-right: 0 !important;    \r\n}\r\n\r\n.mdc-data-table__header-cell--checkbox {\r\n    width: 44px;\r\n}\r\n.mdc-data-table__row--selected {\r\n    background-color: var(--mdc-theme-primary-selected) !important;\r\n}\r\n.mdc-list-item .mdc-checkbox {\r\n    margin-left: -11px;\r\n}\r\n\r\n.mdc-list-item__graphic {\r\n    color: rgba(0,0,0,.54) !important;\r\n    margin-right: 12px;\r\n}\r\n\r\n.mdc-list-item__text {\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;    \r\n}\r\n\r\n.mdc-chip .mdc-chip__icon {\r\n    font-size: 22px;\r\n    height: 22px;\r\n}\r\n\r\n.mdc-list-item {\r\n    height: 44px;\r\n    align-items: center !important;\r\n}\r\n\r\n.mdc-data-table__cell {\r\n    height: 44px;\r\n}\r\n\r\n\r\n.mdc-data-table__pagination {\r\n    border-top: 0;\r\n}\r\n\r\n.mdc-text-field {\r\n    width: 100%;\r\n}\r\n\r\n.mdc-floating-label {\r\n    font-size: 16px !important;\r\n    /* color: rgba(0, 0, 0, 0.8) !important;*/\r\n}\r\n\r\n\r\n.mdc-text-field-helper-line .mdc-text-field-helper-text {\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n\r\n.mdc-text-field--invalid:not(.mdc-text-field--disabled) .mdc-text-field-helper-line .mdc-text-field-helper-text--validation-msg {\r\n    color: var(--mdc-theme-error, #b00020) !important;\r\n}\r\n\r\n.mdc-text-field--focused:not(.mdc-text-field--disabled) .mdc-floating-label {\r\n    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;\r\n}\r\n\r\n.mdc-select--focused:not(.mdc-text-field--disabled) .mdc-floating-label {\r\n    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;\r\n}\r\n\r\n.mdc-select {\r\n    width: 100%;\r\n}\r\n\r\n.mdc-tab {\r\n    max-width: 280px;\r\n}\r\n\r\n.mdc-tab-bar {\r\n    margin-top: 12px;\r\n    border-bottom: 1px solid rgba(0, 0, 0, 0.12);\r\n}\r\n\r\n.mdc-tab__text-label {\r\n    user-select: none;\r\n}\r\n.mdc-tab.mdc-tab--active .mdc-tab__ripple {\r\n    background-color: var(--mdc-ripple-color, var(--mdc-theme-primary, #6200ee));\r\n    opacity: 0.1;\r\n}\r\n\r\n\r\n\r\n/* jqueryui datepicker material styling */\r\n\r\n\r\n.ui-datepicker {\r\n    z-index: 3 !important;\r\n    font-family: \"Roboto\";\r\n}\r\n\r\n.ui-datepicker {\r\n    padding: 0;\r\n    border: none;  \r\n    width: 325px;\r\n    box-shadow: 4px 4px 10px 2px rgba(0, 0, 0, 0.24);\r\n    margin-left: -16px;\r\n    margin-top: 6px;\r\n    font-size: 14px;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-title {\r\n    font-size: 17px;\r\n}\r\n\r\n.ui-datepicker-trigger {\r\n    position: absolute;\r\n    right: 12px;\r\n    top: 50%;\r\n    opacity: 0;\r\n    margin-top: -10px;\r\n    cursor: pointer;\r\n}\r\n\r\n.ui-corner-all {\r\n  border-radius: 0;\r\n}\r\n\r\n.ui-widget-header {\r\n  border: 0;\r\n}\r\n\r\n.ui-datepicker-header {\r\n  text-align: center;\r\n  background: white;\r\n  padding-bottom: 15px;\r\n  font-weight: 300;\r\n}\r\n.ui-datepicker-header .ui-datepicker-prev,\r\n.ui-datepicker-header .ui-datepicker-next,\r\n.ui-datepicker-header .ui-datepicker-title {\r\n  border: none;\r\n  outline: none;\r\n  margin: 5px;\r\n}\r\n\r\n.ui-datepicker-prev.ui-state-hover,\r\n.ui-datepicker-next.ui-state-hover {\r\n  border: none;\r\n  outline: none;\r\n  background: #b4cbe5;\r\n}\r\n\r\n.ui-datepicker .ui-state-default {\r\n  background: none;\r\n  border: none;\r\n  text-align: center;\r\n  height: 33px;\r\n  width: 33px;\r\n  line-height: 30px;\r\n}\r\n.ui-datepicker .ui-state-highlight {\r\n  color: var(--mdc-theme-primary);\r\n}\r\n.ui-datepicker .ui-state-active {\r\n  color: white;\r\n}\r\n\r\n\r\n\r\n.ui-datepicker-calendar thead th {\r\n    color: #999999;\r\n    font-weight: 200;\r\n}\r\n\r\n.ui-datepicker-buttonpane {\r\n  border: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-state-default {\r\n  background: white;\r\n  border: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-datepicker-close,\r\n.ui-datepicker-buttonpane .ui-datepicker-current {\r\n  background: white;\r\n  color: #284B72;\r\n  text-transform: uppercase;\r\n  border: none;\r\n  opacity: 1;\r\n  font-weight: 200;\r\n  outline: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-datepicker-close:hover,\r\n.ui-datepicker-buttonpane .ui-datepicker-current:hover {\r\n  background: #b4cbe5;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev {\r\n    text-decoration: none;\r\n    height: auto !important;\r\n    width: auto !important;\r\n\tleft: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-next {\r\n    text-decoration: none;\r\n    height: auto !important;\r\n    width: auto !important;\r\n\tright: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev .ui-icon, .ui-datepicker .ui-datepicker-next .ui-icon {\r\n    display: none !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev::after {\r\n    font-family: FontAwesome;\r\n\tcontent: \"\\f053\";\r\n\tdisplay: block;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-next::after {\r\n    font-family: FontAwesome;\r\n\tcontent: \"\\f054\";\r\n\tdisplay: block;\r\n}\r\n\r\n\r\n.ui-datepicker .ui-datepicker-prev.ui-state-hover, .ui-datepicker .ui-datepicker-next.ui-state-hover {\r\n    background: none;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev-hover {\r\n\tleft: 8px !important;\r\n    top: 8px !important;\r\n}\r\n.ui-datepicker .ui-datepicker-next-hover {\r\n\tright: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n\r\n\r\n\r\n\r\nbutton.ui-state-hover {\r\n    background: unset !important;\r\n    background-color: var(--mdc-theme-primary-hover) !important;\r\n    border: unset !important;\r\n    color: white !important;\r\n    box-shadow: 0px 3px 1px -2px rgb(0 0 0 / 20%), 0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%) !important;\r\n}\r\n\r\n\r\n\r\n/* jquery ui datepicker month year picker */\r\n.ui-datepicker .ui-datepicker-select-month td ,\r\n.ui-datepicker .ui-datepicker-select-year td {\r\n\theight: 33px;\r\n}\r\n.ui-datepicker .ui-datepicker-select-month td span,\r\n.ui-datepicker .ui-datepicker-select-month td a,\r\n.ui-datepicker .ui-datepicker-select-year td span,\r\n.ui-datepicker .ui-datepicker-select-year td a  {\r\n\ttext-align: center;\r\n}\r\n.ui-datepicker .ui-datepicker-select-year td.outoffocus {\r\n\topacity: 0.5;\r\n}\r\n\r\n.ui-datepicker-select-month .ui-state-default, .ui-datepicker-select-year .ui-state-default {\r\n    margin: auto;\r\n}\r\n\r\n.ui-datepicker td {\r\n    font-size: 14px !important;\r\n}\r\n\r\n.ui-datepicker .ui-state-default, .ui-datepicker .ui-state-active {\r\n    position: relative;\r\n    border: 0 !important;\r\n    background: none !important;\r\n}\r\n\r\n.ui-datepicker .ui-state-active::after {\r\n    position: absolute;\r\n    display: block;\r\n    content: '';\r\n    background-color:var(--mdc-theme-primary);\r\n    border-radius: 50%;\r\n    width: 34px;\r\n    height: 34px;\r\n    z-index: -1;\r\n    top: 0;\r\n    left: calc(50% - 16px)\r\n}\r\n\r\n\r\n.ui-datepicker .ui-state-default:not(.ui-state-active).ui-state-hover::after {\r\n    position: absolute;\r\n    display: block;\r\n    content: '';\r\n    background-color: rgba(0,0,0,0.05);\r\n    border-radius: 50%;\r\n    width: 34px;\r\n    height: 34px;\r\n    z-index: -1;\r\n    top: 0;\r\n    left: calc(50% - 16px)\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header {\r\n    display: flex;\r\n    align-items: center;\r\n    padding: 4px 24px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header .ui-datepicker-title {\r\n    flex: 1;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header-time-switch {\r\n    flex: 1;\r\n    line-height: 100%;\r\n    height: 100%;\r\n    align-self: center;\r\n}\r\n\r\n\r\n.timepicker{\r\n    display:block;\r\n    user-select:none;\r\n    margin:0 auto;\r\n    width:100%;\r\n    height:100%;\r\n    font-size:14px;\r\n}\r\n.timepicker__title{background-image:-webkit-linear-gradient(top,#fff 0,#f2f2f2 100%);position:relative;background:#f2f2f2;margin:0 auto;border-bottom:1px solid #e5e5e5;padding:12px 11px 10px 15px;color:#4C4C4C;font-size:inherit}\r\n.timepicker__close{-webkit-transform:translateY(-25%);-moz-transform:translateY(-25%);-ms-transform:translateY(-25%);-o-transform:translateY(-25%);transform:translateY(-25%);position:absolute;top:25%;right:10px;color:#34495e;cursor:pointer}\r\n.timepicker__close:before{content:'\\00d7'}\r\n.timepicker__controls{padding:10px 0;line-height:normal;margin:0}\r\n.timepicker__controls__control,.timepicker__controls__control--separator{vertical-align:middle;display:inline-block;font-size:inherit;margin:0 auto;width:35px;letter-spacing:1.3px}\r\n.timepicker__controls__control-down,.timepicker__controls__control-up{color:#34495e;position:relative;display:block;margin:3px auto;font-size:18px;cursor:pointer}\r\n.timepicker__controls__control-up:before{content:'\\f0d8'}\r\n.timepicker__controls__control-down:after{content:'\\f0d7'}\r\n.timepicker__controls__control--separator{width:5px}\r\n.text-center,.timepicker__controls,.timepicker__controls__control,.timepicker__controls__control--separator,.timepicker__controls__control-down,.timepicker__controls__control-up,.timepicker__title{text-align:center}\r\n.hover-state{color:#3498db}\r\n \r\n.fontello-after:after,.fontello:before,.timepicker__controls__control-down:after,.timepicker__controls__control-up:before{font-family:FontAwesome;font-style:normal;font-weight:400;display:inline-block;text-decoration:inherit;width:1em;margin-right:.2em;text-align:center;font-variant:normal;text-transform:none;line-height:1em;margin-left:.2em;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}  \r\n.clearable-picker{position:relative;display:inline-block}  \r\n.clearable-picker>.hastimepicker{padding-right:1em}  \r\n.clearable-picker>.hastimepicker::-ms-clear{display:none}  \r\n.clearable-picker>[data-clear-picker]{position:absolute;top:50%;right:0;transform:translateY(-50%);font-weight:700;font-size:.8em;padding:0 .3em .2em;line-height:1;color:#bababa;cursor:pointer}  \r\n.clearable-picker>[data-clear-picker]:hover{color:#a1a1a1}\r\n.timepicker__controls__control span {\r\n    outline: none;\r\n}"],"sourceRoot":""}]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 

@@ -189,7 +189,7 @@ export class _ApiService {
         return result;
     }
     
-    public async read(entity:string, ids:[], fields:[]) {
+    public async read(entity:string, ids:any[], fields:[]) {
         let result: any;
         try {
             let params = {
@@ -212,6 +212,49 @@ export class _ApiService {
         return result;
     }
 
+    public async delete(entity:string, ids:any[], permanent:boolean=false) {
+        let result: any;
+        try {
+            let params = {
+                entity: entity,
+                ids: ids,
+                permanent: permanent
+            };
+            const response = await $.get({
+                url: environment.backend_url+'/?do=model_delete',
+                dataType: 'json',
+                data: params,
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8'
+            });
+            result = response;
+        }
+        catch(response) {
+            throw response.responseJSON;
+        }
+        return result;
+    }
+
+    public async archive(entity:string, ids:any[]) {
+        let result: any;
+        try {
+            let params = {
+                entity: entity,
+                ids: ids
+            };
+            const response = await $.get({
+                url: environment.backend_url+'/?do=model_archive',
+                dataType: 'json',
+                data: params,
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8'
+            });
+            result = response;
+        }
+        catch(response) {
+            throw response.responseJSON;
+        }
+        return result;
+    }
+
     /**
      * 
      * In practice, only one object is updated at a time (through form or list inline editing)
@@ -220,7 +263,7 @@ export class _ApiService {
      * @param ids 
      * @param fields 
      */
-    public async update(entity:string, ids:Array<number>, fields:Array<any>, force: boolean=false) {
+    public async update(entity:string, ids:any[], fields:any, force: boolean=false) {
         console.log('ApiService::update', entity, ids, fields);
         let result: any = true;
         try {
@@ -269,6 +312,7 @@ export class _ApiService {
     }
 
     /**
+     * Search for objects matching the given domain and return a list of objects holding requested fields and their values.
      * 
      * @param entity 
      * @param domain 
@@ -310,6 +354,17 @@ export class _ApiService {
         return result;
     }
 
+    /**
+     * Search for objects matching the given domain and return a list of identifiers.
+     * 
+     * @param entity 
+     * @param domain 
+     * @param order 
+     * @param sort 
+     * @param start 
+     * @param limit 
+     * @returns 
+     */
     public async search(entity:string, domain:any[], order:string, sort:string, start:number, limit:number) {
         var result = [];
         try {

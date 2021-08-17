@@ -1,10 +1,12 @@
 import Widget from "./Widget";
+import Layout from "../Layout";
+
 import { UIHelper } from '../material-lib';
 
 export default class WidgetString extends Widget {
         
-    constructor(label: string, value: any, config: {}) {
-        super('string', label, value, config);
+    constructor(layout: Layout, label: string, value: any, config: {}) {
+        super(layout, 'string', label, value, config);
     }
 
     public render():JQuery {

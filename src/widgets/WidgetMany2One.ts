@@ -2,13 +2,14 @@ import Widget from "./Widget";
 import { UIHelper } from '../material-lib';
 import { ApiService, TranslationService } from "../equal-services";
 
+import Layout from "../Layout";
 import Domain from "../Domain";
 
 export default class WidgetMany2One extends Widget {
     
 
-    constructor(label: string, value: any, config: any) {
-        super('many2one', label, value, config);
+    constructor(layout: Layout, label: string, value: any, config: any) {
+        super(layout, 'many2one', label, value, config);
     }
 
     public render():JQuery {
@@ -103,7 +104,7 @@ export default class WidgetMany2One extends Widget {
                     let object = objects.find( o => o.name == value);
                     if(object && object.hasOwnProperty('id')) {
                         let object = objects.find( o => o.name == value);
-                        $('#sb-events').trigger('_openContext', {
+                        this.getLayout().openContext({
                             entity: this.config.foreign_object, 
                             type: 'form', 
                             name: (this.config.hasOwnProperty('view_name'))?this.config.view_name:'default',
@@ -113,7 +114,7 @@ export default class WidgetMany2One extends Widget {
                 });
                 // advanced search
                 $link.on('click', async () => {
-                    $('#sb-events').trigger('_openContext', {
+                    this.getLayout().openContext({
                         entity: this.config.foreign_object, 
                         type: (this.config.hasOwnProperty('view_type'))?this.config.view_type:'list',
                         name: (this.config.hasOwnProperty('view_name'))?this.config.view_name:'default',
@@ -139,7 +140,7 @@ export default class WidgetMany2One extends Widget {
             case 'view':
             default:
                 $elem = $('<div />');
-                let $input = UIHelper.createInputView('', this.label, value);
+                let $input = UIHelper.createInputView('', this.label, value.toString());
 
                 switch(this.config.layout) {
                     case 'form':
@@ -152,7 +153,7 @@ export default class WidgetMany2One extends Widget {
                         $button.on('click', async () => {
                             console.log(this.config);
                             if(this.config.hasOwnProperty('object_id') && this.config.object_id && this.config.object_id > 0) {
-                                $('#sb-events').trigger('_openContext', {
+                                this.getLayout().openContext({
                                     entity: this.config.foreign_object,
                                     type: 'form',
                                     name: (this.config.hasOwnProperty('view_name'))?this.config.view_name:'default',

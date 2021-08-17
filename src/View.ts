@@ -4,14 +4,13 @@ import { environment } from "./environment";
 
 import { ApiService, TranslationService } from "./equal-services";
 
-import Domain from "./Domain";
-
-import Layout from "./Layout";
-import Model from "./Model";
+import { Context, Layout, Model, Domain } from "./equal-lib";
 
 
 
 export class View {
+
+    private context: Context;
 
     public entity: string;
     public type: string; 
@@ -75,7 +74,9 @@ export class View {
      * @param lang
      * @param config        extra parameters related to contexts communications
      */    
-    constructor(entity: string, type: string, name: string, domain: any[], mode: string, purpose: string, lang: string, config: any = null) {
+    constructor(context: Context, entity: string, type: string, name: string, domain: any[], mode: string, purpose: string, lang: string, config: any = null) {
+        this.context = context;
+
         this.entity = entity;
         this.type = type; 
         this.name = name;
@@ -100,7 +101,7 @@ export class View {
                     primary: false,
                     handler: (event:any) => {
                         let selected_id = this.selected_ids[0];
-                        $('#sb-events').trigger('_openContext', {entity: this.entity, type: 'form', name: this.name, domain: ['id', '=', selected_id], mode: 'edit', purpose: 'update'});
+                        this.openContext({entity: this.entity, type: 'form', name: this.name, domain: ['id', '=', selected_id], mode: 'edit', purpose: 'update'});
                     }
                 },
                 {
@@ -110,32 +111,57 @@ export class View {
                     handler: async (event:any) => {
                         try {
                             console.log(this.selected_ids);
-                            let response = await ApiService.clone(this.entity, this.selected_ids);
+                            await ApiService.clone(this.entity, this.selected_ids);
                             // refresh the model
                             await this.onchangeView();
                         }
                         catch(response) {
                             console.log('unexpected error', response);
                             this.displayErrorFeedback(response);
-                        }                        
+                        }
                     }
                 },
                 {
                     title: 'SB_ACTIONS_BUTTON_ARCHIVE',
                     icon:  'archive',
                     primary: true,
-                    handler: (event:any) => {
-                        let selected_id = this.selected_ids[0];
-// #todo
+                    handler: async (event:any) => {
+                        try {
+                            await ApiService.archive(this.entity, this.selected_ids);
+                            // refresh the model
+                            await this.onchangeView();
+                        }
+                        catch(response) {
+                            console.log('unexpected error', response);
+                            this.displayErrorFeedback(response);
+                        }
                     }
                 },
                 {
                     title: 'SB_ACTIONS_BUTTON_DELETE',
                     icon:  'delete',
                     primary: true,
-                    handler: (event:any) => {
-                        let selected_id = this.selected_ids[0];
-// #todo
+                    handler: async (event:any) => {
+                        try {
+                            // display confirmation dialog with checkbox for permanent deletion                            
+                            let $dialog = UIHelper.createDialog('confirm_deletion_dialog', TranslationService.instant('SB_ACTIONS_DELETION_CONFIRM'));
+                            $dialog.appendTo(this.$container);
+                            // inject component as dialog content
+                            this.decorateDialogDeletionConfirm($dialog);
+                    
+                            $dialog.trigger('_open')
+                            .on('_ok', async (event, result) => {
+                                let permanent = result.permanent?result.permanent:false;
+                                console.log(result, permanent);
+                                await ApiService.delete(this.entity, this.selected_ids, permanent);
+                                // refresh the model
+                                await this.onchangeView();
+                            });
+                        }
+                        catch(response) {
+                            console.log('unexpected error', response);
+                            this.displayErrorFeedback(response);
+                        }
                     }
                 }
             ]
@@ -209,7 +235,7 @@ export class View {
                 this.domain = tmpDomain.toArray();
             }
 
-            if(['list', 'kanban'].indexOf(this.type) >= 0) {
+            if(['list', 'cards'].indexOf(this.type) >= 0) {
                 this.$layoutContainer.addClass('sb-view-layout-list');
                 this.layoutListHeader();
                 this.layoutListFooter();
@@ -271,6 +297,23 @@ export class View {
     public isReady() {
         return this.is_ready_promise;
     }
+
+    public getContext() {
+        return this.context;
+    }
+
+    /**
+     * Relay Context opening requests to parent Context.
+     * 
+     * @param config 
+     */
+    public openContext(config: any) {
+        this.context.openContext(config);
+    }    
+
+    public closeContext(data: any = {}) {
+        this.context.closeContext(data);
+    }    
 
     public getConfig() {
         return this.config;
@@ -471,7 +514,7 @@ export class View {
                         .on('click', async () => {
                             try {
                                 // request a new Context for editing a new object
-                                $('#sb-events').trigger('_openContext', {entity: this.entity, type: 'form', name: this.name, domain: this.domain, mode: 'edit', purpose: 'create'});
+                                this.openContext({entity: this.entity, type: 'form', name: this.name, domain: this.domain, mode: 'edit', purpose: 'create'});
                             }
                             catch(response) {
                                 this.displayErrorFeedback(response);
@@ -486,7 +529,7 @@ export class View {
                         .on('click', async () => {
                             try {
                                 // request a new Context for editing a new object
-                                $('#sb-events').trigger('_openContext', {entity: this.entity, type: 'form', name: this.name, domain: this.domain, mode: 'edit', purpose: 'create'});
+                                this.openContext({entity: this.entity, type: 'form', name: this.name, domain: this.domain, mode: 'edit', purpose: 'create'});
                             }
                             catch(response) {
                                 this.displayErrorFeedback(response);
@@ -499,8 +542,7 @@ export class View {
                             // close context and relay selection, if any (mark the view as changed to force parent context update)
                             // #todo : user should not be able to select more thant one id
                             let objects = await this.model.get(this.selected_ids);
-                            let context:any = {selection: this.selected_ids, objects: objects};
-                            $('#sb-events').trigger('_closeContext', context);
+                            this.closeContext({selection: this.selected_ids, objects: objects});
                         })
                     );
                     break;
@@ -511,7 +553,7 @@ export class View {
                         .on('click', async () => {
                             try {
                                 // request a new Context for editing a new object
-                                $('#sb-events').trigger('_openContext', {entity: this.entity, type: 'form', name: this.name, domain: this.domain, mode: 'edit', purpose: 'create'});
+                                this.openContext({entity: this.entity, type: 'form', name: this.name, domain: this.domain, mode: 'edit', purpose: 'create'});
                             }
                             catch(response) {
                                 this.displayErrorFeedback(response);
@@ -523,7 +565,7 @@ export class View {
                         .on('click', async () => {
                             // close context and relay selection, if any (mark the view as changed to force parent context update)
                             let objects = await this.model.get(this.selected_ids);
-                            $('#sb-events').trigger('_closeContext', {selection: this.selected_ids, objects: objects});
+                            this.closeContext({selection: this.selected_ids, objects: objects});
                         })
                     );
                     break;
@@ -790,7 +832,7 @@ export class View {
                 .append( 
                     UIHelper.createButton('action-edit', TranslationService.instant('SB_ACTIONS_BUTTON_UPDATE'), 'raised')
                     .on('click', () => {
-                        $('#sb-events').trigger('_openContext', {
+                        this.openContext({
                             entity: this.entity, type: this.type, name: this.name, domain: this.domain, mode: 'edit', purpose: 'update', 
                             // for UX consistency, inject current view widget context (currently selected tabs, ...)
                             selected_sections: this.layout.getSelectedSections()
@@ -814,7 +856,7 @@ export class View {
                         }                         
                         if(!objects.length) {
                             // no change : close context
-                            $('#sb-events').trigger('_closeContext');
+                            this.closeContext();
                         }
                         else {
                             // we're in edit mode for single object (form)
@@ -823,11 +865,9 @@ export class View {
                                 // update new object (set to instance)
                                 const response = await ApiService.update(this.entity, [object['id']], this.model.export(object));
                                 // relay new object_id to parent view
-                                let context:any = {object_id: object.id};
-                                $('#sb-events').trigger('_closeContext', context);
+                                this.closeContext({object_id: object.id});
                             }
                             catch(response) {
-                                console.log('catched response', response);
                                 this.displayErrorFeedback(response, object, false);
                             }
                         }
@@ -841,7 +881,7 @@ export class View {
                             validation = confirm(TranslationService.instant('SB_ACTIONS_MESSAGE_ABANDON_CHANGE'));
                         }
                         if(!validation) return;
-                        $('#sb-events').trigger('_closeContext');
+                        this.closeContext();
                     })
                 );
                 break;
@@ -854,7 +894,7 @@ export class View {
 
     private async layoutRefresh(full: boolean = false) {
         await this.layout.refresh(full);
-        if(['list', 'kanban'].indexOf(this.type) >= 0) {
+        if(['list', 'cards'].indexOf(this.type) >= 0) {
             this.layoutListRefresh();
         }
     }
@@ -942,6 +982,18 @@ export class View {
 
     }
   
+    private decorateDialogDeletionConfirm($dialog: JQuery) {
+        let $elem = $('<div />');
+
+        let $checkbox_permanent = UIHelper.createCheckbox('action-selected-delete-permanent', TranslationService.instant('SB_ACTIONS_DELETION_DIALOG_IS_PERMANENT')).appendTo($elem); 
+
+        $dialog.find('.mdc-dialog__content').append($elem);
+
+        $dialog.on('_accept', () => {
+            $dialog.trigger('_ok', [{permanent: $checkbox_permanent.find('input').is(":checked")}]);            
+        });
+    }
+
     /**
      * Callback for requesting a Model update.
      * Requested from layout when a change occured in the widgets.
@@ -1036,14 +1088,14 @@ export class View {
             $action_set.append($action_set_selected_edit_actions);
 
 
-            $button_save.on('click', async () => {
+            $button_save.on('click', () => {
                 // handle changed objects
                 let objects = this.model.getChanges(selection);
 
                 let promises = [];
 
-                for(let object_id of selection) {                    
-                    let promise = new Promise((resolve, reject) => {
+                for(let object_id of selection) {
+                    let promise = new Promise( async (resolve, reject) => {
                         let object = objects.find( o => o.id == object_id );
                         this.$layoutContainer.find('tr[data-id="'+object_id+'"]').each( async (i: number, tr: any) => {
                             let $tr = $(tr);
@@ -1054,28 +1106,39 @@ export class View {
                             }
                             else {
                                 try {
-                                    await ApiService.update(this.entity, [object_id], this.model.export(object));
+                                    const response = await ApiService.update(this.entity, [object_id], this.model.export(object));
                                     $tr.find('.sb-widget-cell').each( (i: number, cell: any):any => $(cell).trigger('_toggle_mode', 'view') );
                                     $tr.attr('data-edit', '0');
+                                    // update the modfied field otherwise a confirmation will be displayed at next update                                    
+                                    if(Array.isArray(response) && response.length) {
+                                        this.model.reset(object_id, response[0]);
+                                    }                                    
                                     resolve(true);
                                 }
                                 catch(response) {
-                                    this.displayErrorFeedback(response, object, true);
-                                    reject();
+                                    try {
+                                        let result:any = await this.displayErrorFeedback(response, object, true);
+                                        resolve(true);
+                                    }
+                                    catch(response) {
+                                        reject();
+                                    }
                                 }
                             }
                         });
                     });
                     promises.push(promise);
                 }
-                try {
-                    await Promise.all(promises);
+
+
+                Promise.all(promises)
+                .then( () => {
                     $action_set_selected_edit_actions.remove();
-                }
-                catch(err) {
-                    // at least one promise was rejected
-                }
-                return false;                
+                })
+                .catch( () => {
+
+                })
+                
             });
 
             $button_cancel.on('click', () => {
@@ -1176,20 +1239,24 @@ export class View {
                 }
                 // object has been modified in the meanwhile
                 else {
-                    let validation = false;
-                    validation = confirm(TranslationService.instant('SB_ACTIONS_MESSAGE_ERASE_CONUCRRENT_CHANGES'));
-                    if(validation) {
-                        try {
-                            const response = await ApiService.update(this.entity, [object['id']], this.model.export(object), true);
-                            $('#sb-events').trigger('_closeContext');                            
-                        }
-                        catch(response) {
-                            await this.displayErrorFeedback(response, object, snack);
-                        }
+                    try {
+                        await new Promise( (resolve, reject) => {
+                            let confirmed = confirm(TranslationService.instant('SB_ACTIONS_MESSAGE_ERASE_CONUCRRENT_CHANGES'));
+                            return confirmed ? resolve(true) : reject(false);
+                        });
+
+                        const response = await ApiService.update(this.entity, [object['id']], this.model.export(object), true);
+                        // this.closeContext();
+                        return response;
                     }
+                    catch(response) {
+                        throw response;
+                    }
+
                 }
             }
-        }    
+        }
+        return false;
     }
 
 }

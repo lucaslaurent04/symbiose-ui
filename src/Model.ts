@@ -219,6 +219,25 @@ export class Model {
             }
         }
     }
+
+    /**
+     * Handler for resetting change status and modified field of a given object, when an update occured and was accepted by server.
+     * 
+     * @param id 
+     * @param values 
+     */
+    public reset(id: number, values: any) {
+        console.log('Model::reset', values);
+        for (let index in this.objects) {
+            let object = this.objects[index];
+            if(object.hasOwnProperty('id') && object.id == id) {
+                this.has_changed[id] = [];
+                for(let field in values) {
+                    object[field] = values[field];
+                }                
+            }
+        }
+    }
     
     public ids() {
         if(this.objects.length == 0) {
@@ -252,7 +271,7 @@ export class Model {
     }
 
     /**
-     * Manually assign an object (value) to a list of ids martching objects from the current set.
+     * Manually assign a list of objects from the current set (identified by their ids) to a given value (object).
      * 
      * @param ids 
      * @param object 

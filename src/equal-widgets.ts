@@ -11,6 +11,7 @@ import WidgetSelect from "./widgets/WidgetSelect";
 import WidgetOne2Many  from "./widgets/WidgetOne2Many";
 import WidgetMany2One  from "./widgets/WidgetMany2One";
 import WidgetMany2Many  from "./widgets/WidgetMany2Many";
+import Layout from "./Layout";
 
 class WidgetFactory {
 
@@ -41,31 +42,31 @@ config: {
  * @param type 
  * @param value 
  */
-    public static getWidget(type: string, label: string, value: any = null, config:any = {}): Widget {
+    public static getWidget(layout:Layout, type: string, label: string, value: any = null, config:any = {}): Widget {
         switch(type) {
             case 'boolean':
-                return new WidgetBoolean(label, value, config);
+                return new WidgetBoolean(layout, label, value, config);
             case 'date':
-                return new WidgetDate(label, value, config);
+                return new WidgetDate(layout, label, value, config);
             case 'datetime':
-                return new WidgetDateTime(label, value, config);
+                return new WidgetDateTime(layout, label, value, config);
             case 'one2many':
-                return new WidgetOne2Many(label, value, config);
+                return new WidgetOne2Many(layout, label, value, config);
             case 'many2one':
-                return new WidgetMany2One(label, value, config);
+                return new WidgetMany2One(layout, label, value, config);
             case 'many2many':
-                return new WidgetMany2Many(label, value, config);
+                return new WidgetMany2Many(layout, label, value, config);
             case 'text':
-                return new WidgetText(label, value, config);
+                return new WidgetText(layout, label, value, config);
             case 'select':
-                return new WidgetSelect(label, value, config);
+                return new WidgetSelect(layout, label, value, config);
             case 'integer':
-                return new WidgetInteger(label, value, config);
+                return new WidgetInteger(layout, label, value, config);
             case 'float':
-                return new WidgetFloat(label, value, config);    
+                return new WidgetFloat(layout, label, value, config);    
             case 'string':
             default:
-                return new WidgetString(label, value, config);
+                return new WidgetString(layout, label, value, config);
         }
     }
 

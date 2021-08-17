@@ -1,5 +1,8 @@
 import Widget from "./Widget";
+import Layout from "../Layout";
+
 import { UIHelper } from '../material-lib';
+
 import moment from 'moment/moment.js';
 import { $, jqlocale } from "../jquery-lib";
 import { environment } from "../environment";
@@ -7,8 +10,8 @@ import { environment } from "../environment";
 export default class WidgetDate extends Widget {
     
     
-    constructor(label: string, value: any, config: {}) {
-        super('date', label, value, config);
+    constructor(layout: Layout, label: string, value: any, config: {}) {
+        super(layout, 'date', label, value, config);
     }
 
     public render(): JQuery {

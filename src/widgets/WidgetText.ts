@@ -1,11 +1,13 @@
 import Widget from "./Widget";
+import Layout from "../Layout";
+
 import { UIHelper } from '../material-lib';
 
 export default class WidgetText extends Widget {
     
     
-    constructor(label: string, value: any, config: {}) {
-        super('text', label, value, config);
+    constructor(layout: Layout, label: string, value: any, config: {}) {
+        super(layout, 'text', label, value, config);
     }
 
     public render():JQuery {
@@ -13,7 +15,7 @@ export default class WidgetText extends Widget {
         let value:string = this.value?this.value:'';
         switch(this.mode) {
             case 'edit':
-                $elem = UIHelper.createTextArea('', this.label, value);
+                $elem = UIHelper.createTextArea('', this.label, value, this.config.helper);
                 // setup handler for relaying value update to parent layout
                 $elem.find('textarea').on('change', (event) => {
                     let $this = $(event.currentTarget);

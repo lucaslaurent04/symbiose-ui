@@ -192,7 +192,7 @@ $(document).ready( function() {
     var eq = new eQ();
     // eq.test();   
 
-    eq.loadMenu(menu);
+    // eq.loadMenu(menu);
 
 /*
 for(var i = 0; i < menu.length; ++i) {
@@ -210,7 +210,8 @@ for(var i = 0; i < menu.length; ++i) {
 }
 */
 
-    $('#sb-events').trigger('_openContext', {entity: 'core\\User', type: 'list'} );
+    $('#sb-events').trigger('_openContext', {entity: 'core\\User', type: 'list', domContainerSelector: '#sb-container'} );
+    $('#sb-events').trigger('_openContext', {entity: 'core\\Group', type: 'list', domContainerSelector: '#sb-container1'} );
     // setTimeout( () => $('#sb-events').trigger('_closeContext'), 3000 );
 });
 </script>
@@ -226,6 +227,7 @@ for(var i = 0; i < menu.length; ++i) {
 
         <div id="sb-menu"></div>
         <div id="sb-container"></div>
+        <div id="sb-container1"></div>
     </div>
 
 </body>

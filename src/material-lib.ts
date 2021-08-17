@@ -131,6 +131,7 @@ class UIHelper {
                 <span class="mdc-line-ripple"></span> \
             </label> \
             <div class="mdc-text-field-helper-line"> \
+              <div class="mdc-text-field-helper-text" aria-hidden="true" title="'+helper+'">'+helper+'</div> \
               <div class="mdc-text-field-character-counter">0 / 255</div> \
           </div> \
         </div>');
@@ -301,8 +302,8 @@ class UIHelper {
         </div>');
      
         let $list = $elem.find('ul.mdc-list');
-        // we recevied an object as param
-        if( (!!values) && (values.constructor === Object)) {
+        // we recevied an object as param (map)
+        if( !Array.isArray(values) ) {
             for(let key in values) {
                 let $line = $(' \
                 <li class="mdc-list-item" role="option" data-value="'+key+'"> \
@@ -432,7 +433,6 @@ class UIHelper {
         const dialog = new MDCDialog($elem[0]);
 
         dialog.listen('MDCDialog:opened', () => {
-            // list.layout();
             dialog.layout();
         });
 

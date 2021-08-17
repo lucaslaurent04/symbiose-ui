@@ -1,10 +1,13 @@
 import Widget from "./Widget";
+import Layout from "../Layout";
+
 import { UIHelper } from '../material-lib';
 
+
 export default class WidgetBoolean extends Widget {
-        
-    constructor(label: string, value: any, config: {}) {
-        super('boolean', label, value, config);
+
+    constructor(layout: Layout, label: string, value: any, config: {}) {
+        super(layout, 'boolean', label, value, config);
     }
 
     public render():JQuery {
