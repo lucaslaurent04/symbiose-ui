@@ -288,26 +288,69 @@ var _ApiService = /*#__PURE__*/function () {
       return getView;
     }()
   }, {
-    key: "create",
+    key: "getUser",
     value: function () {
-      var _create = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4(entity) {
-        var fields,
-            result,
-            params,
-            response,
-            _args4 = arguments;
+      var _getUser = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
+        var result, response;
         return _regenerator.default.wrap(function _callee4$(_context4) {
           while (1) {
             switch (_context4.prev = _context4.next) {
               case 0:
-                fields = _args4.length > 1 && _args4[1] !== undefined ? _args4[1] : {};
-                _context4.prev = 1;
+                _context4.prev = 0;
+                _context4.next = 3;
+                return _jqueryLib.$.get({
+                  url: _environment.environment.backend_url + '/userinfo'
+                });
+
+              case 3:
+                response = _context4.sent;
+                result = response;
+                _context4.next = 10;
+                break;
+
+              case 7:
+                _context4.prev = 7;
+                _context4.t0 = _context4["catch"](0);
+                throw _context4.t0.responseJSON;
+
+              case 10:
+                return _context4.abrupt("return", result);
+
+              case 11:
+              case "end":
+                return _context4.stop();
+            }
+          }
+        }, _callee4, null, [[0, 7]]);
+      }));
+
+      function getUser() {
+        return _getUser.apply(this, arguments);
+      }
+
+      return getUser;
+    }()
+  }, {
+    key: "create",
+    value: function () {
+      var _create = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5(entity) {
+        var fields,
+            result,
+            params,
+            response,
+            _args5 = arguments;
+        return _regenerator.default.wrap(function _callee5$(_context5) {
+          while (1) {
+            switch (_context5.prev = _context5.next) {
+              case 0:
+                fields = _args5.length > 1 && _args5[1] !== undefined ? _args5[1] : {};
+                _context5.prev = 1;
                 params = {
                   entity: entity,
                   fields: fields,
                   lang: _environment.environment.lang
                 };
-                _context4.next = 5;
+                _context5.next = 5;
                 return _jqueryLib.$.get({
                   url: _environment.environment.backend_url + '/?do=model_create',
                   dataType: 'json',
@@ -316,25 +359,25 @@ var _ApiService = /*#__PURE__*/function () {
                 });
 
               case 5:
-                response = _context4.sent;
+                response = _context5.sent;
                 result = response;
-                _context4.next = 12;
+                _context5.next = 12;
                 break;
 
               case 9:
-                _context4.prev = 9;
-                _context4.t0 = _context4["catch"](1);
-                throw _context4.t0.responseJSON;
+                _context5.prev = 9;
+                _context5.t0 = _context5["catch"](1);
+                throw _context5.t0.responseJSON;
 
               case 12:
-                return _context4.abrupt("return", result);
+                return _context5.abrupt("return", result);
 
               case 13:
               case "end":
-                return _context4.stop();
+                return _context5.stop();
             }
           }
-        }, _callee4, null, [[1, 9]]);
+        }, _callee5, null, [[1, 9]]);
       }));
 
       function create(_x6) {
@@ -346,20 +389,20 @@ var _ApiService = /*#__PURE__*/function () {
   }, {
     key: "read",
     value: function () {
-      var _read = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5(entity, ids, fields) {
+      var _read = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6(entity, ids, fields) {
         var result, params, response;
-        return _regenerator.default.wrap(function _callee5$(_context5) {
+        return _regenerator.default.wrap(function _callee6$(_context6) {
           while (1) {
-            switch (_context5.prev = _context5.next) {
+            switch (_context6.prev = _context6.next) {
               case 0:
-                _context5.prev = 0;
+                _context6.prev = 0;
                 params = {
                   entity: entity,
                   ids: ids,
                   fields: fields,
                   lang: _environment.environment.lang
                 };
-                _context5.next = 4;
+                _context6.next = 4;
                 return _jqueryLib.$.get({
                   url: _environment.environment.backend_url + '/?get=model_read',
                   dataType: 'json',
@@ -368,25 +411,25 @@ var _ApiService = /*#__PURE__*/function () {
                 });
 
               case 4:
-                response = _context5.sent;
+                response = _context6.sent;
                 result = response;
-                _context5.next = 11;
+                _context6.next = 11;
                 break;
 
               case 8:
-                _context5.prev = 8;
-                _context5.t0 = _context5["catch"](0);
-                throw _context5.t0.responseJSON;
+                _context6.prev = 8;
+                _context6.t0 = _context6["catch"](0);
+                throw _context6.t0.responseJSON;
 
               case 11:
-                return _context5.abrupt("return", result);
+                return _context6.abrupt("return", result);
 
               case 12:
               case "end":
-                return _context5.stop();
+                return _context6.stop();
             }
           }
-        }, _callee5, null, [[0, 8]]);
+        }, _callee6, null, [[0, 8]]);
       }));
 
       function read(_x7, _x8, _x9) {
@@ -398,24 +441,24 @@ var _ApiService = /*#__PURE__*/function () {
   }, {
     key: "delete",
     value: function () {
-      var _delete2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6(entity, ids) {
+      var _delete2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7(entity, ids) {
         var permanent,
             result,
             params,
             response,
-            _args6 = arguments;
-        return _regenerator.default.wrap(function _callee6$(_context6) {
+            _args7 = arguments;
+        return _regenerator.default.wrap(function _callee7$(_context7) {
           while (1) {
-            switch (_context6.prev = _context6.next) {
+            switch (_context7.prev = _context7.next) {
               case 0:
-                permanent = _args6.length > 2 && _args6[2] !== undefined ? _args6[2] : false;
-                _context6.prev = 1;
+                permanent = _args7.length > 2 && _args7[2] !== undefined ? _args7[2] : false;
+                _context7.prev = 1;
                 params = {
                   entity: entity,
                   ids: ids,
                   permanent: permanent
                 };
-                _context6.next = 5;
+                _context7.next = 5;
                 return _jqueryLib.$.get({
                   url: _environment.environment.backend_url + '/?do=model_delete',
                   dataType: 'json',
@@ -424,25 +467,25 @@ var _ApiService = /*#__PURE__*/function () {
                 });
 
               case 5:
-                response = _context6.sent;
+                response = _context7.sent;
                 result = response;
-                _context6.next = 12;
+                _context7.next = 12;
                 break;
 
               case 9:
-                _context6.prev = 9;
-                _context6.t0 = _context6["catch"](1);
-                throw _context6.t0.responseJSON;
+                _context7.prev = 9;
+                _context7.t0 = _context7["catch"](1);
+                throw _context7.t0.responseJSON;
 
               case 12:
-                return _context6.abrupt("return", result);
+                return _context7.abrupt("return", result);
 
               case 13:
               case "end":
-                return _context6.stop();
+                return _context7.stop();
             }
           }
-        }, _callee6, null, [[1, 9]]);
+        }, _callee7, null, [[1, 9]]);
       }));
 
       function _delete(_x10, _x11) {
@@ -454,18 +497,18 @@ var _ApiService = /*#__PURE__*/function () {
   }, {
     key: "archive",
     value: function () {
-      var _archive = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7(entity, ids) {
+      var _archive = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee8(entity, ids) {
         var result, params, response;
-        return _regenerator.default.wrap(function _callee7$(_context7) {
+        return _regenerator.default.wrap(function _callee8$(_context8) {
           while (1) {
-            switch (_context7.prev = _context7.next) {
+            switch (_context8.prev = _context8.next) {
               case 0:
-                _context7.prev = 0;
+                _context8.prev = 0;
                 params = {
                   entity: entity,
                   ids: ids
                 };
-                _context7.next = 4;
+                _context8.next = 4;
                 return _jqueryLib.$.get({
                   url: _environment.environment.backend_url + '/?do=model_archive',
                   dataType: 'json',
@@ -474,25 +517,25 @@ var _ApiService = /*#__PURE__*/function () {
                 });
 
               case 4:
-                response = _context7.sent;
+                response = _context8.sent;
                 result = response;
-                _context7.next = 11;
+                _context8.next = 11;
                 break;
 
               case 8:
-                _context7.prev = 8;
-                _context7.t0 = _context7["catch"](0);
-                throw _context7.t0.responseJSON;
+                _context8.prev = 8;
+                _context8.t0 = _context8["catch"](0);
+                throw _context8.t0.responseJSON;
 
               case 11:
-                return _context7.abrupt("return", result);
+                return _context8.abrupt("return", result);
 
               case 12:
               case "end":
-                return _context7.stop();
+                return _context8.stop();
             }
           }
-        }, _callee7, null, [[0, 8]]);
+        }, _callee8, null, [[0, 8]]);
       }));
 
       function archive(_x12, _x13) {
@@ -513,20 +556,20 @@ var _ApiService = /*#__PURE__*/function () {
   }, {
     key: "update",
     value: function () {
-      var _update = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee8(entity, ids, fields) {
+      var _update = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee9(entity, ids, fields) {
         var force,
             result,
             params,
             response,
-            _args8 = arguments;
-        return _regenerator.default.wrap(function _callee8$(_context8) {
+            _args9 = arguments;
+        return _regenerator.default.wrap(function _callee9$(_context9) {
           while (1) {
-            switch (_context8.prev = _context8.next) {
+            switch (_context9.prev = _context9.next) {
               case 0:
-                force = _args8.length > 3 && _args8[3] !== undefined ? _args8[3] : false;
+                force = _args9.length > 3 && _args9[3] !== undefined ? _args9[3] : false;
                 console.log('ApiService::update', entity, ids, fields);
                 result = true;
-                _context8.prev = 3;
+                _context9.prev = 3;
                 params = {
                   entity: entity,
                   ids: ids,
@@ -534,7 +577,7 @@ var _ApiService = /*#__PURE__*/function () {
                   lang: _environment.environment.lang,
                   force: force
                 };
-                _context8.next = 7;
+                _context9.next = 7;
                 return _jqueryLib.$.post({
                   url: _environment.environment.backend_url + '/?do=model_update',
                   dataType: 'json',
@@ -543,25 +586,25 @@ var _ApiService = /*#__PURE__*/function () {
                 });
 
               case 7:
-                response = _context8.sent;
+                response = _context9.sent;
                 result = response;
-                _context8.next = 14;
+                _context9.next = 14;
                 break;
 
               case 11:
-                _context8.prev = 11;
-                _context8.t0 = _context8["catch"](3);
-                throw _context8.t0.responseJSON;
+                _context9.prev = 11;
+                _context9.t0 = _context9["catch"](3);
+                throw _context9.t0.responseJSON;
 
               case 14:
-                return _context8.abrupt("return", result);
+                return _context9.abrupt("return", result);
 
               case 15:
               case "end":
-                return _context8.stop();
+                return _context9.stop();
             }
           }
-        }, _callee8, null, [[3, 11]]);
+        }, _callee9, null, [[3, 11]]);
       }));
 
       function update(_x14, _x15, _x16) {
@@ -573,19 +616,19 @@ var _ApiService = /*#__PURE__*/function () {
   }, {
     key: "clone",
     value: function () {
-      var _clone = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee9(entity, ids) {
+      var _clone = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee10(entity, ids) {
         var result, params, response;
-        return _regenerator.default.wrap(function _callee9$(_context9) {
+        return _regenerator.default.wrap(function _callee10$(_context10) {
           while (1) {
-            switch (_context9.prev = _context9.next) {
+            switch (_context10.prev = _context10.next) {
               case 0:
-                _context9.prev = 0;
+                _context10.prev = 0;
                 params = {
                   entity: entity,
                   ids: ids,
                   lang: _environment.environment.lang
                 };
-                _context9.next = 4;
+                _context10.next = 4;
                 return _jqueryLib.$.get({
                   url: _environment.environment.backend_url + '/?do=model_clone',
                   dataType: 'json',
@@ -594,25 +637,25 @@ var _ApiService = /*#__PURE__*/function () {
                 });
 
               case 4:
-                response = _context9.sent;
+                response = _context10.sent;
                 result = response;
-                _context9.next = 11;
+                _context10.next = 11;
                 break;
 
               case 8:
-                _context9.prev = 8;
-                _context9.t0 = _context9["catch"](0);
-                throw _context9.t0.responseJSON;
+                _context10.prev = 8;
+                _context10.t0 = _context10["catch"](0);
+                throw _context10.t0.responseJSON;
 
               case 11:
-                return _context9.abrupt("return", result);
+                return _context10.abrupt("return", result);
 
               case 12:
               case "end":
-                return _context9.stop();
+                return _context10.stop();
             }
           }
-        }, _callee9, null, [[0, 8]]);
+        }, _callee10, null, [[0, 8]]);
       }));
 
       function clone(_x17, _x18) {
@@ -638,17 +681,17 @@ var _ApiService = /*#__PURE__*/function () {
   }, {
     key: "collect",
     value: function () {
-      var _collect = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee10(entity, domain, fields, order, sort, start, limit, lang) {
+      var _collect = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee11(entity, domain, fields, order, sort, start, limit, lang) {
         var _this4 = this;
 
         var result, params, response;
-        return _regenerator.default.wrap(function _callee10$(_context10) {
+        return _regenerator.default.wrap(function _callee11$(_context11) {
           while (1) {
-            switch (_context10.prev = _context10.next) {
+            switch (_context11.prev = _context11.next) {
               case 0:
                 console.log('ApiService::collect', entity, domain, fields, order, sort, start, limit, lang);
                 result = [];
-                _context10.prev = 2;
+                _context11.prev = 2;
                 params = {
                   entity: entity,
                   domain: domain,
@@ -659,7 +702,7 @@ var _ApiService = /*#__PURE__*/function () {
                   start: start,
                   limit: limit
                 };
-                _context10.next = 6;
+                _context11.next = 6;
                 return _jqueryLib.$.get({
                   url: _environment.environment.backend_url + '/?get=model_collect',
                   dataType: 'json',
@@ -670,25 +713,25 @@ var _ApiService = /*#__PURE__*/function () {
                 });
 
               case 6:
-                response = _context10.sent;
+                response = _context11.sent;
                 result = response;
-                _context10.next = 13;
+                _context11.next = 13;
                 break;
 
               case 10:
-                _context10.prev = 10;
-                _context10.t0 = _context10["catch"](2);
-                throw _context10.t0.responseJSON;
+                _context11.prev = 10;
+                _context11.t0 = _context11["catch"](2);
+                throw _context11.t0.responseJSON;
 
               case 13:
-                return _context10.abrupt("return", result);
+                return _context11.abrupt("return", result);
 
               case 14:
               case "end":
-                return _context10.stop();
+                return _context11.stop();
             }
           }
-        }, _callee10, null, [[2, 10]]);
+        }, _callee11, null, [[2, 10]]);
       }));
 
       function collect(_x19, _x20, _x21, _x22, _x23, _x24, _x25, _x26) {
@@ -712,14 +755,14 @@ var _ApiService = /*#__PURE__*/function () {
   }, {
     key: "search",
     value: function () {
-      var _search = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee11(entity, domain, order, sort, start, limit) {
+      var _search = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee12(entity, domain, order, sort, start, limit) {
         var result, params, response;
-        return _regenerator.default.wrap(function _callee11$(_context11) {
+        return _regenerator.default.wrap(function _callee12$(_context12) {
           while (1) {
-            switch (_context11.prev = _context11.next) {
+            switch (_context12.prev = _context12.next) {
               case 0:
                 result = [];
-                _context11.prev = 1;
+                _context12.prev = 1;
                 params = {
                   entity: entity,
                   domain: domain,
@@ -728,7 +771,7 @@ var _ApiService = /*#__PURE__*/function () {
                   start: start,
                   limit: limit
                 };
-                _context11.next = 5;
+                _context12.next = 5;
                 return _jqueryLib.$.get({
                   url: _environment.environment.backend_url + '/?get=model_search',
                   dataType: 'json',
@@ -737,26 +780,26 @@ var _ApiService = /*#__PURE__*/function () {
                 });
 
               case 5:
-                response = _context11.sent;
+                response = _context12.sent;
                 // reponse should be an array of ids
                 result = response;
-                _context11.next = 12;
+                _context12.next = 12;
                 break;
 
               case 9:
-                _context11.prev = 9;
-                _context11.t0 = _context11["catch"](1);
-                throw _context11.t0.responseJSON;
+                _context12.prev = 9;
+                _context12.t0 = _context12["catch"](1);
+                throw _context12.t0.responseJSON;
 
               case 12:
-                return _context11.abrupt("return", result);
+                return _context12.abrupt("return", result);
 
               case 13:
               case "end":
-                return _context11.stop();
+                return _context12.stop();
             }
           }
-        }, _callee11, null, [[1, 9]]);
+        }, _callee12, null, [[1, 9]]);
       }));
 
       function search(_x27, _x28, _x29, _x30, _x31, _x32) {
@@ -805,9 +848,12 @@ var _jqueryLib = __webpack_require__(/*! ./jquery-lib */ "./build/jquery-lib.js"
 
 var _equalLib = __webpack_require__(/*! ./equal-lib */ "./build/equal-lib.js");
 
+var _equalServices = __webpack_require__(/*! ./equal-services */ "./build/equal-services.js");
+
 var _environment = __webpack_require__(/*! ./environment */ "./build/environment.js");
 
 var Context = /*#__PURE__*/function () {
+  // User (requested as instanciation of the View). This value might be applied on subsequent Domain objects.
   // callback to be called when the context closes
 
   /*
@@ -841,6 +887,7 @@ var Context = /*#__PURE__*/function () {
     (0, _defineProperty2.default)(this, "$container", void 0);
     (0, _defineProperty2.default)(this, "frame", void 0);
     (0, _defineProperty2.default)(this, "view", void 0);
+    (0, _defineProperty2.default)(this, "user", void 0);
     (0, _defineProperty2.default)(this, "callback", void 0);
     this.$container = (0, _jqueryLib.$)('<div />').addClass('sb-context');
     this.callback = callback;
@@ -848,15 +895,60 @@ var Context = /*#__PURE__*/function () {
     this.view = new _equalLib.View(this, entity, type, name, domain, mode, purpose, lang, config); // inject View in parent Context object
 
     this.$container.append(this.view.getContainer());
+    this.user = {
+      id: 0
+    };
+    this.init();
   }
-  /**
-   * Close current context.    
-   * Should be called only by parent Frame.
-   * 
-   */
-
 
   (0, _createClass2.default)(Context, [{
+    key: "init",
+    value: function () {
+      var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
+        return _regenerator.default.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                _context.prev = 0;
+                _context.next = 3;
+                return _equalServices.ApiService.getUser();
+
+              case 3:
+                this.user = _context.sent;
+                _context.next = 9;
+                break;
+
+              case 6:
+                _context.prev = 6;
+                _context.t0 = _context["catch"](0);
+                console.warn('unable to retrieve user info');
+
+              case 9:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this, [[0, 6]]);
+      }));
+
+      function init() {
+        return _init.apply(this, arguments);
+      }
+
+      return init;
+    }()
+  }, {
+    key: "getUser",
+    value: function getUser() {
+      return this.user;
+    }
+    /**
+     * Close current context.    
+     * Should be called only by parent Frame.
+     * 
+     */
+
+  }, {
     key: "close",
     value: function close(data) {
       console.log('Context::close', data); // remove Context container
@@ -941,20 +1033,20 @@ var Context = /*#__PURE__*/function () {
   }, {
     key: "refresh",
     value: function () {
-      var _refresh = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
-        return _regenerator.default.wrap(function _callee$(_context) {
+      var _refresh = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
+        return _regenerator.default.wrap(function _callee2$(_context2) {
           while (1) {
-            switch (_context.prev = _context.next) {
+            switch (_context2.prev = _context2.next) {
               case 0:
-                _context.next = 2;
+                _context2.next = 2;
                 return this.view.onchangeView();
 
               case 2:
               case "end":
-                return _context.stop();
+                return _context2.stop();
             }
           }
-        }, _callee, this);
+        }, _callee2, this);
       }));
 
       function refresh() {
@@ -998,7 +1090,7 @@ var _interopRequireDefault = __webpack_require__(/*! @babel/runtime/helpers/inte
 Object.defineProperty(exports, "__esModule", ({
   value: true
 }));
-exports.default = exports.Domain = void 0;
+exports.default = exports.Condition = exports.Clause = exports.Domain = void 0;
 
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/classCallCheck */ "./node_modules/@babel/runtime/helpers/classCallCheck.js"));
 
@@ -1030,7 +1122,7 @@ var Domain = /*#__PURE__*/function () {
       // reset clauses
       this.clauses.splice(0, this.clauses.length);
       /*
-          supported formats : 
+          supported formats :
           1) empty  domain : []
           2) 1 condition only : [ '{operand}', '{operator}', '{value}' ]
           3) 1 clause only (one or more conditions) : [ [ '{operand}', '{operator}', '{value}' ], [ '{operand}', '{operator}', '{value}' ] ]
@@ -1139,9 +1231,17 @@ var Domain = /*#__PURE__*/function () {
     }
   }, {
     key: "addClause",
-    value: function addClause(clause) {
+    value:
+    /**
+     * Add a clause at the Domain level : the clause is appened to the Domain
+     */
+    function addClause(clause) {
       this.clauses.push(clause);
     }
+    /**
+     * Add a condition at the Domain level : the condition is added to each clause of the Domain
+     */
+
   }, {
     key: "addCondition",
     value: function addCondition(condition) {
@@ -1161,7 +1261,7 @@ var Domain = /*#__PURE__*/function () {
     }
     /**
      * Update domain by parsing conditions and replace any occurence of `object.` and `user.` notations with related attributes of given objects.
-     * 
+     *
      * @param values
      * @returns Domain  Returns current instance with updated values.
      */
@@ -1170,7 +1270,6 @@ var Domain = /*#__PURE__*/function () {
     key: "parse",
     value: function parse(object) {
       var user = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-      console.log(this);
 
       var _iterator7 = _createForOfIteratorHelper(this.clauses),
           _step7;
@@ -1185,14 +1284,9 @@ var Domain = /*#__PURE__*/function () {
           try {
             for (_iterator8.s(); !(_step8 = _iterator8.n()).done;) {
               var condition = _step8.value;
+              var value = condition.value; // handle object references as `value` part
 
-              if (!object.hasOwnProperty(condition.operand)) {
-                continue;
-              }
-
-              var value = condition.value; // handle object references as `value` part 
-
-              if (typeof value === 'string' && value.indexOf('object.')) {
+              if (typeof value === 'string' && value.indexOf('object.') == 0) {
                 var target = value.substring('object.'.length);
 
                 if (!object.hasOwnProperty(target)) {
@@ -1200,8 +1294,8 @@ var Domain = /*#__PURE__*/function () {
                 }
 
                 value = object[target];
-              } // handle user references as `value` part 
-              else if (typeof value === 'string' && value.indexOf('user.')) {
+              } // handle user references as `value` part
+              else if (typeof value === 'string' && value.indexOf('user.') == 0) {
                   var _target = value.substring('user.'.length);
 
                   if (!user.hasOwnProperty(_target)) {
@@ -1230,8 +1324,8 @@ var Domain = /*#__PURE__*/function () {
     /**
      * Evaluate domain for a given object.
      * Object structure has to comply with the operands mentionned in the conditions of the domain. If no, related conditions are ignored (skipped).
-     * 
-     * @param object 
+     *
+     * @param object
      * @returns boolean Return true if the object matches the domain, false otherwise.
      */
 
@@ -1332,9 +1426,15 @@ exports.Domain = Domain;
 
 var Clause = /*#__PURE__*/function () {
   function Clause() {
+    var conditions = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
     (0, _classCallCheck2.default)(this, Clause);
     (0, _defineProperty2.default)(this, "conditions", void 0);
-    this.conditions = new Array();
+
+    if (conditions.length == 0) {
+      this.conditions = new Array();
+    } else {
+      this.conditions = conditions;
+    }
   }
 
   (0, _createClass2.default)(Clause, [{
@@ -1371,6 +1471,8 @@ var Clause = /*#__PURE__*/function () {
   }]);
   return Clause;
 }();
+
+exports.Clause = Clause;
 
 var Condition = /*#__PURE__*/function () {
   function Condition(operand, operator, value) {
@@ -1411,6 +1513,7 @@ var Condition = /*#__PURE__*/function () {
   return Condition;
 }();
 
+exports.Condition = Condition;
 var _default = Domain;
 exports.default = _default;
 
@@ -1689,7 +1792,7 @@ var Frame = /*#__PURE__*/function () {
                 console.log('update header');
 
                 if ((0, _jqueryLib.$)(this.domContainerSelector).find('.sb-container-header').length == 0) {
-                  this.$headerContainer = (0, _jqueryLib.$)('<div/>').addClass('sb-container-header').appendTo((0, _jqueryLib.$)(this.domContainerSelector));
+                  this.$headerContainer = (0, _jqueryLib.$)('<div/>').addClass('sb-container-header').prependTo((0, _jqueryLib.$)(this.domContainerSelector));
                 }
 
                 if (!(this.stack.length == 0 || !this.context.hasOwnProperty('$container'))) {
@@ -2120,11 +2223,14 @@ var Frame = /*#__PURE__*/function () {
                     prev_context.$container.hide();
                   }
 
-                  (0, _jqueryLib.$)(_this3.domContainerSelector).append(_this3.context.getContainer());
-                });
-                this.updateHeader();
+                  (0, _jqueryLib.$)(_this3.domContainerSelector).append(_this3.context.getContainer()); // relay event to the outside
 
-              case 16:
+                  (0, _jqueryLib.$)(_this3.domContainerSelector).show().trigger('_open');
+
+                  _this3.updateHeader();
+                });
+
+              case 15:
               case "end":
                 return _context8.stop();
             }
@@ -2208,7 +2314,7 @@ var Frame = /*#__PURE__*/function () {
               case 14:
                 // if we closed the lastest Context from the stack, relay data to the outside
                 if (!this.stack.length) {
-                  (0, _jqueryLib.$)(this.domContainerSelector).trigger('_close', [data]);
+                  (0, _jqueryLib.$)(this.domContainerSelector).hide().trigger('_close', [data]);
                 }
 
               case 15:
@@ -2269,7 +2375,7 @@ var _materialLib = __webpack_require__(/*! ./material-lib */ "./build/material-l
 
 var _equalServices = __webpack_require__(/*! ./equal-services */ "./build/equal-services.js");
 
-var _Domain = _interopRequireDefault(__webpack_require__(/*! ./Domain */ "./build/Domain.js"));
+var _Domain = __webpack_require__(/*! ./Domain */ "./build/Domain.js");
 
 function _createForOfIteratorHelper(o, allowArrayLike) { var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"]; if (!it) { if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; var F = function F() {}; return { s: F, n: function n() { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }, e: function e(_e) { throw _e; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var normalCompletion = true, didErr = false, err; return { s: function s() { it = it.call(o); }, n: function n() { var step = it.next(); normalCompletion = step.done; return step; }, e: function e(_e2) { didErr = true; err = _e2; }, f: function f() { try { if (!normalCompletion && it.return != null) it.return(); } finally { if (didErr) throw err; } } }; }
 
@@ -2504,7 +2610,6 @@ var Layout = /*#__PURE__*/function () {
   }, {
     key: "getWidgetConfig",
     value: function getWidgetConfig(item) {
-      console.log('Layout::getWidgetConfig', item);
       var field = item.value;
       var translation = this.view.getTranslation();
       var model_fields = this.view.getModelFields();
@@ -2554,7 +2659,8 @@ var Layout = /*#__PURE__*/function () {
 
       if (item.hasOwnProperty('visible')) {
         config.visible = item.visible;
-      }
+      } // convert visible property to JSON
+
 
       config.visible = eval(config.visible);
 
@@ -2572,13 +2678,18 @@ var Layout = /*#__PURE__*/function () {
         var view_name = parts.length > 1 ? parts[1] : parts[0];
         var def_domain = def.hasOwnProperty('domain') ? def['domain'] : [];
         var view_domain = item.hasOwnProperty('domain') ? item['domain'] : [];
-        var tmpDomain = new _Domain.default(def_domain);
-        tmpDomain.merge(new _Domain.default(view_domain));
+        var domain = new _Domain.Domain(def_domain);
+        domain.merge(new _Domain.Domain(view_domain)); // add join condition for limiting list to the current object
+
+        if (['one2many', 'many2many'].indexOf(def['type']) > -1 && def.hasOwnProperty('foreign_field')) {
+          domain.merge(new _Domain.Domain([def['foreign_field'], 'contains', 'object.id']));
+        }
+
         config = _objectSpread(_objectSpread({}, config), {}, {
           entity: def['foreign_object'],
           view_type: view_type,
           view_name: view_name,
-          domain: tmpDomain.toArray()
+          original_domain: domain.toArray()
         });
       }
 
@@ -2897,10 +3008,10 @@ var Layout = /*#__PURE__*/function () {
                   value = object[item.value]['name'];
                   config.object_id = object[item.value]['id'];
                 } else {
-                  value = object[item.value].map(function (o) {
-                    return o.name;
-                  }).join(', ');
-                  value = value.length > 35 ? value.substring(0, 35) + "..." : value; // we need the current object id for new objects creation
+                  // Model do not load o2m and m2m fields : these are handled by sub-views
+                  // value = object[item.value].map( (o:any) => o.name).join(', ');
+                  // value = (value.length > 35)? value.substring(0, 35) + "..." : value;
+                  value = "..."; // we need the current object id for new objects creation
 
                   config.object_id = object.id;
                 }
@@ -2990,49 +3101,73 @@ var Layout = /*#__PURE__*/function () {
               var model_def = model_schema[field];
               var type = model_def['type'];
               var has_changed = false;
-              var value = object[field];
+              var value = object.hasOwnProperty(field) ? object[field] : undefined;
               var config = widget.getConfig(); // for relational fields, we need to check if the Model has been fetched
 
               if (['one2many', 'many2one', 'many2many'].indexOf(type) > -1) {
-                // by convention, `name` subfield is always loaded for relational fields
+                // if widget has a domain, parse it using current object and user
+                if (config.hasOwnProperty('original_domain')) {
+                  var user = _this4.view.getUser();
+
+                  var tmpDomain = new _Domain.Domain(config.original_domain);
+                  config.domain = tmpDomain.parse(object, user).toArray();
+                } else {
+                  config.domain = [];
+                } // by convention, `name` subfield is always loaded for relational fields
+
+
                 if (type == 'many2one') {
                   value = object[field]['name'];
                   config.object_id = object[field]['id'];
                 } else if (type == 'many2many' || type == 'one2many') {
-                  // for m2m fields, the value of the field is an array of objects `{id:, name:}`
+                  // init field if not present yet (o2m and m2m are not loaded by Model)
+                  if (!object.hasOwnProperty(field)) {
+                    object[field] = []; // force change detection (upon re-feed, the field do not change and remains an empty array)
+
+                    $parent.data('value', null);
+                  } // for m2m fields, the value of the field is an array of ids 
                   // by convention, when a relation is to be removed, the id field is set to its negative value
-                  // select ids to load by filtering targeted objects
-                  var target_ids = object[field].map(function (o) {
-                    return o.id;
-                  }).filter(function (id) {
+
+
+                  value = object[field]; // select ids to load by filtering targeted objects
+
+                  var ids_to_add = object[field].filter(function (id) {
                     return id > 0;
                   });
+                  var ids_to_del = object[field].filter(function (id) {
+                    return id < 0;
+                  }).map(function (id) {
+                    return -id;
+                  }); // we need the current object id for new objects creation
 
-                  if (!target_ids.length) {
-                    target_ids.push(0);
-                  } // we need the current object id for new objects creation
+                  config.object_id = object.id; // domain is updated based on user actions: an additional clause for + (accept thos whatever the other conditions) and addtional conditions for - (prevent theses whatever the other conditions)
 
+                  var _tmpDomain = new _Domain.Domain(config.domain);
 
-                  config.object_id = object.id;
-                  config = _objectSpread(_objectSpread({}, config), {}, {
-                    // #todo : merge domains instead of override
-                    domain: ['id', 'in', target_ids]
-                  });
+                  if (ids_to_add.length) {
+                    _tmpDomain.addClause(new _Domain.Clause([new _Domain.Condition("id", "in", ids_to_add)]));
+                  }
+
+                  if (ids_to_del.length) {
+                    _tmpDomain.addCondition(new _Domain.Condition("id", "not in", ids_to_del));
+                  }
+
+                  config.domain = _tmpDomain.toArray();
                 }
               }
 
-              has_changed = !value || $parent.data('value') != value;
+              has_changed = !value || $parent.data('value') != JSON.stringify(value);
               widget.setConfig(_objectSpread(_objectSpread({}, config), {}, {
                 ready: true
-              })).setMode(_this4.view.getMode()).setValue(value); // store data to parent, for tracking changes at next refresh
+              })).setMode(_this4.view.getMode()).setValue(value); // store data to parent, for tracking changes at next refresh (prevent storing references)
 
-              $parent.data('value', value);
+              $parent.data('value', JSON.stringify(value));
               var visible = true; // handle visibility tests (domain)           
 
               if (config.hasOwnProperty('visible')) {
                 // visible attribute is a Domain
                 if (Array.isArray(config.visible)) {
-                  var domain = new _Domain.default(config.visible);
+                  var domain = new _Domain.Domain(config.visible);
                   visible = domain.evaluate(object);
                 } else {
                   visible = config.visible;
@@ -3044,15 +3179,13 @@ var Layout = /*#__PURE__*/function () {
 
                 $parent.data('value', null);
               } else {
-                // #todo : many2one & x2many fields can have a specific domain, that might depend on current values of edited object : 
-                // we must re-evaluate the domain and set the widget config accordingly
                 var $widget = widget.render(); // Handle Widget update handler
 
                 $widget.on('_updatedWidget', function (event) {
-                  // update object with new value
+                  console.log("Layout::feedForm : received _updatedWidget", field, widget.getValue()); // update object with new value
+
                   var value = {};
                   value[field] = widget.getValue();
-                  console.log(value);
 
                   _this4.view.onchangeViewModel([object.id], value);
                 }); // prevent refreshing objects that haven't changed
@@ -3251,7 +3384,6 @@ var Model = /*#__PURE__*/function () {
   }, {
     key: "getOperators",
     value: function getOperators(type) {
-      console.log(type);
       var operators = {
         'boolean': ['=', '<>'],
         'integer': ['in', 'not in', '=', '<>', '<', '>', '<=', '>='],
@@ -3305,54 +3437,60 @@ var Model = /*#__PURE__*/function () {
     key: "refresh",
     value: function () {
       var _refresh = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
-        var fields, schema, i, field, response;
+        var view_fields, schema, fields, i, field, response;
         return _regenerator.default.wrap(function _callee2$(_context2) {
           while (1) {
             switch (_context2.prev = _context2.next) {
               case 0:
                 console.log('Model::refresh'); // fetch fields that are present in the parent View 
 
-                fields = Object.keys(this.view.getViewFields());
-                schema = this.view.getModelFields(); // append `name` subfield for relational fields, using the dot notation
+                view_fields = Object.keys(this.view.getViewFields());
+                schema = this.view.getModelFields();
+                fields = [];
 
-                for (i in fields) {
-                  field = fields[i];
+                for (i in view_fields) {
+                  field = view_fields[i]; // append `name` subfield for relational fields, using the dot notation
 
-                  if (['many2one', 'one2many', 'many2many'].indexOf(schema[field]['type']) > -1) {
-                    fields[i] = field + '.name';
-                  }
+                  if ('many2one' == schema[field]['type']) {
+                    fields.push(field + '.name');
+                  } // we do not load relational fields resulting in potentially long lists (those are handled by the Widgets)
+                  else if (['one2many', 'many2many'].indexOf(schema[field]['type']) > -1) {
+                      delete fields[i];
+                    } else {
+                      fields.push(field);
+                    }
                 }
 
-                _context2.prev = 4;
-                _context2.next = 7;
+                _context2.prev = 5;
+                _context2.next = 8;
                 return _equalServices.ApiService.collect(this.view.getEntity(), this.view.getDomain(), fields, this.view.getOrder(), this.view.getSort(), this.view.getStart(), this.view.getLimit(), this.view.getLang());
 
-              case 7:
+              case 8:
                 response = _context2.sent;
                 this.objects = response;
                 this.loaded_promise.resolve();
                 this.total = _equalServices.ApiService.getLastCount();
-                _context2.next = 19;
+                _context2.next = 20;
                 break;
 
-              case 13:
-                _context2.prev = 13;
-                _context2.t0 = _context2["catch"](4);
+              case 14:
+                _context2.prev = 14;
+                _context2.t0 = _context2["catch"](5);
                 console.log('Unable to fetch Collection from server', _context2.t0);
                 this.objects = [];
                 this.loaded_promise.resolve();
                 this.total = 0;
 
-              case 19:
-                _context2.next = 21;
+              case 20:
+                _context2.next = 22;
                 return this.view.onchangeModel();
 
-              case 21:
+              case 22:
               case "end":
                 return _context2.stop();
             }
           }
-        }, _callee2, this, [[4, 13]]);
+        }, _callee2, this, [[5, 14]]);
       }));
 
       function refresh() {
@@ -3371,6 +3509,7 @@ var Model = /*#__PURE__*/function () {
     key: "change",
     value: function change(ids, values) {
       console.log('Model::change', ids, values);
+      var schema = this.view.getModelFields();
 
       for (var index in this.objects) {
         var object = this.objects[index];
@@ -3384,7 +3523,7 @@ var Model = /*#__PURE__*/function () {
 
             if (object.hasOwnProperty('id') && object.id == id) {
               for (var field in values) {
-                if (object.hasOwnProperty(field)) {
+                if (schema.hasOwnProperty(field)) {
                   if (!this.has_changed.hasOwnProperty(id)) {
                     this.has_changed[id] = [];
                   } // update field
@@ -3452,6 +3591,7 @@ var Model = /*#__PURE__*/function () {
       var _this = this;
 
       var ids = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+      console.log('Model::get', this.objects, this.has_changed);
 
       var promise = _jqueryLib.$.Deferred();
 
@@ -3907,15 +4047,15 @@ var View = /*#__PURE__*/function () {
         title: 'SB_ACTIONS_BUTTON_INLINE_UPDATE',
         icon: 'dynamic_form',
         primary: true,
-        handler: function handler(event) {
-          return _this.actionListInlineEdit(event, _this.selected_ids);
+        handler: function handler(selection) {
+          return _this.actionListInlineEdit(selection);
         }
       }, {
         title: 'SB_ACTIONS_BUTTON_UPDATE',
         icon: 'edit',
         primary: false,
-        handler: function handler(event) {
-          var selected_id = _this.selected_ids[0];
+        handler: function handler(selection) {
+          var selected_id = selection[0];
 
           _this.openContext({
             entity: _this.entity,
@@ -3931,37 +4071,36 @@ var View = /*#__PURE__*/function () {
         icon: 'content_copy',
         primary: false,
         handler: function () {
-          var _handler = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(event) {
+          var _handler = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(selection) {
             return _regenerator.default.wrap(function _callee$(_context) {
               while (1) {
                 switch (_context.prev = _context.next) {
                   case 0:
                     _context.prev = 0;
-                    console.log(_this.selected_ids);
-                    _context.next = 4;
-                    return _equalServices.ApiService.clone(_this.entity, _this.selected_ids);
+                    _context.next = 3;
+                    return _equalServices.ApiService.clone(_this.entity, selection);
 
-                  case 4:
-                    _context.next = 6;
+                  case 3:
+                    _context.next = 5;
                     return _this.onchangeView();
 
-                  case 6:
-                    _context.next = 12;
+                  case 5:
+                    _context.next = 11;
                     break;
 
-                  case 8:
-                    _context.prev = 8;
+                  case 7:
+                    _context.prev = 7;
                     _context.t0 = _context["catch"](0);
                     console.log('unexpected error', _context.t0);
 
                     _this.displayErrorFeedback(_context.t0);
 
-                  case 12:
+                  case 11:
                   case "end":
                     return _context.stop();
                 }
               }
-            }, _callee, null, [[0, 8]]);
+            }, _callee, null, [[0, 7]]);
           }));
 
           function handler(_x) {
@@ -3975,14 +4114,14 @@ var View = /*#__PURE__*/function () {
         icon: 'archive',
         primary: true,
         handler: function () {
-          var _handler2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2(event) {
+          var _handler2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2(selection) {
             return _regenerator.default.wrap(function _callee2$(_context2) {
               while (1) {
                 switch (_context2.prev = _context2.next) {
                   case 0:
                     _context2.prev = 0;
                     _context2.next = 3;
-                    return _equalServices.ApiService.archive(_this.entity, _this.selected_ids);
+                    return _equalServices.ApiService.archive(_this.entity, selection);
 
                   case 3:
                     _context2.next = 5;
@@ -4018,7 +4157,7 @@ var View = /*#__PURE__*/function () {
         icon: 'delete',
         primary: true,
         handler: function () {
-          var _handler3 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4(event) {
+          var _handler3 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4(selection) {
             var $dialog;
             return _regenerator.default.wrap(function _callee4$(_context4) {
               while (1) {
@@ -4041,7 +4180,7 @@ var View = /*#__PURE__*/function () {
                                   permanent = result.permanent ? result.permanent : false;
                                   console.log(result, permanent);
                                   _context3.next = 4;
-                                  return _equalServices.ApiService.delete(_this.entity, _this.selected_ids, permanent);
+                                  return _equalServices.ApiService.delete(_this.entity, selection, permanent);
 
                                 case 4:
                                   _context3.next = 6;
@@ -4269,6 +4408,11 @@ var View = /*#__PURE__*/function () {
     value: function getContext() {
       return this.context;
     }
+  }, {
+    key: "getUser",
+    value: function getUser() {
+      return this.context.getUser();
+    }
     /**
      * Relay Context opening requests to parent Context.
      * 
@@ -4422,7 +4566,7 @@ var View = /*#__PURE__*/function () {
   }, {
     key: "getTotal",
     value: function getTotal() {
-      return +this.getModel().getTotal();
+      return this.getModel().getTotal();
     }
   }, {
     key: "getModel",
@@ -4923,12 +5067,12 @@ var View = /*#__PURE__*/function () {
               var item = _step7.value;
 
               _materialLib.UIHelper.createListItem(_equalServices.TranslationService.instant(item.title), item.icon).on('click', function (event) {
-                return item.handler(event);
+                return item.handler(_this3.selected_ids);
               }).appendTo($list);
 
               if (item.hasOwnProperty('primary') && item.primary) {
                 $container.append(_materialLib.UIHelper.createButton('selection-action-' + item.title, item.title, 'icon', item.icon).on('click', function (event) {
-                  return item.handler(event);
+                  return item.handler(_this3.selected_ids);
                 }));
 
                 var $tooltip = _materialLib.UIHelper.createTooltip('selection-action-' + item.title, _equalServices.TranslationService.instant(item.title));
@@ -5415,7 +5559,7 @@ var View = /*#__PURE__*/function () {
   }, {
     key: "actionListInlineEdit",
     value: function () {
-      var _actionListInlineEdit = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee23(event, selection) {
+      var _actionListInlineEdit = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee23(selection) {
         var _this7 = this;
 
         var $action_set, $action_set_selected_edit_actions, $button_save, $button_cancel, _iterator11, _step11, _loop6;
@@ -5521,7 +5665,7 @@ var View = /*#__PURE__*/function () {
                                         }, _callee18, null, [[7, 17], [19, 26]]);
                                       }));
 
-                                      return function (_x13, _x14) {
+                                      return function (_x12, _x13) {
                                         return _ref10.apply(this, arguments);
                                       };
                                     }());
@@ -5534,7 +5678,7 @@ var View = /*#__PURE__*/function () {
                             }, _callee19);
                           }));
 
-                          return function (_x11, _x12) {
+                          return function (_x10, _x11) {
                             return _ref9.apply(this, arguments);
                           };
                         }());
@@ -5591,7 +5735,7 @@ var View = /*#__PURE__*/function () {
                             }, _callee21);
                           }));
 
-                          return function (_x17, _x18) {
+                          return function (_x16, _x17) {
                             return _ref12.apply(this, arguments);
                           };
                         }());
@@ -5627,7 +5771,7 @@ var View = /*#__PURE__*/function () {
                         }, _callee20);
                       }));
 
-                      return function (_x15, _x16) {
+                      return function (_x14, _x15) {
                         return _ref11.apply(this, arguments);
                       };
                     }());
@@ -5682,7 +5826,7 @@ var View = /*#__PURE__*/function () {
                         }, _callee22);
                       }));
 
-                      return function (_x19, _x20) {
+                      return function (_x18, _x19) {
                         return _ref13.apply(this, arguments);
                       };
                     }());
@@ -5705,7 +5849,7 @@ var View = /*#__PURE__*/function () {
         }, _callee23, this);
       }));
 
-      function actionListInlineEdit(_x9, _x10) {
+      function actionListInlineEdit(_x9) {
         return _actionListInlineEdit.apply(this, arguments);
       }
 
@@ -5860,7 +6004,7 @@ var View = /*#__PURE__*/function () {
         }, _callee24, this, [[23, 32]]);
       }));
 
-      function displayErrorFeedback(_x21) {
+      function displayErrorFeedback(_x20) {
         return _displayErrorFeedback.apply(this, arguments);
       }
 
@@ -6215,14 +6359,14 @@ var eQ = /*#__PURE__*/function () {
                     // view, select, add
                     lang: _environment.environment.lang,
                     callback: null,
-                    domContainerSelector: '#sb-container'
+                    target: '#sb-container'
                   }), config);
 
-                  if (!_this.frames.hasOwnProperty(config.domContainerSelector)) {
-                    _this.frames[config.domContainerSelector] = new _equalLib.Frame(config.domContainerSelector);
+                  if (!_this.frames.hasOwnProperty(config.target)) {
+                    _this.frames[config.target] = new _equalLib.Frame(config.target);
                   }
 
-                  _this.frames[config.domContainerSelector].openContext(config);
+                  _this.frames[config.target].openContext(config);
                 });
                 /**
                  * 
@@ -6234,24 +6378,24 @@ var eQ = /*#__PURE__*/function () {
                   var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
                   // close context non-silently with relayed data
                   params = _objectSpread(_objectSpread({}, {
-                    domContainerSelector: '#sb-container',
+                    target: '#sb-container',
                     data: {}
                   }), params);
 
-                  if (_this.frames.hasOwnProperty(params.domContainerSelector)) {
-                    _this.frames[params.domContainerSelector].closeContext(params.data);
+                  if (_this.frames.hasOwnProperty(params.target)) {
+                    _this.frames[params.target].closeContext(params.data);
                   }
                 });
                 this.$sbEvents.on('_closeAll', function (event) {
                   var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
                   // close all contexts silently
                   params = _objectSpread(_objectSpread({}, {
-                    domContainerSelector: '#sb-container',
+                    target: '#sb-container',
                     silent: true
                   }), params);
 
-                  if (_this.frames.hasOwnProperty(params.domContainerSelector)) {
-                    _this.frames[params.domContainerSelector].closeContext(params.silent);
+                  if (_this.frames.hasOwnProperty(params.target)) {
+                    _this.frames[params.target].closeContext(params.silent);
                   }
                 });
 
@@ -7122,7 +7266,6 @@ var Widget = /*#__PURE__*/function () {
     (0, _defineProperty2.default)(this, "id", '');
     (0, _defineProperty2.default)(this, "readonly", false);
     (0, _defineProperty2.default)(this, "config", void 0);
-    console.log('Widget constructor', type, label, value, config);
     this.layout = layout;
     this.value = value;
     this.label = label;
@@ -7294,7 +7437,6 @@ var WidgetBoolean = /*#__PURE__*/function (_Widget) {
           $elem = _materialLib.UIHelper.createSwitch('', this.label, this.value, this.config.helper, '', this.readonly); // setup handler for relaying value update to parent layout
 
           $elem.find('input').on('change', function (event) {
-            console.log('WidgetBoolean onchange');
             var $this = $(event.currentTarget);
             _this.value = $this.prop("checked");
             $elem.trigger('_updatedWidget');
@@ -7382,7 +7524,6 @@ var WidgetDate = /*#__PURE__*/function (_Widget) {
     value: function render() {
       var _this = this;
 
-      console.log('WidgetDate::render', this.value, this.config);
       var $elem = (0, _jqueryLib.$)();
       var date = new Date(this.value);
       var value;
@@ -7489,7 +7630,6 @@ var WidgetDateTime = /*#__PURE__*/function (_Widget) {
     value: function render() {
       var _this = this;
 
-      console.log('WidgetDate::render', this.value, this.config);
       var $elem = (0, _jqueryLib.$)();
       var date = new Date(this.value);
       var value;
@@ -7754,7 +7894,7 @@ var WidgetMany2Many = /*#__PURE__*/function (_Widget) {
     value: function render() {
       var _this2 = this;
 
-      console.log('WidgetOne2Many::render', this.config);
+      console.log('WidgetMany2Many::render', this);
       var $elem;
       $elem = $('<div />'); // make sure view is not instanciated during 'layout' phase (while config is still incomplete)
 
@@ -7765,10 +7905,8 @@ var WidgetMany2Many = /*#__PURE__*/function (_Widget) {
           selection_actions: [{
             title: 'SB_ACTIONS_BUTTON_REMOVE',
             icon: 'delete',
-            handler: function handler(event, selection) {
-              var ids = _this2.value.map(function (o) {
-                return o.id;
-              });
+            handler: function handler(selection) {
+              console.log(_this2.value, selection);
 
               var _iterator = _createForOfIteratorHelper(selection),
                   _step;
@@ -7776,10 +7914,15 @@ var WidgetMany2Many = /*#__PURE__*/function (_Widget) {
               try {
                 for (_iterator.s(); !(_step = _iterator.n()).done;) {
                   var id = _step.value;
-                  var index = ids.indexOf(id);
 
-                  if (index > -1) {
-                    ids[index] = -ids[index];
+                  var index = _this2.value.indexOf(id);
+
+                  if (index == -1) {
+                    if (_this2.value.indexOf(-id) == -1) {
+                      _this2.value.push(-id);
+                    }
+                  } else {
+                    _this2.value[index] = -_this2.value[index];
                   }
                 }
               } catch (err) {
@@ -7788,11 +7931,7 @@ var WidgetMany2Many = /*#__PURE__*/function (_Widget) {
                 _iterator.f();
               }
 
-              _this2.value = ids.map(function (id) {
-                return {
-                  id: id
-                };
-              });
+              console.log(_this2.value);
               $elem.trigger('_updatedWidget');
             }
           }]
@@ -7820,26 +7959,26 @@ var WidgetMany2Many = /*#__PURE__*/function (_Widget) {
                         purpose: purpose,
                         callback: function callback(data) {
                           if (data && data.selection) {
-                            var ids = _this2.value.map(function (o) {
-                              return o.id;
-                            }); // 1) remove from current selection items (+ or -) that are in returned selection
+                            // add ids that are not yet in the Object value
+                            var _iterator2 = _createForOfIteratorHelper(data.selection),
+                                _step2;
 
+                            try {
+                              for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+                                var id = _step2.value;
 
-                            for (var i = ids.length - 1; i >= 0; --i) {
-                              var item = Math.abs(ids[i]);
+                                var index = _this2.value.indexOf(id);
 
-                              if (data.selection.indexOf(item) > -1) {
-                                ids.splice(i, 1);
+                                if (index == -1) {
+                                  _this2.value.push(id);
+                                }
                               }
-                            } // 2) append returned selection to current selection
+                            } catch (err) {
+                              _iterator2.e(err);
+                            } finally {
+                              _iterator2.f();
+                            }
 
-
-                            ids = ids.concat(data.selection);
-                            _this2.value = ids.map(function (id) {
-                              return {
-                                id: id
-                              };
-                            });
                             $elem.trigger('_updatedWidget');
                           }
                         }
@@ -7870,17 +8009,21 @@ var WidgetMany2Many = /*#__PURE__*/function (_Widget) {
                           callback: function callback(data) {
                             if (data && data.selection) {
                               if (data.selection.length) {
-                                var ids = _this2.value.map(function (o) {
-                                  return o.id;
-                                }); // append created object to current selection
+                                var _iterator3 = _createForOfIteratorHelper(data.selection),
+                                    _step3;
 
+                                try {
+                                  for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+                                    var id = _step3.value;
 
-                                ids = ids.concat([data.selection[0]]);
-                                _this2.value = ids.map(function (id) {
-                                  return {
-                                    id: id
-                                  };
-                                });
+                                    _this2.value.push(id);
+                                  }
+                                } catch (err) {
+                                  _iterator3.e(err);
+                                } finally {
+                                  _iterator3.f();
+                                }
+
                                 $elem.trigger('_updatedWidget');
                               }
                             }
@@ -8130,18 +8273,21 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
                 }
               }
             }, _callee);
-          }))); // open targeted object in new context
+          }))); // open creation form in new context
 
           $button_create.on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
             return _regenerator.default.wrap(function _callee2$(_context2) {
               while (1) {
                 switch (_context2.prev = _context2.next) {
                   case 0:
+                    console.log('########################################################', domain);
+
                     _this.getLayout().openContext({
                       entity: _this.config.foreign_object,
                       type: 'form',
                       mode: 'edit',
                       purpose: 'create',
+                      domain: domain,
                       name: _this.config.hasOwnProperty('view_name') ? _this.config.view_name : 'default',
                       callback: function callback(data) {
                         if (data && data.selection && data.objects) {
@@ -8162,7 +8308,7 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
                       }
                     });
 
-                  case 1:
+                  case 2:
                   case "end":
                     return _context2.stop();
                 }
@@ -8369,7 +8515,6 @@ var WidgetSelect = /*#__PURE__*/function (_Widget) {
     value: function render() {
       var _this = this;
 
-      console.log('WidgetSelect::render', this.config, this.mode, this.value);
       var $elem;
       var value = this.value ? this.value : '';
 
@@ -8452,7 +8597,6 @@ var WidgetString = /*#__PURE__*/function (_Widget) {
     value: function render() {
       var _this = this;
 
-      console.log('WidgetString::render');
       var $elem;
       var value = this.value ? this.value : '';
 
@@ -27025,7 +27169,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1___default()((_node_modules_css_loader_dist_runtime_cssWithMappingToString_js__WEBPACK_IMPORTED_MODULE_0___default()));
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, ":root {\r\n    /* colored buttons */\r\n    --mdc-theme-primary: #3f51b5;\r\n    --mdc-theme-primary-hover: #4f61c5;\r\n\r\n    --mdc-theme-primary-selected: #f5f5ff;\r\n    --mdc-theme-primary-outline: #b1b1dc;\r\n\r\n    /* checkbox background */\r\n    --mdc-theme-secondary: #3f51b5;\r\n    /* menus */\r\n    --mdc-typography-subtitle1-font-size: 14px;\r\n    /* table headers */\r\n    --mdc-typography-subtitle2-font-weight: 600;\r\n\r\n\r\n    --mdc-layout-grid-margin-desktop: 12px;\r\n    --mdc-layout-grid-gutter-desktop: 24px;\r\n    --mdc-layout-grid-margin-tablet: 12px;\r\n    --mdc-layout-grid-gutter-tablet: 18px;\r\n    --mdc-layout-grid-margin-phone: 12px;\r\n    --mdc-layout-grid-gutter-phone: 16px;\r\n\r\n}\r\n    \r\nbody, html {\r\n    margin: 0;\r\n    padding: 0;\r\n    height:100%;\r\n}\r\n\r\n#sb-root {\r\n    display: flex;\r\n    height: 100%;\r\n    flex-flow: column nowrap;\r\n}\r\n\r\n#sb-menu .sb-menu-button {\r\n    display: inline-block;\r\n}\r\n\r\n#sb-container, .sb-container {\r\n    width: 100%;\r\n    height: 100%;\r\n    overflow: hidden;\r\n    flex: 1 1 100%;\r\n    box-sizing: border-box;\r\n}\r\n\r\n.sb-container-header {\r\n    padding-left: 12px;\r\n    height: 48px;\r\n    border-bottom: solid 1px lightgrey;\r\n}\r\n\r\n.sb-container-header h3 {\r\n    line-height: 48px;\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n.sb-container-header a {\r\n    cursor: pointer;\r\n    text-decoration: none;\r\n    color: var(--mdc-theme-primary);\r\n}\r\n\r\n.sb-container-header a:hover {\r\n\r\n}\r\n\r\n.sb-context {\r\n    /* container height minus the header */\r\n    height: calc(100% - 48px);\r\n}\r\n\r\n.sb-view { \r\n    position: relative;\r\n    height: 100%;\r\n}\r\n\r\n.sb-view-layout-list {\r\n    /* height must be decremented by height of other elements from parent (header and footer) */\r\n    height: calc(100% - 112px);\r\n}\r\n\r\n.sb-view-layout-form {\r\n    /* height must be decremented by height of other elements from parent (header and footer) */\r\n    height: calc(100% - 56px);\r\n    padding-bottom: 10px;\r\n}\r\n\r\n.sb-view-list-inline-actions-button {\r\n    transform: scale(0.7);\r\n}\r\n\r\n.sb-layout {\r\n    position: relative;\r\n    height: 100%;\r\n}\r\n\r\n\r\n\r\n\r\n.sb-view-layout-list table th {\r\n    cursor: pointer;\r\n    user-select: none;\r\n    position: sticky;\r\n    top: 0;\r\n    z-index: 3;\r\n}\r\n\r\n.sb-view-layout-list table th.sortable.hover {\r\n    background-color: #f0f0f0;\r\n}\r\n\r\n.sb-view-layout-list table th.sorted {\r\n    color: black;\r\n}\r\n\r\n.sb-view-layout-list table th.asc::after, .sb-view-layout-list table th.desc::after {\r\n    position: absolute;\r\n    margin-left: 6px;\r\n    font-family: FontAwesome;\r\n    opacity: 0.3;\r\n}\r\n\r\n.sb-view-layout-list table th.asc::after {\r\n    content: \"\\f0d7\";\r\n}\r\n\r\n.sb-view-layout-list table th.desc::after {\r\n    content: \"\\f0d8\";\r\n}\r\n\r\n.sb-view-layout-list table tr {\r\n    cursor: pointer;\r\n}\r\n\r\n.sb-view-header-list {\r\n    position: relative;\r\n    max-height: 112px;\r\n    /*\r\n    height: 112px;\r\n    line-height: 112px;\r\n    */\r\n}\r\n\r\n.sb-view-header-list-actions {\r\n    margin-left: 12px;\r\n    max-height: 56px;\r\n}\r\n\r\n.sb-view-header-list-actions-set {\r\n    display: flex;\r\n    margin-top: 10px;\r\n}\r\n\r\n.sb-view-header-list-actions button {\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-header-list-actions-selected {\r\n    position: relative;\r\n    display: flex;\r\n}\r\n\r\n/* todo: improve this (add a custom class)*/\r\n.sb-view-header-list-actions-selected .mdc-button__label {\r\n    padding-right: 10px;\r\n}\r\n\r\n.sb-view-header-list-actions-selected .mdc-button__label::after {\r\n    content: \"\\f0d7\";\r\n}\r\n\r\n.sb-view-header-list-actions-selected .mdc-button__label::after {\r\n    position: absolute;\r\n    margin-left: 6px;\r\n    font-family: FontAwesome;\r\n    opacity: 0.5;\r\n}\r\n\r\n.sb-view-header-list-navigation {\r\n    height: 56px;\r\n    line-height: 56px;\r\n    display: flex;\r\n}\r\n\r\n.sb-view-header-list-filters {\r\n    margin-top: 4px;\r\n}\r\n\r\n.sb-view-header-list-filters .sb-view-header-list-filters-menu {\r\n    min-width: 250px;\r\n}\r\n\r\n.sb-view-header-list-filters-set {\r\n    margin-top: 4px;\r\n}\r\n\r\n\r\n.sb-view-header-list-fields_toggle {\r\n    /* flex-grow: 1; */\r\n    margin-top: 4px;\r\n    margin-right: 10px;\r\n    text-align: right;\r\n}\r\n\r\n\r\n.sb-view-header-list-fields_toggle .sb-view-header-list-fields_toggle-menu {\r\n    min-width: 250px !important;\r\n    max-width: 250px !important;\r\n}\r\n\r\n.sb-view-header-list-pagination {\r\n    flex: 1;\r\n    flex-grow: 1;\r\n\r\n}\r\n\r\n.sb-view-header-list-pagination-limit_select {\r\n    margin-left: 12px;\r\n}\r\n\r\n.sb-view-header-list-pagination .pagination-navigation {\r\n    user-select: none; \r\n}\r\n\r\n\r\n.sb-widget-mode-view input {\r\n    color: black !important;\r\n    user-select: none;\r\n}\r\n\r\n.sb-widget-mode-view .mdc-text-field .mdc-floating-label,\r\n.sb-widget-mode-view.mdc-select .mdc-floating-label {\r\n    color: rgba(0,0,0,0.5) !important;\r\n    user-select: none;\r\n    font-size: 16px;\r\n    font-weight: 400;\r\n}\r\n\r\n.sb-widget-mode-edit .mdc-text-field .mdc-floating-label, \r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label {\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n}\r\n\r\n.sb-widget-mode-view .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above, \r\n.sb-widget-mode-view.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n}\r\n\r\n.sb-widget-mode-edit .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above, \r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.6) !important;\r\n    font-weight: 400;\r\n}\r\n\r\n\r\n.sb-view-header-form {\r\n    height: 56px;\r\n    line-height: 56px;\r\n}\r\n\r\n.sb-view-header-form-actions {\r\n    display: flex;\r\n    flex-direction: row;\r\n    align-items: center;\r\n    margin-left: 12px;\r\n    max-width: 250px;\r\n    height: 56px;\r\n    line-height: 56px;\r\n}\r\n\r\n.sb-view-header-form-actions button {\r\n    flex: 0 1 auto;\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-form-group {\r\n    padding: 12px;\r\n}\r\n\r\n.sb-view-form-row:not(:first-child) {\r\n    padding-top: 24px;\r\n}\r\n\r\n.sb-view-form-group-title {\r\n    font-size: 20px;\r\n    margin-bottom: 12px;\r\n}\r\n\r\n.sb-view-form-sections-tabbar {\r\n    margin-bottom: 12px;\r\n}\r\n\r\n.sb-view-layout-list .mdc-line-ripple::before, .sb-view-layout-list .mdc-line-ripple::after {\r\n  border: none !important;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget label.mdc-text-field .mdc-floating-label {\r\n    display: none !important;\r\n}\r\n.sb-view-layout-list .sb-widget-mode-view label.mdc-text-field::before {\r\n    display: none !important;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget-mode-view input {\r\n    height: 100%;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget-mode-edit button.mdc-icon-button {\r\n    padding: 0 0 0 5px;\r\n    height: auto;\r\n    width: auto;\r\n    position: absolute;\r\n}\r\n\r\n.sb-view-layout-form-input-button {\r\n    width: 25px;\r\n    height: 30px;\r\n    position: absolute;\r\n    right: 12px;\r\n    top: calc(50% - 15px);\r\n}\r\n\r\n.sb-view-layout-form-input-decoy {\r\n    position: absolute;\r\n    left: 16px;\r\n    bottom: 10px;\r\n    z-index: -1;\r\n    opacity: 0;\r\n}\r\n\r\n\r\n.sb-widget {\r\n    position: relative;\r\n}\r\n\r\n.sb-ui-checkbox {\r\n    position: relative;\r\n}\r\n\r\n.sb-ui-menu.mdc-menu-surface--is-open-below {\r\n    margin-top: 48px;\r\n}\r\n\r\n.sb-ui-menu.mdc-menu-surface--open {\r\n    margin-bottom: 48px;\r\n}\r\n\r\n\r\n/* Material Components customizations */\r\n\r\n/* fix for ripple not working on icon-button */\r\nbutton.mdc-icon-button:hover, button.mdc-icon-button:active, button.mdc-icon-button:focus {\r\n    border-radius: 50%;\r\n    background-color: rgba(0,0,0,0.10);\r\n}\r\n\r\n/* fix tooltip not hiding */\r\n.mdc-tooltip--hide {\r\n    opacity: 0;\r\n}\r\n\r\n/* Special SB widgets customizations */\r\n\r\n/* support for title strings */\r\n.sb-widget.title {\r\n    margin-top: -14px; \r\n}\r\n\r\n.sb-widget.title span.mdc-floating-label--float-above {\r\n    transform: translateY(-166%) !important;\r\n}\r\n.sb-widget.title label.mdc-text-field {\r\n  height: 70px;\r\n}\r\n.sb-widget.title input.mdc-text-field__input {\r\n  font-size: 30px;\r\n  margin-top: auto; \r\n  height: 60px;\r\n}\r\n\r\n.sb-view-layout-form {\r\n    overflow-y: scroll;\r\n}\r\n\r\n\r\n.sb-view-layout-form::-webkit-scrollbar {\r\n    width: 6px;\r\n    overflow-y: scroll;\r\n    background: #EAEAEA;\r\n\r\n}\r\n\r\n.sb-view-layout-form::-webkit-scrollbar-thumb {\r\n    background: var(--mdc-theme-primary, #6200ee);\r\n    border-radius: 10px;\r\n}\r\n\r\n\r\n.sb-view-layout-form .sb-widget.sb-widget-type-boolean {\r\n    height: 56px;\r\n    vertical-align: middle;\r\n    display: table-cell;\r\n    padding-left: 16px;\r\n}\r\n\r\n\r\n/* adapt inputs for inline editing */\r\n.sb-widget-cell .mdc-text-field {\r\n  height: 100%;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field {\r\n    padding-left: 0;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-text-field {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    padding-left: 5px;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-select__anchor {\r\n    padding-left: 5px;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field-helper-line {\r\n  display: none;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--filled::before {\r\n  display: none;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--filled:not(.mdc-text-field--disabled) {\r\n    background-color: inherit;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-text-field--filled:not(.mdc-text-field--disabled) {\r\n    background-color: white;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--invalid .mdc-text-field__input {\r\n    color: var(--mdc-theme-error, #b00020);\r\n}\r\n\r\n.sb-widget-cell .mdc-select {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    margin-top: -14px;\r\n}\r\n\r\n.sb-widget-cell .mdc-select {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    margin-top: -14px;\r\n}\r\n\r\n\r\n.sb-widget-cell .mdc-select__anchor {\r\n    height: 100%;\r\n}\r\n\r\n/* make mini-fab flat (mini save buttons) */ \r\n.sb-view-layout-list-row-checkbox .mdc-fab--mini {\r\n    box-shadow: none !important;\r\n    margin: 2px 0;\r\n}\r\n\r\n.mdc-data-table {\r\n    height: 100%;\r\n}\r\n\r\n\r\n.mdc-data-table__table-container::-webkit-scrollbar {\r\n    width: 6px;\r\n    overflow-y: scroll;\r\n    background: #EAEAEA;\r\n\r\n}\r\n\r\n.mdc-data-table__table-container::-webkit-scrollbar-thumb {\r\n    background: var(--mdc-theme-primary, #6200ee);\r\n    border-radius: 10px;\r\n}\r\n\r\n\r\n\r\n/* custom style for special button with icon only */\r\n.mdc-button-icon {\r\n\tmin-width: 36px;\r\n}\r\n\r\n.mdc-button-icon  .mdc-button__ripple {\r\n\tborder-radius: 50%;\r\n    width: 36px;\r\n}\r\n\r\n\r\n\r\n.mdc-menu {\r\n    min-width: var(--mdc-menu-min-width, 200px) !important;\r\n    max-width: calc(100vw - 32px) !important;\r\n}\r\n\r\n.mdc-text-field:not(.mdc-text-field--disabled) .mdc-text-field__icon {\r\n    color: rgba(0,0,0,.54);\r\n    background-color: white;\r\n}\r\n\r\n.mdc-text-field--focused .mdc-text-field-helper-line .mdc-text-field-helper-text {\r\n    opacity: 1 !important;\r\n}\r\n\r\n.mdc-text-field--with-trailing-icon .mdc-text-field__icon {\r\n    left: initial;\r\n    right: 12px;\r\n}\r\n\r\n.mdc-text-field--with-leading-icon .mdc-text-field__icon, .mdc-text-field--with-trailing-icon .mdc-text-field__icon {\r\n    position: absolute;\r\n    top: 50%;\r\n    transform: translateY(-50%);\r\n    cursor: pointer;\r\n}\r\n\r\n.mdc-text-field--textarea {\r\n    outline: solid 1px rgba(0, 0,0,0.1);\r\n}\r\n\r\n.sb-view-layout.sb-view-layout-form .mdc-text-field--filled:not(.mdc-text-field--disabled), .mdc-select--filled:not(.mdc-select--disabled) .mdc-select__anchor {\r\n    background: transparent !important;\r\n}\r\n\r\n.mdc-layout-grid__cell {\r\n    position: relative;\r\n}\r\n\r\n.mdc-text-field-helper-line {\r\n    position: absolute;\r\n    width: 100%;\r\n    max-width: 100%;\r\n    padding-left: 0 !important;    \r\n    padding-right: 0 !important;    \r\n}\r\n\r\n.mdc-data-table__header-cell--checkbox {\r\n    width: 44px;\r\n}\r\n.mdc-data-table__row--selected {\r\n    background-color: var(--mdc-theme-primary-selected) !important;\r\n}\r\n.mdc-list-item .mdc-checkbox {\r\n    margin-left: -11px;\r\n}\r\n\r\n.mdc-list-item__graphic {\r\n    color: rgba(0,0,0,.54) !important;\r\n    margin-right: 12px;\r\n}\r\n\r\n.mdc-list-item__text {\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;    \r\n}\r\n\r\n.mdc-chip .mdc-chip__icon {\r\n    font-size: 22px;\r\n    height: 22px;\r\n}\r\n\r\n.mdc-list-item {\r\n    height: 44px;\r\n    align-items: center !important;\r\n}\r\n\r\n.mdc-data-table__cell {\r\n    height: 44px;\r\n}\r\n\r\n\r\n.mdc-data-table__pagination {\r\n    border-top: 0;\r\n}\r\n\r\n.mdc-text-field {\r\n    width: 100%;\r\n}\r\n\r\n.mdc-floating-label {\r\n    font-size: 16px !important;\r\n    /* color: rgba(0, 0, 0, 0.8) !important;*/\r\n}\r\n\r\n\r\n.mdc-text-field-helper-line .mdc-text-field-helper-text {\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n\r\n.mdc-text-field--invalid:not(.mdc-text-field--disabled) .mdc-text-field-helper-line .mdc-text-field-helper-text--validation-msg {\r\n    color: var(--mdc-theme-error, #b00020) !important;\r\n}\r\n\r\n.mdc-text-field--focused:not(.mdc-text-field--disabled) .mdc-floating-label {\r\n    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;\r\n}\r\n\r\n.mdc-select--focused:not(.mdc-text-field--disabled) .mdc-floating-label {\r\n    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;\r\n}\r\n\r\n.mdc-select {\r\n    width: 100%;\r\n}\r\n\r\n.mdc-tab {\r\n    max-width: 280px;\r\n}\r\n\r\n.mdc-tab-bar {\r\n    margin-top: 12px;\r\n    border-bottom: 1px solid rgba(0, 0, 0, 0.12);\r\n}\r\n\r\n.mdc-tab__text-label {\r\n    user-select: none;\r\n}\r\n.mdc-tab.mdc-tab--active .mdc-tab__ripple {\r\n    background-color: var(--mdc-ripple-color, var(--mdc-theme-primary, #6200ee));\r\n    opacity: 0.1;\r\n}\r\n\r\n\r\n\r\n/* jqueryui datepicker material styling */\r\n\r\n\r\n.ui-datepicker {\r\n    z-index: 3 !important;\r\n    font-family: \"Roboto\";\r\n}\r\n\r\n.ui-datepicker {\r\n    padding: 0;\r\n    border: none;  \r\n    width: 325px;\r\n    box-shadow: 4px 4px 10px 2px rgba(0, 0, 0, 0.24);\r\n    margin-left: -16px;\r\n    margin-top: 6px;\r\n    font-size: 14px;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-title {\r\n    font-size: 17px;\r\n}\r\n\r\n.ui-datepicker-trigger {\r\n    position: absolute;\r\n    right: 12px;\r\n    top: 50%;\r\n    opacity: 0;\r\n    margin-top: -10px;\r\n    cursor: pointer;\r\n}\r\n\r\n.ui-corner-all {\r\n  border-radius: 0;\r\n}\r\n\r\n.ui-widget-header {\r\n  border: 0;\r\n}\r\n\r\n.ui-datepicker-header {\r\n  text-align: center;\r\n  background: white;\r\n  padding-bottom: 15px;\r\n  font-weight: 300;\r\n}\r\n.ui-datepicker-header .ui-datepicker-prev,\r\n.ui-datepicker-header .ui-datepicker-next,\r\n.ui-datepicker-header .ui-datepicker-title {\r\n  border: none;\r\n  outline: none;\r\n  margin: 5px;\r\n}\r\n\r\n.ui-datepicker-prev.ui-state-hover,\r\n.ui-datepicker-next.ui-state-hover {\r\n  border: none;\r\n  outline: none;\r\n  background: #b4cbe5;\r\n}\r\n\r\n.ui-datepicker .ui-state-default {\r\n  background: none;\r\n  border: none;\r\n  text-align: center;\r\n  height: 33px;\r\n  width: 33px;\r\n  line-height: 30px;\r\n}\r\n.ui-datepicker .ui-state-highlight {\r\n  color: var(--mdc-theme-primary);\r\n}\r\n.ui-datepicker .ui-state-active {\r\n  color: white;\r\n}\r\n\r\n\r\n\r\n.ui-datepicker-calendar thead th {\r\n    color: #999999;\r\n    font-weight: 200;\r\n}\r\n\r\n.ui-datepicker-buttonpane {\r\n  border: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-state-default {\r\n  background: white;\r\n  border: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-datepicker-close,\r\n.ui-datepicker-buttonpane .ui-datepicker-current {\r\n  background: white;\r\n  color: #284B72;\r\n  text-transform: uppercase;\r\n  border: none;\r\n  opacity: 1;\r\n  font-weight: 200;\r\n  outline: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-datepicker-close:hover,\r\n.ui-datepicker-buttonpane .ui-datepicker-current:hover {\r\n  background: #b4cbe5;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev {\r\n    text-decoration: none;\r\n    height: auto !important;\r\n    width: auto !important;\r\n\tleft: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-next {\r\n    text-decoration: none;\r\n    height: auto !important;\r\n    width: auto !important;\r\n\tright: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev .ui-icon, .ui-datepicker .ui-datepicker-next .ui-icon {\r\n    display: none !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev::after {\r\n    font-family: FontAwesome;\r\n\tcontent: \"\\f053\";\r\n\tdisplay: block;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-next::after {\r\n    font-family: FontAwesome;\r\n\tcontent: \"\\f054\";\r\n\tdisplay: block;\r\n}\r\n\r\n\r\n.ui-datepicker .ui-datepicker-prev.ui-state-hover, .ui-datepicker .ui-datepicker-next.ui-state-hover {\r\n    background: none;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev-hover {\r\n\tleft: 8px !important;\r\n    top: 8px !important;\r\n}\r\n.ui-datepicker .ui-datepicker-next-hover {\r\n\tright: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n\r\n\r\n\r\n\r\nbutton.ui-state-hover {\r\n    background: unset !important;\r\n    background-color: var(--mdc-theme-primary-hover) !important;\r\n    border: unset !important;\r\n    color: white !important;\r\n    box-shadow: 0px 3px 1px -2px rgb(0 0 0 / 20%), 0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%) !important;\r\n}\r\n\r\n\r\n\r\n/* jquery ui datepicker month year picker */\r\n.ui-datepicker .ui-datepicker-select-month td ,\r\n.ui-datepicker .ui-datepicker-select-year td {\r\n\theight: 33px;\r\n}\r\n.ui-datepicker .ui-datepicker-select-month td span,\r\n.ui-datepicker .ui-datepicker-select-month td a,\r\n.ui-datepicker .ui-datepicker-select-year td span,\r\n.ui-datepicker .ui-datepicker-select-year td a  {\r\n\ttext-align: center;\r\n}\r\n.ui-datepicker .ui-datepicker-select-year td.outoffocus {\r\n\topacity: 0.5;\r\n}\r\n\r\n.ui-datepicker-select-month .ui-state-default, .ui-datepicker-select-year .ui-state-default {\r\n    margin: auto;\r\n}\r\n\r\n.ui-datepicker td {\r\n    font-size: 14px !important;\r\n}\r\n\r\n.ui-datepicker .ui-state-default, .ui-datepicker .ui-state-active {\r\n    position: relative;\r\n    border: 0 !important;\r\n    background: none !important;\r\n}\r\n\r\n.ui-datepicker .ui-state-active::after {\r\n    position: absolute;\r\n    display: block;\r\n    content: '';\r\n    background-color:var(--mdc-theme-primary);\r\n    border-radius: 50%;\r\n    width: 34px;\r\n    height: 34px;\r\n    z-index: -1;\r\n    top: 0;\r\n    left: calc(50% - 16px)\r\n}\r\n\r\n\r\n.ui-datepicker .ui-state-default:not(.ui-state-active).ui-state-hover::after {\r\n    position: absolute;\r\n    display: block;\r\n    content: '';\r\n    background-color: rgba(0,0,0,0.05);\r\n    border-radius: 50%;\r\n    width: 34px;\r\n    height: 34px;\r\n    z-index: -1;\r\n    top: 0;\r\n    left: calc(50% - 16px)\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header {\r\n    display: flex;\r\n    align-items: center;\r\n    padding: 4px 24px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header .ui-datepicker-title {\r\n    flex: 1;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header-time-switch {\r\n    flex: 1;\r\n    line-height: 100%;\r\n    height: 100%;\r\n    align-self: center;\r\n}\r\n\r\n\r\n.timepicker{\r\n    display:block;\r\n    user-select:none;\r\n    margin:0 auto;\r\n    width:100%;\r\n    height:100%;\r\n    font-size:14px;\r\n}\r\n.timepicker__title{background-image:-webkit-linear-gradient(top,#fff 0,#f2f2f2 100%);position:relative;background:#f2f2f2;margin:0 auto;border-bottom:1px solid #e5e5e5;padding:12px 11px 10px 15px;color:#4C4C4C;font-size:inherit}\r\n.timepicker__close{-webkit-transform:translateY(-25%);-moz-transform:translateY(-25%);-ms-transform:translateY(-25%);-o-transform:translateY(-25%);transform:translateY(-25%);position:absolute;top:25%;right:10px;color:#34495e;cursor:pointer}\r\n.timepicker__close:before{content:'\\00d7'}\r\n.timepicker__controls{padding:10px 0;line-height:normal;margin:0}\r\n.timepicker__controls__control,.timepicker__controls__control--separator{vertical-align:middle;display:inline-block;font-size:inherit;margin:0 auto;width:35px;letter-spacing:1.3px}\r\n.timepicker__controls__control-down,.timepicker__controls__control-up{color:#34495e;position:relative;display:block;margin:3px auto;font-size:18px;cursor:pointer}\r\n.timepicker__controls__control-up:before{content:'\\f0d8'}\r\n.timepicker__controls__control-down:after{content:'\\f0d7'}\r\n.timepicker__controls__control--separator{width:5px}\r\n.text-center,.timepicker__controls,.timepicker__controls__control,.timepicker__controls__control--separator,.timepicker__controls__control-down,.timepicker__controls__control-up,.timepicker__title{text-align:center}\r\n.hover-state{color:#3498db}\r\n \r\n.fontello-after:after,.fontello:before,.timepicker__controls__control-down:after,.timepicker__controls__control-up:before{font-family:FontAwesome;font-style:normal;font-weight:400;display:inline-block;text-decoration:inherit;width:1em;margin-right:.2em;text-align:center;font-variant:normal;text-transform:none;line-height:1em;margin-left:.2em;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}  \r\n.clearable-picker{position:relative;display:inline-block}  \r\n.clearable-picker>.hastimepicker{padding-right:1em}  \r\n.clearable-picker>.hastimepicker::-ms-clear{display:none}  \r\n.clearable-picker>[data-clear-picker]{position:absolute;top:50%;right:0;transform:translateY(-50%);font-weight:700;font-size:.8em;padding:0 .3em .2em;line-height:1;color:#bababa;cursor:pointer}  \r\n.clearable-picker>[data-clear-picker]:hover{color:#a1a1a1}\r\n.timepicker__controls__control span {\r\n    outline: none;\r\n}", "",{"version":3,"sources":["webpack://./css/equal.css"],"names":[],"mappings":"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","sourcesContent":[":root {\r\n    /* colored buttons */\r\n    --mdc-theme-primary: #3f51b5;\r\n    --mdc-theme-primary-hover: #4f61c5;\r\n\r\n    --mdc-theme-primary-selected: #f5f5ff;\r\n    --mdc-theme-primary-outline: #b1b1dc;\r\n\r\n    /* checkbox background */\r\n    --mdc-theme-secondary: #3f51b5;\r\n    /* menus */\r\n    --mdc-typography-subtitle1-font-size: 14px;\r\n    /* table headers */\r\n    --mdc-typography-subtitle2-font-weight: 600;\r\n\r\n\r\n    --mdc-layout-grid-margin-desktop: 12px;\r\n    --mdc-layout-grid-gutter-desktop: 24px;\r\n    --mdc-layout-grid-margin-tablet: 12px;\r\n    --mdc-layout-grid-gutter-tablet: 18px;\r\n    --mdc-layout-grid-margin-phone: 12px;\r\n    --mdc-layout-grid-gutter-phone: 16px;\r\n\r\n}\r\n    \r\nbody, html {\r\n    margin: 0;\r\n    padding: 0;\r\n    height:100%;\r\n}\r\n\r\n#sb-root {\r\n    display: flex;\r\n    height: 100%;\r\n    flex-flow: column nowrap;\r\n}\r\n\r\n#sb-menu .sb-menu-button {\r\n    display: inline-block;\r\n}\r\n\r\n#sb-container, .sb-container {\r\n    width: 100%;\r\n    height: 100%;\r\n    overflow: hidden;\r\n    flex: 1 1 100%;\r\n    box-sizing: border-box;\r\n}\r\n\r\n.sb-container-header {\r\n    padding-left: 12px;\r\n    height: 48px;\r\n    border-bottom: solid 1px lightgrey;\r\n}\r\n\r\n.sb-container-header h3 {\r\n    line-height: 48px;\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n.sb-container-header a {\r\n    cursor: pointer;\r\n    text-decoration: none;\r\n    color: var(--mdc-theme-primary);\r\n}\r\n\r\n.sb-container-header a:hover {\r\n\r\n}\r\n\r\n.sb-context {\r\n    /* container height minus the header */\r\n    height: calc(100% - 48px);\r\n}\r\n\r\n.sb-view { \r\n    position: relative;\r\n    height: 100%;\r\n}\r\n\r\n.sb-view-layout-list {\r\n    /* height must be decremented by height of other elements from parent (header and footer) */\r\n    height: calc(100% - 112px);\r\n}\r\n\r\n.sb-view-layout-form {\r\n    /* height must be decremented by height of other elements from parent (header and footer) */\r\n    height: calc(100% - 56px);\r\n    padding-bottom: 10px;\r\n}\r\n\r\n.sb-view-list-inline-actions-button {\r\n    transform: scale(0.7);\r\n}\r\n\r\n.sb-layout {\r\n    position: relative;\r\n    height: 100%;\r\n}\r\n\r\n\r\n\r\n\r\n.sb-view-layout-list table th {\r\n    cursor: pointer;\r\n    user-select: none;\r\n    position: sticky;\r\n    top: 0;\r\n    z-index: 3;\r\n}\r\n\r\n.sb-view-layout-list table th.sortable.hover {\r\n    background-color: #f0f0f0;\r\n}\r\n\r\n.sb-view-layout-list table th.sorted {\r\n    color: black;\r\n}\r\n\r\n.sb-view-layout-list table th.asc::after, .sb-view-layout-list table th.desc::after {\r\n    position: absolute;\r\n    margin-left: 6px;\r\n    font-family: FontAwesome;\r\n    opacity: 0.3;\r\n}\r\n\r\n.sb-view-layout-list table th.asc::after {\r\n    content: \"\\f0d7\";\r\n}\r\n\r\n.sb-view-layout-list table th.desc::after {\r\n    content: \"\\f0d8\";\r\n}\r\n\r\n.sb-view-layout-list table tr {\r\n    cursor: pointer;\r\n}\r\n\r\n.sb-view-header-list {\r\n    position: relative;\r\n    max-height: 112px;\r\n    /*\r\n    height: 112px;\r\n    line-height: 112px;\r\n    */\r\n}\r\n\r\n.sb-view-header-list-actions {\r\n    margin-left: 12px;\r\n    max-height: 56px;\r\n}\r\n\r\n.sb-view-header-list-actions-set {\r\n    display: flex;\r\n    margin-top: 10px;\r\n}\r\n\r\n.sb-view-header-list-actions button {\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-header-list-actions-selected {\r\n    position: relative;\r\n    display: flex;\r\n}\r\n\r\n/* todo: improve this (add a custom class)*/\r\n.sb-view-header-list-actions-selected .mdc-button__label {\r\n    padding-right: 10px;\r\n}\r\n\r\n.sb-view-header-list-actions-selected .mdc-button__label::after {\r\n    content: \"\\f0d7\";\r\n}\r\n\r\n.sb-view-header-list-actions-selected .mdc-button__label::after {\r\n    position: absolute;\r\n    margin-left: 6px;\r\n    font-family: FontAwesome;\r\n    opacity: 0.5;\r\n}\r\n\r\n.sb-view-header-list-navigation {\r\n    height: 56px;\r\n    line-height: 56px;\r\n    display: flex;\r\n}\r\n\r\n.sb-view-header-list-filters {\r\n    margin-top: 4px;\r\n}\r\n\r\n.sb-view-header-list-filters .sb-view-header-list-filters-menu {\r\n    min-width: 250px;\r\n}\r\n\r\n.sb-view-header-list-filters-set {\r\n    margin-top: 4px;\r\n}\r\n\r\n\r\n.sb-view-header-list-fields_toggle {\r\n    /* flex-grow: 1; */\r\n    margin-top: 4px;\r\n    margin-right: 10px;\r\n    text-align: right;\r\n}\r\n\r\n\r\n.sb-view-header-list-fields_toggle .sb-view-header-list-fields_toggle-menu {\r\n    min-width: 250px !important;\r\n    max-width: 250px !important;\r\n}\r\n\r\n.sb-view-header-list-pagination {\r\n    flex: 1;\r\n    flex-grow: 1;\r\n\r\n}\r\n\r\n.sb-view-header-list-pagination-limit_select {\r\n    margin-left: 12px;\r\n}\r\n\r\n.sb-view-header-list-pagination .pagination-navigation {\r\n    user-select: none; \r\n}\r\n\r\n\r\n.sb-widget-mode-view input {\r\n    color: black !important;\r\n    user-select: none;\r\n}\r\n\r\n.sb-widget-mode-view .mdc-text-field .mdc-floating-label,\r\n.sb-widget-mode-view.mdc-select .mdc-floating-label {\r\n    color: rgba(0,0,0,0.5) !important;\r\n    user-select: none;\r\n    font-size: 16px;\r\n    font-weight: 400;\r\n}\r\n\r\n.sb-widget-mode-edit .mdc-text-field .mdc-floating-label, \r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label {\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n}\r\n\r\n.sb-widget-mode-view .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above, \r\n.sb-widget-mode-view.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n}\r\n\r\n.sb-widget-mode-edit .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above, \r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.6) !important;\r\n    font-weight: 400;\r\n}\r\n\r\n\r\n.sb-view-header-form {\r\n    height: 56px;\r\n    line-height: 56px;\r\n}\r\n\r\n.sb-view-header-form-actions {\r\n    display: flex;\r\n    flex-direction: row;\r\n    align-items: center;\r\n    margin-left: 12px;\r\n    max-width: 250px;\r\n    height: 56px;\r\n    line-height: 56px;\r\n}\r\n\r\n.sb-view-header-form-actions button {\r\n    flex: 0 1 auto;\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-form-group {\r\n    padding: 12px;\r\n}\r\n\r\n.sb-view-form-row:not(:first-child) {\r\n    padding-top: 24px;\r\n}\r\n\r\n.sb-view-form-group-title {\r\n    font-size: 20px;\r\n    margin-bottom: 12px;\r\n}\r\n\r\n.sb-view-form-sections-tabbar {\r\n    margin-bottom: 12px;\r\n}\r\n\r\n.sb-view-layout-list .mdc-line-ripple::before, .sb-view-layout-list .mdc-line-ripple::after {\r\n  border: none !important;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget label.mdc-text-field .mdc-floating-label {\r\n    display: none !important;\r\n}\r\n.sb-view-layout-list .sb-widget-mode-view label.mdc-text-field::before {\r\n    display: none !important;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget-mode-view input {\r\n    height: 100%;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget-mode-edit button.mdc-icon-button {\r\n    padding: 0 0 0 5px;\r\n    height: auto;\r\n    width: auto;\r\n    position: absolute;\r\n}\r\n\r\n.sb-view-layout-form-input-button {\r\n    width: 25px;\r\n    height: 30px;\r\n    position: absolute;\r\n    right: 12px;\r\n    top: calc(50% - 15px);\r\n}\r\n\r\n.sb-view-layout-form-input-decoy {\r\n    position: absolute;\r\n    left: 16px;\r\n    bottom: 10px;\r\n    z-index: -1;\r\n    opacity: 0;\r\n}\r\n\r\n\r\n.sb-widget {\r\n    position: relative;\r\n}\r\n\r\n.sb-ui-checkbox {\r\n    position: relative;\r\n}\r\n\r\n.sb-ui-menu.mdc-menu-surface--is-open-below {\r\n    margin-top: 48px;\r\n}\r\n\r\n.sb-ui-menu.mdc-menu-surface--open {\r\n    margin-bottom: 48px;\r\n}\r\n\r\n\r\n/* Material Components customizations */\r\n\r\n/* fix for ripple not working on icon-button */\r\nbutton.mdc-icon-button:hover, button.mdc-icon-button:active, button.mdc-icon-button:focus {\r\n    border-radius: 50%;\r\n    background-color: rgba(0,0,0,0.10);\r\n}\r\n\r\n/* fix tooltip not hiding */\r\n.mdc-tooltip--hide {\r\n    opacity: 0;\r\n}\r\n\r\n/* Special SB widgets customizations */\r\n\r\n/* support for title strings */\r\n.sb-widget.title {\r\n    margin-top: -14px; \r\n}\r\n\r\n.sb-widget.title span.mdc-floating-label--float-above {\r\n    transform: translateY(-166%) !important;\r\n}\r\n.sb-widget.title label.mdc-text-field {\r\n  height: 70px;\r\n}\r\n.sb-widget.title input.mdc-text-field__input {\r\n  font-size: 30px;\r\n  margin-top: auto; \r\n  height: 60px;\r\n}\r\n\r\n.sb-view-layout-form {\r\n    overflow-y: scroll;\r\n}\r\n\r\n\r\n.sb-view-layout-form::-webkit-scrollbar {\r\n    width: 6px;\r\n    overflow-y: scroll;\r\n    background: #EAEAEA;\r\n\r\n}\r\n\r\n.sb-view-layout-form::-webkit-scrollbar-thumb {\r\n    background: var(--mdc-theme-primary, #6200ee);\r\n    border-radius: 10px;\r\n}\r\n\r\n\r\n.sb-view-layout-form .sb-widget.sb-widget-type-boolean {\r\n    height: 56px;\r\n    vertical-align: middle;\r\n    display: table-cell;\r\n    padding-left: 16px;\r\n}\r\n\r\n\r\n/* adapt inputs for inline editing */\r\n.sb-widget-cell .mdc-text-field {\r\n  height: 100%;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field {\r\n    padding-left: 0;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-text-field {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    padding-left: 5px;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-select__anchor {\r\n    padding-left: 5px;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field-helper-line {\r\n  display: none;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--filled::before {\r\n  display: none;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--filled:not(.mdc-text-field--disabled) {\r\n    background-color: inherit;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-text-field--filled:not(.mdc-text-field--disabled) {\r\n    background-color: white;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--invalid .mdc-text-field__input {\r\n    color: var(--mdc-theme-error, #b00020);\r\n}\r\n\r\n.sb-widget-cell .mdc-select {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    margin-top: -14px;\r\n}\r\n\r\n.sb-widget-cell .mdc-select {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    margin-top: -14px;\r\n}\r\n\r\n\r\n.sb-widget-cell .mdc-select__anchor {\r\n    height: 100%;\r\n}\r\n\r\n/* make mini-fab flat (mini save buttons) */ \r\n.sb-view-layout-list-row-checkbox .mdc-fab--mini {\r\n    box-shadow: none !important;\r\n    margin: 2px 0;\r\n}\r\n\r\n.mdc-data-table {\r\n    height: 100%;\r\n}\r\n\r\n\r\n.mdc-data-table__table-container::-webkit-scrollbar {\r\n    width: 6px;\r\n    overflow-y: scroll;\r\n    background: #EAEAEA;\r\n\r\n}\r\n\r\n.mdc-data-table__table-container::-webkit-scrollbar-thumb {\r\n    background: var(--mdc-theme-primary, #6200ee);\r\n    border-radius: 10px;\r\n}\r\n\r\n\r\n\r\n/* custom style for special button with icon only */\r\n.mdc-button-icon {\r\n\tmin-width: 36px;\r\n}\r\n\r\n.mdc-button-icon  .mdc-button__ripple {\r\n\tborder-radius: 50%;\r\n    width: 36px;\r\n}\r\n\r\n\r\n\r\n.mdc-menu {\r\n    min-width: var(--mdc-menu-min-width, 200px) !important;\r\n    max-width: calc(100vw - 32px) !important;\r\n}\r\n\r\n.mdc-text-field:not(.mdc-text-field--disabled) .mdc-text-field__icon {\r\n    color: rgba(0,0,0,.54);\r\n    background-color: white;\r\n}\r\n\r\n.mdc-text-field--focused .mdc-text-field-helper-line .mdc-text-field-helper-text {\r\n    opacity: 1 !important;\r\n}\r\n\r\n.mdc-text-field--with-trailing-icon .mdc-text-field__icon {\r\n    left: initial;\r\n    right: 12px;\r\n}\r\n\r\n.mdc-text-field--with-leading-icon .mdc-text-field__icon, .mdc-text-field--with-trailing-icon .mdc-text-field__icon {\r\n    position: absolute;\r\n    top: 50%;\r\n    transform: translateY(-50%);\r\n    cursor: pointer;\r\n}\r\n\r\n.mdc-text-field--textarea {\r\n    outline: solid 1px rgba(0, 0,0,0.1);\r\n}\r\n\r\n.sb-view-layout.sb-view-layout-form .mdc-text-field--filled:not(.mdc-text-field--disabled), .mdc-select--filled:not(.mdc-select--disabled) .mdc-select__anchor {\r\n    background: transparent !important;\r\n}\r\n\r\n.mdc-layout-grid__cell {\r\n    position: relative;\r\n}\r\n\r\n.mdc-text-field-helper-line {\r\n    position: absolute;\r\n    width: 100%;\r\n    max-width: 100%;\r\n    padding-left: 0 !important;    \r\n    padding-right: 0 !important;    \r\n}\r\n\r\n.mdc-data-table__header-cell--checkbox {\r\n    width: 44px;\r\n}\r\n.mdc-data-table__row--selected {\r\n    background-color: var(--mdc-theme-primary-selected) !important;\r\n}\r\n.mdc-list-item .mdc-checkbox {\r\n    margin-left: -11px;\r\n}\r\n\r\n.mdc-list-item__graphic {\r\n    color: rgba(0,0,0,.54) !important;\r\n    margin-right: 12px;\r\n}\r\n\r\n.mdc-list-item__text {\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;    \r\n}\r\n\r\n.mdc-chip .mdc-chip__icon {\r\n    font-size: 22px;\r\n    height: 22px;\r\n}\r\n\r\n.mdc-list-item {\r\n    height: 44px;\r\n    align-items: center !important;\r\n}\r\n\r\n.mdc-data-table__cell {\r\n    height: 44px;\r\n}\r\n\r\n\r\n.mdc-data-table__pagination {\r\n    border-top: 0;\r\n}\r\n\r\n.mdc-text-field {\r\n    width: 100%;\r\n}\r\n\r\n.mdc-floating-label {\r\n    font-size: 16px !important;\r\n    /* color: rgba(0, 0, 0, 0.8) !important;*/\r\n}\r\n\r\n\r\n.mdc-text-field-helper-line .mdc-text-field-helper-text {\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n\r\n.mdc-text-field--invalid:not(.mdc-text-field--disabled) .mdc-text-field-helper-line .mdc-text-field-helper-text--validation-msg {\r\n    color: var(--mdc-theme-error, #b00020) !important;\r\n}\r\n\r\n.mdc-text-field--focused:not(.mdc-text-field--disabled) .mdc-floating-label {\r\n    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;\r\n}\r\n\r\n.mdc-select--focused:not(.mdc-text-field--disabled) .mdc-floating-label {\r\n    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;\r\n}\r\n\r\n.mdc-select {\r\n    width: 100%;\r\n}\r\n\r\n.mdc-tab {\r\n    max-width: 280px;\r\n}\r\n\r\n.mdc-tab-bar {\r\n    margin-top: 12px;\r\n    border-bottom: 1px solid rgba(0, 0, 0, 0.12);\r\n}\r\n\r\n.mdc-tab__text-label {\r\n    user-select: none;\r\n}\r\n.mdc-tab.mdc-tab--active .mdc-tab__ripple {\r\n    background-color: var(--mdc-ripple-color, var(--mdc-theme-primary, #6200ee));\r\n    opacity: 0.1;\r\n}\r\n\r\n\r\n\r\n/* jqueryui datepicker material styling */\r\n\r\n\r\n.ui-datepicker {\r\n    z-index: 3 !important;\r\n    font-family: \"Roboto\";\r\n}\r\n\r\n.ui-datepicker {\r\n    padding: 0;\r\n    border: none;  \r\n    width: 325px;\r\n    box-shadow: 4px 4px 10px 2px rgba(0, 0, 0, 0.24);\r\n    margin-left: -16px;\r\n    margin-top: 6px;\r\n    font-size: 14px;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-title {\r\n    font-size: 17px;\r\n}\r\n\r\n.ui-datepicker-trigger {\r\n    position: absolute;\r\n    right: 12px;\r\n    top: 50%;\r\n    opacity: 0;\r\n    margin-top: -10px;\r\n    cursor: pointer;\r\n}\r\n\r\n.ui-corner-all {\r\n  border-radius: 0;\r\n}\r\n\r\n.ui-widget-header {\r\n  border: 0;\r\n}\r\n\r\n.ui-datepicker-header {\r\n  text-align: center;\r\n  background: white;\r\n  padding-bottom: 15px;\r\n  font-weight: 300;\r\n}\r\n.ui-datepicker-header .ui-datepicker-prev,\r\n.ui-datepicker-header .ui-datepicker-next,\r\n.ui-datepicker-header .ui-datepicker-title {\r\n  border: none;\r\n  outline: none;\r\n  margin: 5px;\r\n}\r\n\r\n.ui-datepicker-prev.ui-state-hover,\r\n.ui-datepicker-next.ui-state-hover {\r\n  border: none;\r\n  outline: none;\r\n  background: #b4cbe5;\r\n}\r\n\r\n.ui-datepicker .ui-state-default {\r\n  background: none;\r\n  border: none;\r\n  text-align: center;\r\n  height: 33px;\r\n  width: 33px;\r\n  line-height: 30px;\r\n}\r\n.ui-datepicker .ui-state-highlight {\r\n  color: var(--mdc-theme-primary);\r\n}\r\n.ui-datepicker .ui-state-active {\r\n  color: white;\r\n}\r\n\r\n\r\n\r\n.ui-datepicker-calendar thead th {\r\n    color: #999999;\r\n    font-weight: 200;\r\n}\r\n\r\n.ui-datepicker-buttonpane {\r\n  border: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-state-default {\r\n  background: white;\r\n  border: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-datepicker-close,\r\n.ui-datepicker-buttonpane .ui-datepicker-current {\r\n  background: white;\r\n  color: #284B72;\r\n  text-transform: uppercase;\r\n  border: none;\r\n  opacity: 1;\r\n  font-weight: 200;\r\n  outline: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-datepicker-close:hover,\r\n.ui-datepicker-buttonpane .ui-datepicker-current:hover {\r\n  background: #b4cbe5;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev {\r\n    text-decoration: none;\r\n    height: auto !important;\r\n    width: auto !important;\r\n\tleft: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-next {\r\n    text-decoration: none;\r\n    height: auto !important;\r\n    width: auto !important;\r\n\tright: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev .ui-icon, .ui-datepicker .ui-datepicker-next .ui-icon {\r\n    display: none !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev::after {\r\n    font-family: FontAwesome;\r\n\tcontent: \"\\f053\";\r\n\tdisplay: block;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-next::after {\r\n    font-family: FontAwesome;\r\n\tcontent: \"\\f054\";\r\n\tdisplay: block;\r\n}\r\n\r\n\r\n.ui-datepicker .ui-datepicker-prev.ui-state-hover, .ui-datepicker .ui-datepicker-next.ui-state-hover {\r\n    background: none;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev-hover {\r\n\tleft: 8px !important;\r\n    top: 8px !important;\r\n}\r\n.ui-datepicker .ui-datepicker-next-hover {\r\n\tright: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n\r\n\r\n\r\n\r\nbutton.ui-state-hover {\r\n    background: unset !important;\r\n    background-color: var(--mdc-theme-primary-hover) !important;\r\n    border: unset !important;\r\n    color: white !important;\r\n    box-shadow: 0px 3px 1px -2px rgb(0 0 0 / 20%), 0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%) !important;\r\n}\r\n\r\n\r\n\r\n/* jquery ui datepicker month year picker */\r\n.ui-datepicker .ui-datepicker-select-month td ,\r\n.ui-datepicker .ui-datepicker-select-year td {\r\n\theight: 33px;\r\n}\r\n.ui-datepicker .ui-datepicker-select-month td span,\r\n.ui-datepicker .ui-datepicker-select-month td a,\r\n.ui-datepicker .ui-datepicker-select-year td span,\r\n.ui-datepicker .ui-datepicker-select-year td a  {\r\n\ttext-align: center;\r\n}\r\n.ui-datepicker .ui-datepicker-select-year td.outoffocus {\r\n\topacity: 0.5;\r\n}\r\n\r\n.ui-datepicker-select-month .ui-state-default, .ui-datepicker-select-year .ui-state-default {\r\n    margin: auto;\r\n}\r\n\r\n.ui-datepicker td {\r\n    font-size: 14px !important;\r\n}\r\n\r\n.ui-datepicker .ui-state-default, .ui-datepicker .ui-state-active {\r\n    position: relative;\r\n    border: 0 !important;\r\n    background: none !important;\r\n}\r\n\r\n.ui-datepicker .ui-state-active::after {\r\n    position: absolute;\r\n    display: block;\r\n    content: '';\r\n    background-color:var(--mdc-theme-primary);\r\n    border-radius: 50%;\r\n    width: 34px;\r\n    height: 34px;\r\n    z-index: -1;\r\n    top: 0;\r\n    left: calc(50% - 16px)\r\n}\r\n\r\n\r\n.ui-datepicker .ui-state-default:not(.ui-state-active).ui-state-hover::after {\r\n    position: absolute;\r\n    display: block;\r\n    content: '';\r\n    background-color: rgba(0,0,0,0.05);\r\n    border-radius: 50%;\r\n    width: 34px;\r\n    height: 34px;\r\n    z-index: -1;\r\n    top: 0;\r\n    left: calc(50% - 16px)\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header {\r\n    display: flex;\r\n    align-items: center;\r\n    padding: 4px 24px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header .ui-datepicker-title {\r\n    flex: 1;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header-time-switch {\r\n    flex: 1;\r\n    line-height: 100%;\r\n    height: 100%;\r\n    align-self: center;\r\n}\r\n\r\n\r\n.timepicker{\r\n    display:block;\r\n    user-select:none;\r\n    margin:0 auto;\r\n    width:100%;\r\n    height:100%;\r\n    font-size:14px;\r\n}\r\n.timepicker__title{background-image:-webkit-linear-gradient(top,#fff 0,#f2f2f2 100%);position:relative;background:#f2f2f2;margin:0 auto;border-bottom:1px solid #e5e5e5;padding:12px 11px 10px 15px;color:#4C4C4C;font-size:inherit}\r\n.timepicker__close{-webkit-transform:translateY(-25%);-moz-transform:translateY(-25%);-ms-transform:translateY(-25%);-o-transform:translateY(-25%);transform:translateY(-25%);position:absolute;top:25%;right:10px;color:#34495e;cursor:pointer}\r\n.timepicker__close:before{content:'\\00d7'}\r\n.timepicker__controls{padding:10px 0;line-height:normal;margin:0}\r\n.timepicker__controls__control,.timepicker__controls__control--separator{vertical-align:middle;display:inline-block;font-size:inherit;margin:0 auto;width:35px;letter-spacing:1.3px}\r\n.timepicker__controls__control-down,.timepicker__controls__control-up{color:#34495e;position:relative;display:block;margin:3px auto;font-size:18px;cursor:pointer}\r\n.timepicker__controls__control-up:before{content:'\\f0d8'}\r\n.timepicker__controls__control-down:after{content:'\\f0d7'}\r\n.timepicker__controls__control--separator{width:5px}\r\n.text-center,.timepicker__controls,.timepicker__controls__control,.timepicker__controls__control--separator,.timepicker__controls__control-down,.timepicker__controls__control-up,.timepicker__title{text-align:center}\r\n.hover-state{color:#3498db}\r\n \r\n.fontello-after:after,.fontello:before,.timepicker__controls__control-down:after,.timepicker__controls__control-up:before{font-family:FontAwesome;font-style:normal;font-weight:400;display:inline-block;text-decoration:inherit;width:1em;margin-right:.2em;text-align:center;font-variant:normal;text-transform:none;line-height:1em;margin-left:.2em;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}  \r\n.clearable-picker{position:relative;display:inline-block}  \r\n.clearable-picker>.hastimepicker{padding-right:1em}  \r\n.clearable-picker>.hastimepicker::-ms-clear{display:none}  \r\n.clearable-picker>[data-clear-picker]{position:absolute;top:50%;right:0;transform:translateY(-50%);font-weight:700;font-size:.8em;padding:0 .3em .2em;line-height:1;color:#bababa;cursor:pointer}  \r\n.clearable-picker>[data-clear-picker]:hover{color:#a1a1a1}\r\n.timepicker__controls__control span {\r\n    outline: none;\r\n}"],"sourceRoot":""}]);
+___CSS_LOADER_EXPORT___.push([module.id, ":root {\r\n    /* colored buttons */\r\n    --mdc-theme-primary: #3f51b5;\r\n    --mdc-theme-primary-hover: #4f61c5;\r\n\r\n    --mdc-theme-primary-selected: #f5f5ff;\r\n    --mdc-theme-primary-outline: #b1b1dc;\r\n\r\n    /* checkbox background */\r\n    --mdc-theme-secondary: #3f51b5;\r\n    /* menus */\r\n    --mdc-typography-subtitle1-font-size: 14px;\r\n    /* table headers */\r\n    --mdc-typography-subtitle2-font-weight: 600;\r\n\r\n\r\n    --mdc-layout-grid-margin-desktop: 12px;\r\n    --mdc-layout-grid-gutter-desktop: 24px;\r\n    --mdc-layout-grid-margin-tablet: 12px;\r\n    --mdc-layout-grid-gutter-tablet: 18px;\r\n    --mdc-layout-grid-margin-phone: 12px;\r\n    --mdc-layout-grid-gutter-phone: 16px;\r\n\r\n}\r\n    \r\nbody, html {\r\n    margin: 0;\r\n    padding: 0;\r\n    height:100%;\r\n}\r\n\r\n#sb-root {\r\n    display: flex;\r\n    height: 100%;\r\n    flex-flow: column nowrap;\r\n}\r\n\r\n#sb-menu .sb-menu-button {\r\n    display: inline-block;\r\n}\r\n\r\n#sb-container, .sb-container {\r\n    width: 100%;\r\n    height: 100%;\r\n    overflow: hidden;\r\n    flex: 1 1 100%;\r\n    box-sizing: border-box;\r\n    display: none;\r\n}\r\n\r\n.sb-container-header {\r\n    padding-left: 12px;\r\n    height: 48px;\r\n    border-bottom: solid 1px lightgrey;\r\n}\r\n\r\n.sb-container-header h3 {\r\n    line-height: 48px;\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n.sb-container-header a {\r\n    cursor: pointer;\r\n    text-decoration: none;\r\n    color: var(--mdc-theme-primary);\r\n}\r\n\r\n.sb-container-header a:hover {\r\n\r\n}\r\n\r\n.sb-context {\r\n    /* container height minus the header */\r\n    height: calc(100% - 48px);\r\n}\r\n\r\n.sb-view { \r\n    position: relative;\r\n    height: 100%;\r\n}\r\n\r\n.sb-view-layout-list {\r\n    /* height must be decremented by height of other elements from parent (header and footer) */\r\n    height: calc(100% - 112px);\r\n}\r\n\r\n.sb-view-layout-form {\r\n    /* height must be decremented by height of other elements from parent (header and footer) */\r\n    height: calc(100% - 56px);\r\n    padding-bottom: 10px;\r\n}\r\n\r\n.sb-view-list-inline-actions-button {\r\n    transform: scale(0.7);\r\n}\r\n\r\n.sb-layout {\r\n    position: relative;\r\n    height: 100%;\r\n}\r\n\r\n\r\n\r\n\r\n.sb-view-layout-list table th {\r\n    cursor: pointer;\r\n    user-select: none;\r\n    position: sticky;\r\n    top: 0;\r\n    z-index: 3;\r\n}\r\n\r\n.sb-view-layout-list table th.sortable.hover {\r\n    background-color: #f0f0f0;\r\n}\r\n\r\n.sb-view-layout-list table th.sorted {\r\n    color: black;\r\n}\r\n\r\n.sb-view-layout-list table th.asc::after, .sb-view-layout-list table th.desc::after {\r\n    position: absolute;\r\n    margin-left: 6px;\r\n    font-family: FontAwesome;\r\n    opacity: 0.3;\r\n}\r\n\r\n.sb-view-layout-list table th.asc::after {\r\n    content: \"\\f0d7\";\r\n}\r\n\r\n.sb-view-layout-list table th.desc::after {\r\n    content: \"\\f0d8\";\r\n}\r\n\r\n.sb-view-layout-list table tr {\r\n    cursor: pointer;\r\n}\r\n\r\n.sb-view-header-list {\r\n    position: relative;\r\n    max-height: 112px;\r\n    /*\r\n    height: 112px;\r\n    line-height: 112px;\r\n    */\r\n}\r\n\r\n.sb-view-header-list-actions {\r\n    margin-left: 12px;\r\n    max-height: 56px;\r\n}\r\n\r\n.sb-view-header-list-actions-set {\r\n    display: flex;\r\n    margin-top: 10px;\r\n}\r\n\r\n.sb-view-header-list-actions button {\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-header-list-actions-selected {\r\n    position: relative;\r\n    display: flex;\r\n}\r\n\r\n/* todo: improve this (add a custom class)*/\r\n.sb-view-header-list-actions-selected .mdc-button__label {\r\n    padding-right: 10px;\r\n}\r\n\r\n.sb-view-header-list-actions-selected .mdc-button__label::after {\r\n    content: \"\\f0d7\";\r\n}\r\n\r\n.sb-view-header-list-actions-selected .mdc-button__label::after {\r\n    position: absolute;\r\n    margin-left: 6px;\r\n    font-family: FontAwesome;\r\n    opacity: 0.5;\r\n}\r\n\r\n.sb-view-header-list-navigation {\r\n    height: 56px;\r\n    line-height: 56px;\r\n    display: flex;\r\n}\r\n\r\n.sb-view-header-list-filters {\r\n    margin-top: 4px;\r\n}\r\n\r\n.sb-view-header-list-filters .sb-view-header-list-filters-menu {\r\n    min-width: 250px;\r\n}\r\n\r\n.sb-view-header-list-filters-set {\r\n    margin-top: 4px;\r\n}\r\n\r\n\r\n.sb-view-header-list-fields_toggle {\r\n    /* flex-grow: 1; */\r\n    margin-top: 4px;\r\n    margin-right: 10px;\r\n    text-align: right;\r\n}\r\n\r\n\r\n.sb-view-header-list-fields_toggle .sb-view-header-list-fields_toggle-menu {\r\n    min-width: 250px !important;\r\n    max-width: 250px !important;\r\n}\r\n\r\n.sb-view-header-list-pagination {\r\n    flex: 1;\r\n    flex-grow: 1;\r\n\r\n}\r\n\r\n.sb-view-header-list-pagination-limit_select {\r\n    margin-left: 12px;\r\n}\r\n\r\n.sb-view-header-list-pagination .pagination-navigation {\r\n    user-select: none; \r\n}\r\n\r\n\r\n.sb-widget-mode-view input {\r\n    color: black !important;\r\n    user-select: none;\r\n}\r\n\r\n.sb-widget-mode-view .mdc-text-field .mdc-floating-label,\r\n.sb-widget-mode-view.mdc-select .mdc-floating-label {\r\n    color: rgba(0,0,0,0.5) !important;\r\n    user-select: none;\r\n    font-size: 16px;\r\n    font-weight: 400;\r\n}\r\n\r\n.sb-widget-mode-edit .mdc-text-field .mdc-floating-label, \r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label {\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n}\r\n\r\n.sb-widget-mode-view .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above, \r\n.sb-widget-mode-view.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n}\r\n\r\n.sb-widget-mode-edit .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above, \r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.6) !important;\r\n    font-weight: 400;\r\n}\r\n\r\n\r\n.sb-view-header-form {\r\n    height: 56px;\r\n    line-height: 56px;\r\n}\r\n\r\n.sb-view-header-form-actions {\r\n    display: flex;\r\n    flex-direction: row;\r\n    align-items: center;\r\n    margin-left: 12px;\r\n    max-width: 250px;\r\n    height: 56px;\r\n    line-height: 56px;\r\n}\r\n\r\n.sb-view-header-form-actions button {\r\n    flex: 0 1 auto;\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-form-group {\r\n    padding: 12px;\r\n}\r\n\r\n.sb-view-form-row:not(:first-child) {\r\n    padding-top: 24px;\r\n}\r\n\r\n.sb-view-form-group-title {\r\n    font-size: 20px;\r\n    margin-bottom: 12px;\r\n}\r\n\r\n.sb-view-form-sections-tabbar {\r\n    margin-bottom: 12px;\r\n}\r\n\r\n.sb-view-layout-list .mdc-line-ripple::before, .sb-view-layout-list .mdc-line-ripple::after {\r\n  border: none !important;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget label.mdc-text-field .mdc-floating-label {\r\n    display: none !important;\r\n}\r\n.sb-view-layout-list .sb-widget-mode-view label.mdc-text-field::before {\r\n    display: none !important;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget-mode-view input {\r\n    height: 100%;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget-mode-edit button.mdc-icon-button {\r\n    padding: 0 0 0 5px;\r\n    height: auto;\r\n    width: auto;\r\n    position: absolute;\r\n}\r\n\r\n.sb-view-layout-form-input-button {\r\n    width: 25px;\r\n    height: 30px;\r\n    position: absolute;\r\n    right: 12px;\r\n    top: calc(50% - 15px);\r\n}\r\n\r\n.sb-view-layout-form-input-decoy {\r\n    position: absolute;\r\n    left: 16px;\r\n    bottom: 10px;\r\n    z-index: -1;\r\n    opacity: 0;\r\n}\r\n\r\n\r\n.sb-widget {\r\n    position: relative;\r\n}\r\n\r\n.sb-ui-checkbox {\r\n    position: relative;\r\n}\r\n\r\n.sb-ui-menu.mdc-menu-surface--is-open-below {\r\n    margin-top: 48px;\r\n}\r\n\r\n.sb-ui-menu.mdc-menu-surface--open {\r\n    margin-bottom: 48px;\r\n}\r\n\r\n\r\n/* Material Components customizations */\r\n\r\n/* fix for ripple not working on icon-button */\r\nbutton.mdc-icon-button:hover, button.mdc-icon-button:active, button.mdc-icon-button:focus {\r\n    border-radius: 50%;\r\n    background-color: rgba(0,0,0,0.10);\r\n}\r\n\r\n/* fix tooltip not hiding */\r\n.mdc-tooltip--hide {\r\n    opacity: 0;\r\n}\r\n\r\n/* Special SB widgets customizations */\r\n\r\n/* support for title strings */\r\n.sb-widget.title {\r\n    margin-top: -14px; \r\n}\r\n\r\n.sb-widget.title span.mdc-floating-label--float-above {\r\n    transform: translateY(-166%) !important;\r\n}\r\n.sb-widget.title label.mdc-text-field {\r\n  height: 70px;\r\n}\r\n.sb-widget.title input.mdc-text-field__input {\r\n  font-size: 30px;\r\n  margin-top: auto; \r\n  height: 60px;\r\n}\r\n\r\n.sb-view-layout-form {\r\n    overflow-y: scroll;\r\n}\r\n\r\n\r\n.sb-view-layout-form::-webkit-scrollbar {\r\n    width: 6px;\r\n    overflow-y: scroll;\r\n    background: #EAEAEA;\r\n\r\n}\r\n\r\n.sb-view-layout-form::-webkit-scrollbar-thumb {\r\n    background: var(--mdc-theme-primary, #6200ee);\r\n    border-radius: 10px;\r\n}\r\n\r\n\r\n.sb-view-layout-form .sb-widget.sb-widget-type-boolean {\r\n    height: 56px;\r\n    vertical-align: middle;\r\n    display: table-cell;\r\n    padding-left: 16px;\r\n}\r\n\r\n\r\n/* adapt inputs for inline editing */\r\n.sb-widget-cell .mdc-text-field {\r\n  height: 100%;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field {\r\n    padding-left: 0;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-text-field {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    padding-left: 5px;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-select__anchor {\r\n    padding-left: 5px;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field-helper-line {\r\n  display: none;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--filled::before {\r\n  display: none;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--filled:not(.mdc-text-field--disabled) {\r\n    background-color: inherit;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-text-field--filled:not(.mdc-text-field--disabled) {\r\n    background-color: white;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--invalid .mdc-text-field__input {\r\n    color: var(--mdc-theme-error, #b00020);\r\n}\r\n\r\n.sb-widget-cell .mdc-select {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    margin-top: -14px;\r\n}\r\n\r\n.sb-widget-cell .mdc-select {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    margin-top: -14px;\r\n}\r\n\r\n\r\n.sb-widget-cell .mdc-select__anchor {\r\n    height: 100%;\r\n}\r\n\r\n/* make mini-fab flat (mini save buttons) */ \r\n.sb-view-layout-list-row-checkbox .mdc-fab--mini {\r\n    box-shadow: none !important;\r\n    margin: 2px 0;\r\n}\r\n\r\n.mdc-data-table {\r\n    height: 100%;\r\n}\r\n\r\n\r\n.mdc-data-table__table-container::-webkit-scrollbar {\r\n    width: 6px;\r\n    overflow-y: scroll;\r\n    background: #EAEAEA;\r\n\r\n}\r\n\r\n.mdc-data-table__table-container::-webkit-scrollbar-thumb {\r\n    background: var(--mdc-theme-primary, #6200ee);\r\n    border-radius: 10px;\r\n}\r\n\r\n\r\n\r\n/* custom style for special button with icon only */\r\n.mdc-button-icon {\r\n\tmin-width: 36px;\r\n}\r\n\r\n.mdc-button-icon  .mdc-button__ripple {\r\n\tborder-radius: 50%;\r\n    width: 36px;\r\n}\r\n\r\n\r\n\r\n.mdc-menu {\r\n    min-width: var(--mdc-menu-min-width, 200px) !important;\r\n    max-width: calc(100vw - 32px) !important;\r\n}\r\n\r\n.mdc-text-field:not(.mdc-text-field--disabled) .mdc-text-field__icon {\r\n    color: rgba(0,0,0,.54);\r\n    background-color: white;\r\n}\r\n\r\n.mdc-text-field--focused .mdc-text-field-helper-line .mdc-text-field-helper-text {\r\n    opacity: 1 !important;\r\n}\r\n\r\n.mdc-text-field--with-trailing-icon .mdc-text-field__icon {\r\n    left: initial;\r\n    right: 12px;\r\n}\r\n\r\n.mdc-text-field--with-leading-icon .mdc-text-field__icon, .mdc-text-field--with-trailing-icon .mdc-text-field__icon {\r\n    position: absolute;\r\n    top: 50%;\r\n    transform: translateY(-50%);\r\n    cursor: pointer;\r\n}\r\n\r\n.mdc-text-field--textarea {\r\n    outline: solid 1px rgba(0, 0,0,0.1);\r\n}\r\n\r\n.sb-view-layout.sb-view-layout-form .mdc-text-field--filled:not(.mdc-text-field--disabled), .mdc-select--filled:not(.mdc-select--disabled) .mdc-select__anchor {\r\n    background: transparent !important;\r\n}\r\n\r\n.mdc-layout-grid__cell {\r\n    position: relative;\r\n}\r\n\r\n.mdc-text-field-helper-line {\r\n    position: absolute;\r\n    width: 100%;\r\n    max-width: 100%;\r\n    padding-left: 0 !important;    \r\n    padding-right: 0 !important;    \r\n}\r\n\r\n.mdc-data-table__header-cell--checkbox {\r\n    width: 44px;\r\n}\r\n.mdc-data-table__row--selected {\r\n    background-color: var(--mdc-theme-primary-selected) !important;\r\n}\r\n.mdc-list-item .mdc-checkbox {\r\n    margin-left: -11px;\r\n}\r\n\r\n.mdc-list-item__graphic {\r\n    color: rgba(0,0,0,.54) !important;\r\n    margin-right: 12px;\r\n}\r\n\r\n.mdc-list-item__text {\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;    \r\n}\r\n\r\n.mdc-chip .mdc-chip__icon {\r\n    font-size: 22px;\r\n    height: 22px;\r\n}\r\n\r\n.mdc-list-item {\r\n    height: 44px;\r\n    align-items: center !important;\r\n}\r\n\r\n.mdc-data-table__cell {\r\n    height: 44px;\r\n}\r\n\r\n\r\n.mdc-data-table__pagination {\r\n    border-top: 0;\r\n}\r\n\r\n.mdc-text-field {\r\n    width: 100%;\r\n}\r\n\r\n.mdc-floating-label {\r\n    font-size: 16px !important;\r\n    /* color: rgba(0, 0, 0, 0.8) !important;*/\r\n}\r\n\r\n\r\n.mdc-text-field-helper-line .mdc-text-field-helper-text {\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n\r\n.mdc-text-field--invalid:not(.mdc-text-field--disabled) .mdc-text-field-helper-line .mdc-text-field-helper-text--validation-msg {\r\n    color: var(--mdc-theme-error, #b00020) !important;\r\n}\r\n\r\n.mdc-text-field--focused:not(.mdc-text-field--disabled) .mdc-floating-label {\r\n    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;\r\n}\r\n\r\n.mdc-select--focused:not(.mdc-text-field--disabled) .mdc-floating-label {\r\n    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;\r\n}\r\n\r\n.mdc-select {\r\n    width: 100%;\r\n}\r\n\r\n.mdc-tab {\r\n    max-width: 280px;\r\n}\r\n\r\n.mdc-tab-bar {\r\n    margin-top: 12px;\r\n    border-bottom: 1px solid rgba(0, 0, 0, 0.12);\r\n}\r\n\r\n.mdc-tab__text-label {\r\n    user-select: none;\r\n}\r\n.mdc-tab.mdc-tab--active .mdc-tab__ripple {\r\n    background-color: var(--mdc-ripple-color, var(--mdc-theme-primary, #6200ee));\r\n    opacity: 0.1;\r\n}\r\n\r\n\r\n\r\n/* jqueryui datepicker material styling */\r\n\r\n\r\n.ui-datepicker {\r\n    z-index: 3 !important;\r\n    font-family: \"Roboto\";\r\n}\r\n\r\n.ui-datepicker {\r\n    padding: 0;\r\n    border: none;  \r\n    width: 325px;\r\n    box-shadow: 4px 4px 10px 2px rgba(0, 0, 0, 0.24);\r\n    margin-left: -16px;\r\n    margin-top: 6px;\r\n    font-size: 14px;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-title {\r\n    font-size: 17px;\r\n}\r\n\r\n.ui-datepicker-trigger {\r\n    position: absolute;\r\n    right: 12px;\r\n    top: 50%;\r\n    opacity: 0;\r\n    margin-top: -10px;\r\n    cursor: pointer;\r\n}\r\n\r\n.ui-corner-all {\r\n  border-radius: 0;\r\n}\r\n\r\n.ui-widget-header {\r\n  border: 0;\r\n}\r\n\r\n.ui-datepicker-header {\r\n  text-align: center;\r\n  background: white;\r\n  padding-bottom: 15px;\r\n  font-weight: 300;\r\n}\r\n.ui-datepicker-header .ui-datepicker-prev,\r\n.ui-datepicker-header .ui-datepicker-next,\r\n.ui-datepicker-header .ui-datepicker-title {\r\n  border: none;\r\n  outline: none;\r\n  margin: 5px;\r\n}\r\n\r\n.ui-datepicker-prev.ui-state-hover,\r\n.ui-datepicker-next.ui-state-hover {\r\n  border: none;\r\n  outline: none;\r\n  background: #b4cbe5;\r\n}\r\n\r\n.ui-datepicker .ui-state-default {\r\n  background: none;\r\n  border: none;\r\n  text-align: center;\r\n  height: 33px;\r\n  width: 33px;\r\n  line-height: 30px;\r\n}\r\n.ui-datepicker .ui-state-highlight {\r\n  color: var(--mdc-theme-primary);\r\n}\r\n.ui-datepicker .ui-state-active {\r\n  color: white;\r\n}\r\n\r\n\r\n\r\n.ui-datepicker-calendar thead th {\r\n    color: #999999;\r\n    font-weight: 200;\r\n}\r\n\r\n.ui-datepicker-buttonpane {\r\n  border: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-state-default {\r\n  background: white;\r\n  border: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-datepicker-close,\r\n.ui-datepicker-buttonpane .ui-datepicker-current {\r\n  background: white;\r\n  color: #284B72;\r\n  text-transform: uppercase;\r\n  border: none;\r\n  opacity: 1;\r\n  font-weight: 200;\r\n  outline: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-datepicker-close:hover,\r\n.ui-datepicker-buttonpane .ui-datepicker-current:hover {\r\n  background: #b4cbe5;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev {\r\n    text-decoration: none;\r\n    height: auto !important;\r\n    width: auto !important;\r\n\tleft: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-next {\r\n    text-decoration: none;\r\n    height: auto !important;\r\n    width: auto !important;\r\n\tright: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev .ui-icon, .ui-datepicker .ui-datepicker-next .ui-icon {\r\n    display: none !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev::after {\r\n    font-family: FontAwesome;\r\n\tcontent: \"\\f053\";\r\n\tdisplay: block;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-next::after {\r\n    font-family: FontAwesome;\r\n\tcontent: \"\\f054\";\r\n\tdisplay: block;\r\n}\r\n\r\n\r\n.ui-datepicker .ui-datepicker-prev.ui-state-hover, .ui-datepicker .ui-datepicker-next.ui-state-hover {\r\n    background: none;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev-hover {\r\n\tleft: 8px !important;\r\n    top: 8px !important;\r\n}\r\n.ui-datepicker .ui-datepicker-next-hover {\r\n\tright: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n\r\n\r\n\r\n\r\nbutton.ui-state-hover {\r\n    background: unset !important;\r\n    background-color: var(--mdc-theme-primary-hover) !important;\r\n    border: unset !important;\r\n    color: white !important;\r\n    box-shadow: 0px 3px 1px -2px rgb(0 0 0 / 20%), 0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%) !important;\r\n}\r\n\r\n\r\n\r\n/* jquery ui datepicker month year picker */\r\n.ui-datepicker .ui-datepicker-select-month td ,\r\n.ui-datepicker .ui-datepicker-select-year td {\r\n\theight: 33px;\r\n}\r\n.ui-datepicker .ui-datepicker-select-month td span,\r\n.ui-datepicker .ui-datepicker-select-month td a,\r\n.ui-datepicker .ui-datepicker-select-year td span,\r\n.ui-datepicker .ui-datepicker-select-year td a  {\r\n\ttext-align: center;\r\n}\r\n.ui-datepicker .ui-datepicker-select-year td.outoffocus {\r\n\topacity: 0.5;\r\n}\r\n\r\n.ui-datepicker-select-month .ui-state-default, .ui-datepicker-select-year .ui-state-default {\r\n    margin: auto;\r\n}\r\n\r\n.ui-datepicker td {\r\n    font-size: 14px !important;\r\n}\r\n\r\n.ui-datepicker .ui-state-default, .ui-datepicker .ui-state-active {\r\n    position: relative;\r\n    border: 0 !important;\r\n    background: none !important;\r\n}\r\n\r\n.ui-datepicker .ui-state-active::after {\r\n    position: absolute;\r\n    display: block;\r\n    content: '';\r\n    background-color:var(--mdc-theme-primary);\r\n    border-radius: 50%;\r\n    width: 34px;\r\n    height: 34px;\r\n    z-index: -1;\r\n    top: 0;\r\n    left: calc(50% - 16px)\r\n}\r\n\r\n\r\n.ui-datepicker .ui-state-default:not(.ui-state-active).ui-state-hover::after {\r\n    position: absolute;\r\n    display: block;\r\n    content: '';\r\n    background-color: rgba(0,0,0,0.05);\r\n    border-radius: 50%;\r\n    width: 34px;\r\n    height: 34px;\r\n    z-index: -1;\r\n    top: 0;\r\n    left: calc(50% - 16px)\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header {\r\n    display: flex;\r\n    align-items: center;\r\n    padding: 4px 24px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header .ui-datepicker-title {\r\n    flex: 1;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header-time-switch {\r\n    flex: 1;\r\n    line-height: 100%;\r\n    height: 100%;\r\n    align-self: center;\r\n}\r\n\r\n\r\n.timepicker{\r\n    display:block;\r\n    user-select:none;\r\n    margin:0 auto;\r\n    width:100%;\r\n    height:100%;\r\n    font-size:14px;\r\n}\r\n.timepicker__title{background-image:-webkit-linear-gradient(top,#fff 0,#f2f2f2 100%);position:relative;background:#f2f2f2;margin:0 auto;border-bottom:1px solid #e5e5e5;padding:12px 11px 10px 15px;color:#4C4C4C;font-size:inherit}\r\n.timepicker__close{-webkit-transform:translateY(-25%);-moz-transform:translateY(-25%);-ms-transform:translateY(-25%);-o-transform:translateY(-25%);transform:translateY(-25%);position:absolute;top:25%;right:10px;color:#34495e;cursor:pointer}\r\n.timepicker__close:before{content:'\\00d7'}\r\n.timepicker__controls{padding:10px 0;line-height:normal;margin:0}\r\n.timepicker__controls__control,.timepicker__controls__control--separator{vertical-align:middle;display:inline-block;font-size:inherit;margin:0 auto;width:35px;letter-spacing:1.3px}\r\n.timepicker__controls__control-down,.timepicker__controls__control-up{color:#34495e;position:relative;display:block;margin:3px auto;font-size:18px;cursor:pointer}\r\n.timepicker__controls__control-up:before{content:'\\f0d8'}\r\n.timepicker__controls__control-down:after{content:'\\f0d7'}\r\n.timepicker__controls__control--separator{width:5px}\r\n.text-center,.timepicker__controls,.timepicker__controls__control,.timepicker__controls__control--separator,.timepicker__controls__control-down,.timepicker__controls__control-up,.timepicker__title{text-align:center}\r\n.hover-state{color:#3498db}\r\n \r\n.fontello-after:after,.fontello:before,.timepicker__controls__control-down:after,.timepicker__controls__control-up:before{font-family:FontAwesome;font-style:normal;font-weight:400;display:inline-block;text-decoration:inherit;width:1em;margin-right:.2em;text-align:center;font-variant:normal;text-transform:none;line-height:1em;margin-left:.2em;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}  \r\n.clearable-picker{position:relative;display:inline-block}  \r\n.clearable-picker>.hastimepicker{padding-right:1em}  \r\n.clearable-picker>.hastimepicker::-ms-clear{display:none}  \r\n.clearable-picker>[data-clear-picker]{position:absolute;top:50%;right:0;transform:translateY(-50%);font-weight:700;font-size:.8em;padding:0 .3em .2em;line-height:1;color:#bababa;cursor:pointer}  \r\n.clearable-picker>[data-clear-picker]:hover{color:#a1a1a1}\r\n.timepicker__controls__control span {\r\n    outline: none;\r\n}", "",{"version":3,"sources":["webpack://./css/equal.css"],"names":[],"mappings":"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","sourcesContent":[":root {\r\n    /* colored buttons */\r\n    --mdc-theme-primary: #3f51b5;\r\n    --mdc-theme-primary-hover: #4f61c5;\r\n\r\n    --mdc-theme-primary-selected: #f5f5ff;\r\n    --mdc-theme-primary-outline: #b1b1dc;\r\n\r\n    /* checkbox background */\r\n    --mdc-theme-secondary: #3f51b5;\r\n    /* menus */\r\n    --mdc-typography-subtitle1-font-size: 14px;\r\n    /* table headers */\r\n    --mdc-typography-subtitle2-font-weight: 600;\r\n\r\n\r\n    --mdc-layout-grid-margin-desktop: 12px;\r\n    --mdc-layout-grid-gutter-desktop: 24px;\r\n    --mdc-layout-grid-margin-tablet: 12px;\r\n    --mdc-layout-grid-gutter-tablet: 18px;\r\n    --mdc-layout-grid-margin-phone: 12px;\r\n    --mdc-layout-grid-gutter-phone: 16px;\r\n\r\n}\r\n    \r\nbody, html {\r\n    margin: 0;\r\n    padding: 0;\r\n    height:100%;\r\n}\r\n\r\n#sb-root {\r\n    display: flex;\r\n    height: 100%;\r\n    flex-flow: column nowrap;\r\n}\r\n\r\n#sb-menu .sb-menu-button {\r\n    display: inline-block;\r\n}\r\n\r\n#sb-container, .sb-container {\r\n    width: 100%;\r\n    height: 100%;\r\n    overflow: hidden;\r\n    flex: 1 1 100%;\r\n    box-sizing: border-box;\r\n    display: none;\r\n}\r\n\r\n.sb-container-header {\r\n    padding-left: 12px;\r\n    height: 48px;\r\n    border-bottom: solid 1px lightgrey;\r\n}\r\n\r\n.sb-container-header h3 {\r\n    line-height: 48px;\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n.sb-container-header a {\r\n    cursor: pointer;\r\n    text-decoration: none;\r\n    color: var(--mdc-theme-primary);\r\n}\r\n\r\n.sb-container-header a:hover {\r\n\r\n}\r\n\r\n.sb-context {\r\n    /* container height minus the header */\r\n    height: calc(100% - 48px);\r\n}\r\n\r\n.sb-view { \r\n    position: relative;\r\n    height: 100%;\r\n}\r\n\r\n.sb-view-layout-list {\r\n    /* height must be decremented by height of other elements from parent (header and footer) */\r\n    height: calc(100% - 112px);\r\n}\r\n\r\n.sb-view-layout-form {\r\n    /* height must be decremented by height of other elements from parent (header and footer) */\r\n    height: calc(100% - 56px);\r\n    padding-bottom: 10px;\r\n}\r\n\r\n.sb-view-list-inline-actions-button {\r\n    transform: scale(0.7);\r\n}\r\n\r\n.sb-layout {\r\n    position: relative;\r\n    height: 100%;\r\n}\r\n\r\n\r\n\r\n\r\n.sb-view-layout-list table th {\r\n    cursor: pointer;\r\n    user-select: none;\r\n    position: sticky;\r\n    top: 0;\r\n    z-index: 3;\r\n}\r\n\r\n.sb-view-layout-list table th.sortable.hover {\r\n    background-color: #f0f0f0;\r\n}\r\n\r\n.sb-view-layout-list table th.sorted {\r\n    color: black;\r\n}\r\n\r\n.sb-view-layout-list table th.asc::after, .sb-view-layout-list table th.desc::after {\r\n    position: absolute;\r\n    margin-left: 6px;\r\n    font-family: FontAwesome;\r\n    opacity: 0.3;\r\n}\r\n\r\n.sb-view-layout-list table th.asc::after {\r\n    content: \"\\f0d7\";\r\n}\r\n\r\n.sb-view-layout-list table th.desc::after {\r\n    content: \"\\f0d8\";\r\n}\r\n\r\n.sb-view-layout-list table tr {\r\n    cursor: pointer;\r\n}\r\n\r\n.sb-view-header-list {\r\n    position: relative;\r\n    max-height: 112px;\r\n    /*\r\n    height: 112px;\r\n    line-height: 112px;\r\n    */\r\n}\r\n\r\n.sb-view-header-list-actions {\r\n    margin-left: 12px;\r\n    max-height: 56px;\r\n}\r\n\r\n.sb-view-header-list-actions-set {\r\n    display: flex;\r\n    margin-top: 10px;\r\n}\r\n\r\n.sb-view-header-list-actions button {\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-header-list-actions-selected {\r\n    position: relative;\r\n    display: flex;\r\n}\r\n\r\n/* todo: improve this (add a custom class)*/\r\n.sb-view-header-list-actions-selected .mdc-button__label {\r\n    padding-right: 10px;\r\n}\r\n\r\n.sb-view-header-list-actions-selected .mdc-button__label::after {\r\n    content: \"\\f0d7\";\r\n}\r\n\r\n.sb-view-header-list-actions-selected .mdc-button__label::after {\r\n    position: absolute;\r\n    margin-left: 6px;\r\n    font-family: FontAwesome;\r\n    opacity: 0.5;\r\n}\r\n\r\n.sb-view-header-list-navigation {\r\n    height: 56px;\r\n    line-height: 56px;\r\n    display: flex;\r\n}\r\n\r\n.sb-view-header-list-filters {\r\n    margin-top: 4px;\r\n}\r\n\r\n.sb-view-header-list-filters .sb-view-header-list-filters-menu {\r\n    min-width: 250px;\r\n}\r\n\r\n.sb-view-header-list-filters-set {\r\n    margin-top: 4px;\r\n}\r\n\r\n\r\n.sb-view-header-list-fields_toggle {\r\n    /* flex-grow: 1; */\r\n    margin-top: 4px;\r\n    margin-right: 10px;\r\n    text-align: right;\r\n}\r\n\r\n\r\n.sb-view-header-list-fields_toggle .sb-view-header-list-fields_toggle-menu {\r\n    min-width: 250px !important;\r\n    max-width: 250px !important;\r\n}\r\n\r\n.sb-view-header-list-pagination {\r\n    flex: 1;\r\n    flex-grow: 1;\r\n\r\n}\r\n\r\n.sb-view-header-list-pagination-limit_select {\r\n    margin-left: 12px;\r\n}\r\n\r\n.sb-view-header-list-pagination .pagination-navigation {\r\n    user-select: none; \r\n}\r\n\r\n\r\n.sb-widget-mode-view input {\r\n    color: black !important;\r\n    user-select: none;\r\n}\r\n\r\n.sb-widget-mode-view .mdc-text-field .mdc-floating-label,\r\n.sb-widget-mode-view.mdc-select .mdc-floating-label {\r\n    color: rgba(0,0,0,0.5) !important;\r\n    user-select: none;\r\n    font-size: 16px;\r\n    font-weight: 400;\r\n}\r\n\r\n.sb-widget-mode-edit .mdc-text-field .mdc-floating-label, \r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label {\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n}\r\n\r\n.sb-widget-mode-view .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above, \r\n.sb-widget-mode-view.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n}\r\n\r\n.sb-widget-mode-edit .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above, \r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.6) !important;\r\n    font-weight: 400;\r\n}\r\n\r\n\r\n.sb-view-header-form {\r\n    height: 56px;\r\n    line-height: 56px;\r\n}\r\n\r\n.sb-view-header-form-actions {\r\n    display: flex;\r\n    flex-direction: row;\r\n    align-items: center;\r\n    margin-left: 12px;\r\n    max-width: 250px;\r\n    height: 56px;\r\n    line-height: 56px;\r\n}\r\n\r\n.sb-view-header-form-actions button {\r\n    flex: 0 1 auto;\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-form-group {\r\n    padding: 12px;\r\n}\r\n\r\n.sb-view-form-row:not(:first-child) {\r\n    padding-top: 24px;\r\n}\r\n\r\n.sb-view-form-group-title {\r\n    font-size: 20px;\r\n    margin-bottom: 12px;\r\n}\r\n\r\n.sb-view-form-sections-tabbar {\r\n    margin-bottom: 12px;\r\n}\r\n\r\n.sb-view-layout-list .mdc-line-ripple::before, .sb-view-layout-list .mdc-line-ripple::after {\r\n  border: none !important;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget label.mdc-text-field .mdc-floating-label {\r\n    display: none !important;\r\n}\r\n.sb-view-layout-list .sb-widget-mode-view label.mdc-text-field::before {\r\n    display: none !important;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget-mode-view input {\r\n    height: 100%;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget-mode-edit button.mdc-icon-button {\r\n    padding: 0 0 0 5px;\r\n    height: auto;\r\n    width: auto;\r\n    position: absolute;\r\n}\r\n\r\n.sb-view-layout-form-input-button {\r\n    width: 25px;\r\n    height: 30px;\r\n    position: absolute;\r\n    right: 12px;\r\n    top: calc(50% - 15px);\r\n}\r\n\r\n.sb-view-layout-form-input-decoy {\r\n    position: absolute;\r\n    left: 16px;\r\n    bottom: 10px;\r\n    z-index: -1;\r\n    opacity: 0;\r\n}\r\n\r\n\r\n.sb-widget {\r\n    position: relative;\r\n}\r\n\r\n.sb-ui-checkbox {\r\n    position: relative;\r\n}\r\n\r\n.sb-ui-menu.mdc-menu-surface--is-open-below {\r\n    margin-top: 48px;\r\n}\r\n\r\n.sb-ui-menu.mdc-menu-surface--open {\r\n    margin-bottom: 48px;\r\n}\r\n\r\n\r\n/* Material Components customizations */\r\n\r\n/* fix for ripple not working on icon-button */\r\nbutton.mdc-icon-button:hover, button.mdc-icon-button:active, button.mdc-icon-button:focus {\r\n    border-radius: 50%;\r\n    background-color: rgba(0,0,0,0.10);\r\n}\r\n\r\n/* fix tooltip not hiding */\r\n.mdc-tooltip--hide {\r\n    opacity: 0;\r\n}\r\n\r\n/* Special SB widgets customizations */\r\n\r\n/* support for title strings */\r\n.sb-widget.title {\r\n    margin-top: -14px; \r\n}\r\n\r\n.sb-widget.title span.mdc-floating-label--float-above {\r\n    transform: translateY(-166%) !important;\r\n}\r\n.sb-widget.title label.mdc-text-field {\r\n  height: 70px;\r\n}\r\n.sb-widget.title input.mdc-text-field__input {\r\n  font-size: 30px;\r\n  margin-top: auto; \r\n  height: 60px;\r\n}\r\n\r\n.sb-view-layout-form {\r\n    overflow-y: scroll;\r\n}\r\n\r\n\r\n.sb-view-layout-form::-webkit-scrollbar {\r\n    width: 6px;\r\n    overflow-y: scroll;\r\n    background: #EAEAEA;\r\n\r\n}\r\n\r\n.sb-view-layout-form::-webkit-scrollbar-thumb {\r\n    background: var(--mdc-theme-primary, #6200ee);\r\n    border-radius: 10px;\r\n}\r\n\r\n\r\n.sb-view-layout-form .sb-widget.sb-widget-type-boolean {\r\n    height: 56px;\r\n    vertical-align: middle;\r\n    display: table-cell;\r\n    padding-left: 16px;\r\n}\r\n\r\n\r\n/* adapt inputs for inline editing */\r\n.sb-widget-cell .mdc-text-field {\r\n  height: 100%;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field {\r\n    padding-left: 0;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-text-field {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    padding-left: 5px;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-select__anchor {\r\n    padding-left: 5px;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field-helper-line {\r\n  display: none;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--filled::before {\r\n  display: none;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--filled:not(.mdc-text-field--disabled) {\r\n    background-color: inherit;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-text-field--filled:not(.mdc-text-field--disabled) {\r\n    background-color: white;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--invalid .mdc-text-field__input {\r\n    color: var(--mdc-theme-error, #b00020);\r\n}\r\n\r\n.sb-widget-cell .mdc-select {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    margin-top: -14px;\r\n}\r\n\r\n.sb-widget-cell .mdc-select {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    margin-top: -14px;\r\n}\r\n\r\n\r\n.sb-widget-cell .mdc-select__anchor {\r\n    height: 100%;\r\n}\r\n\r\n/* make mini-fab flat (mini save buttons) */ \r\n.sb-view-layout-list-row-checkbox .mdc-fab--mini {\r\n    box-shadow: none !important;\r\n    margin: 2px 0;\r\n}\r\n\r\n.mdc-data-table {\r\n    height: 100%;\r\n}\r\n\r\n\r\n.mdc-data-table__table-container::-webkit-scrollbar {\r\n    width: 6px;\r\n    overflow-y: scroll;\r\n    background: #EAEAEA;\r\n\r\n}\r\n\r\n.mdc-data-table__table-container::-webkit-scrollbar-thumb {\r\n    background: var(--mdc-theme-primary, #6200ee);\r\n    border-radius: 10px;\r\n}\r\n\r\n\r\n\r\n/* custom style for special button with icon only */\r\n.mdc-button-icon {\r\n\tmin-width: 36px;\r\n}\r\n\r\n.mdc-button-icon  .mdc-button__ripple {\r\n\tborder-radius: 50%;\r\n    width: 36px;\r\n}\r\n\r\n\r\n\r\n.mdc-menu {\r\n    min-width: var(--mdc-menu-min-width, 200px) !important;\r\n    max-width: calc(100vw - 32px) !important;\r\n}\r\n\r\n.mdc-text-field:not(.mdc-text-field--disabled) .mdc-text-field__icon {\r\n    color: rgba(0,0,0,.54);\r\n    background-color: white;\r\n}\r\n\r\n.mdc-text-field--focused .mdc-text-field-helper-line .mdc-text-field-helper-text {\r\n    opacity: 1 !important;\r\n}\r\n\r\n.mdc-text-field--with-trailing-icon .mdc-text-field__icon {\r\n    left: initial;\r\n    right: 12px;\r\n}\r\n\r\n.mdc-text-field--with-leading-icon .mdc-text-field__icon, .mdc-text-field--with-trailing-icon .mdc-text-field__icon {\r\n    position: absolute;\r\n    top: 50%;\r\n    transform: translateY(-50%);\r\n    cursor: pointer;\r\n}\r\n\r\n.mdc-text-field--textarea {\r\n    outline: solid 1px rgba(0, 0,0,0.1);\r\n}\r\n\r\n.sb-view-layout.sb-view-layout-form .mdc-text-field--filled:not(.mdc-text-field--disabled), .mdc-select--filled:not(.mdc-select--disabled) .mdc-select__anchor {\r\n    background: transparent !important;\r\n}\r\n\r\n.mdc-layout-grid__cell {\r\n    position: relative;\r\n}\r\n\r\n.mdc-text-field-helper-line {\r\n    position: absolute;\r\n    width: 100%;\r\n    max-width: 100%;\r\n    padding-left: 0 !important;    \r\n    padding-right: 0 !important;    \r\n}\r\n\r\n.mdc-data-table__header-cell--checkbox {\r\n    width: 44px;\r\n}\r\n.mdc-data-table__row--selected {\r\n    background-color: var(--mdc-theme-primary-selected) !important;\r\n}\r\n.mdc-list-item .mdc-checkbox {\r\n    margin-left: -11px;\r\n}\r\n\r\n.mdc-list-item__graphic {\r\n    color: rgba(0,0,0,.54) !important;\r\n    margin-right: 12px;\r\n}\r\n\r\n.mdc-list-item__text {\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;    \r\n}\r\n\r\n.mdc-chip .mdc-chip__icon {\r\n    font-size: 22px;\r\n    height: 22px;\r\n}\r\n\r\n.mdc-list-item {\r\n    height: 44px;\r\n    align-items: center !important;\r\n}\r\n\r\n.mdc-data-table__cell {\r\n    height: 44px;\r\n}\r\n\r\n\r\n.mdc-data-table__pagination {\r\n    border-top: 0;\r\n}\r\n\r\n.mdc-text-field {\r\n    width: 100%;\r\n}\r\n\r\n.mdc-floating-label {\r\n    font-size: 16px !important;\r\n    /* color: rgba(0, 0, 0, 0.8) !important;*/\r\n}\r\n\r\n\r\n.mdc-text-field-helper-line .mdc-text-field-helper-text {\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n\r\n.mdc-text-field--invalid:not(.mdc-text-field--disabled) .mdc-text-field-helper-line .mdc-text-field-helper-text--validation-msg {\r\n    color: var(--mdc-theme-error, #b00020) !important;\r\n}\r\n\r\n.mdc-text-field--focused:not(.mdc-text-field--disabled) .mdc-floating-label {\r\n    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;\r\n}\r\n\r\n.mdc-select--focused:not(.mdc-text-field--disabled) .mdc-floating-label {\r\n    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;\r\n}\r\n\r\n.mdc-select {\r\n    width: 100%;\r\n}\r\n\r\n.mdc-tab {\r\n    max-width: 280px;\r\n}\r\n\r\n.mdc-tab-bar {\r\n    margin-top: 12px;\r\n    border-bottom: 1px solid rgba(0, 0, 0, 0.12);\r\n}\r\n\r\n.mdc-tab__text-label {\r\n    user-select: none;\r\n}\r\n.mdc-tab.mdc-tab--active .mdc-tab__ripple {\r\n    background-color: var(--mdc-ripple-color, var(--mdc-theme-primary, #6200ee));\r\n    opacity: 0.1;\r\n}\r\n\r\n\r\n\r\n/* jqueryui datepicker material styling */\r\n\r\n\r\n.ui-datepicker {\r\n    z-index: 3 !important;\r\n    font-family: \"Roboto\";\r\n}\r\n\r\n.ui-datepicker {\r\n    padding: 0;\r\n    border: none;  \r\n    width: 325px;\r\n    box-shadow: 4px 4px 10px 2px rgba(0, 0, 0, 0.24);\r\n    margin-left: -16px;\r\n    margin-top: 6px;\r\n    font-size: 14px;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-title {\r\n    font-size: 17px;\r\n}\r\n\r\n.ui-datepicker-trigger {\r\n    position: absolute;\r\n    right: 12px;\r\n    top: 50%;\r\n    opacity: 0;\r\n    margin-top: -10px;\r\n    cursor: pointer;\r\n}\r\n\r\n.ui-corner-all {\r\n  border-radius: 0;\r\n}\r\n\r\n.ui-widget-header {\r\n  border: 0;\r\n}\r\n\r\n.ui-datepicker-header {\r\n  text-align: center;\r\n  background: white;\r\n  padding-bottom: 15px;\r\n  font-weight: 300;\r\n}\r\n.ui-datepicker-header .ui-datepicker-prev,\r\n.ui-datepicker-header .ui-datepicker-next,\r\n.ui-datepicker-header .ui-datepicker-title {\r\n  border: none;\r\n  outline: none;\r\n  margin: 5px;\r\n}\r\n\r\n.ui-datepicker-prev.ui-state-hover,\r\n.ui-datepicker-next.ui-state-hover {\r\n  border: none;\r\n  outline: none;\r\n  background: #b4cbe5;\r\n}\r\n\r\n.ui-datepicker .ui-state-default {\r\n  background: none;\r\n  border: none;\r\n  text-align: center;\r\n  height: 33px;\r\n  width: 33px;\r\n  line-height: 30px;\r\n}\r\n.ui-datepicker .ui-state-highlight {\r\n  color: var(--mdc-theme-primary);\r\n}\r\n.ui-datepicker .ui-state-active {\r\n  color: white;\r\n}\r\n\r\n\r\n\r\n.ui-datepicker-calendar thead th {\r\n    color: #999999;\r\n    font-weight: 200;\r\n}\r\n\r\n.ui-datepicker-buttonpane {\r\n  border: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-state-default {\r\n  background: white;\r\n  border: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-datepicker-close,\r\n.ui-datepicker-buttonpane .ui-datepicker-current {\r\n  background: white;\r\n  color: #284B72;\r\n  text-transform: uppercase;\r\n  border: none;\r\n  opacity: 1;\r\n  font-weight: 200;\r\n  outline: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-datepicker-close:hover,\r\n.ui-datepicker-buttonpane .ui-datepicker-current:hover {\r\n  background: #b4cbe5;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev {\r\n    text-decoration: none;\r\n    height: auto !important;\r\n    width: auto !important;\r\n\tleft: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-next {\r\n    text-decoration: none;\r\n    height: auto !important;\r\n    width: auto !important;\r\n\tright: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev .ui-icon, .ui-datepicker .ui-datepicker-next .ui-icon {\r\n    display: none !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev::after {\r\n    font-family: FontAwesome;\r\n\tcontent: \"\\f053\";\r\n\tdisplay: block;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-next::after {\r\n    font-family: FontAwesome;\r\n\tcontent: \"\\f054\";\r\n\tdisplay: block;\r\n}\r\n\r\n\r\n.ui-datepicker .ui-datepicker-prev.ui-state-hover, .ui-datepicker .ui-datepicker-next.ui-state-hover {\r\n    background: none;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev-hover {\r\n\tleft: 8px !important;\r\n    top: 8px !important;\r\n}\r\n.ui-datepicker .ui-datepicker-next-hover {\r\n\tright: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n\r\n\r\n\r\n\r\nbutton.ui-state-hover {\r\n    background: unset !important;\r\n    background-color: var(--mdc-theme-primary-hover) !important;\r\n    border: unset !important;\r\n    color: white !important;\r\n    box-shadow: 0px 3px 1px -2px rgb(0 0 0 / 20%), 0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%) !important;\r\n}\r\n\r\n\r\n\r\n/* jquery ui datepicker month year picker */\r\n.ui-datepicker .ui-datepicker-select-month td ,\r\n.ui-datepicker .ui-datepicker-select-year td {\r\n\theight: 33px;\r\n}\r\n.ui-datepicker .ui-datepicker-select-month td span,\r\n.ui-datepicker .ui-datepicker-select-month td a,\r\n.ui-datepicker .ui-datepicker-select-year td span,\r\n.ui-datepicker .ui-datepicker-select-year td a  {\r\n\ttext-align: center;\r\n}\r\n.ui-datepicker .ui-datepicker-select-year td.outoffocus {\r\n\topacity: 0.5;\r\n}\r\n\r\n.ui-datepicker-select-month .ui-state-default, .ui-datepicker-select-year .ui-state-default {\r\n    margin: auto;\r\n}\r\n\r\n.ui-datepicker td {\r\n    font-size: 14px !important;\r\n}\r\n\r\n.ui-datepicker .ui-state-default, .ui-datepicker .ui-state-active {\r\n    position: relative;\r\n    border: 0 !important;\r\n    background: none !important;\r\n}\r\n\r\n.ui-datepicker .ui-state-active::after {\r\n    position: absolute;\r\n    display: block;\r\n    content: '';\r\n    background-color:var(--mdc-theme-primary);\r\n    border-radius: 50%;\r\n    width: 34px;\r\n    height: 34px;\r\n    z-index: -1;\r\n    top: 0;\r\n    left: calc(50% - 16px)\r\n}\r\n\r\n\r\n.ui-datepicker .ui-state-default:not(.ui-state-active).ui-state-hover::after {\r\n    position: absolute;\r\n    display: block;\r\n    content: '';\r\n    background-color: rgba(0,0,0,0.05);\r\n    border-radius: 50%;\r\n    width: 34px;\r\n    height: 34px;\r\n    z-index: -1;\r\n    top: 0;\r\n    left: calc(50% - 16px)\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header {\r\n    display: flex;\r\n    align-items: center;\r\n    padding: 4px 24px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header .ui-datepicker-title {\r\n    flex: 1;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header-time-switch {\r\n    flex: 1;\r\n    line-height: 100%;\r\n    height: 100%;\r\n    align-self: center;\r\n}\r\n\r\n\r\n.timepicker{\r\n    display:block;\r\n    user-select:none;\r\n    margin:0 auto;\r\n    width:100%;\r\n    height:100%;\r\n    font-size:14px;\r\n}\r\n.timepicker__title{background-image:-webkit-linear-gradient(top,#fff 0,#f2f2f2 100%);position:relative;background:#f2f2f2;margin:0 auto;border-bottom:1px solid #e5e5e5;padding:12px 11px 10px 15px;color:#4C4C4C;font-size:inherit}\r\n.timepicker__close{-webkit-transform:translateY(-25%);-moz-transform:translateY(-25%);-ms-transform:translateY(-25%);-o-transform:translateY(-25%);transform:translateY(-25%);position:absolute;top:25%;right:10px;color:#34495e;cursor:pointer}\r\n.timepicker__close:before{content:'\\00d7'}\r\n.timepicker__controls{padding:10px 0;line-height:normal;margin:0}\r\n.timepicker__controls__control,.timepicker__controls__control--separator{vertical-align:middle;display:inline-block;font-size:inherit;margin:0 auto;width:35px;letter-spacing:1.3px}\r\n.timepicker__controls__control-down,.timepicker__controls__control-up{color:#34495e;position:relative;display:block;margin:3px auto;font-size:18px;cursor:pointer}\r\n.timepicker__controls__control-up:before{content:'\\f0d8'}\r\n.timepicker__controls__control-down:after{content:'\\f0d7'}\r\n.timepicker__controls__control--separator{width:5px}\r\n.text-center,.timepicker__controls,.timepicker__controls__control,.timepicker__controls__control--separator,.timepicker__controls__control-down,.timepicker__controls__control-up,.timepicker__title{text-align:center}\r\n.hover-state{color:#3498db}\r\n \r\n.fontello-after:after,.fontello:before,.timepicker__controls__control-down:after,.timepicker__controls__control-up:before{font-family:FontAwesome;font-style:normal;font-weight:400;display:inline-block;text-decoration:inherit;width:1em;margin-right:.2em;text-align:center;font-variant:normal;text-transform:none;line-height:1em;margin-left:.2em;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}  \r\n.clearable-picker{position:relative;display:inline-block}  \r\n.clearable-picker>.hastimepicker{padding-right:1em}  \r\n.clearable-picker>.hastimepicker::-ms-clear{display:none}  \r\n.clearable-picker>[data-clear-picker]{position:absolute;top:50%;right:0;transform:translateY(-50%);font-weight:700;font-size:.8em;padding:0 .3em .2em;line-height:1;color:#bababa;cursor:pointer}  \r\n.clearable-picker>[data-clear-picker]:hover{color:#a1a1a1}\r\n.timepicker__controls__control span {\r\n    outline: none;\r\n}"],"sourceRoot":""}]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 

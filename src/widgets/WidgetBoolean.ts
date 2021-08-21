@@ -20,7 +20,6 @@ export default class WidgetBoolean extends Widget {
                 // setup handler for relaying value update to parent layout
                 $elem.find('input')
                 .on('change', (event:any) => {
-                    console.log('WidgetBoolean onchange');
                     let $this = $(event.currentTarget);
                     this.value = $this.prop( "checked" )
                     $elem.trigger('_updatedWidget');

@@ -167,6 +167,20 @@ export class _ApiService {
         return view;        
     }
 
+    public async getUser() {
+        let result: any;
+        try {
+            const response = await $.get({
+                url: environment.backend_url+'/userinfo'
+            });
+            result = response;
+        }
+        catch(response) {
+            throw response.responseJSON;            
+        }
+        return result;
+    }
+
     public async create(entity:string, fields:any = {}) {
         let result: any;
         try {
@@ -280,8 +294,7 @@ export class _ApiService {
                 data: params,
                 contentType: 'application/x-www-form-urlencoded; charset=utf-8'
             });
-            result = response;
-            
+            result = response;            
         }
         catch(response) {
             throw response.responseJSON;

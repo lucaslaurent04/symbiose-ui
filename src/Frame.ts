@@ -128,10 +128,10 @@ export class Frame {
      * @returns 
      */
     private async updateHeader() {
-        console.log('update header');
+        console.log('update header');        
 
         if($(this.domContainerSelector).find('.sb-container-header').length == 0) {            
-            this.$headerContainer = $('<div/>').addClass('sb-container-header').appendTo($(this.domContainerSelector));
+            this.$headerContainer = $('<div/>').addClass('sb-container-header').prependTo($(this.domContainerSelector));
         }
 
         if( this.stack.length == 0 || !this.context.hasOwnProperty('$container')) {
@@ -299,9 +299,11 @@ export class Frame {
                 prev_context.$container.hide();
             }
             $(this.domContainerSelector).append(this.context.getContainer());
-        });        
-        
-        this.updateHeader();
+            // relay event to the outside
+            $(this.domContainerSelector).show().trigger('_open');
+            this.updateHeader();            
+        });
+
     }
 
 
@@ -342,7 +344,7 @@ export class Frame {
 
             // if we closed the lastest Context from the stack, relay data to the outside
             if(!this.stack.length) {
-                $(this.domContainerSelector).trigger('_close', [ data ]);
+                $(this.domContainerSelector).hide().trigger('_close', [ data ]);
             }
         }
     }

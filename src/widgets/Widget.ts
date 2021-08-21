@@ -15,7 +15,6 @@ export default class Widget {
     protected config: any;
     
     constructor(layout: Layout, type: string, label: string, value: any, config: any) {
-        console.log('Widget constructor', type, label, value, config);
         this.layout = layout;
 
         this.value = value;

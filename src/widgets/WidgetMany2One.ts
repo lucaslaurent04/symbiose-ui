@@ -133,13 +133,15 @@ export default class WidgetMany2One extends Widget {
                     }
                 });
 
-                // open targeted object in new context
+                // open creation form in new context
                 $button_create.on('click', async () => {
+                    console.log('########################################################', domain);
                     this.getLayout().openContext({
                         entity: this.config.foreign_object,
                         type: 'form',
                         mode: 'edit',
                         purpose: 'create',
+                        domain: domain,
                         name: (this.config.hasOwnProperty('view_name'))?this.config.view_name:'default',
                         callback: (data:any) => {
                             if(data && data.selection && data.objects) {

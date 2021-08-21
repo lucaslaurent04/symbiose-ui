@@ -3,13 +3,10 @@ import { $ } from "./jquery-lib";
 import { Widget, WidgetFactory } from "./equal-widgets";
 import { UIHelper } from './material-lib';
 
-import { ApiService, TranslationService } from "./equal-services";
+import { TranslationService } from "./equal-services";
 
-import Domain from "./Domain";
-
-import Context from "./Context";
+import { Domain, Clause, Condition } from "./Domain";
 import View from "./View";
-import Model from "./Model";
 
 /*
     There are two main branches of Layouts depending on what is to be displayed:
@@ -179,7 +176,6 @@ export class Layout {
      * @param field_name 
      */
     private getWidgetConfig(item: any) {
-        console.log('Layout::getWidgetConfig', item);
         let field = item.value;
         
         let translation = this.view.getTranslation();
@@ -226,6 +222,7 @@ export class Layout {
             config.visible = item.visible;
         }
 
+        // convert visible property to JSON
         config.visible = eval(config.visible);
 
         if(item.hasOwnProperty('widget')) {
@@ -243,14 +240,19 @@ export class Layout {
 
             let def_domain = (def.hasOwnProperty('domain'))?def['domain']:[];
             let view_domain = (item.hasOwnProperty('domain'))?item['domain']:[];
-            let tmpDomain = new Domain(def_domain);
-            tmpDomain.merge(new Domain(view_domain));
+            let domain = new Domain(def_domain);
+            domain.merge(new Domain(view_domain));
+
+            // add join condition for limiting list to the current object
+            if(['one2many', 'many2many'].indexOf(def['type']) > -1 && def.hasOwnProperty('foreign_field')) {
+                domain.merge(new Domain([def['foreign_field'], 'contains', 'object.id']));                
+            }
 
             config = {...config, 
                 entity: def['foreign_object'],
                 view_type: view_type,
                 view_name: view_name,
-                domain: tmpDomain.toArray()
+                original_domain: domain.toArray()
             };
 
         }
@@ -521,8 +523,10 @@ export class Layout {
                         config.object_id = object[item.value]['id'];
                     }
                     else {
-                        value = object[item.value].map( (o:any) => o.name).join(', ');
-                        value = (value.length > 35)? value.substring(0, 35) + "..." : value;
+                        // Model do not load o2m and m2m fields : these are handled by sub-views
+                        // value = object[item.value].map( (o:any) => o.name).join(', ');
+                        // value = (value.length > 35)? value.substring(0, 35) + "..." : value;
+                        value = "...";
                         // we need the current object id for new objects creation
                         config.object_id = object.id;
                     }                    
@@ -579,18 +583,33 @@ export class Layout {
 // #todo : keep internal index of the object to display (with a prev/next navigation in the header)
             let object:any = objects[0];
             for(let field of fields) {
+                
                 let widget = this.model_widgets[0][field];
+                
+                // widget might be missing (if not visible)
+                if(!widget) continue;
+
                 let $parent = this.$layout.find('#'+widget.getId()).parent();
 
                 let model_def = model_schema[field];
                 let type = model_def['type'];
         
                 let has_changed = false;
-                let value = object[field];
+                let value = (object.hasOwnProperty(field))?object[field]:undefined;
                 let config = widget.getConfig();
 
                 // for relational fields, we need to check if the Model has been fetched
                 if(['one2many', 'many2one', 'many2many'].indexOf(type) > -1) {
+
+                    // if widget has a domain, parse it using current object and user
+                    if(config.hasOwnProperty('original_domain')) {
+                        let user = this.view.getUser();
+                        let tmpDomain = new Domain(config.original_domain);
+                        config.domain = tmpDomain.parse(object, user).toArray();
+                    }
+                    else {
+                        config.domain = [];
+                    }
 
                     // by convention, `name` subfield is always loaded for relational fields
                     if(type == 'many2one') {
@@ -598,33 +617,44 @@ export class Layout {
                         config.object_id = object[field]['id'];
                     }
                     else if(type == 'many2many' || type == 'one2many') {
-                        // for m2m fields, the value of the field is an array of objects `{id:, name:}`
-                        // by convention, when a relation is to be removed, the id field is set to its negative value
-
-                        // select ids to load by filtering targeted objects
-                        let target_ids = object[field].map( (o:any) => o.id ).filter( (id:number) => id > 0 );
-                        if(!target_ids.length) {
-                            target_ids.push(0);
+                        // init field if not present yet (o2m and m2m are not loaded by Model)
+                        if(!object.hasOwnProperty(field)) {
+                            object[field] = [];
+                            // force change detection (upon re-feed, the field do not change and remains an empty array)
+                            $parent.data('value', null);
                         }
 
+                        // for m2m fields, the value of the field is an array of ids 
+                        // by convention, when a relation is to be removed, the id field is set to its negative value
+                        value = object[field];
+
+                        // select ids to load by filtering targeted objects
+                        let ids_to_add = object[field].filter( (id:number) => id > 0 );
+                        let ids_to_del = object[field].filter( (id:number) => id < 0 ).map( (id:number) => -id );
+                        
                         // we need the current object id for new objects creation
                         config.object_id = object.id;
 
-                        config = {...config, 
-// #todo : merge domains instead of override
-                            domain: ['id','in',target_ids]
-                        };
+                        // domain is updated based on user actions: an additional clause for + (accept thos whatever the other conditions) and addtional conditions for - (prevent theses whatever the other conditions)
+                        let tmpDomain = new Domain(config.domain);
+                        if(ids_to_add.length) {
+                            tmpDomain.addClause(new Clause([new Condition("id", "in", ids_to_add)]));
+                        }
+                        if(ids_to_del.length) {
+                            tmpDomain.addCondition(new Condition("id", "not in", ids_to_del));
+                        }
+                        config.domain = tmpDomain.toArray();
                     }
                 }
-               
-                has_changed = (!value || $parent.data('value') != value);
+
+                has_changed = (!value || $parent.data('value') != JSON.stringify(value));
 
                 widget.setConfig({...config, ready: true})
                 .setMode(this.view.getMode())
                 .setValue(value);
 
-                // store data to parent, for tracking changes at next refresh
-                $parent.data('value', value);
+                // store data to parent, for tracking changes at next refresh (prevent storing references)
+                $parent.data('value', JSON.stringify(value));
 
                 let visible = true;
                 // handle visibility tests (domain)           
@@ -645,15 +675,13 @@ export class Layout {
                     $parent.data('value', null);
                 }
                 else {
-// #todo : many2one & x2many fields can have a specific domain, that might depend on current values of edited object : 
-// we must re-evaluate the domain and set the widget config accordingly
                     let $widget = widget.render();
                     // Handle Widget update handler
                     $widget.on('_updatedWidget', (event:any) => {
+                        console.log("Layout::feedForm : received _updatedWidget", field, widget.getValue());
                         // update object with new value
                         let value:any = {};
                         value[field] = widget.getValue();
-                        console.log(value);
                         this.view.onchangeViewModel([object.id], value);
                     });
                     // prevent refreshing objects that haven't changed

@@ -93,14 +93,14 @@ export class View {
                     title: 'SB_ACTIONS_BUTTON_INLINE_UPDATE',
                     icon:  'dynamic_form',
                     primary: true,
-                    handler: (event:any) => this.actionListInlineEdit(event, this.selected_ids)
+                    handler: (selection:any) => this.actionListInlineEdit(selection)
                 },
                 {
                     title: 'SB_ACTIONS_BUTTON_UPDATE',
                     icon:  'edit',
                     primary: false,
-                    handler: (event:any) => {
-                        let selected_id = this.selected_ids[0];
+                    handler: (selection:any) => {
+                        let selected_id = selection[0];
                         this.openContext({entity: this.entity, type: 'form', name: this.name, domain: ['id', '=', selected_id], mode: 'edit', purpose: 'update'});
                     }
                 },
@@ -108,10 +108,9 @@ export class View {
                     title: 'SB_ACTIONS_BUTTON_CLONE',
                     icon:  'content_copy',
                     primary: false,
-                    handler: async (event:any) => {
+                    handler: async (selection:any) => {
                         try {
-                            console.log(this.selected_ids);
-                            await ApiService.clone(this.entity, this.selected_ids);
+                            await ApiService.clone(this.entity, selection);
                             // refresh the model
                             await this.onchangeView();
                         }
@@ -125,9 +124,9 @@ export class View {
                     title: 'SB_ACTIONS_BUTTON_ARCHIVE',
                     icon:  'archive',
                     primary: true,
-                    handler: async (event:any) => {
+                    handler: async (selection:any) => {
                         try {
-                            await ApiService.archive(this.entity, this.selected_ids);
+                            await ApiService.archive(this.entity, selection);
                             // refresh the model
                             await this.onchangeView();
                         }
@@ -141,7 +140,7 @@ export class View {
                     title: 'SB_ACTIONS_BUTTON_DELETE',
                     icon:  'delete',
                     primary: true,
-                    handler: async (event:any) => {
+                    handler: async (selection:any) => {
                         try {
                             // display confirmation dialog with checkbox for permanent deletion                            
                             let $dialog = UIHelper.createDialog('confirm_deletion_dialog', TranslationService.instant('SB_ACTIONS_DELETION_CONFIRM'));
@@ -153,7 +152,7 @@ export class View {
                             .on('_ok', async (event, result) => {
                                 let permanent = result.permanent?result.permanent:false;
                                 console.log(result, permanent);
-                                await ApiService.delete(this.entity, this.selected_ids, permanent);
+                                await ApiService.delete(this.entity, selection, permanent);
                                 // refresh the model
                                 await this.onchangeView();
                             });
@@ -196,7 +195,6 @@ export class View {
         this.$footerContainer = $('<div />').addClass('sb-view-footer').appendTo(this.$container);
 
 
-
         this.layout = new Layout(this);
         this.model = new Model(this);
 
@@ -206,7 +204,7 @@ export class View {
     private async init() {
         console.log('View::init');
         try {
-    
+            
             this.translation = await ApiService.getTranslation(this.entity, environment.lang);
             try {
                 this.view_schema = await ApiService.getView(this.entity, this.type + '.' + this.name);
@@ -300,6 +298,10 @@ export class View {
 
     public getContext() {
         return this.context;
+    }
+
+    public getUser() {
+        return this.context.getUser();
     }
 
     /**
@@ -403,7 +405,7 @@ export class View {
         return this.lang;
     }
     public getTotal() {
-        return +this.getModel().getTotal();
+        return this.getModel().getTotal();
     }
 
     public getModel() {
@@ -801,11 +803,11 @@ export class View {
                 // add actions defined in view
                 for(let item of this.config.selection_actions) {
                     UIHelper.createListItem(TranslationService.instant(item.title), item.icon)
-                    .on( 'click', (event:any) => item.handler(event) )
+                    .on( 'click', (event:any) => item.handler(this.selected_ids) )
                     .appendTo($list);
     
                     if(item.hasOwnProperty('primary') && item.primary) {
-                        $container.append(UIHelper.createButton('selection-action-'+item.title, item.title, 'icon', item.icon).on('click', (event:any) => item.handler(event)));
+                        $container.append(UIHelper.createButton('selection-action-'+item.title, item.title, 'icon', item.icon).on('click', (event:any) => item.handler(this.selected_ids)));
                         let $tooltip = UIHelper.createTooltip('selection-action-'+item.title, TranslationService.instant(item.title));
                         $container.append($tooltip);
                         UIHelper.decorateTooltip($tooltip);
@@ -1080,7 +1082,7 @@ export class View {
         this.onchangeView();        
     }
 
-    private async actionListInlineEdit(event:any, selection: any) {
+    private async actionListInlineEdit(selection: any) {
         if(selection.length && !this.$container.find('.sb-view-header-list-actions-selected-edit').length) {
             let $action_set = this.$container.find('.sb-view-header-list-actions-set');
 

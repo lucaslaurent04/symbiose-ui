@@ -57,14 +57,14 @@ class eQ {
                 purpose:    'view',             // view, select, add
                 lang:       environment.lang,
                 callback:   null,
-                domContainerSelector: '#sb-container'
+                target:     '#sb-container'
             }, ...config};
 
-            if(!this.frames.hasOwnProperty(config.domContainerSelector)) {
-                this.frames[config.domContainerSelector] = new Frame(config.domContainerSelector);
+            if(!this.frames.hasOwnProperty(config.target)) {
+                this.frames[config.target] = new Frame(config.target);
             }
 
-            this.frames[config.domContainerSelector].openContext(config);
+            this.frames[config.target].openContext(config);
         });
 
         /**
@@ -75,24 +75,24 @@ class eQ {
         this.$sbEvents.on('_closeContext', (event:any, params:any = {}) => {
             // close context non-silently with relayed data
             params = {...{
-                domContainerSelector: '#sb-container',
-                data: {}
+                target: '#sb-container',
+                data:   {}
             }, ...params};
 
-            if(this.frames.hasOwnProperty(params.domContainerSelector)) {
-                this.frames[params.domContainerSelector].closeContext(params.data);    
+            if(this.frames.hasOwnProperty(params.target)) {
+                this.frames[params.target].closeContext(params.data);    
             }
         });
 
         this.$sbEvents.on('_closeAll', (event:any, params:any = {}) => {
             // close all contexts silently
             params = {...{
-                domContainerSelector: '#sb-container',
+                target: '#sb-container',
                 silent: true
             }, ...params};
 
-            if(this.frames.hasOwnProperty(params.domContainerSelector)) {
-                this.frames[params.domContainerSelector].closeContext(params.silent);
+            if(this.frames.hasOwnProperty(params.target)) {
+                this.frames[params.target].closeContext(params.silent);
             }
         });
 

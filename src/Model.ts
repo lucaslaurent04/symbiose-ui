@@ -108,7 +108,6 @@ export class Model {
     }
 
     public getOperators(type:string) {
-        console.log(type);
         let operators:any = {
             'boolean':      ['=', '<>'],
             'integer':      ['in', 'not in', '=', '<>', '<', '>', '<=', '>='],
@@ -161,17 +160,25 @@ export class Model {
         console.log('Model::refresh');
 
         // fetch fields that are present in the parent View 
-        let fields: any[] = <[]>Object.keys(this.view.getViewFields());
+        let view_fields: any[] = <[]>Object.keys(this.view.getViewFields());
         let schema = this.view.getModelFields();
 
-        // append `name` subfield for relational fields, using the dot notation
-        for(let i in fields) {
-            let field = fields[i];
-            if(['many2one', 'one2many', 'many2many'].indexOf(schema[field]['type']) > -1) {
-                fields[i] = field + '.name';
+        let fields = [];
+        
+        for(let i in view_fields) {
+            let field = view_fields[i];
+            // append `name` subfield for relational fields, using the dot notation
+            if( 'many2one' == schema[field]['type'] ) {
+                fields.push(field + '.name');
+            }
+            // we do not load relational fields resulting in potentially long lists (those are handled by the Widgets)
+            else if(['one2many', 'many2many'].indexOf(schema[field]['type']) > -1) {
+                delete fields[i];
+            }
+            else {
+                fields.push(field);
             }
         }
-
 
         try {
 // #todo : allow to fetch objects from an arbitrary controller (when filtering with domain is not enough)
@@ -200,12 +207,13 @@ export class Model {
      */
     public change(ids: Array<any>, values: any) {
         console.log('Model::change', ids, values);
+        let schema = this.view.getModelFields();
         for (let index in this.objects) {
             let object = this.objects[index];
             for (let id of ids) {
                 if(object.hasOwnProperty('id') && object.id == id) {
                     for (let field in values) {
-                        if(object.hasOwnProperty(field)) {
+                        if(schema.hasOwnProperty(field)) {
                             if(!this.has_changed.hasOwnProperty(id)) {
                                 this.has_changed[id] = [];
                             }
@@ -253,6 +261,7 @@ export class Model {
      * @param ids array list of objects identifiers that must be returned
      */
     public get(ids:any[] = []) {
+        console.log('Model::get', this.objects, this.has_changed);
         let promise = $.Deferred();
         this.loaded_promise.
         then( () => {

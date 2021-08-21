@@ -45,6 +45,7 @@ body, html {
     overflow: hidden;
     flex: 1 1 100%;
     box-sizing: border-box;
+    display: none;
 }
 
 .sb-container-header {
@@ -479,7 +480,7 @@ button.mdc-icon-button:hover, button.mdc-icon-button:active, button.mdc-icon-but
 .mdc-data-table__table-container::-webkit-scrollbar {
     width: 6px;
     overflow-y: scroll;
-    background: #EAEAEA;
+    background: transparent;
 
 }
 

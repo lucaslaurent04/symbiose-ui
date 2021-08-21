@@ -1,7 +1,9 @@
 import { $ } from "./jquery-lib";
 
 import { Frame, View } from "./equal-lib";
+import { ApiService } from "./equal-services";
 import { environment } from "./environment";
+
 
 export class Context {
     
@@ -10,6 +12,9 @@ export class Context {
     private frame: Frame;
 
     private view: View;
+
+    // User (requested as instanciation of the View). This value might be applied on subsequent Domain objects.
+    private user: any;
 
     // callback to be called when the context closes
     private callback: (data:any) => void;
@@ -43,9 +48,26 @@ and can be displayed to user as an indication of the expected action.
         this.frame = frame;
         this.view = new View(this, entity, type, name, domain, mode, purpose, lang, config);
         // inject View in parent Context object
-        this.$container.append(this.view.getContainer())
+        this.$container.append(this.view.getContainer());
+
+        this.user = {id: 0};
+
+        this.init();
     }    
 
+    private async init() {
+        try {
+            this.user = await ApiService.getUser();
+        }
+        catch(err) {
+            console.warn('unable to retrieve user info');
+        }
+    }
+
+    public getUser() {
+        return this.user;
+    }
+    
     /**
      * Close current context.    
      * Should be called only by parent Frame.

@@ -16,7 +16,7 @@ export default class WidgetMany2Many extends Widget {
     }
 
     public render():JQuery {
-        console.log('WidgetOne2Many::render', this.config);
+        console.log('WidgetMany2Many::render', this);
         let $elem: JQuery;
 
         $elem = $('<div />');
@@ -31,15 +31,20 @@ export default class WidgetMany2Many extends Widget {
                     {
                         title: 'SB_ACTIONS_BUTTON_REMOVE',
                         icon:  'delete',
-                        handler: (event:any, selection:any) => {
-                            let ids = this.value.map( (o:any) => o.id);
+                        handler: (selection:any) => {
+                            console.log(this.value, selection);
                             for(let id of selection) {
-                                let index = ids.indexOf(id);
-                                if( index > -1) {
-                                    ids[index] = -ids[index];
+                                let index = this.value.indexOf(id);
+                                if( index == -1 ) {
+                                    if( this.value.indexOf(-id) == -1 ) {
+                                        this.value.push(-id);
+                                    }                                    
+                                }
+                                else {
+                                    this.value[index] = -this.value[index];
                                 }
                             }
-                            this.value = ids.map( (id:number) => ({id: id}) );
+                            console.log(this.value);
                             $elem.trigger('_updatedWidget');
                         }
                     }
@@ -72,17 +77,13 @@ export default class WidgetMany2Many extends Widget {
                                 purpose: purpose,
                                 callback: (data:any) => {
                                     if(data && data.selection) {
-                                        let ids = this.value.map( (o:any) => o.id);
-                                        // 1) remove from current selection items (+ or -) that are in returned selection
-                                        for(let i = ids.length-1; i >= 0; --i) {
-                                            let item = Math.abs(ids[i]);
-                                            if(data.selection.indexOf(item) > -1) {
-                                                ids.splice(i, 1);
+                                        // add ids that are not yet in the Object value
+                                        for(let id of data.selection) {
+                                            let index = this.value.indexOf(id);
+                                            if( index == -1) {
+                                                this.value.push(id);
                                             }
                                         }
-                                        // 2) append returned selection to current selection
-                                        ids = ids.concat(data.selection);
-                                        this.value = ids.map( (id:number) => ({id: id}) );
                                         $elem.trigger('_updatedWidget');
                                     }
                                 }
@@ -106,10 +107,9 @@ export default class WidgetMany2Many extends Widget {
                                     callback: (data:any) => {
                                         if(data && data.selection) {
                                             if(data.selection.length) {
-                                                let ids = this.value.map( (o:any) => o.id);
-                                                // append created object to current selection
-                                                ids = ids.concat([data.selection[0]]);
-                                                this.value = ids.map( (id:number) => ({id: id}) );
+                                                for(let id of data.selection) {
+                                                    this.value.push(id);
+                                                }
                                                 $elem.trigger('_updatedWidget');
                                             }
                                         }

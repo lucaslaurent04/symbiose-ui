@@ -15,7 +15,6 @@ export default class WidgetDate extends Widget {
     }
 
     public render(): JQuery {
-        console.log('WidgetDate::render', this.value, this.config);
         let $elem: JQuery = $();
         let date = new Date(this.value);
         let value:any;
