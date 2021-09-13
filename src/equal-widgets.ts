@@ -43,6 +43,7 @@ config: {
  * @param value 
  */
     public static getWidget(layout:Layout, type: string, label: string, value: any = null, config:any = {}): Widget {
+        let view_type = layout.getView().getType();
         switch(type) {
             case 'boolean':
                 return new WidgetBoolean(layout, label, value, config);
@@ -56,14 +57,17 @@ config: {
                 return new WidgetMany2One(layout, label, value, config);
             case 'many2many':
                 return new WidgetMany2Many(layout, label, value, config);
-            case 'text':
-                return new WidgetText(layout, label, value, config);
             case 'select':
                 return new WidgetSelect(layout, label, value, config);
             case 'integer':
                 return new WidgetInteger(layout, label, value, config);
             case 'float':
                 return new WidgetFloat(layout, label, value, config);    
+            case 'text':
+                if(view_type == 'list') {
+                    return new WidgetString(layout, label, value, config);
+                }
+                return new WidgetText(layout, label, value, config);    
             case 'string':
             default:
                 return new WidgetString(layout, label, value, config);

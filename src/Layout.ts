@@ -72,11 +72,12 @@ export class Layout {
             // by convention, form widgets are strored in first index
             object_id = 0;
         }
-        let widget = this.model_widgets[object_id][field];
-        let $elem = this.$layout.find('#'+widget.getId())
-        $elem.addClass('mdc-text-field--invalid');
-        $elem.find('.mdc-text-field-helper-text').addClass('mdc-text-field-helper-text--persistent mdc-text-field-helper-text--validation-msg').text(message).attr('title', message);
-
+        if( this.model_widgets.hasOwnProperty(object_id) && this.model_widgets[object_id].hasOwnProperty(field) ) {
+            let widget = this.model_widgets[object_id][field];
+            let $elem = this.$layout.find('#'+widget.getId())
+            $elem.addClass('mdc-text-field--invalid');
+            $elem.find('.mdc-text-field-helper-text').addClass('mdc-text-field-helper-text--persistent mdc-text-field-helper-text--validation-msg').text(message).attr('title', message);    
+        }
     }
 
     public updateFieldValue(object_id: number, field: string, value: any) {
@@ -87,6 +88,10 @@ export class Layout {
         }
 
         let def = model_fields[field];
+        let type = def.type;
+        if(def.hasOwnProperty('result_type')) {
+            type = def.result_type;
+        }
 
         if(['one2many', 'many2one', 'many2many'].indexOf(def.type) > -1) {
             // by convention, `name` subfield is always loaded for relational fields
@@ -188,7 +193,8 @@ export class Layout {
         let def = model_fields[field];
 
         let label = (item.hasOwnProperty('label'))?item.label:field;
-        let helper = (item.hasOwnProperty('help'))?item.help:(def.hasOwnProperty('description'))?def['description']:'';
+        let helper = (item.hasOwnProperty('help'))?item.help:(def.hasOwnProperty('help'))?def['help']:'';
+        let description = (item.hasOwnProperty('description'))?item.description:(def.hasOwnProperty('description'))?def['description']:'';
 
         let config:any = {...def};
         
@@ -208,7 +214,7 @@ export class Layout {
         // ready property is set to true during the 'feed' phase
         config.ready = false;
         config.title = TranslationService.resolve(translation, 'model', field, label, 'label');
-        config.helper = TranslationService.resolve(translation, 'model', field, helper, 'help');
+        config.helper = TranslationService.resolve(translation, 'model', field, description, 'description');
         config.readonly = (item.hasOwnProperty('readonly'))?item.readonly:(def.hasOwnProperty('readonly'))?def['readonly']:false;
         config.align = (item.hasOwnProperty('align'))?item.align:'left';
         config.sortable = (item.hasOwnProperty('sortable') && item.sortable);
@@ -230,8 +236,14 @@ export class Layout {
             config = {...config, ...item.widget};
         }
 
+        let type = def['type'];
+        if(def.hasOwnProperty('result_type')) {
+            type = def['result_type'];
+            config.type = type;
+        }
+
         // for relational fields, we need to check if the Model has been fetched al
-        if(['one2many', 'many2one', 'many2many'].indexOf(def['type']) > -1) {
+        if(['one2many', 'many2one', 'many2many'].indexOf(type) > -1) {
             // defined config for Widget's view with a custom domain according to object values
             let view_id = (config.hasOwnProperty('view'))?config.view:'list.default';
             let parts = view_id.split(".", 2); 
@@ -244,7 +256,7 @@ export class Layout {
             domain.merge(new Domain(view_domain));
 
             // add join condition for limiting list to the current object
-            if(['one2many', 'many2many'].indexOf(def['type']) > -1 && def.hasOwnProperty('foreign_field')) {
+            if(['one2many', 'many2many'].indexOf(type) > -1 && def.hasOwnProperty('foreign_field')) {
                 domain.merge(new Domain([def['foreign_field'], 'contains', 'object.id']));                
             }
 
@@ -517,6 +529,16 @@ export class Layout {
                 let value = object[item.value];
 
                 if(['one2many', 'many2one', 'many2many'].indexOf(config.type) > -1) {
+                    // if widget has a domain, parse it using current object and user
+                    if(config.hasOwnProperty('original_domain')) {
+                        let user = this.view.getUser();
+                        let tmpDomain = new Domain(config.original_domain);
+                        config.domain = tmpDomain.parse(object, user).toArray();
+                    }
+                    else {
+                        config.domain = [];
+                    }
+                                        
                     // by convention, `name` subfield is always loaded for relational fields
                     if(config.type == 'many2one') {
                         value = object[item.value]['name'];
@@ -541,7 +563,7 @@ export class Layout {
                 this.model_widgets[object.id][item.value] = widget;
 
 
-                let $cell = $('<td/>').addClass('sb-widget-cell').append(widget.render())
+                let $cell = $('<td/>').addClass('sb-widget-cell').attr('data-field', item.value).append(widget.render())
                 .on( '_toggle_mode', (event:any, mode: string) => {
                     let $this = $(event.currentTarget);
                     widget.setMode( mode );
@@ -554,6 +576,11 @@ export class Layout {
                             // propagate model change, without requesting a layout refresh
                             this.view.onchangeViewModel([object.id], value, false);
                         });    
+
+                        $cell.on( '_setValue', (event: any, value: any) => {
+                            widget.setValue(value);
+                        });
+        
                     }
                     $this.empty().append($widget);
                 } );
@@ -593,6 +620,10 @@ export class Layout {
 
                 let model_def = model_schema[field];
                 let type = model_def['type'];
+
+                if(model_def.hasOwnProperty('result_type')) {
+                    type = model_def['result_type'];
+                }
         
                 let has_changed = false;
                 let value = (object.hasOwnProperty(field))?object[field]:undefined;

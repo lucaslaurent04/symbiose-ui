@@ -14,17 +14,25 @@ export default class WidgetDate extends Widget {
         super(layout, 'date', label, value, config);
     }
 
+    public setValue(value: any) {
+        super.setValue(value);
+        this.$elem.find('input').datepicker('setDate', value).trigger('change');
+        return this;
+    }
+
     public render(): JQuery {
-        let $elem: JQuery = $();
         let date = new Date(this.value);
         let value:any;
 
         switch(this.mode) {
             case 'edit':
                 value = moment(date).format('L');
-                $elem = UIHelper.createInput('', this.label, value, this.config.helper, 'calendar_today');
+                this.$elem = UIHelper.createInput('', this.label, value, this.config.helper, 'calendar_today');
+                if(this.config.layout == 'list') {
+                    this.$elem.css({"width": "calc(100% - 10px)"});
+                }
                 // setup handler for relaying value update to parent layout
-                $elem.find('input')
+                this.$elem.find('input')
                 .datepicker( {
                     showOn: "button", 
                     ...jqlocale[environment.locale], 
@@ -40,18 +48,18 @@ export default class WidgetDate extends Widget {
                     let $this = $(event.currentTarget);
                     let date = $this.datepicker('getDate');
                     this.value = date.toISOString();
-                    $elem.trigger('_updatedWidget');
+                    this.$elem.trigger('_updatedWidget');
                 });
                 break;
             case 'view':
             default:
                 value = moment(date).format('LL');
-                $elem = UIHelper.createInputView('', this.label, value);
+                this.$elem = UIHelper.createInputView('', this.label, value);
                 break;
         }
-        $elem.addClass('sb-widget').addClass('sb-widget-mode-'+this.mode).attr('id', this.getId());
+        this.$elem.addClass('sb-widget').addClass('sb-widget-mode-'+this.mode).attr('id', this.getId());
 
-        return $elem;
+        return this.$elem;
     }
     
 }

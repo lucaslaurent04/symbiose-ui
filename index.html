@@ -33,6 +33,38 @@
 
 var menu = [
 {
+        name: 'Catalog',
+        description: '',
+        icon: 'airplanemode_on',
+        type: 'parent',
+    	children: [
+            {
+                name: 'Prices',
+                description: '',
+                icon: '',
+                type: 'entry',
+                entity: 'sale\\price\\Price',
+                target: 'list.default'
+            },
+            {
+                name: 'Price lists',
+                description: '',
+                icon: '',
+                type: 'entry',
+                entity: 'sale\\price\\PriceList',
+                target: 'list.default'
+            },
+            {
+                name: 'PL Categories',
+                description: '',
+                icon: '',
+                type: 'entry',
+                entity: 'sale\\price\\PriceListCategory',
+                target: 'list.default'
+            }        
+        ]
+    },     
+    {
         name: 'Booking',
         description: '',
         icon: 'wallet_travel',
@@ -192,7 +224,7 @@ $(document).ready( function() {
     var eq = new eQ();
     // eq.test();   
 
-    // eq.loadMenu(menu);
+    eq.loadMenu(menu);
 
 /*
 for(var i = 0; i < menu.length; ++i) {
@@ -208,6 +240,14 @@ for(var i = 0; i < menu.length; ++i) {
         })(item);
     }
 }
+*/
+
+/*
+
+A new context can be invoked either ways:
+- eq.opent(context)
+- $('#sb-events').trigger('_openContext', context );
+
 */
 
     $('#sb-events').trigger('_openContext', {entity: 'core\\User', type: 'list', domContainerSelector: '#sb-container'} );

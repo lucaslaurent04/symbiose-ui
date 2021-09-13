@@ -173,9 +173,9 @@ class UIHelper {
         return $elem;
     }
 
-    public static createListItem(label: string, icon:string = '') {
+    public static createListItem(id: string, label: string, icon:string = '') {
         let $elem = $('\
-        <li class="mdc-list-item"> \
+        <li class="mdc-list-item" id="'+id+'"> \
             <span class="mdc-list-item__text">'+label+'</span> \
             <span class="mdc-list-item__ripple"></span> \
         </li>');
@@ -338,6 +338,10 @@ class UIHelper {
             $elem.find('input').val(select.value).trigger('change');
         });
 
+        $elem.on('select', (event: any, value: string) => {
+            select.value = value;
+        });
+
         // workaround for --fixed style width (mandatory to display list above inputs as sub-items)
         $elem.on('click', () => {
             $elem.find('.mdc-menu-surface').width(<number>$elem.width());
@@ -408,7 +412,7 @@ class UIHelper {
     }
 
 
-    public static createDialog(id: string, title: string) {
+    public static createDialog(id: string, title: string, label_accept:string='Ok', label_cancel:string='Cancel') {
         let $elem = $('\
         <div class="mdc-dialog" id="'+id+'"> \
             <div class="mdc-dialog__container"> \
@@ -418,11 +422,11 @@ class UIHelper {
                     <div class="mdc-dialog__actions"> \
                         <button tabindex="0" type="button" class="mdc-button mdc-dialog__button" data-mdc-dialog-action="cancel"> \
                             <div class="mdc-button__ripple"></div> \
-                            <span class="mdc-button__label">Cancel</span> \
+                            <span class="mdc-button__label">'+label_cancel+'</span> \
                         </button> \
                         <button type="button" class="mdc-button mdc-dialog__button" data-mdc-dialog-action="accept"> \
                             <div class="mdc-button__ripple"></div> \
-                            <span class="mdc-button__label">OK</span> \
+                            <span class="mdc-button__label">'+label_accept+'</span> \
                         </button> \
                     </div> \
                 </div> \

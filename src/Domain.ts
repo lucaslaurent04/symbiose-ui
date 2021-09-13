@@ -30,6 +30,7 @@ export class Domain {
             }
             this.addClause(clause);
         }
+        return this;
     }
 
     public toArray() {
@@ -62,7 +63,7 @@ export class Domain {
                 }
             }
         }
-        this.fromArray(res_domain);
+        return this.fromArray(res_domain);
     }
 
     private static normalize(domain: Array<any>) {
@@ -111,7 +112,7 @@ export class Domain {
     public parse(object: any, user: any = {}) {
         for(let clause of this.clauses) {
             for(let condition of clause.conditions) {
-
+                // adapt value according to its syntax ('user.' or 'object.')
                 let value = condition.value;
 
                 // handle object references as `value` part

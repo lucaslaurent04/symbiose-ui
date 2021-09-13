@@ -14,8 +14,15 @@ export default class WidgetDateTime extends Widget {
         super(layout, 'date', label, value, config);
     }
 
+    public setValue(value: any) {
+        super.setValue(value);
+        this.$elem.find('input').val(value).trigger('change');
+        this.$elem.trigger('_updatedWidget');
+        return this;
+    }
+
     public render(): JQuery {
-        let $elem: JQuery = $();
+
         let date = new Date(this.value);
         let value:any;
 
@@ -23,14 +30,15 @@ export default class WidgetDateTime extends Widget {
             case 'edit':
                 var format = moment.localeData().longDateFormat('L') + ' ' + moment.localeData().longDateFormat('LT');
                 value = moment(date).format(format);
-                $elem = UIHelper.createInput('', this.label, value, this.config.helper, 'calendar_today');
+                this.$elem = UIHelper.createInput('', this.label, value, this.config.helper, 'calendar_today');
                 // setup handler for relaying value update to parent layout
-
-                $elem.find('input')
+                if(this.config.layout == 'list') {
+                    this.$elem.css({"width": "calc(100% - 10px)"});
+                }
+                this.$elem.find('input')
                 .on('keypress', (event:any) => {
                     if (event.which == 9) {
-// todo: force focus to the next input                        
-                        console.log('#######tab press');
+// todo: force focus to the next input
                        event.preventDefault();
                     }
                 })
@@ -54,7 +62,7 @@ export default class WidgetDateTime extends Widget {
                     onClose: () => {
                         let date = $datetimepicker.datepicker('getDate');
                         this.value = date.toISOString();
-                        $elem.trigger('_updatedWidget');
+                        this.$elem.trigger('_updatedWidget');
                         // give the focus back once the widget will have been refreshed
                         setTimeout( () => {
                             $('#'+this.getId()).find('input').first().trigger('focus');
@@ -66,11 +74,11 @@ export default class WidgetDateTime extends Widget {
                     let $this = $(event.currentTarget);
                     let new_date = $this.datepicker('getDate');
                     // $elem.trigger('_updatedWidget', date.toISOString());
-                    $elem.find('input').val(moment(new_date).format(format));
+                    this.$elem.find('input').val(moment(new_date).format(format));
                 });
-                $elem.append($datetimepicker);
+                this.$elem.append($datetimepicker);
 
-                $elem.append(
+                this.$elem.append(
                     $('<div />').addClass('sb-view-layout-form-input-button')
                     .one('click', () => {
                         $datetimepicker.datepicker('setDateTime', date);
@@ -84,12 +92,12 @@ export default class WidgetDateTime extends Widget {
             case 'view':
             default:
                 value = moment(date).format('LLL');
-                $elem = UIHelper.createInputView('', this.label, value);
+                this.$elem = UIHelper.createInputView('', this.label, value);
                 break;
         }
-        $elem.addClass('sb-widget').addClass('sb-widget-mode-'+this.mode).attr('id', this.getId());
+        this.$elem.addClass('sb-widget').addClass('sb-widget-mode-'+this.mode).attr('id', this.getId());
 
-        return $elem;
+        return this.$elem;
     }
     
 }

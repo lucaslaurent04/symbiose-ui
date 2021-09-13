@@ -10,19 +10,24 @@ export default class WidgetBoolean extends Widget {
         super(layout, 'boolean', label, value, config);
     }
 
+    public setValue(value: any) {
+        super.setValue(value);
+        this.$elem.find('input').val(value).trigger('change');
+        return this;
+    }
+
     public render():JQuery {
-        let $elem: JQuery;
 
         switch(this.mode) {
             case 'edit':
-                $elem = UIHelper.createSwitch('', this.label, this.value, this.config.helper, '', this.readonly);
+                this.$elem = UIHelper.createSwitch('', this.label, this.value, this.config.helper, '', this.readonly);
 
                 // setup handler for relaying value update to parent layout
-                $elem.find('input')
+                this.$elem.find('input')
                 .on('change', (event:any) => {
                     let $this = $(event.currentTarget);
                     this.value = $this.prop( "checked" )
-                    $elem.trigger('_updatedWidget');
+                    this.$elem.trigger('_updatedWidget');
                 });
                 break;
             case 'view':
@@ -31,10 +36,10 @@ export default class WidgetBoolean extends Widget {
                 let value:string = (this.value)?'true':'false';
                 $elem = UIHelper.createInputView('', this.label, value);
                 */
-                $elem = UIHelper.createSwitch('', this.label, this.value, this.config.helper, '', true);
+                this.$elem = UIHelper.createSwitch('', this.label, this.value, this.config.helper, '', true);
                 break;
         }
-        return $elem.addClass('sb-widget').addClass('sb-widget-type-boolean').addClass('sb-widget-mode-'+this.mode).attr('id', this.getId());
+        return this.$elem.addClass('sb-widget').addClass('sb-widget-type-boolean').addClass('sb-widget-mode-'+this.mode).attr('id', this.getId());
     }
     
 }

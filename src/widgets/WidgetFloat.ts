@@ -13,9 +13,9 @@ export default class WidgetFloat extends WidgetString {
     }
 
     public render():JQuery {
-        let $elem: JQuery = super.render();
-        $elem.find('input').attr( "type", "number" );
-        return $elem;
+        this.$elem = super.render();
+        this.$elem.find('input').attr( "type", "number" );
+        return this.$elem;
     }
 
     

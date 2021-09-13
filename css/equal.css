@@ -84,6 +84,7 @@ body, html {
 .sb-view-layout-list {
     /* height must be decremented by height of other elements from parent (header and footer) */
     height: calc(100% - 112px);
+    padding: 0 12px 6px 12px;
 }
 
 .sb-view-layout-form {
@@ -155,7 +156,7 @@ body, html {
 
 .sb-view-header-list-actions-set {
     display: flex;
-    margin-top: 10px;
+    padding-top: 10px;
 }
 
 .sb-view-header-list-actions button {
@@ -395,7 +396,7 @@ button.mdc-icon-button:hover, button.mdc-icon-button:active, button.mdc-icon-but
 .sb-view-layout-form::-webkit-scrollbar {
     width: 6px;
     overflow-y: scroll;
-    background: #EAEAEA;
+    background: transparent;
 
 }
 
@@ -456,9 +457,8 @@ button.mdc-icon-button:hover, button.mdc-icon-button:active, button.mdc-icon-but
     margin-top: -14px;
 }
 
-.sb-widget-cell .mdc-select {
-    outline: solid 1px var(--mdc-theme-primary-outline);
-    margin-top: -14px;
+.sb-widget-cell .sb-widget-mode-edit.mdc-select {
+    margin-top: 0;
 }
 
 
@@ -476,7 +476,6 @@ button.mdc-icon-button:hover, button.mdc-icon-button:active, button.mdc-icon-but
     height: 100%;
 }
 
-
 .mdc-data-table__table-container::-webkit-scrollbar {
     width: 6px;
     overflow-y: scroll;
@@ -489,6 +488,37 @@ button.mdc-icon-button:hover, button.mdc-icon-button:active, button.mdc-icon-but
     border-radius: 10px;
 }
 
+
+.mdc-data-table__pagination {
+    border-top: 0;
+}
+
+.mdc-data-table__cell {
+    height: 44px;
+    padding: 0 2px;
+}
+
+
+.mdc-data-table__header-cell {
+    padding: 0 2px;
+}
+
+.mdc-data-table__cell:first-child, .mdc-data-table__header-cell:first-child {
+    padding-left: 12px;
+}
+
+.mdc-data-table__cell--checkbox {
+    padding: 0 !important;
+}
+
+.mdc-data-table__header-cell--checkbox {
+    width: 44px;
+    padding: 0 !important;
+}
+
+.mdc-data-table__row--selected {
+    background-color: var(--mdc-theme-primary-selected) !important;
+}
 
 
 /* custom style for special button with icon only */
@@ -549,12 +579,7 @@ button.mdc-icon-button:hover, button.mdc-icon-button:active, button.mdc-icon-but
     padding-right: 0 !important;    
 }
 
-.mdc-data-table__header-cell--checkbox {
-    width: 44px;
-}
-.mdc-data-table__row--selected {
-    background-color: var(--mdc-theme-primary-selected) !important;
-}
+
 .mdc-list-item .mdc-checkbox {
     margin-left: -11px;
 }
@@ -580,14 +605,6 @@ button.mdc-icon-button:hover, button.mdc-icon-button:active, button.mdc-icon-but
     align-items: center !important;
 }
 
-.mdc-data-table__cell {
-    height: 44px;
-}
-
-
-.mdc-data-table__pagination {
-    border-top: 0;
-}
 
 .mdc-text-field {
     width: 100%;
@@ -645,7 +662,7 @@ button.mdc-icon-button:hover, button.mdc-icon-button:active, button.mdc-icon-but
 
 
 .ui-datepicker {
-    z-index: 3 !important;
+    /*z-index: 3 !important;*/
     font-family: "Roboto";
 }
 
@@ -708,6 +725,7 @@ button.mdc-icon-button:hover, button.mdc-icon-button:active, button.mdc-icon-but
   height: 33px;
   width: 33px;
   line-height: 30px;
+  z-index: 1;
 }
 .ui-datepicker .ui-state-highlight {
   color: var(--mdc-theme-primary);

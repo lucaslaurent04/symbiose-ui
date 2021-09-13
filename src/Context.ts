@@ -149,8 +149,8 @@ and can be displayed to user as an indication of the expected action.
      * 
      * @param config 
      */
-    public openContext(config: any) {
-        this.frame.openContext(config);
+    public async openContext(config: any) {
+        await this.frame.openContext(config);
     }
 
 }

@@ -3,6 +3,9 @@ import Layout from "../Layout";
 export default class Widget {
     
     private layout: Layout;
+
+    protected $elem: JQuery;
+
     protected value: any;
     protected label: string;    
     protected type: string;
@@ -23,6 +26,8 @@ export default class Widget {
         this.config = config;
         // assign default mode
         this.mode = 'view';
+
+        this.$elem = $();
 
         this.init();
     }
@@ -101,10 +106,9 @@ export default class Widget {
         return $();
     }
 
-    public attach(): JQuery {
-        
-        let $elem = $('<div/>').addClass('sb-widget').addClass('sb-widget-mode-'+this.mode).attr('id', this.getId());
-        return $elem;
+    public attach(): JQuery {        
+        this.$elem = $('<div/>').addClass('sb-widget').addClass('sb-widget-mode-'+this.mode).attr('id', this.getId());
+        return this.$elem;
     }
     
 }

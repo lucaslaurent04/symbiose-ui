@@ -17,9 +17,8 @@ export default class WidgetMany2Many extends Widget {
 
     public render():JQuery {
         console.log('WidgetMany2Many::render', this);
-        let $elem: JQuery;
 
-        $elem = $('<div />');
+        this.$elem = $('<div />');
 
         // make sure view is not instanciated during 'layout' phase (while config is still incomplete)
         if(this.config.hasOwnProperty('ready') && this.config.ready) {
@@ -32,7 +31,6 @@ export default class WidgetMany2Many extends Widget {
                         title: 'SB_ACTIONS_BUTTON_REMOVE',
                         icon:  'delete',
                         handler: (selection:any) => {
-                            console.log(this.value, selection);
                             for(let id of selection) {
                                 let index = this.value.indexOf(id);
                                 if( index == -1 ) {
@@ -44,8 +42,7 @@ export default class WidgetMany2Many extends Widget {
                                     this.value[index] = -this.value[index];
                                 }
                             }
-                            console.log(this.value);
-                            $elem.trigger('_updatedWidget');
+                            this.$elem.trigger('_updatedWidget');
                         }
                     }
                 ]
@@ -84,7 +81,7 @@ export default class WidgetMany2Many extends Widget {
                                                 this.value.push(id);
                                             }
                                         }
-                                        $elem.trigger('_updatedWidget');
+                                        this.$elem.trigger('_updatedWidget');
                                     }
                                 }
                             });
@@ -110,7 +107,7 @@ export default class WidgetMany2Many extends Widget {
                                                 for(let id of data.selection) {
                                                     this.value.push(id);
                                                 }
-                                                $elem.trigger('_updatedWidget');
+                                                this.$elem.trigger('_updatedWidget');
                                             }
                                         }
                                     }
@@ -121,14 +118,14 @@ export default class WidgetMany2Many extends Widget {
                 }
 
                 // inject View in parent Context object
-                $elem.append($container);
+                this.$elem.append($container);
             });
 
         }
 
-        $elem.addClass('sb-widget').attr('id', this.getId());
+        this.$elem.addClass('sb-widget').attr('id', this.getId());
 
-        return $elem;
+        return this.$elem;
     }
 
 }

@@ -9,29 +9,37 @@ export default class WidgetSelect extends Widget {
         super(layout, 'select', label, value, config);
     }
 
+    public setValue(value: any) {
+        this.$elem.trigger('select', value);
+        return this;
+    }
+
     public render():JQuery {
-        let $elem: JQuery;
+
         let value:string = this.value?this.value:'';
         switch(this.mode) {
             case 'edit':
-                $elem = UIHelper.createSelect('', this.label, this.config.values, value, this.readonly);
+                this.$elem = UIHelper.createSelect('', this.label, this.config.values, value, this.readonly);
+                if(this.config.layout == 'list') {
+                    this.$elem.css({"width": "calc(100% - 10px)"});
+                }
                 // setup handler for relaying value update to parent layout
-                $elem.find('input').on('change', (event) => {
+                this.$elem.find('input').on('change', (event) => {
                     console.log('WidgetSelect : received change event');
                     let $this = $(event.currentTarget);
                     this.value = $this.val();
-                    $elem.trigger('_updatedWidget');
+                    this.$elem.trigger('_updatedWidget');
                 });
                 break;
             case 'view':
             default:
                 let val:string = Array.isArray(this.config.values)?value:this.config.values[value];
-                $elem = UIHelper.createInputView('', this.label, val);
+                this.$elem = UIHelper.createInputView('', this.label, val);
                 break;
         }
-        $elem.addClass('sb-widget').addClass('sb-widget-mode-'+this.mode).attr('id', this.getId());
+        this.$elem.addClass('sb-widget').addClass('sb-widget-mode-'+this.mode).attr('id', this.getId());
 
-        return $elem;
+        return this.$elem;
     }
     
 }

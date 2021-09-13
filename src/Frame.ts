@@ -14,6 +14,8 @@ import { environment } from "./environment";
  */
 export class Frame {
     
+    private eq: any;
+
     private $headerContainer: any;
 
     // temporary var for computing width of rendered strings
@@ -28,7 +30,8 @@ export class Frame {
     // DOM selector of the element to which current Frame relates
     private domContainerSelector:string;
 
-    constructor(domContainerSelector:string='#sb-container') {        
+    constructor(eq:any, domContainerSelector:string='#sb-container') {        
+        this.eq = eq;
         this.context = <Context>{};
         this.stack = [];
         // As a convention, DOM element referenced by given selector must be present in the document.
@@ -218,7 +221,9 @@ export class Frame {
             $('<span> › </span>').css({'margin': '0 10px'}).appendTo($elem);
         }            
         $('<span>'+current_purpose_string+'</span>').appendTo($elem);
-        if(this.stack.length > 1) {
+        // if(this.stack.length > 1) {
+        // for integration, we need to let user close any context
+        if(true) {
             UIHelper.createButton('context-close', '', 'mini-fab', 'close').css({'transform': 'scale(0.5)', 'margin-top': '3px', 'background': '#bababa', 'box-shadow': 'none'}).appendTo($elem)
             .on('click', () => {                    
                 let validation = true;
@@ -259,11 +264,23 @@ export class Frame {
     }       
 
     /**
-     * Instanciate a new context and push it on the contexts stack.
+     * This method can be called by any child or sub-child (view, layout, widgets)
      * 
      * @param config 
      */
     public async openContext(config: any) {
+        config.target = this.domContainerSelector;
+        this.eq.open(config);
+    }
+
+    /**
+     * Instanciate a new context and push it on the contexts stack.
+     * Only eQ object should call this method.
+     * 
+     * @param config 
+     */
+    public async _openContext(config: any) {
+        console.log('Frame: received _openContext', config);
         // extend default params with received config
         config = {...{
             entity:     '', 
@@ -300,7 +317,7 @@ export class Frame {
             }
             $(this.domContainerSelector).append(this.context.getContainer());
             // relay event to the outside
-            $(this.domContainerSelector).show().trigger('_open');
+            $(this.domContainerSelector).show().trigger('_open', [{context: config}]);
             this.updateHeader();            
         });
 
@@ -344,6 +361,7 @@ export class Frame {
 
             // if we closed the lastest Context from the stack, relay data to the outside
             if(!this.stack.length) {
+                console.log('stack empty: closing');
                 $(this.domContainerSelector).hide().trigger('_close', [ data ]);
             }
         }

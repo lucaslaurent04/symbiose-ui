@@ -175,7 +175,7 @@ export class _ApiService {
             });
             result = response;
         }
-        catch(response) {
+        catch(response:any) {
             throw response.responseJSON;            
         }
         return result;
@@ -197,7 +197,7 @@ export class _ApiService {
             });
             result = response;
         }
-        catch(response) {
+        catch(response:any) {
             throw response.responseJSON;            
         }
         return result;
@@ -220,7 +220,7 @@ export class _ApiService {
             });
             result = response;
         }
-        catch(response) {
+        catch(response:any) {
             throw response.responseJSON;
         }
         return result;
@@ -242,7 +242,7 @@ export class _ApiService {
             });
             result = response;
         }
-        catch(response) {
+        catch(response:any) {
             throw response.responseJSON;
         }
         return result;
@@ -263,7 +263,7 @@ export class _ApiService {
             });
             result = response;
         }
-        catch(response) {
+        catch(response:any) {
             throw response.responseJSON;
         }
         return result;
@@ -296,7 +296,7 @@ export class _ApiService {
             });
             result = response;            
         }
-        catch(response) {
+        catch(response:any) {
             throw response.responseJSON;
         }
         return result;
@@ -318,7 +318,7 @@ export class _ApiService {
             });
             result = response;
         }
-        catch(response) {
+        catch(response:any) {
             throw response.responseJSON;
         }
         return result;
@@ -361,7 +361,7 @@ export class _ApiService {
             } );
             result = response;
         }
-        catch(response) {
+        catch(response:any) {
             throw response.responseJSON;
         }
         return result;
@@ -398,7 +398,7 @@ export class _ApiService {
             // reponse should be an array of ids
             result = response;
         }
-        catch(response) {
+        catch(response:any) {
             throw response.responseJSON;
         }
         return result;
