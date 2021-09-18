@@ -10,17 +10,15 @@ export default class WidgetText extends Widget {
         super(layout, 'text', label, value, config);
     }
 
-    public setValue(value: any) {
-        super.setValue(value);
+    public change(value: any) {
         this.$elem.find('textarea').val(value).trigger('change');
-        return this;
     }
 
     public render():JQuery {
         let value:string = this.value?this.value:'';
         switch(this.mode) {
             case 'edit':
-                this.$elem = UIHelper.createTextArea('', this.label, value, this.config.helper);
+                this.$elem = UIHelper.createTextArea('', this.label, value, this.config.description);
                 // setup handler for relaying value update to parent layout
                 this.$elem.find('textarea').on('change', (event) => {
                     let $this = $(event.currentTarget);

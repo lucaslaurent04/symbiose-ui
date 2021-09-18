@@ -299,6 +299,9 @@ class UIHelper {
                 <input type="text" style="display: none" value="'+selected+'" /> \
                 <ul class="mdc-list"></ul> \
             </div> \
+            <div class="mdc-text-field-helper-line"> \
+                <div class="mdc-text-field-helper-text" aria-hidden="true" title=""></div> \
+            </div> \
         </div>');
      
         let $list = $elem.find('ul.mdc-list');

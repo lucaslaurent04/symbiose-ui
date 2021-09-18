@@ -44,6 +44,9 @@ export class View {
     // Map of available filters from View definition mapping filters id with their definition
     private filters: any;
 
+    // Map of available custom exports with their definition
+    private exports: any;
+
     // config object for setting display of list controls and action buttons
     private config: any;
 
@@ -66,13 +69,13 @@ export class View {
     /**
      *
      * @param entity    entity (package\Class) to be loaded: should be set only once (depend on the related view)
-     * @param type
+     * @param type      type of the view ('list', 'form', ...)
      * @param name
      * @param domain
      * @param mode
      * @param purpose
      * @param lang
-     * @param config        extra parameters related to contexts communications
+     * @param config    extra parameters related to contexts communications
      */
     constructor(context: Context, entity: string, type: string, name: string, domain: any[], mode: string, purpose: string, lang: string, config: any = null) {
         this.context = context;
@@ -190,8 +193,8 @@ export class View {
         this.purpose = purpose;
 
         this.domain = domain;
-        this.order = 'id';
-        this.sort = 'asc';
+        this.order = (this.config.hasOwnProperty('order'))?this.config.order:'id';
+        this.sort = (this.config.hasOwnProperty('sort'))?this.config.sort:'asc';
         this.start = 0;
         this.limit = 25;
         this.lang = lang;
@@ -200,6 +203,8 @@ export class View {
 
 
         this.filters = {};
+        this.exports = {};
+
         this.applied_filters_ids = [];
 
         this.$container = $('<div />').addClass('sb-view').hide();
@@ -240,8 +245,14 @@ export class View {
             }
 
             if(this.view_schema.hasOwnProperty("filters")) {
-                for(let filter of this.view_schema.filters) {
-                    this.filters[filter.id] = filter;
+                for(let item of this.view_schema.filters) {
+                    this.filters[item.id] = item;
+                }
+            }
+
+            if(this.view_schema.hasOwnProperty("exports")) {
+                for(let item of this.view_schema.exports) {
+                    this.exports[item.id] = item;
                 }
             }
 
@@ -270,7 +281,7 @@ export class View {
 
         }
         catch(err) {
-            console.log('Unable to init view ('+this.entity+'.'+this.type+'.'+this.name+')', err);
+            console.log('Unable to init view ('+this.entity+'.'+this.getId()+')', err);
         }
 
         this.is_ready_promise.resolve();
@@ -324,6 +335,10 @@ export class View {
 
     public getUser() {
         return this.context.getUser();
+    }
+
+    public getId() {
+        return this.type + '.' + this.name;
     }
 
     /**
@@ -400,7 +415,7 @@ export class View {
     }
 
     /**
-     * Applicable domain for the View corresponds to initial domain (from  parent Context) with additional filters currently applied on the View
+     * Applicable domain for the View corresponds to initial domain (from parent Context) with additional filters currently applied on the View
      */
     public getDomain() {
         console.log('View::getDomain', this.domain, this.applied_filters_ids);        
@@ -414,7 +429,7 @@ export class View {
 
         domain.merge(new Domain(filters_domain));
 
-        return domain.toArray();
+        return domain.parse({}, this.getUser()).toArray();
     }
     public getSort() {
         return this.sort;
@@ -801,17 +816,31 @@ export class View {
                 let $export_actions_menu = UIHelper.createMenu('export-actions-menu').addClass('sb-view-header-list-export-menu').appendTo($export_actions_menu_button);
                 let $export_actions_list = UIHelper.createList('export-actions-list').appendTo($export_actions_menu);
 
-                UIHelper.createListItem('SB_ACTIONS_BUTTON_EXPORT-PRINT', TranslationService.instant('print'), 'print')
+                UIHelper.createListItem('SB_ACTIONS_BUTTON_EXPORT-PRINT', TranslationService.instant('SB_EXPORTS_AS_PDF'), 'print')
                 .on( 'click', (event:any) => {
-                    window.open(environment.backend_url+'/?get=model_export-pdf&entity='+this.entity+'&domain='+JSON.stringify(this.getDomain())+'&view_id='+this.type+'.'+this.name+'&lang='+this.lang, "_blank");
+                    window.open(environment.backend_url+'/?get=model_export-pdf&entity='+this.entity+'&domain='+JSON.stringify(this.getDomain())+'&view_id='+this.getId()+'&lang='+this.lang, "_blank");
                 })
                 .appendTo($export_actions_list);
 
-                UIHelper.createListItem('SB_ACTIONS_BUTTON_EXPORT-PDF', TranslationService.instant('export as XLS'), 'file_copy')
+                UIHelper.createListItem('SB_ACTIONS_BUTTON_EXPORT-PDF', TranslationService.instant('SB_EXPORTS_AS_XLS'), 'file_copy')
                 .on( 'click', (event:any) => {
-                    window.open(environment.backend_url+'/?get=model_export-xls&entity='+this.entity+'&domain='+JSON.stringify(this.getDomain())+'&view_id='+this.type+'.'+this.name+'&lang='+this.lang, "_blank");
+                    window.open(environment.backend_url+'/?get=model_export-xls&entity='+this.entity+'&domain='+JSON.stringify(this.getDomain())+'&view_id='+this.getId()+'&lang='+this.lang, "_blank");
                 })
                 .appendTo($export_actions_list);
+// # todo - inject default exports in this.exports (to reduce to a single loop)
+
+                // generate filters list
+                for(let export_id in this.exports) {
+                    let item = this.exports[export_id];
+                    let view = item.hasOwnProperty('view')?'&view_id='+item.view:'';
+                    let object_id = (this.selected_ids.length)?this.selected_ids[0]:0;
+                    let export_title = TranslationService.resolve(this.translation, 'view', [this.getId(), 'exports'], item.id, item.label, 'label')
+                    UIHelper.createListItem('SB_ACTIONS_BUTTON_EXPORT-'+item.id, export_title, item.hasOwnProperty('icon')?item.icon:'')
+                    .on( 'click', (event:any) => {
+                        window.open(environment.backend_url+'/?get='+item.controller+'&entity='+this.entity+'&id='+object_id+view+'&lang='+this.lang, "_blank");
+                    })
+                    .appendTo($export_actions_list);    
+                }
 
                 UIHelper.decorateMenu($export_actions_menu);
                 $export_actions_menu_button.find('button').on('click', () => $export_actions_menu.trigger('_toggle') );
@@ -864,9 +893,14 @@ export class View {
         // container for holding chips of currently applied filters
         let $actions_set = $('<div />').addClass('sb-view-header-form-actions').appendTo($elem);
 
+        // left side : standard actions for views
+        let $std_actions = $('<div />').addClass('sb-view-header-form-actions-std').appendTo($actions_set);
+        // right side : the actions specific to the view, and depenging on object status
+        let $view_actions = $('<div />').addClass('sb-view-header-form-actions-view').appendTo($actions_set);
+
         switch(this.mode) {
             case 'view':
-                $actions_set
+                $std_actions
                 .append(
                     UIHelper.createButton('action-edit', TranslationService.instant('SB_ACTIONS_BUTTON_UPDATE'), 'raised')
                     .on('click', async () => {
@@ -876,10 +910,10 @@ export class View {
                             selected_sections: this.layout.getSelectedSections()
                         });
                     })
-                );
+                );                
                 break;
             case 'edit':
-                $actions_set
+                $std_actions
                 .append(
                     UIHelper.createButton('action-save', TranslationService.instant('SB_ACTIONS_BUTTON_SAVE'), 'raised')
                     .on('click', async () => {
@@ -958,7 +992,7 @@ export class View {
 
         for(let item of this.view_schema.layout.items ) {
             let label = (item.hasOwnProperty('label'))?item.label:item.value;
-            fields[item.value] = TranslationService.resolve(this.translation, 'model', item.value, label, 'label');
+            fields[item.value] = TranslationService.resolve(this.translation, 'model', [], item.value, label, 'label');
         }
 
         $select_field = UIHelper.createSelect('custom_filter_select_field', TranslationService.instant('SB_FILTERS_DIALOG_FIELD'), fields, Object.keys(fields)[0]).appendTo($elem);
@@ -1024,11 +1058,8 @@ export class View {
         $dialog.on('_accept', () => {
             // assign value to currently selected items
             for(let object_id of this.selected_ids) {
-                this.$layoutContainer.find('tr[data-id="'+object_id+'"]').each( async (i: number, tr: any) => {
-                    $(tr).find('.sb-widget-cell[data-field="'+selected_field+'"]').trigger('_setValue', selected_value);
-                });
+                this.$layoutContainer.find('tr[data-id="'+object_id+'"]').trigger('_setValue', [selected_field, selected_value]);
             }
-
         });
 
     }
@@ -1052,7 +1083,7 @@ export class View {
 
         for(let item of this.view_schema.layout.items ) {
             let label = (item.hasOwnProperty('label'))?item.label:item.value;
-            fields[item.value] = TranslationService.resolve(this.translation, 'model', item.value, label, 'label');
+            fields[item.value] = TranslationService.resolve(this.translation, 'model', [], item.value, label, 'label');
         }
 
         $select_field = UIHelper.createSelect('custom_filter_select_field', TranslationService.instant('SB_FILTERS_DIALOG_FIELD'), fields, Object.keys(fields)[0]).appendTo($elem);
@@ -1306,14 +1337,14 @@ export class View {
                         this.$layoutContainer.find('tr[data-id="'+object_id+'"]').each( async (i: number, tr: any) => {
                             let $tr = $(tr);
                             if(!object) {
-                                $tr.find('.sb-widget-cell').each( (i: number, cell: any):any => $(cell).trigger('_toggle_mode', 'view') );
+                                $tr.trigger('_toggle_mode', 'view');
                                 $tr.attr('data-edit', '0');
                                 resolve(true);
                             }
                             else {
                                 try {
                                     const response = await ApiService.update(this.entity, [object_id], this.model.export(object));
-                                    $tr.find('.sb-widget-cell').each( (i: number, cell: any):any => $(cell).trigger('_toggle_mode', 'view') );
+                                    $tr.trigger('_toggle_mode', 'view');
                                     $tr.attr('data-edit', '0');
                                     // update the modfied field otherwise a confirmation will be displayed at next update
                                     if(Array.isArray(response) && response.length) {
@@ -1364,7 +1395,7 @@ export class View {
                 }
                 this.$layoutContainer.find('tr.sb-view-layout-list-row').each( async (i: number, tr: any) => {
                     let $tr = $(tr);
-                    $tr.find('.sb-widget-cell').each( (i: number, cell: any):any => $(cell).trigger('_toggle_mode', 'view') );
+                    $tr.trigger('_toggle_mode', 'view');
                     $tr.attr('data-edit', '0');
                 });
                 $action_set_selected_edit_actions.remove();                
@@ -1391,9 +1422,7 @@ export class View {
                     // mark row as being edited (prevent click handling)
                     $tr.attr('data-edit', '1');
                     // for each widget of the row, switch to edit mode
-                    $tr.find('.sb-widget-cell').each( (i: number, cell: any) => {
-                        $(cell).trigger('_toggle_mode', 'edit');
-                    });
+                    $tr.trigger('_toggle_mode', 'edit');
                 }
             });
         }
@@ -1412,12 +1441,12 @@ export class View {
                     let error_id:string = <string>(Object.keys(errors['INVALID_PARAM'][field]))[0];
                     let msg:string = <string>(Object.values(errors['INVALID_PARAM'][field]))[0];
                     // translate error message
-                    msg = TranslationService.resolve(this.translation, 'error', field, msg, error_id);
+                    msg = TranslationService.resolve(this.translation, 'error', [], field, msg, error_id);
                     if(object) {
                         this.layout.markFieldAsInvalid(object['id'], field, msg);
                     }
                     if(snack) {
-                        let title = TranslationService.resolve(this.translation, 'model', field, field, 'label');
+                        let title = TranslationService.resolve(this.translation, 'model', [], field, field, 'label');
                         let $snack = UIHelper.createSnackbar(title+': '+msg, '', '', delay * (count-i));
                         this.$container.append($snack);
                     }
@@ -1440,7 +1469,7 @@ export class View {
                             this.layout.markFieldAsInvalid(object['id'], field, msg);
                         }
                         if(snack) {
-                            let title = TranslationService.resolve(this.translation, 'model', field, field, 'label');
+                            let title = TranslationService.resolve(this.translation, 'model', [], field, field, 'label');
                             let $snack = UIHelper.createSnackbar(title+': '+msg, '', '', delay * (count-i));
                             this.$container.append($snack);
                         }

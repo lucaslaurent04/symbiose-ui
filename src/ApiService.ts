@@ -181,6 +181,23 @@ export class _ApiService {
         return result;
     }
 
+    public async fetch(route:string, body:any = {}) {
+        let result: any;
+        try {
+            const response = await $.get({
+                url: environment.backend_url+route,
+                dataType: 'json',
+                data: body,
+                contentType: 'application/x-www-form-urlencoded; charset=utf-8'
+            });
+            result = response;
+        }
+        catch(response:any) {
+            throw response.responseJSON;
+        }
+        return result;
+    }
+
     public async create(entity:string, fields:any = {}) {
         let result: any;
         try {

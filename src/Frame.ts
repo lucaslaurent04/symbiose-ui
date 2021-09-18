@@ -133,6 +133,7 @@ export class Frame {
     private async updateHeader() {
         console.log('update header');        
 
+        // instanciate header upon first call
         if($(this.domContainerSelector).find('.sb-container-header').length == 0) {            
             this.$headerContainer = $('<div/>').addClass('sb-container-header').prependTo($(this.domContainerSelector));
         }
@@ -153,7 +154,7 @@ export class Frame {
 
         let current_purpose_string = await this.getPurposeString(this.context);
 
-        let available_width = this.$headerContainer[0].clientWidth * 0.8;
+        let available_width = (this.$headerContainer.length && this.$headerContainer[0])?this.$headerContainer[0].clientWidth * 0.8:300;
 
         let font = $temp.css( "font-weight" ) + ' ' +$temp.css( "font-size" ) + ' ' + $temp.css( "font-family");
         let total_text_width = this.getTextWidth(current_purpose_string, font);
@@ -270,6 +271,7 @@ export class Frame {
      */
     public async openContext(config: any) {
         config.target = this.domContainerSelector;
+        // we use eventlistent :: open() method in order to relay the context change to the outside
         this.eq.open(config);
     }
 

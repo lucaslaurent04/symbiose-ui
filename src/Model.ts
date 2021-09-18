@@ -166,7 +166,12 @@ export class Model {
         let fields = [];
         
         for(let i in view_fields) {
+            
             let field = view_fields[i];
+            if(!schema.hasOwnProperty(field)) {
+                console.log('unknown field', field);
+                continue;
+            }
             // append `name` subfield for relational fields, using the dot notation
             if( 'many2one' == schema[field]['type'] ) {
                 fields.push(field + '.name');

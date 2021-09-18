@@ -58,7 +58,7 @@ class EqualEventsListener {
         // can be used 
         // by emitters to request a context change
         // by listeners to be notified about any context change (whatever the frame)
-        this.$sbEvents.on('click', (event: any, context:any) => {
+        this.$sbEvents.on('click', (event: any, context:any, reset: boolean = false) => {
             if(!context) {
                 context = window.context;
             }
@@ -77,18 +77,21 @@ class EqualEventsListener {
             }, ...context};
 
             // ContextService uses 'window' global object to store the arguments (context parameters)
-            this.$sbEvents.trigger('_openContext', context);
+            this.$sbEvents.trigger('_openContext', [context, reset]);
         });
 
         /**
          * 
          * A new context can be requested by ngx (menu or app) or by opening a sub-object
          */
-        this.$sbEvents.on('_openContext', async (event:any, config:any) => {
+        this.$sbEvents.on('_openContext', async (event:any, config:any, reset: boolean = false) => {
             console.log('eQ: received _openContext', config);
 
             if(!this.frames.hasOwnProperty(config.target)) {
                 this.frames[config.target] = new Frame(this, config.target);
+            }
+            else if(reset) {
+                this.frames[config.target].closeAll();
             }
 
             await this.frames[config.target]._openContext(config);
@@ -146,9 +149,10 @@ class EqualEventsListener {
             target:     '#sb-container'
         }, ...context};
 
+        
         // make context available to the outside
         window.context = context;
-        this.$sbEvents.trigger('click', context);
+        this.$sbEvents.trigger('click', [context, context.hasOwnProperty('reset') && context.reset]);
     }    
  
     

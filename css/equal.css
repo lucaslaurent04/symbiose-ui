@@ -67,9 +67,6 @@ body, html {
     color: var(--mdc-theme-primary);
 }
 
-.sb-container-header a:hover {
-
-}
 
 .sb-context {
     /* container height minus the header */
@@ -264,22 +261,30 @@ body, html {
 
 
 .sb-view-header-form {
+    position: relative;
     height: 56px;
-    line-height: 56px;
 }
 
 .sb-view-header-form-actions {
     display: flex;
-    flex-direction: row;
-    align-items: center;
     margin-left: 12px;
-    max-width: 250px;
-    height: 56px;
-    line-height: 56px;
+    max-height: 56px;
+    padding-top: 10px;
 }
 
-.sb-view-header-form-actions button {
-    flex: 0 1 auto;
+.sb-view-header-form-actions .sb-view-header-form-actions-std {
+    flex: 0 1 50%;
+}
+
+.sb-view-header-form-actions .sb-view-header-form-actions-std button {
+    margin-right: 12px;
+}
+
+.sb-view-header-form-actions .sb-view-header-form-actions-view {
+    margin-left: auto;
+}
+
+.sb-view-header-form-actions .sb-view-header-form-actions-view button {
     margin-right: 12px;
 }
 
@@ -307,12 +312,20 @@ body, html {
 .sb-view-layout-list .sb-widget label.mdc-text-field .mdc-floating-label {
     display: none !important;
 }
-.sb-view-layout-list .sb-widget-mode-view label.mdc-text-field::before {
+.sb-view-layout-list .sb-widget.sb-widget-mode-view label.mdc-text-field::before {
     display: none !important;
 }
 
-.sb-view-layout-list .sb-widget-mode-view input {
+.sb-view-layout-list .sb-widget.sb-widget-mode-view input {
     height: 100%;
+}
+
+.sb-view-layout-list .sb-widget.sb-widget-type-many2one.sb-widget-mode-view input {
+    cursor: pointer;
+}
+
+.sb-view-layout-list .sb-widget.sb-widget-type-many2one.sb-widget-mode-view input:hover {
+    text-decoration: underline;
 }
 
 .sb-view-layout-list .sb-widget-mode-edit button.mdc-icon-button {
@@ -637,6 +650,11 @@ button.mdc-icon-button:hover, button.mdc-icon-button:active, button.mdc-icon-but
 
 .mdc-select {
     width: 100%;
+}
+
+.mdc-select .mdc-text-field-helper-line {
+    position: absolute;
+    top: 100%;
 }
 
 .mdc-tab {

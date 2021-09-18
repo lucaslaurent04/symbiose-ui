@@ -46,6 +46,10 @@ export default class Widget {
         return this.id;
     }
 
+    public getElement() {
+        return this.$elem;
+    }
+
     public getValue() {
         return this.value;
     }
@@ -99,11 +103,15 @@ export default class Widget {
         return this;
     }
 
+    public change(value:any) {
+        this.setValue(value);
+    }
+
     /**
      * @return always returns a JQuery object
      */
     public render(): JQuery {
-        return $();
+        return this.$elem;
     }
 
     public attach(): JQuery {        

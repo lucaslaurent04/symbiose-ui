@@ -14,11 +14,8 @@ export default class WidgetDateTime extends Widget {
         super(layout, 'date', label, value, config);
     }
 
-    public setValue(value: any) {
-        super.setValue(value);
+    public change(value: any) {
         this.$elem.find('input').val(value).trigger('change');
-        this.$elem.trigger('_updatedWidget');
-        return this;
     }
 
     public render(): JQuery {
@@ -30,7 +27,7 @@ export default class WidgetDateTime extends Widget {
             case 'edit':
                 var format = moment.localeData().longDateFormat('L') + ' ' + moment.localeData().longDateFormat('LT');
                 value = moment(date).format(format);
-                this.$elem = UIHelper.createInput('', this.label, value, this.config.helper, 'calendar_today');
+                this.$elem = UIHelper.createInput('', this.label, value, this.config.description, 'calendar_today');
                 // setup handler for relaying value update to parent layout
                 if(this.config.layout == 'list') {
                     this.$elem.css({"width": "calc(100% - 10px)"});

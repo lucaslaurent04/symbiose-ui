@@ -32,11 +32,11 @@ export default class WidgetMany2One extends Widget {
                 let objects:Array<any> = [];
                 this.$elem = $('<div />');
 
-                let $select = UIHelper.createInput('', this.label, value, this.config.helper, '', this.readonly).addClass('mdc-menu-surface--anchor').css({"width": "calc(100% - 48px)", "display": "inline-block"});
+                let $select = UIHelper.createInput('', this.label, value, this.config.description, '', this.readonly).addClass('mdc-menu-surface--anchor').css({"width": "calc(100% - 48px)", "display": "inline-block"});
 
                 let $menu = UIHelper.createMenu('').appendTo($select);
                 let $menu_list = UIHelper.createList('').appendTo($menu);
-                let $link = UIHelper.createListItem(this.id+'-SB_WIDGETS_MANY2ONE_ADVANCED_SEARCH', '<a style="text-decoration: underline;">'+TranslationService.instant('SB_WIDGETS_MANY2ONE_ADVANCED_SEARCH')+'</a>');
+                let $link = UIHelper.createListItem('SB_WIDGETS_MANY2ONE_ADVANCED_SEARCH-'+this.id, '<a style="text-decoration: underline;">'+TranslationService.instant('SB_WIDGETS_MANY2ONE_ADVANCED_SEARCH')+'</a>');
 
                 if(value.length) {
                     $button_create.hide();
@@ -82,6 +82,7 @@ export default class WidgetMany2One extends Widget {
                     $select.on('click', () => {
                         $select.find('.mdc-menu-surface').width(<number>$select.width());
                         $menu.trigger('_toggle');
+                        feedObjects();
                     });
 
                     let timeout:any = null;
@@ -177,8 +178,9 @@ export default class WidgetMany2One extends Widget {
                 });
 
 
-                // init list content
-                feedObjects();
+                // #memo - do not load on init (to prevent burst requests when view are displayed in edit mode)
+                // feedObjects();                
+                
                 break;
             case 'view':
             default:
@@ -207,13 +209,23 @@ export default class WidgetMany2One extends Widget {
                         break;
                     case 'list':
                     default:
+                        // open targeted object in new context
+                        $input.on('click', async (event: any) => {
+                            this.getLayout().openContext({
+                                entity: this.config.foreign_object,
+                                type: 'form',
+                                name: (this.config.hasOwnProperty('view_name'))?this.config.view_name:'default',
+                                domain: ['id', '=', this.config.object_id]
+                            });
+                            event.stopPropagation();
+                        });
                         this.$elem.append($input);
                 }
                 break;
         }
 
 
-        this.$elem.addClass('sb-widget').addClass('sb-widget-mode-'+this.mode).attr('id', this.getId());
+        this.$elem.addClass('sb-widget').addClass('sb-widget-type-many2one').addClass('sb-widget-mode-'+this.mode).attr('id', this.getId());
 
         return this.$elem;
     }

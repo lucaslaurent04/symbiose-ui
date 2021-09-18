@@ -3,7 +3,7 @@ import { $ } from "./jquery-lib";
 import { Widget, WidgetFactory } from "./equal-widgets";
 import { UIHelper } from './material-lib';
 
-import { TranslationService } from "./equal-services";
+import { TranslationService, ApiService } from "./equal-services";
 
 import { Domain, Clause, Condition } from "./Domain";
 import View from "./View";
@@ -110,7 +110,7 @@ export class Layout {
 
     // refresh layout
     // this method is called in response to parent View `onchangeModel` method 
-    public async refresh(full: boolean) {
+    public async refresh(full: boolean = false) {
         console.log('Layout::refresh');
 
         // also re-generate the layout                     
@@ -193,6 +193,7 @@ export class Layout {
         let def = model_fields[field];
 
         let label = (item.hasOwnProperty('label'))?item.label:field;
+// #todo - handle help and relay to Context        
         let helper = (item.hasOwnProperty('help'))?item.help:(def.hasOwnProperty('help'))?def['help']:'';
         let description = (item.hasOwnProperty('description'))?item.description:(def.hasOwnProperty('description'))?def['description']:'';
 
@@ -200,7 +201,7 @@ export class Layout {
         
         if(config.hasOwnProperty('selection')) {
             config.type = 'select';
-            let translated = TranslationService.resolve(translation, 'model', field, config.selection, 'selection');
+            let translated = TranslationService.resolve(translation, 'model', [], field, config.selection, 'selection');
             let values = translated;
             if(Array.isArray(translated)) {
                 // convert array to a Map (original values as keys and translations as values)
@@ -213,13 +214,18 @@ export class Layout {
         }
         // ready property is set to true during the 'feed' phase
         config.ready = false;
-        config.title = TranslationService.resolve(translation, 'model', field, label, 'label');
-        config.helper = TranslationService.resolve(translation, 'model', field, description, 'description');
+        config.title = TranslationService.resolve(translation, 'model', [], field, label, 'label');
+        config.description = TranslationService.resolve(translation, 'model', [], field, description, 'description');
         config.readonly = (item.hasOwnProperty('readonly'))?item.readonly:(def.hasOwnProperty('readonly'))?def['readonly']:false;
         config.align = (item.hasOwnProperty('align'))?item.align:'left';
         config.sortable = (item.hasOwnProperty('sortable') && item.sortable);
         config.layout = this.view.getType();
         config.lang = this.view.getLang();
+
+        if(item.hasOwnProperty('widget')) {
+            // overload config with widget config
+            config = {...config, ...item.widget};
+        }
 
         if(!config.hasOwnProperty('visible')) {
             config.visible = true;
@@ -230,11 +236,6 @@ export class Layout {
 
         // convert visible property to JSON
         config.visible = eval(config.visible);
-
-        if(item.hasOwnProperty('widget')) {
-            // overload config with widget config
-            config = {...config, ...item.widget};
-        }
 
         let type = def['type'];
         if(def.hasOwnProperty('result_type')) {
@@ -293,7 +294,7 @@ export class Layout {
             // try to resolve the group title
             let group_title = (group.hasOwnProperty('label'))?group.label:'';
             if(group.hasOwnProperty('id')) {
-                group_title = TranslationService.resolve(translation, 'view', group.id, group_title);
+                group_title = TranslationService.resolve(translation, 'view', [this.view.getId(), 'layout'], group.id, group_title);
             }
             // append the group title, if any
             if(group_title.length) {
@@ -323,7 +324,7 @@ export class Layout {
                     // try to resolve the section title
                     let section_title = (section.hasOwnProperty('label'))?section.label:section_id;
                     if(section.hasOwnProperty('id')) {
-                        section_title = TranslationService.resolve(translation, 'view', section.id, section_title);
+                        section_title = TranslationService.resolve(translation, 'view', [this.view.getId(), 'layout'], section.id, section_title);
                     }
 
                     let $tab = UIHelper.createTabButton(section_id+'-tab', section_title, (j == selected_section)).addClass('sb-view-form-section-tab')
@@ -497,12 +498,41 @@ export class Layout {
             .addClass('sb-view-layout-list-row')
             .attr('data-id', object.id)
             .attr('data-edit', '0')
+            // open form view on click
             .on('click', (event:any) => {
                 let $this = $(event.currentTarget);
                 // discard click when row is being edited
                 if($this.attr('data-edit') == '0') {
                     this.openContext({entity: this.view.getEntity(), type: 'form', name: this.view.getName(), domain: ['id', '=', object.id]});
                 }
+            })
+            // toggle mode for all cells in row
+            .on( '_toggle_mode', (event:any, mode: string) => {
+                let $this = $(event.currentTarget);
+
+                $this.find('td.sb-widget-cell').each( (index: number, elem: any) => {
+                    let $cell = $(elem);
+                    let field:any = $cell.attr('data-field');
+                    let widget = this.model_widgets[object.id][field];
+                    // toggle mode
+                    let mode = (widget.getMode() == 'view')?'edit':'view';
+                    let $widget = widget.setMode(mode).render();
+                    $cell.empty().append($widget);
+
+                    if(mode == 'edit') {
+                        $widget.on('_updatedWidget', (event:any) => {
+                            let value:any = {};
+                            value[field] = widget.getValue();
+                            // propagate model change, without requesting a layout refresh
+                            this.view.onchangeViewModel([object.id], value, false);
+                        });        
+                    }
+                });
+            })
+            // dispatch value setter
+            .on( '_setValue', (event: any, field: string, value: any) => {
+                let widget = this.model_widgets[object.id][field];
+                widget.change(value);
             });
 
             // for lists in edit mode (excepted widgets), add a checkbox
@@ -520,6 +550,7 @@ export class Layout {
                 });
             }
 
+            // for each field, create a widget, append to a cell, and append cell to row
             for(let item of schema.layout.items) {
 
                 let config = this.getWidgetConfig(item);
@@ -560,33 +591,14 @@ export class Layout {
                 if(typeof this.model_widgets[object.id] == 'undefined') {
                     this.model_widgets[object.id] = {};
                 }
+                // store widget: use id and field as keys for storing widgets (current layout is for a single entity)
                 this.model_widgets[object.id][item.value] = widget;
 
-
-                let $cell = $('<td/>').addClass('sb-widget-cell').attr('data-field', item.value).append(widget.render())
-                .on( '_toggle_mode', (event:any, mode: string) => {
-                    let $this = $(event.currentTarget);
-                    widget.setMode( mode );
-                    let $widget = widget.render();
-
-                    if(mode == 'edit') {
-                        $widget.on('_updatedWidget', (event:any) => {
-                            let value:any = {};
-                            value[item.value] = widget.getValue();
-                            // propagate model change, without requesting a layout refresh
-                            this.view.onchangeViewModel([object.id], value, false);
-                        });    
-
-                        $cell.on( '_setValue', (event: any, value: any) => {
-                            widget.setValue(value);
-                        });
-        
-                    }
-                    $this.empty().append($widget);
-                } );
+                let $cell = $('<td/>').addClass('sb-widget-cell').attr('data-field', item.value).append(widget.render());
 
                 $row.append($cell);
             }
+
             $tbody.append($row);
         }
         
@@ -609,6 +621,44 @@ export class Layout {
         if(objects.length > 0) {
 // #todo : keep internal index of the object to display (with a prev/next navigation in the header)
             let object:any = objects[0];
+
+            // update actions in view header
+            let view_schema = this.view.getViewSchema();
+            
+            if(view_schema.hasOwnProperty('actions')) {
+                let $view_actions = this.view.getContainer().find('.sb-view-header-form-actions-view');
+                $view_actions.empty();
+                for(let action of view_schema.actions) {
+                    let visible = true;
+                    if(action.hasOwnProperty('visible')) {
+                        // visible attribute is a Domain
+                        if(Array.isArray(action.visible)) {
+                            let domain = new Domain(action.visible);
+                            visible = domain.evaluate(object);
+                        }
+                        else {
+                            visible = <boolean>action.visible;
+                        }
+                    }
+                    if(visible) {
+                        let action_title = TranslationService.resolve(this.view.getTranslation(), 'view', [this.view.getId(), 'actions'], action.id, action.label);
+                        let $button = UIHelper.createButton('action-view-'+action.id, action_title, 'outlined')
+                        .on('click', async () => {
+                            try {
+                                const result = await ApiService.fetch("/", {do: action.controller, id: object.id});
+                                console.log(result);
+                                await this.view.getModel().refresh();
+                                await this.refresh();
+                            }
+                            catch(response) {
+                                console.warn(response);
+                            }                            
+                        });
+                        $view_actions.append($button);
+                    }
+                }
+            }
+
             for(let field of fields) {
                 
                 let widget = this.model_widgets[0][field];

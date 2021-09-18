@@ -9,17 +9,15 @@ export default class WidgetString extends Widget {
         super(layout, 'string', label, value, config);
     }
 
-    public setValue(value: any) {
-        super.setValue(value);
+    public change(value: any) {
         this.$elem.find('input').val(value).trigger('change');
-        return this;
     }
 
     public render():JQuery {
         let value:string = this.value?this.value:'';
         switch(this.mode) {
             case 'edit':
-                this.$elem = UIHelper.createInput('', this.label, value, this.config.helper, '', this.readonly);
+                this.$elem = UIHelper.createInput('', this.label, value, this.config.description, '', this.readonly);
                 if(this.config.layout == 'list') {
                     this.$elem.css({"width": "calc(100% - 10px)"});
                 }

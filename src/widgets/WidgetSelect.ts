@@ -9,9 +9,8 @@ export default class WidgetSelect extends Widget {
         super(layout, 'select', label, value, config);
     }
 
-    public setValue(value: any) {
+    public change(value: any) {
         this.$elem.trigger('select', value);
-        return this;
     }
 
     public render():JQuery {

@@ -81,11 +81,11 @@ export class _TranslationService {
      * @param type          Kind of terms we want to perform ('model','view','error')
      * @param id            The identifier of the item we want to translate
      * @param value         The default value, if any, to fall back to in case translation fails 
-     * @param section       The translation section we're looking for, for the considered value ('label', 'help', ...)
+     * @param property       The translation section we're looking for, for the considered value ('label', 'help', ...)
      * 
      * @returns The translated value, or the original value if translation fails.
      */ 
-    public resolve(translation:any, type:string, id: string, value: any = '', section:string = 'label') {
+    public resolve(translation:any, type:string, path: string[], id: string, value: any = '', property:string = 'label') {
         let result = value;
 
         if (typeof value === 'string' || value instanceof String) {
@@ -93,9 +93,14 @@ export class _TranslationService {
         }
         
         if(translation.hasOwnProperty(type)) {
-            if(translation[type].hasOwnProperty(id)) {
-                if(translation[type][id].hasOwnProperty(section)) {
-                    result = translation[type][id][section];
+            let map = translation[type];
+            for(let elem of path) {
+                map = map[elem];
+            }
+
+            if(map.hasOwnProperty(id)) {
+                if(map[id].hasOwnProperty(property)) {
+                    result = map[id][property];
                 }
             }
         }
