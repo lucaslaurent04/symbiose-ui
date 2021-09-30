@@ -99,14 +99,19 @@ class UIHelper {
         return $elem;
     }
 
-    public static createInput(id:string, label:string, value:string, helper:string = '', icon: string = '', disabled: boolean = false) {
+    /**
+     * 
+     * @param type  'filled' (default) or 'outlined'
+     */
+    public static createInput(id:string, label:string, value:string, helper:string = '', icon: string = '', disabled: boolean = false, type: string = 'filled', trailing_icon: string ='') {
         let $elem = $('\
         <div id="'+id+'"> \
-            <label class="mdc-text-field mdc-text-field--filled mdc-text-field--with-trailing-icon"> \
+            <label class="mdc-text-field mdc-text-field--'+type+' mdc-text-field--with-trailing-icon"> \
                 <span class="mdc-text-field__ripple"></span> \
                 <span class="mdc-floating-label">'+label+'</span> \
-                <i aria-hidden="true" class="material-icons mdc-text-field__icon">'+icon+'</i>\
+                '+((icon.length)?'<i aria-hidden="true" class="material-icons mdc-text-field__icon">'+icon+'</i>':'')+'\
                 <input '+( (disabled)?'disabled':'' )+' class="mdc-text-field__input" type="text" autocorrect="off" autocomplete="off" spellcheck="false" value="'+value+'"> \
+                '+((trailing_icon.length)?'<i class="material-icons mdc-text-field__icon mdc-text-field__icon--trailing" tabindex="0" role="button">'+trailing_icon+'</i>':'')+'\
                 <span class="mdc-line-ripple"></span> \
             </label> \
             <div class="mdc-text-field-helper-line"> \
@@ -138,7 +143,7 @@ class UIHelper {
 
         
         new MDCTextField($elem[0]);
-        return $elem
+        return $elem;
     }
 
     public static createInputView(id:string, label:string, value:string) {
@@ -151,7 +156,7 @@ class UIHelper {
         </label> \
         </div>');
         new MDCTextField($elem[0]);
-        return $elem
+        return $elem;
     }
 
     public static createCheckbox(id:string, label:string) {

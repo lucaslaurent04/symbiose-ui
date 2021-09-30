@@ -133,9 +133,14 @@ export class Frame {
     private async updateHeader() {
         console.log('update header');        
 
+        let $domContainer = $(this.domContainerSelector);
+
+        if(!$domContainer) return;
+
         // instanciate header upon first call
-        if($(this.domContainerSelector).find('.sb-container-header').length == 0) {            
-            this.$headerContainer = $('<div/>').addClass('sb-container-header').prependTo($(this.domContainerSelector));
+        this.$headerContainer = $domContainer.find('.sb-container-header');
+        if(this.$headerContainer.length == 0) {            
+            this.$headerContainer = $('<div/>').addClass('sb-container-header').prependTo($domContainer);
         }
 
         if( this.stack.length == 0 || !this.context.hasOwnProperty('$container')) {
@@ -271,7 +276,7 @@ export class Frame {
      */
     public async openContext(config: any) {
         config.target = this.domContainerSelector;
-        // we use eventlistent :: open() method in order to relay the context change to the outside
+        // we use eventlistener :: open() method in order to relay the context change to the outside
         this.eq.open(config);
     }
 
@@ -305,17 +310,17 @@ export class Frame {
 
         let context: Context = new Context(this, config.entity, config.type, config.name, config.domain, config.mode, config.purpose, config.lang, config.callback, config);
 
-        let prev_context = this.context;
-        // stack received context        
-        if(this.context) {
-            this.stack.push(this.context);
-        }
+        // stack current context
+        this.stack.push(this.context);
+
         this.context = context;
 
         this.context.isReady().then( () => {
-            if(prev_context && prev_context.hasOwnProperty('$container')) {
-                // conainers are hidden and not detached in order to maintain the listeners
-                prev_context.$container.hide();
+            for(let ctx of this.stack) {
+                if(ctx && typeof ctx.getContainer === 'function') {
+                    // conainers are hidden and not detached in order to maintain the listeners
+                    ctx.getContainer().hide();
+                }
             }
             $(this.domContainerSelector).append(this.context.getContainer());
             // relay event to the outside
@@ -351,7 +356,6 @@ export class Frame {
             this.context = <Context>this.stack.pop();
 
             if(!silent) {
-                console.log(this.context);
                 if( this.context != undefined && this.context.hasOwnProperty('$container') ) {
                     if(has_changed && this.context.getMode() == 'view') {
                         await this.context.refresh();

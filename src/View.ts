@@ -106,6 +106,7 @@ export class View {
                     handler: (selection:any) => this.actionBulkAssign(selection)
                 },
                 {
+                    id: "action.update",
                     title: 'SB_ACTIONS_BUTTON_UPDATE',
                     icon:  'edit',
                     primary: true,
@@ -175,7 +176,7 @@ export class View {
                                 }
                                 catch(response) {
                                     this.displayErrorFeedback(response);
-                                }    
+                                }
                             }
                         });
                     }
@@ -201,11 +202,30 @@ export class View {
 
         this.selected_ids = [];
 
+        this.applied_filters_ids = [];
 
         this.filters = {};
-        this.exports = {};
 
-        this.applied_filters_ids = [];
+        this.exports = {
+            "export.pdf": {
+                "id": "export.pdf",
+                "label": TranslationService.instant('SB_EXPORTS_AS_PDF'),
+                "icon": "print",
+                "description": "Export as PDF",
+                "controller": "model_export-pdf",
+                "view": this.getId(),
+                "domain": JSON.stringify(this.getDomain())
+            },
+            "export.xls": {
+                "id": "export.xls",
+                "label": TranslationService.instant('SB_EXPORTS_AS_XLS'),
+                "icon": "print",
+                "description": "Export as XLS",
+                "controller": "model_export-xls",
+                "view": this.getId()
+            }
+        };
+
 
         this.$container = $('<div />').addClass('sb-view').hide();
 
@@ -418,7 +438,7 @@ export class View {
      * Applicable domain for the View corresponds to initial domain (from parent Context) with additional filters currently applied on the View
      */
     public getDomain() {
-        console.log('View::getDomain', this.domain, this.applied_filters_ids);        
+        console.log('View::getDomain', this.domain, this.applied_filters_ids);
 
         let domain = new Domain(this.domain);
 
@@ -623,10 +643,37 @@ export class View {
         let $bulk_assign_dialog = UIHelper.createDialog('bulk_assign_dialog', TranslationService.instant('SB_ACTIONS_BUTTON_BULK_ASSIGN'), TranslationService.instant('SB_DIALOG_ACCEPT'), TranslationService.instant('SB_DIALOG_CANCEL'));
         $bulk_assign_dialog.appendTo(this.$container);
         // inject component as dialog content
-        this.decorateBulkAssignDialog($bulk_assign_dialog);        
+        this.decorateBulkAssignDialog($bulk_assign_dialog);
+
 
         // container for holding chips of currently applied filters
         let $filters_set = $('<div />').addClass('sb-view-header-list-filters-set mdc-chip-set').attr('role', 'grid');
+
+        // for creating a quick filter based on name
+        let $filters_search = $('<div />').addClass('sb-view-header-list-filters-search');
+        let $search_input = UIHelper.createInput('sb-view-header-search', TranslationService.instant('SB_FILTERS_SEARCH'), '', '', '', false, 'outlined', 'close').appendTo($filters_search);
+
+        $search_input.find('.mdc-text-field__icon').on('click', (e) => {
+            $search_input.find('input').val('').trigger('focus').trigger('blur');
+        });
+        $search_input.on('keypress', (e) => {
+            if(e.key == 'Enter') $search_input.find('input').trigger('blur');
+        });
+        $search_input.find('input').on('blur', (e) => {
+            setTimeout( () => {
+                let value = <string> $search_input.find('input').val();
+                if(value.length) {
+                    let filter = {
+                        "id": "filter_search_on_name",
+                        "label": "search",
+                        "description": TranslationService.instant('SB_FILTERS_SEARCH_ON_NAME'),
+                        "clause": ['name', 'ilike', '%'+value+'%']
+                    };
+                    this.filters[filter.id] = filter;
+                    this.applyFilter(filter.id);
+                }    
+            }, 100);
+        });
 
         // fields toggle menu : button for displaying the filters menu
         let $filters_button =
@@ -651,9 +698,9 @@ export class View {
         // append additional option for custom filter
         if(this.filters.length) {
             UIHelper.createListDivider().appendTo($filters_list);
-        }        
+        }
 
-        let $custom_filter_dialog = UIHelper.createDialog('add_custom_filter_dialog', TranslationService.instant('SB_FILTERS_ADD_CUSTOM_FILTER'), TranslationService.instant('SB_DIALOG_ACCEPT'), TranslationService.instant('SB_DIALOG_CANCEL'));
+        let $custom_filter_dialog = UIHelper.createDialog('custom_filter_dialog', TranslationService.instant('SB_FILTERS_ADD_CUSTOM_FILTER'), TranslationService.instant('SB_DIALOG_ACCEPT'), TranslationService.instant('SB_DIALOG_CANCEL'));
         $custom_filter_dialog.appendTo(this.$container);
         // inject component as dialog content
         this.decorateCustomFilterDialog($custom_filter_dialog);
@@ -762,6 +809,7 @@ export class View {
 
         // attach elements to header toolbar
         $level2.append( $filters_button );
+        $level2.append( $filters_search );
         $level2.append( $filters_set );
         $level2.append( $pagination );
         $level2.append( $fields_toggle_button );
@@ -816,30 +864,22 @@ export class View {
                 let $export_actions_menu = UIHelper.createMenu('export-actions-menu').addClass('sb-view-header-list-export-menu').appendTo($export_actions_menu_button);
                 let $export_actions_list = UIHelper.createList('export-actions-list').appendTo($export_actions_menu);
 
-                UIHelper.createListItem('SB_ACTIONS_BUTTON_EXPORT-PRINT', TranslationService.instant('SB_EXPORTS_AS_PDF'), 'print')
-                .on( 'click', (event:any) => {
-                    window.open(environment.backend_url+'/?get=model_export-pdf&entity='+this.entity+'&domain='+JSON.stringify(this.getDomain())+'&view_id='+this.getId()+'&lang='+this.lang, "_blank");
-                })
-                .appendTo($export_actions_list);
-
-                UIHelper.createListItem('SB_ACTIONS_BUTTON_EXPORT-PDF', TranslationService.instant('SB_EXPORTS_AS_XLS'), 'file_copy')
-                .on( 'click', (event:any) => {
-                    window.open(environment.backend_url+'/?get=model_export-xls&entity='+this.entity+'&domain='+JSON.stringify(this.getDomain())+'&view_id='+this.getId()+'&lang='+this.lang, "_blank");
-                })
-                .appendTo($export_actions_list);
-// # todo - inject default exports in this.exports (to reduce to a single loop)
-
                 // generate filters list
                 for(let export_id in this.exports) {
                     let item = this.exports[export_id];
-                    let view = item.hasOwnProperty('view')?'&view_id='+item.view:'';
                     let object_id = (this.selected_ids.length)?this.selected_ids[0]:0;
+
+                    let view = item.hasOwnProperty('view')?'&view_id='+item.view:'';
+
+                    let selection = JSON.stringify(this.selected_ids);
+                    let domain = JSON.stringify(this.getDomain());
                     let export_title = TranslationService.resolve(this.translation, 'view', [this.getId(), 'exports'], item.id, item.label, 'label')
                     UIHelper.createListItem('SB_ACTIONS_BUTTON_EXPORT-'+item.id, export_title, item.hasOwnProperty('icon')?item.icon:'')
                     .on( 'click', (event:any) => {
-                        window.open(environment.backend_url+'/?get='+item.controller+'&entity='+this.entity+'&id='+object_id+view+'&lang='+this.lang, "_blank");
+                        window.open(environment.backend_url+'/?get='+item.controller+'&entity='+this.entity+'&domain='+domain+'&id='+object_id+view+'&ids='+selection+'&lang='+this.lang, "_blank");
                     })
-                    .appendTo($export_actions_list);    
+                    .appendTo($export_actions_list);
+
                 }
 
                 UIHelper.decorateMenu($export_actions_menu);
@@ -910,7 +950,7 @@ export class View {
                             selected_sections: this.layout.getSelectedSections()
                         });
                     })
-                );                
+                );
                 break;
             case 'edit':
                 $std_actions
@@ -980,7 +1020,7 @@ export class View {
 
         let selected_field:string = '';
         let selected_value:any = '';
-        
+
         let $select_field = $();
         let $select_value = $();
 
@@ -995,32 +1035,33 @@ export class View {
             fields[item.value] = TranslationService.resolve(this.translation, 'model', [], item.value, label, 'label');
         }
 
-        $select_field = UIHelper.createSelect('custom_filter_select_field', TranslationService.instant('SB_FILTERS_DIALOG_FIELD'), fields, Object.keys(fields)[0]).appendTo($elem);
+        $select_field = UIHelper.createSelect('bulk_assign_select_field', TranslationService.instant('SB_FILTERS_DIALOG_FIELD'), fields, Object.keys(fields)[0]).appendTo($elem);
+
         // setup handler for relaying value update to parent layout
         $select_field.find('input')
         .on('change', (event) => {
             let $this = $(event.currentTarget);
             selected_field = <string> $this.val();
 
-            $elem.find('#custom_filter_select_value').remove();
+            $elem.find('#bulk_assign_select_value').remove();
 
             let field_type = this.model.getFinalType(selected_field);
 
             switch(field_type) {
                 case 'boolean':
-                    $select_value = UIHelper.createSelect('custom_filter_select_value', TranslationService.instant('SB_FILTERS_DIALOG_VALUE'), ['true', 'false']);
+                    $select_value = UIHelper.createSelect('bulk_assign_select_value', TranslationService.instant('SB_FILTERS_DIALOG_VALUE'), ['true', 'false']);
                     $select_value.find('input').on('change', (event) => {
                         let $this = $(event.currentTarget);
                         selected_value = ($this.children("option:selected").val() == 'true');
-                    });        
+                    });
                     break;
                 case 'date':
                 case 'datetime':
                     // daterange selector
-                    $select_value = UIHelper.createInput('custom_filter_select_value', TranslationService.instant('SB_FILTERS_DIALOG_VALUE'), '');
+                    $select_value = UIHelper.createInput('bulk_assign_select_value', TranslationService.instant('SB_FILTERS_DIALOG_VALUE'), '');
 
                     $select_value.find('input').datepicker({
-                        ...jqlocale[environment.locale],                    
+                        ...jqlocale[environment.locale],
                         onClose: () => {
                             $select_value.find('input').trigger('focus');
                         }
@@ -1034,17 +1075,17 @@ export class View {
                     break;
                 case 'many2one':
 // #todo - select amongst exisiting objects typeahead
-                    break;
+
                 case 'string':
-// #todo - display selection if any                    
+// #todo - display selection if any
                 case 'integer':
-                case 'float':    
+                case 'float':
                 default:
-                    $select_value = UIHelper.createInput('custom_filter_select_value', TranslationService.instant('SB_FILTERS_DIALOG_VALUE'), '');
+                    $select_value = UIHelper.createInput('bulk_assign_select_value', TranslationService.instant('SB_FILTERS_DIALOG_VALUE'), '');
                     $select_value.find('input').on('change', (event) => {
                         let $this = $(event.currentTarget);
                         selected_value = <string> $this.val();
-                    });        
+                    });
             }
 
             $elem.append($select_value);
@@ -1070,9 +1111,9 @@ export class View {
         let selected_field:string = '';
         let selected_operator:string = '';
         let selected_value:any = '';
-        
+
         let $select_field = $();
-        let $select_operator = $();        
+        let $select_operator = $();
         let $select_value = $();
 
         $dialog.on('_open', () => {
@@ -1113,7 +1154,7 @@ export class View {
                     $select_value.find('input').on('change', (event) => {
                         let $this = $(event.currentTarget);
                         selected_value = ($this.children("option:selected").val() == 'true');
-                    });        
+                    });
                     break;
                 case 'date':
                 case 'datetime':
@@ -1121,7 +1162,7 @@ export class View {
                     $select_value = UIHelper.createInput('custom_filter_select_value', TranslationService.instant('SB_FILTERS_DIALOG_VALUE'), '');
 
                     $select_value.find('input').datepicker({
-                        ...jqlocale[environment.locale],                    
+                        ...jqlocale[environment.locale],
                         onClose: () => {
                             $select_value.find('input').trigger('focus');
                         }
@@ -1146,13 +1187,13 @@ export class View {
                     break;
                 case 'string':
                 case 'integer':
-                case 'float':    
+                case 'float':
                 default:
                     $select_value = UIHelper.createInput('custom_filter_select_value', TranslationService.instant('SB_FILTERS_DIALOG_VALUE'), '');
                     $select_value.find('input').on('change', (event) => {
                         let $this = $(event.currentTarget);
                         selected_value = <string> $this.val();
-                    });        
+                    });
             }
 
 
@@ -1293,7 +1334,10 @@ export class View {
                 let $this = $(event.currentTarget)
                 let index = this.applied_filters_ids.indexOf($this.attr('id'));
                 if (index > -1) {
-                    this.applied_filters_ids.splice(index, 1);
+                    let filters = this.applied_filters_ids.splice(index, 1);
+                    if(filters[0] == 'filter_search_on_name') {
+                        this.$headerContainer.find('.sb-view-header-list-filters-search').find('.mdc-text-field__icon').trigger('click');
+                    }
                     this.setStart(0);
                     this.onchangeView();
                 }
@@ -1398,7 +1442,7 @@ export class View {
                     $tr.trigger('_toggle_mode', 'view');
                     $tr.attr('data-edit', '0');
                 });
-                $action_set_selected_edit_actions.remove();                
+                $action_set_selected_edit_actions.remove();
                 this.$headerContainer.find('#'+'SB_ACTION_ITEM-'+'SB_ACTIONS_BUTTON_INLINE_UPDATE').show();
                 this.$headerContainer.find('#'+'SB_ACTION_ITEM-'+'SB_ACTIONS_BUTTON_BULK_ASSIGN').hide();
                 return false;

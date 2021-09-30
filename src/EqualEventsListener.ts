@@ -55,9 +55,9 @@ class EqualEventsListener {
         moment.locale(environment.locale);
                 
         // main entry point : click events are read as input/output for external tools
-        // can be used 
-        // by emitters to request a context change
-        // by listeners to be notified about any context change (whatever the frame)
+        // can be used :
+        // - by emitters to request a context change
+        // - by listeners to be notified about any context change (whatever the frame)
         this.$sbEvents.on('click', (event: any, context:any, reset: boolean = false) => {
             if(!context) {
                 context = window.context;
@@ -85,6 +85,23 @@ class EqualEventsListener {
          * A new context can be requested by ngx (menu or app) or by opening a sub-object
          */
         this.$sbEvents.on('_openContext', async (event:any, config:any, reset: boolean = false) => {
+            if(!config) {
+                config = window.context;
+            }
+
+            // extend default params with received config
+            config = {...{
+                entity:     '', 
+                type:       'list', 
+                name:       'default', 
+                domain:     [], 
+                mode:       'view',             // view, edit
+                purpose:    'view',             // view, select, add
+                lang:       environment.lang,
+                callback:   null,
+                target:     '#sb-container'
+            }, ...config};
+
             console.log('eQ: received _openContext', config);
 
             if(!this.frames.hasOwnProperty(config.target)) {

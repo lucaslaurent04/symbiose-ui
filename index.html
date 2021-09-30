@@ -19,7 +19,8 @@
         <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,600,700,400italic|Roboto+Mono:400,500|Material+Icons|Google+Material+Icons" />
         <!-- <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.indigo-pink.min.css"> -->
 
-        <link rel="stylesheet" type="text/css" href="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css" >
+        <!-- <link rel="stylesheet" type="text/css" href="https://unpkg.com/material-components-web@latest/dist/material-components-web.min.css" > -->
+        <link rel="stylesheet" type="text/css" href="https://unpkg.com/material-components-web@12.0.0/dist/material-components-web.min.css">
 
         <link rel="stylesheet" type="text/css" href="https://code.jquery.com/ui/1.12.0/themes/smoothness/jquery-ui.css">
         <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
@@ -168,6 +169,14 @@ var menu = [
                 target: 'list.default',
             },
             {
+                name: 'Centers',
+                description: '',
+                icon: 'house',
+                type: 'entry',
+                entity: "lodging\\identity\\Center",
+                target: 'list.default',
+            },
+            {
                 name: 'Addresses',
                 description: '',
                 icon: 'import_contacts',
@@ -221,7 +230,7 @@ var menu = [
 ];
 
 $(document).ready( function() {
-    var eq = new eQ();
+    var eq = new eQ('eq-listener');
     // eq.test();   
 
     eq.loadMenu(menu);
@@ -250,9 +259,6 @@ A new context can be invoked either ways:
 
 */
 
-    $('#sb-events').trigger('_openContext', {entity: 'core\\User', type: 'list', domContainerSelector: '#sb-container'} );
-    $('#sb-events').trigger('_openContext', {entity: 'core\\Group', type: 'list', domContainerSelector: '#sb-container1'} );
-    // setTimeout( () => $('#sb-events').trigger('_closeContext'), 3000 );
 });
 </script>
 
@@ -267,8 +273,8 @@ A new context can be invoked either ways:
 
         <div id="sb-menu"></div>
         <div id="sb-container"></div>
-        <div id="sb-container1"></div>
     </div>
+    <div style="display: none;" id="eq-listener"></div>
 
 </body>
 </html>

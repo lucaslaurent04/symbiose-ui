@@ -585,7 +585,8 @@ export class Layout {
                     }                    
                 }
 
-                let widget:Widget = WidgetFactory.getWidget(this, config.type, '', value, config);
+                let widget:Widget = WidgetFactory.getWidget(this, config.type, '', '', config);
+                widget.setValue(value);
 
                 // store widget in widgets Map, using widget id as key (there are several rows for each field)
                 if(typeof this.model_widgets[object.id] == 'undefined') {

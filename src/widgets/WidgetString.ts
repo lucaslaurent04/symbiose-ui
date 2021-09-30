@@ -14,7 +14,7 @@ export default class WidgetString extends Widget {
     }
 
     public render():JQuery {
-        let value:string = this.value?this.value:'';
+        let value:string = (typeof this.value != undefined && this.value != undefined)?this.value:'';
         switch(this.mode) {
             case 'edit':
                 this.$elem = UIHelper.createInput('', this.label, value, this.config.description, '', this.readonly);

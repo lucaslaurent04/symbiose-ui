@@ -95,10 +95,15 @@ export class _TranslationService {
         if(translation.hasOwnProperty(type)) {
             let map = translation[type];
             for(let elem of path) {
-                map = map[elem];
+                if(map && map.hasOwnProperty(elem)) {
+                    map = map[elem];
+                }
+                else {
+                    break;
+                }                
             }
 
-            if(map.hasOwnProperty(id)) {
+            if(map && map.hasOwnProperty(id)) {
                 if(map[id].hasOwnProperty(property)) {
                     result = map[id][property];
                 }
