@@ -1366,7 +1366,19 @@ var Domain = /*#__PURE__*/function () {
                   continue;
                 }
 
-                value = object[target];
+                var tmp = object[target]; // target points to an object with subfields
+
+                if (typeof tmp === 'object') {
+                  if (tmp.hasOwnProperty('id')) {
+                    value = tmp.id;
+                  } else if (tmp.hasOwnProperty('name')) {
+                    value = tmp.name;
+                  } else {
+                    continue;
+                  }
+                } else {
+                  value = object[target];
+                }
               } // handle user references as `value` part
               else if (typeof value === 'string' && value.indexOf('user.') == 0) {
                   var _target = value.substring('user.'.length);
@@ -2912,6 +2924,7 @@ var Layout = /*#__PURE__*/function () {
   }, {
     key: "openContext",
     value: function openContext(config) {
+      console.log("Layout::openContext", config);
       this.view.openContext(config);
     }
     /**
@@ -3074,9 +3087,10 @@ var Layout = /*#__PURE__*/function () {
   }, {
     key: "getWidgetConfig",
     value: function getWidgetConfig(item) {
-      var field = item.value;
+      var config = {};
       var translation = this.view.getTranslation();
       var model_fields = this.view.getModelFields();
+      var field = item.value;
 
       if (!model_fields || !model_fields.hasOwnProperty(field)) {
         return null;
@@ -3088,9 +3102,30 @@ var Layout = /*#__PURE__*/function () {
       var helper = item.hasOwnProperty('help') ? item.help : def.hasOwnProperty('help') ? def['help'] : '';
       var description = item.hasOwnProperty('description') ? item.description : def.hasOwnProperty('description') ? def['description'] : '';
 
-      var config = _objectSpread({}, def);
+      if (def.hasOwnProperty('type')) {
+        var type = def['type'];
 
-      if (config.hasOwnProperty('selection')) {
+        if (def.hasOwnProperty('result_type')) {
+          type = def['result_type'];
+        }
+
+        config.type = type;
+      } else {
+        // we shouldn't end up here : malformed schema
+        console.log('ERROR - malformed schema for field ' + field);
+        return config;
+      }
+
+      if (def.hasOwnProperty('foreign_object')) {
+        config.foreign_object = def.foreign_object;
+      }
+
+      if (def.hasOwnProperty('foreign_field')) {
+        config.foreign_field = def.foreign_field;
+      }
+
+      if (def.hasOwnProperty('selection')) {
+        config.selection = def.selection;
         config.type = 'select';
 
         var translated = _equalServices.TranslationService.resolve(translation, 'model', [], field, config.selection, 'selection');
@@ -3110,6 +3145,7 @@ var Layout = /*#__PURE__*/function () {
       } // ready property is set to true during the 'feed' phase
 
 
+      config.visible = true;
       config.ready = false;
       config.title = _equalServices.TranslationService.resolve(translation, 'model', [], field, label, 'label');
       config.description = _equalServices.TranslationService.resolve(translation, 'model', [], field, description, 'description');
@@ -3120,12 +3156,12 @@ var Layout = /*#__PURE__*/function () {
       config.lang = this.view.getLang();
 
       if (item.hasOwnProperty('widget')) {
-        // overload config with widget config
+        // overload config with widget config, if any
         config = _objectSpread(_objectSpread({}, config), item.widget);
       }
 
-      if (!config.hasOwnProperty('visible')) {
-        config.visible = true;
+      if (def.hasOwnProperty('visible')) {
+        config.visible = def.visible;
       }
 
       if (item.hasOwnProperty('visible')) {
@@ -3133,27 +3169,20 @@ var Layout = /*#__PURE__*/function () {
       } // convert visible property to JSON
 
 
-      config.visible = eval(config.visible);
-      var type = def['type'];
+      config.visible = eval(config.visible); // for relational fields, we need to check if the Model has been fetched al
 
-      if (def.hasOwnProperty('result_type')) {
-        type = def['result_type'];
-        config.type = type;
-      } // for relational fields, we need to check if the Model has been fetched al
-
-
-      if (['one2many', 'many2one', 'many2many'].indexOf(type) > -1) {
+      if (['one2many', 'many2one', 'many2many'].indexOf(config.type) > -1) {
         // defined config for Widget's view with a custom domain according to object values
         var view_id = config.hasOwnProperty('view') ? config.view : 'list.default';
         var parts = view_id.split(".", 2);
         var view_type = parts.length > 1 ? parts[0] : 'list';
         var view_name = parts.length > 1 ? parts[1] : parts[0];
         var def_domain = def.hasOwnProperty('domain') ? def['domain'] : [];
-        var view_domain = item.hasOwnProperty('domain') ? item['domain'] : [];
+        var view_domain = config.hasOwnProperty('domain') ? config['domain'] : [];
         var domain = new _Domain.Domain(def_domain);
         domain.merge(new _Domain.Domain(view_domain)); // add join condition for limiting list to the current object
 
-        if (['one2many', 'many2many'].indexOf(type) > -1 && def.hasOwnProperty('foreign_field')) {
+        if (['one2many', 'many2many'].indexOf(config.type) > -1 && def.hasOwnProperty('foreign_field')) {
           domain.merge(new _Domain.Domain([def['foreign_field'], 'contains', 'object.id']));
         }
 
@@ -3274,7 +3303,9 @@ var Layout = /*#__PURE__*/function () {
                       $cell.append(widget.attach());
                     }
                   } else if (item.type == 'label') {
-                    $cell.append('<span style="font-weight: 600;">' + item.value + '</span>');
+                    var label_title = _equalServices.TranslationService.resolve(translation, 'view', [_this.view.getId(), 'layout'], item.id, item.value);
+
+                    $cell.append('<span style="font-weight: 600;">' + label_title + '</span>');
                   } else if (item.type == 'button') {
                     $cell.append(_materialLib.UIHelper.createButton(item.action, item.value, 'raised', item.icon ? item.icon : ''));
                   }
@@ -4611,6 +4642,7 @@ var View = /*#__PURE__*/function () {
   // Map of fields mapping their Model definitions
   // Map of available filters from View definition mapping filters id with their definition
   // Map of available custom exports with their definition
+  // custom actions of the view
   // config object for setting display of list controls and action buttons
   // List of currently selected filters from View definition (for filterable types)
   // When type is list, one or more objects might be selected
@@ -4619,7 +4651,7 @@ var View = /*#__PURE__*/function () {
    *
    * @param entity    entity (package\Class) to be loaded: should be set only once (depend on the related view)
    * @param type      type of the view ('list', 'form', ...)
-   * @param name
+   * @param name      name of the view (eg. 'default')
    * @param domain
    * @param mode
    * @param purpose
@@ -4652,6 +4684,7 @@ var View = /*#__PURE__*/function () {
     (0, _defineProperty2.default)(this, "model_fields", void 0);
     (0, _defineProperty2.default)(this, "filters", void 0);
     (0, _defineProperty2.default)(this, "exports", void 0);
+    (0, _defineProperty2.default)(this, "custom_actions", void 0);
     (0, _defineProperty2.default)(this, "config", void 0);
     (0, _defineProperty2.default)(this, "applied_filters_ids", void 0);
     (0, _defineProperty2.default)(this, "selected_ids", void 0);
@@ -4906,6 +4939,7 @@ var View = /*#__PURE__*/function () {
     this.selected_ids = [];
     this.applied_filters_ids = [];
     this.filters = {};
+    this.custom_actions = {};
     this.exports = {
       "export.pdf": {
         "id": "export.pdf",
@@ -4938,7 +4972,7 @@ var View = /*#__PURE__*/function () {
     key: "init",
     value: function () {
       var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6() {
-        var _iterator, _step, item, _iterator2, _step2, _item, domain, tmpDomain;
+        var _iterator, _step, item, _iterator2, _step2, _item, _iterator3, _step3, _item2, domain, tmpDomain;
 
         return _regenerator.default.wrap(function _callee6$(_context6) {
           while (1) {
@@ -5014,6 +5048,21 @@ var View = /*#__PURE__*/function () {
                   } finally {
                     _iterator2.f();
                   }
+                }
+
+                if (this.view_schema.hasOwnProperty("actions")) {
+                  _iterator3 = _createForOfIteratorHelper(this.view_schema.actions);
+
+                  try {
+                    for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+                      _item2 = _step3.value;
+                      this.custom_actions[_item2.id] = _item2;
+                    }
+                  } catch (err) {
+                    _iterator3.e(err);
+                  } finally {
+                    _iterator3.f();
+                  }
                 } // if view schema specifies a domain, merge it with domain given in constructor
 
 
@@ -5037,33 +5086,33 @@ var View = /*#__PURE__*/function () {
                   this.layoutFormHeader();
                 }
 
-                _context6.next = 30;
+                _context6.next = 31;
                 return this.layout.init();
 
-              case 30:
-                _context6.next = 32;
+              case 31:
+                _context6.next = 33;
                 return this.model.init();
 
-              case 32:
-                _context6.next = 37;
+              case 33:
+                _context6.next = 38;
                 break;
 
-              case 34:
-                _context6.prev = 34;
+              case 35:
+                _context6.prev = 35;
                 _context6.t1 = _context6["catch"](1);
                 console.log('Unable to init view (' + this.entity + '.' + this.getId() + ')', _context6.t1);
 
-              case 37:
+              case 38:
                 this.is_ready_promise.resolve();
                 this.$container.show();
                 console.log('View::init - end');
 
-              case 40:
+              case 41:
               case "end":
                 return _context6.stop();
             }
           }
-        }, _callee6, this, [[1, 34], [5, 11]]);
+        }, _callee6, this, [[1, 35], [5, 11]]);
       }));
 
       function init() {
@@ -5259,18 +5308,18 @@ var View = /*#__PURE__*/function () {
       var domain = new _equalLib.Domain(this.domain);
       var filters_domain = [];
 
-      var _iterator3 = _createForOfIteratorHelper(this.applied_filters_ids),
-          _step3;
+      var _iterator4 = _createForOfIteratorHelper(this.applied_filters_ids),
+          _step4;
 
       try {
-        for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
-          var filter_id = _step3.value;
+        for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
+          var filter_id = _step4.value;
           filters_domain.push(this.filters[filter_id].clause);
         }
       } catch (err) {
-        _iterator3.e(err);
+        _iterator4.e(err);
       } finally {
-        _iterator3.f();
+        _iterator4.f();
       }
 
       domain.merge(new _equalLib.Domain(filters_domain));
@@ -5360,50 +5409,50 @@ var View = /*#__PURE__*/function () {
           var elem = stack.pop();
 
           if (elem.hasOwnProperty('items')) {
-            var _iterator4 = _createForOfIteratorHelper(elem['items']),
-                _step4;
+            var _iterator5 = _createForOfIteratorHelper(elem['items']),
+                _step5;
 
             try {
-              for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
-                var item = _step4.value;
+              for (_iterator5.s(); !(_step5 = _iterator5.n()).done;) {
+                var item = _step5.value;
 
                 if (item.type == 'field' && item.hasOwnProperty('value')) {
                   this.view_fields[item.value] = item;
                 }
               }
             } catch (err) {
-              _iterator4.e(err);
+              _iterator5.e(err);
             } finally {
-              _iterator4.f();
+              _iterator5.f();
             }
           } else {
-            var _iterator5 = _createForOfIteratorHelper(path),
-                _step5;
+            var _iterator6 = _createForOfIteratorHelper(path),
+                _step6;
 
             try {
-              for (_iterator5.s(); !(_step5 = _iterator5.n()).done;) {
-                var step = _step5.value;
+              for (_iterator6.s(); !(_step6 = _iterator6.n()).done;) {
+                var step = _step6.value;
 
                 if (elem.hasOwnProperty(step)) {
-                  var _iterator6 = _createForOfIteratorHelper(elem[step]),
-                      _step6;
+                  var _iterator7 = _createForOfIteratorHelper(elem[step]),
+                      _step7;
 
                   try {
-                    for (_iterator6.s(); !(_step6 = _iterator6.n()).done;) {
-                      var obj = _step6.value;
+                    for (_iterator7.s(); !(_step7 = _iterator7.n()).done;) {
+                      var obj = _step7.value;
                       stack.push(obj);
                     }
                   } catch (err) {
-                    _iterator6.e(err);
+                    _iterator7.e(err);
                   } finally {
-                    _iterator6.f();
+                    _iterator7.f();
                   }
                 }
               }
             } catch (err) {
-              _iterator5.e(err);
+              _iterator6.e(err);
             } finally {
-              _iterator5.f();
+              _iterator6.f();
             }
           }
         }
@@ -5447,37 +5496,48 @@ var View = /*#__PURE__*/function () {
         switch (this.purpose) {
           case 'view':
             $actions_set.prepend(_materialLib.UIHelper.createButton('action-edit', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_CREATE'), 'raised').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee8() {
+              var view_type, view_name, parts;
               return _regenerator.default.wrap(function _callee8$(_context8) {
                 while (1) {
                   switch (_context8.prev = _context8.next) {
                     case 0:
                       _context8.prev = 0;
-                      _context8.next = 3;
+                      view_type = 'form';
+                      view_name = _this2.name;
+
+                      if (_this2.custom_actions.hasOwnProperty('ACTIONS.CREATE')) {
+                        parts = _this2.custom_actions['ACTIONS.CREATE'].view.split('.');
+                        if (parts.length) view_type = parts.shift();
+                        if (parts.length) view_name = parts.shift();
+                      } // request a new Context for editing a new object
+
+
+                      _context8.next = 6;
                       return _this2.openContext({
                         entity: _this2.entity,
-                        type: 'form',
-                        name: _this2.name,
+                        type: view_type,
+                        name: view_name,
                         domain: _this2.domain,
                         mode: 'edit',
                         purpose: 'create'
                       });
 
-                    case 3:
-                      _context8.next = 8;
+                    case 6:
+                      _context8.next = 11;
                       break;
 
-                    case 5:
-                      _context8.prev = 5;
+                    case 8:
+                      _context8.prev = 8;
                       _context8.t0 = _context8["catch"](0);
 
                       _this2.displayErrorFeedback(_context8.t0);
 
-                    case 8:
+                    case 11:
                     case "end":
                       return _context8.stop();
                   }
                 }
-              }, _callee8, null, [[0, 5]]);
+              }, _callee8, null, [[0, 8]]);
             }))));
             break;
 
@@ -5689,12 +5749,12 @@ var View = /*#__PURE__*/function () {
       var $fields_toggle_list = _materialLib.UIHelper.createList('fields-list').appendTo($fields_toggle_menu); // #todo : translate fields names
 
 
-      var _iterator7 = _createForOfIteratorHelper(this.getViewSchema().layout.items),
-          _step7;
+      var _iterator8 = _createForOfIteratorHelper(this.getViewSchema().layout.items),
+          _step8;
 
       try {
         var _loop2 = function _loop2() {
-          var item = _step7.value;
+          var item = _step8.value;
           var label = item.hasOwnProperty('label') ? item.label : item.value.charAt(0).toUpperCase() + item.value.slice(1);
           var visible = item.hasOwnProperty('visible') ? item.visible : true;
 
@@ -5711,13 +5771,13 @@ var View = /*#__PURE__*/function () {
           }).prop('checked', visible);
         };
 
-        for (_iterator7.s(); !(_step7 = _iterator7.n()).done;) {
+        for (_iterator8.s(); !(_step8 = _iterator8.n()).done;) {
           _loop2();
         }
       } catch (err) {
-        _iterator7.e(err);
+        _iterator8.e(err);
       } finally {
-        _iterator7.f();
+        _iterator8.f();
       }
 
       _materialLib.UIHelper.decorateMenu($fields_toggle_menu);
@@ -5865,12 +5925,12 @@ var View = /*#__PURE__*/function () {
           $menu.append($list);
           $fields_toggle_button.append($menu); // add actions defined in view
 
-          var _iterator8 = _createForOfIteratorHelper(this.config.selection_actions),
-              _step8;
+          var _iterator9 = _createForOfIteratorHelper(this.config.selection_actions),
+              _step9;
 
           try {
             var _loop4 = function _loop4() {
-              var item = _step8.value;
+              var item = _step9.value;
 
               var $list_item = _materialLib.UIHelper.createListItem('SB_ACTION_ITEM-' + item.title, _equalServices.TranslationService.instant(item.title), item.icon).on('click', function (event) {
                 return item.handler(_this3.selected_ids);
@@ -5895,13 +5955,13 @@ var View = /*#__PURE__*/function () {
               }
             };
 
-            for (_iterator8.s(); !(_step8 = _iterator8.n()).done;) {
+            for (_iterator9.s(); !(_step9 = _iterator9.n()).done;) {
               _loop4();
             }
           } catch (err) {
-            _iterator8.e(err);
+            _iterator9.e(err);
           } finally {
-            _iterator8.f();
+            _iterator9.f();
           }
 
           _materialLib.UIHelper.decorateMenu($menu);
@@ -6109,19 +6169,19 @@ var View = /*#__PURE__*/function () {
       });
       var fields = {};
 
-      var _iterator9 = _createForOfIteratorHelper(this.view_schema.layout.items),
-          _step9;
+      var _iterator10 = _createForOfIteratorHelper(this.view_schema.layout.items),
+          _step10;
 
       try {
-        for (_iterator9.s(); !(_step9 = _iterator9.n()).done;) {
-          var item = _step9.value;
+        for (_iterator10.s(); !(_step10 = _iterator10.n()).done;) {
+          var item = _step10.value;
           var label = item.hasOwnProperty('label') ? item.label : item.value;
           fields[item.value] = _equalServices.TranslationService.resolve(this.translation, 'model', [], item.value, label, 'label');
         }
       } catch (err) {
-        _iterator9.e(err);
+        _iterator10.e(err);
       } finally {
-        _iterator9.f();
+        _iterator10.f();
       }
 
       $select_field = _materialLib.UIHelper.createSelect('bulk_assign_select_field', _equalServices.TranslationService.instant('SB_FILTERS_DIALOG_FIELD'), fields, Object.keys(fields)[0]).appendTo($elem); // setup handler for relaying value update to parent layout
@@ -6178,19 +6238,19 @@ var View = /*#__PURE__*/function () {
       $dialog.find('.mdc-dialog__content').append($elem);
       $dialog.on('_accept', function () {
         // assign value to currently selected items
-        var _iterator10 = _createForOfIteratorHelper(_this5.selected_ids),
-            _step10;
+        var _iterator11 = _createForOfIteratorHelper(_this5.selected_ids),
+            _step11;
 
         try {
-          for (_iterator10.s(); !(_step10 = _iterator10.n()).done;) {
-            var object_id = _step10.value;
+          for (_iterator11.s(); !(_step11 = _iterator11.n()).done;) {
+            var object_id = _step11.value;
 
             _this5.$layoutContainer.find('tr[data-id="' + object_id + '"]').trigger('_setValue', [selected_field, selected_value]);
           }
         } catch (err) {
-          _iterator10.e(err);
+          _iterator11.e(err);
         } finally {
-          _iterator10.f();
+          _iterator11.f();
         }
       });
     }
@@ -6211,19 +6271,19 @@ var View = /*#__PURE__*/function () {
       });
       var fields = {};
 
-      var _iterator11 = _createForOfIteratorHelper(this.view_schema.layout.items),
-          _step11;
+      var _iterator12 = _createForOfIteratorHelper(this.view_schema.layout.items),
+          _step12;
 
       try {
-        for (_iterator11.s(); !(_step11 = _iterator11.n()).done;) {
-          var item = _step11.value;
+        for (_iterator12.s(); !(_step12 = _iterator12.n()).done;) {
+          var item = _step12.value;
           var label = item.hasOwnProperty('label') ? item.label : item.value;
           fields[item.value] = _equalServices.TranslationService.resolve(this.translation, 'model', [], item.value, label, 'label');
         }
       } catch (err) {
-        _iterator11.e(err);
+        _iterator12.e(err);
       } finally {
-        _iterator11.f();
+        _iterator12.f();
       }
 
       $select_field = _materialLib.UIHelper.createSelect('custom_filter_select_field', _equalServices.TranslationService.instant('SB_FILTERS_DIALOG_FIELD'), fields, Object.keys(fields)[0]).appendTo($elem); // setup handler for relaying value update to parent layout
@@ -6570,7 +6630,7 @@ var View = /*#__PURE__*/function () {
       var _actionListInlineEdit = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee27(selection) {
         var _this8 = this;
 
-        var $action_set, $action_set_selected_edit_actions, $button_save, $button_cancel, _iterator14, _step14, _loop7;
+        var $action_set, $action_set_selected_edit_actions, $button_save, $button_cancel, _iterator15, _step15, _loop7;
 
         return _regenerator.default.wrap(function _callee27$(_context27) {
           while (1) {
@@ -6590,12 +6650,12 @@ var View = /*#__PURE__*/function () {
 
                     var promises = [];
 
-                    var _iterator12 = _createForOfIteratorHelper(selection),
-                        _step12;
+                    var _iterator13 = _createForOfIteratorHelper(selection),
+                        _step13;
 
                     try {
                       var _loop5 = function _loop5() {
-                        var object_id = _step12.value;
+                        var object_id = _step13.value;
                         var promise = new Promise( /*#__PURE__*/function () {
                           var _ref11 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee23(resolve, reject) {
                             var object;
@@ -6691,13 +6751,13 @@ var View = /*#__PURE__*/function () {
                         promises.push(promise);
                       };
 
-                      for (_iterator12.s(); !(_step12 = _iterator12.n()).done;) {
+                      for (_iterator13.s(); !(_step13 = _iterator13.n()).done;) {
                         _loop5();
                       }
                     } catch (err) {
-                      _iterator12.e(err);
+                      _iterator13.e(err);
                     } finally {
-                      _iterator12.f();
+                      _iterator13.f();
                     }
 
                     Promise.all(promises).then(function () {
@@ -6712,12 +6772,12 @@ var View = /*#__PURE__*/function () {
                     // restore original values for changed objects
                     var objects = _this8.model.getChanges(selection);
 
-                    var _iterator13 = _createForOfIteratorHelper(objects),
-                        _step13;
+                    var _iterator14 = _createForOfIteratorHelper(objects),
+                        _step14;
 
                     try {
                       var _loop6 = function _loop6() {
-                        var object = _step13.value;
+                        var object = _step14.value;
                         var object_id = object.id;
 
                         _this8.$layoutContainer.find('tr[data-id="' + object_id + '"]').each( /*#__PURE__*/function () {
@@ -6751,13 +6811,13 @@ var View = /*#__PURE__*/function () {
                         }());
                       };
 
-                      for (_iterator13.s(); !(_step13 = _iterator13.n()).done;) {
+                      for (_iterator14.s(); !(_step14 = _iterator14.n()).done;) {
                         _loop6();
                       }
                     } catch (err) {
-                      _iterator13.e(err);
+                      _iterator14.e(err);
                     } finally {
-                      _iterator13.f();
+                      _iterator14.f();
                     }
 
                     _this8.$layoutContainer.find('tr.sb-view-layout-list-row').each( /*#__PURE__*/function () {
@@ -6794,11 +6854,11 @@ var View = /*#__PURE__*/function () {
                   });
                 }
 
-                _iterator14 = _createForOfIteratorHelper(selection);
+                _iterator15 = _createForOfIteratorHelper(selection);
 
                 try {
                   _loop7 = function _loop7() {
-                    var object_id = _step14.value;
+                    var object_id = _step15.value;
 
                     _this8.$layoutContainer.find('tr[data-id="' + object_id + '"]').each( /*#__PURE__*/function () {
                       var _ref15 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee26(i, tr) {
@@ -6843,13 +6903,13 @@ var View = /*#__PURE__*/function () {
                     }());
                   };
 
-                  for (_iterator14.s(); !(_step14 = _iterator14.n()).done;) {
+                  for (_iterator15.s(); !(_step15 = _iterator15.n()).done;) {
                     _loop7();
                   }
                 } catch (err) {
-                  _iterator14.e(err);
+                  _iterator15.e(err);
                 } finally {
-                  _iterator14.f();
+                  _iterator15.f();
                 }
 
               case 3:
@@ -9037,25 +9097,25 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
       // on right side of widget, add an icon to open the target object (current selection) into a new context
 
 
-      var $button_open = _materialLib.UIHelper.createButton('m2o-actions-open', '', 'icon', 'open_in_new');
+      var $button_open = _materialLib.UIHelper.createButton('m2o-actions-open-' + this.id, '', 'icon', 'open_in_new');
 
-      var $button_create = _materialLib.UIHelper.createButton('m2o-actions-create', '', 'icon', 'add');
+      var $button_create = _materialLib.UIHelper.createButton('m2o-actions-create-' + this.id, '', 'icon', 'add');
 
       switch (this.mode) {
         case 'edit':
           var objects = [];
           this.$elem = $('<div />');
 
-          var $select = _materialLib.UIHelper.createInput('', this.label, value, this.config.description, '', this.readonly).addClass('mdc-menu-surface--anchor').css({
+          var $select = _materialLib.UIHelper.createInput('m2o-input-' + this.id, this.label, value, this.config.description, '', this.readonly).addClass('mdc-menu-surface--anchor').css({
             "width": "calc(100% - 48px)",
             "display": "inline-block"
           });
 
-          var $menu = _materialLib.UIHelper.createMenu('').appendTo($select);
+          var $menu = _materialLib.UIHelper.createMenu('m2o-menu-' + this.id).appendTo($select);
 
-          var $menu_list = _materialLib.UIHelper.createList('').appendTo($menu);
+          var $menu_list = _materialLib.UIHelper.createList('m2o-menu-list-' + this.id).appendTo($menu);
 
-          var $link = _materialLib.UIHelper.createListItem('SB_WIDGETS_MANY2ONE_ADVANCED_SEARCH-' + this.id, '<a style="text-decoration: underline;">' + _equalServices.TranslationService.instant('SB_WIDGETS_MANY2ONE_ADVANCED_SEARCH') + '</a>');
+          var $link = _materialLib.UIHelper.createListItem('m2o-actions-create-' + this.id, '<a style="text-decoration: underline;">' + _equalServices.TranslationService.instant('SB_WIDGETS_MANY2ONE_ADVANCED_SEARCH') + '</a>');
 
           if (value.length) {
             $button_create.hide();
@@ -9067,87 +9127,7 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
           this.$elem.append($button_open);
           this.$elem.append($button_create);
 
-          _materialLib.UIHelper.decorateMenu($menu);
-
-          var feedObjects = function feedObjects() {
-            var tmpDomain = new _Domain.default(['name', 'ilike', '%' + $select.find('input').val() + '%']);
-            tmpDomain.merge(new _Domain.default(domain)); // fetch 5 first objects from config.foreign_object (use config.domain) + add an extra line ("advanced search...")
-
-            _equalServices.ApiService.collect(_this.config.foreign_object, tmpDomain.toArray(), ['id', 'name'], 'id', 'asc', 0, 5, _this.config.lang).then(function (response) {
-              objects = response;
-              $menu_list.empty();
-
-              var _iterator = _createForOfIteratorHelper(objects),
-                  _step;
-
-              try {
-                var _loop = function _loop() {
-                  var object = _step.value;
-
-                  _materialLib.UIHelper.createListItem(_this.id + '-object-' + object.id, object.name).appendTo($menu_list).attr('id', object.id).on('click', function (event) {
-                    $select.find('input').val(object.name);
-                    $select.trigger('change');
-                  });
-                };
-
-                for (_iterator.s(); !(_step = _iterator.n()).done;) {
-                  _loop();
-                }
-              } catch (err) {
-                _iterator.e(err);
-              } finally {
-                _iterator.f();
-              }
-
-              $menu_list.append(_materialLib.UIHelper.createListDivider());
-              $menu_list.append($link);
-            }).catch(function (response) {
-              console.log(response);
-            });
-          };
-
-          if (!this.readonly) {
-            // make the menu sync with its parent width (menu is 'fixed')
-            $select.on('click', function () {
-              $select.find('.mdc-menu-surface').width($select.width());
-              $menu.trigger('_toggle');
-              feedObjects();
-            });
-            var timeout = null;
-            $select.find('input').on('keyup', function () {
-              if (timeout) {
-                clearTimeout(timeout);
-              }
-
-              timeout = setTimeout(function () {
-                timeout = null;
-                feedObjects();
-              }, 300);
-            }); // upon value change, relay updated value to parent layout
-
-            $select.on('change', function (event) {
-              console.log('WidgetMany2One : received change event'); // m2o relations are always loaded as an object with {id:, name:}
-
-              var value = $select.find('input').val();
-              var object = objects.find(function (o) {
-                return o.name == value;
-              });
-
-              if (object) {
-                $button_create.hide();
-                $button_open.show();
-                _this.value = {
-                  id: object.id,
-                  name: value
-                };
-
-                _this.$elem.trigger('_updatedWidget');
-              } else {
-                $button_create.show();
-                $button_open.hide();
-              }
-            });
-          } // open targeted object in new context
+          _materialLib.UIHelper.decorateMenu($menu); // open targeted object in new context
 
 
           $button_open.on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
@@ -9221,46 +9201,145 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
                 }
               }
             }, _callee2);
-          }))); // advanced search
+          })));
 
-          $link.on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3() {
-            return _regenerator.default.wrap(function _callee3$(_context3) {
-              while (1) {
-                switch (_context3.prev = _context3.next) {
-                  case 0:
-                    _this.getLayout().openContext({
-                      entity: _this.config.foreign_object,
-                      type: _this.config.hasOwnProperty('view_type') ? _this.config.view_type : 'list',
-                      name: _this.config.hasOwnProperty('view_name') ? _this.config.view_name : 'default',
-                      domain: domain,
-                      mode: 'view',
-                      purpose: 'select',
-                      callback: function callback(data) {
-                        if (data && data.selection && data.objects) {
-                          // m2o relations are always loaded as an object with {id:, name:}
-                          var object = data.objects.find(function (o) {
-                            return o.id == data.selection[0];
-                          });
-                          _this.value = {
-                            id: object.id,
-                            name: object.name
-                          };
+          var openSelectContext = function openSelectContext() {
+            _this.getLayout().openContext({
+              entity: _this.config.foreign_object,
 
-                          _this.$elem.trigger('_updatedWidget');
-                        }
-                      }
-                    });
+              /*
+              type: (this.config.hasOwnProperty('view_type'))?this.config.view_type:'list',
+              name: (this.config.hasOwnProperty('view_name'))?this.config.view_name:'default',
+              */
+              type: 'list',
+              name: 'default',
+              domain: domain,
+              mode: 'view',
+              purpose: 'select',
+              callback: function callback(data) {
+                if (data && data.selection && data.objects) {
+                  // m2o relations are always loaded as an object with {id:, name:}
+                  var object = data.objects.find(function (o) {
+                    return o.id == data.selection[0];
+                  });
+                  _this.value = {
+                    id: object.id,
+                    name: object.name
+                  };
 
-                    return _context3.abrupt("return", false);
-
-                  case 2:
-                  case "end":
-                    return _context3.stop();
+                  _this.$elem.trigger('_updatedWidget');
                 }
               }
-            }, _callee3);
-          }))); // #memo - do not load on init (to prevent burst requests when view are displayed in edit mode)
+            });
+          };
+
+          var feedObjects = function feedObjects() {
+            var $input = $select.find('input');
+            if (!$input.length) return;
+            var val = $input.val();
+            var parts = val.split(" ");
+            var domainArray = [];
+
+            var _iterator = _createForOfIteratorHelper(parts),
+                _step;
+
+            try {
+              for (_iterator.s(); !(_step = _iterator.n()).done;) {
+                var word = _step.value;
+                var cond = ['name', 'ilike', '%' + word + '%'];
+                domainArray.push(cond);
+              }
+            } catch (err) {
+              _iterator.e(err);
+            } finally {
+              _iterator.f();
+            }
+
+            var tmpDomain = new _Domain.default(domainArray);
+            tmpDomain.merge(new _Domain.default(domain)); // fetch 5 first objects from config.foreign_object (use config.domain) + add an extra line ("advanced search...")
+
+            _equalServices.ApiService.collect(_this.config.foreign_object, tmpDomain.toArray(), ['id', 'name'], 'id', 'asc', 0, 5, _this.config.lang).then(function (response) {
+              objects = response;
+              $menu_list.empty();
+
+              var _iterator2 = _createForOfIteratorHelper(objects),
+                  _step2;
+
+              try {
+                var _loop = function _loop() {
+                  var object = _step2.value;
+
+                  _materialLib.UIHelper.createListItem(_this.id + '-object-' + object.id, object.name).appendTo($menu_list).attr('id', object.id).on('click', function (event) {
+                    $select.find('input').val(object.name);
+                    $select.trigger('change');
+                  });
+                };
+
+                for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+                  _loop();
+                }
+              } catch (err) {
+                _iterator2.e(err);
+              } finally {
+                _iterator2.f();
+              }
+
+              if (objects.length) {
+                $menu_list.append(_materialLib.UIHelper.createListDivider());
+              } // advanced search button
+
+
+              $link.on('click', openSelectContext);
+              $menu_list.append($link);
+            }).catch(function (response) {
+              console.log('request failed', response);
+            });
+          };
+
+          if (!this.readonly) {
+            $select.on('click', function () {
+              // make the menu sync with its parent width (menu is 'fixed')
+              $select.find('.mdc-menu-surface').width($select.width());
+              $menu.trigger('_toggle');
+              feedObjects();
+            });
+            var timeout = null;
+            $select.find('input').on('keyup', function () {
+              if (timeout) {
+                clearTimeout(timeout);
+              }
+
+              timeout = setTimeout(function () {
+                timeout = null;
+                feedObjects();
+              }, 300);
+            }); // upon value change, relay updated value to parent layout
+
+            $select.on('change', function (event) {
+              console.log('WidgetMany2One : received change event'); // m2o relations are always loaded as an object with {id:, name:}
+
+              var value = $select.find('input').val();
+              var object = objects.find(function (o) {
+                return o.name == value;
+              });
+
+              if (object) {
+                $button_create.hide();
+                $button_open.show();
+                _this.value = {
+                  id: object.id,
+                  name: value
+                };
+
+                _this.$elem.trigger('_updatedWidget');
+              } else {
+                $button_create.show();
+                $button_open.hide();
+              }
+            });
+          } // #memo - do not load on init (to prevent burst requests when view are displayed in edit mode)
           // feedObjects();                
+
 
           break;
 
@@ -9279,10 +9358,10 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
               this.$elem.append($input);
               this.$elem.append($button_open); // open targeted object in new context
 
-              $button_open.on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
-                return _regenerator.default.wrap(function _callee4$(_context4) {
+              $button_open.on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3() {
+                return _regenerator.default.wrap(function _callee3$(_context3) {
                   while (1) {
-                    switch (_context4.prev = _context4.next) {
+                    switch (_context3.prev = _context3.next) {
                       case 0:
                         console.log(_this.config);
 
@@ -9297,10 +9376,10 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
 
                       case 2:
                       case "end":
-                        return _context4.stop();
+                        return _context3.stop();
                     }
                   }
-                }, _callee4);
+                }, _callee3);
               })));
               break;
 
@@ -9308,10 +9387,10 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
             default:
               // open targeted object in new context
               $input.on('click', /*#__PURE__*/function () {
-                var _ref5 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5(event) {
-                  return _regenerator.default.wrap(function _callee5$(_context5) {
+                var _ref4 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4(event) {
+                  return _regenerator.default.wrap(function _callee4$(_context4) {
                     while (1) {
-                      switch (_context5.prev = _context5.next) {
+                      switch (_context4.prev = _context4.next) {
                         case 0:
                           _this.getLayout().openContext({
                             entity: _this.config.foreign_object,
@@ -9324,14 +9403,14 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
 
                         case 2:
                         case "end":
-                          return _context5.stop();
+                          return _context4.stop();
                       }
                     }
-                  }, _callee5);
+                  }, _callee4);
                 }));
 
                 return function (_x) {
-                  return _ref5.apply(this, arguments);
+                  return _ref4.apply(this, arguments);
                 };
               }());
               this.$elem.append($input);
@@ -28025,7 +28104,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1___default()((_node_modules_css_loader_dist_runtime_cssWithMappingToString_js__WEBPACK_IMPORTED_MODULE_0___default()));
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, ":root {\r\n    /* colored buttons */\r\n    --mdc-theme-primary: #3f51b5;\r\n    --mdc-theme-primary-hover: #4f61c5;\r\n\r\n    --mdc-theme-primary-selected: #f5f5ff;\r\n    --mdc-theme-primary-outline: #b1b1dc;\r\n\r\n    /* checkbox background */\r\n    --mdc-theme-secondary: #3f51b5;\r\n    /* menus */\r\n    --mdc-typography-subtitle1-font-size: 14px;\r\n    /* table headers */\r\n    --mdc-typography-subtitle2-font-weight: 600;\r\n\r\n\r\n    --mdc-layout-grid-margin-desktop: 12px;\r\n    --mdc-layout-grid-gutter-desktop: 24px;\r\n    --mdc-layout-grid-margin-tablet: 12px;\r\n    --mdc-layout-grid-gutter-tablet: 18px;\r\n    --mdc-layout-grid-margin-phone: 12px;\r\n    --mdc-layout-grid-gutter-phone: 16px;\r\n\r\n}\r\n    \r\nbody, html {\r\n    margin: 0;\r\n    padding: 0;\r\n    height:100%;\r\n}\r\n\r\n#sb-root {\r\n    display: flex;\r\n    height: 100%;\r\n    flex-flow: column nowrap;\r\n}\r\n\r\n#sb-menu .sb-menu-button {\r\n    display: inline-block;\r\n}\r\n\r\n#sb-container, .sb-container {\r\n    width: 100%;\r\n    height: 100%;\r\n    overflow: hidden;\r\n    flex: 1 1 100%;\r\n    box-sizing: border-box;\r\n    display: none;\r\n}\r\n\r\n.sb-container-header {\r\n    padding-left: 12px;\r\n    height: 48px;\r\n    border-bottom: solid 1px lightgrey;\r\n}\r\n\r\n.sb-container-header h3 {\r\n    line-height: 48px;\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n.sb-container-header a {\r\n    cursor: pointer;\r\n    text-decoration: none;\r\n    color: var(--mdc-theme-primary);\r\n}\r\n\r\n\r\n.sb-context {\r\n    /* container height minus the header */\r\n    height: calc(100% - 48px);\r\n}\r\n\r\n.sb-view { \r\n    position: relative;\r\n    height: 100%;\r\n}\r\n\r\n.sb-view-layout-list {\r\n    /* height must be decremented by height of other elements from parent (header and footer) */\r\n    height: calc(100% - 112px);\r\n    padding: 0 12px 6px 12px;\r\n}\r\n\r\n.sb-view-layout-form {\r\n    /* height must be decremented by height of other elements from parent (header and footer) */\r\n    height: calc(100% - 56px);\r\n    padding-bottom: 10px;\r\n}\r\n\r\n.sb-view-list-inline-actions-button {\r\n    transform: scale(0.7);\r\n}\r\n\r\n.sb-layout {\r\n    position: relative;\r\n    height: 100%;\r\n}\r\n\r\n\r\n#bulk_assign_dialog .mdc-dialog__container {\r\n\tmax-width: 400px;\r\n}\r\n\r\n#bulk_assign_dialog .mdc-select {\r\n\tmargin-bottom: 12px;\r\n}\r\n\r\n#custom_filter_dialog .mdc-dialog__container {\r\n\tmax-width: 400px;\r\n}\r\n\r\n#custom_filter_dialog .mdc-select {\r\n\tmargin-bottom: 12px;\r\n}\r\n\r\n.sb-view-layout-list table th {\r\n    cursor: pointer;\r\n    user-select: none;\r\n    position: sticky;\r\n    top: 0;\r\n    z-index: 3;\r\n}\r\n\r\n.sb-view-layout-list table th.sortable.hover {\r\n    background-color: #f0f0f0;\r\n}\r\n\r\n.sb-view-layout-list table th.sorted {\r\n    color: black;\r\n}\r\n\r\n.sb-view-layout-list table th.asc::after, .sb-view-layout-list table th.desc::after {\r\n    position: absolute;\r\n    margin-left: 6px;\r\n    font-family: FontAwesome;\r\n    opacity: 0.3;\r\n}\r\n\r\n.sb-view-layout-list table th.asc::after {\r\n    content: \"\\f0d7\";\r\n}\r\n\r\n.sb-view-layout-list table th.desc::after {\r\n    content: \"\\f0d8\";\r\n}\r\n\r\n.sb-view-layout-list table tr {\r\n    cursor: pointer;\r\n}\r\n\r\n.sb-view-header-list {\r\n    position: relative;\r\n    max-height: 112px;\r\n    /*\r\n    height: 112px;\r\n    line-height: 112px;\r\n    */\r\n}\r\n\r\n.sb-view-header-list-actions {\r\n    margin-left: 12px;\r\n    max-height: 56px;\r\n}\r\n\r\n.sb-view-header-list-actions-set {\r\n    display: flex;\r\n    padding-top: 10px;\r\n}\r\n\r\n.sb-view-header-list-actions button {\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-header-list-actions-selected {\r\n    position: relative;\r\n    display: flex;\r\n}\r\n\r\n/* todo: improve this (add a custom class)*/\r\n.sb-view-header-list-actions-selected .mdc-button__label {\r\n    padding-right: 10px;\r\n}\r\n\r\n.sb-view-header-list-actions-selected .mdc-button__label::after {\r\n    content: \"\\f0d7\";\r\n}\r\n\r\n.sb-view-header-list-actions-selected .mdc-button__label::after {\r\n    position: absolute;\r\n    margin-left: 6px;\r\n    font-family: FontAwesome;\r\n    opacity: 0.5;\r\n}\r\n\r\n.sb-view-header-list-navigation {\r\n    height: 56px;\r\n    line-height: 56px;\r\n    display: flex;\r\n    margin-left: 12px;\r\n}\r\n\r\n.sb-view-header-list-filters {\r\n    margin-top: 4px;\r\n}\r\n\r\n.sb-view-header-list-filters .sb-view-header-list-filters-menu {\r\n    min-width: 250px;\r\n}\r\n\r\n\r\n.sb-view-header-list-filters-search .mdc-text-field {\r\n    height: 36px;\r\n}\r\n\r\n.sb-view-header-list-filters-search .mdc-text-field__icon--trailing {\r\n    display: none;    \r\n}\r\n\r\n.sb-view-header-list-filters-search .mdc-text-field--label-floating .mdc-text-field__icon--trailing {\r\n    display: block;\r\n    right: 0;\r\n}\r\n\r\n.sb-view-header-list-filters-search .mdc-floating-label--float-above {\r\n    display: none;\r\n}\r\n\r\n.sb-view-header-list-filters-set {\r\n    margin-top: 4px;\r\n}\r\n\r\n\r\n.sb-view-header-list-fields_toggle {\r\n    /* flex-grow: 1; */\r\n    margin-top: 4px;\r\n    margin-right: 10px;\r\n    text-align: right;\r\n}\r\n\r\n\r\n.sb-view-header-list-fields_toggle .sb-view-header-list-fields_toggle-menu {\r\n    min-width: 250px !important;\r\n    max-width: 250px !important;\r\n}\r\n\r\n.sb-view-header-list-pagination {\r\n    flex: 1;\r\n    flex-grow: 1;\r\n\r\n}\r\n\r\n.sb-view-header-list-pagination-limit_select {\r\n    margin-left: 12px;\r\n}\r\n\r\n.sb-view-header-list-pagination .pagination-navigation {\r\n    user-select: none; \r\n}\r\n\r\n\r\n.sb-widget-mode-view input {\r\n    color: black !important;\r\n    user-select: none;\r\n}\r\n\r\n.sb-widget-mode-view .mdc-text-field .mdc-floating-label,\r\n.sb-widget-mode-view.mdc-select .mdc-floating-label {\r\n    color: rgba(0,0,0,0.5) !important;\r\n    user-select: none;\r\n    font-size: 16px;\r\n    font-weight: 400;\r\n}\r\n\r\n.sb-widget-mode-edit .mdc-text-field .mdc-floating-label, \r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label {\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n}\r\n\r\n.sb-widget-mode-view .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above, \r\n.sb-widget-mode-view.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n}\r\n\r\n.sb-widget-mode-edit .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above, \r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.6) !important;\r\n    font-weight: 400;\r\n}\r\n\r\n\r\n.sb-view-header-form {\r\n    position: relative;\r\n    height: 56px;\r\n}\r\n\r\n.sb-view-header-form-actions {\r\n    display: flex;\r\n    margin-left: 12px;\r\n    max-height: 56px;\r\n    padding-top: 10px;\r\n}\r\n\r\n.sb-view-header-form-actions .sb-view-header-form-actions-std {\r\n    flex: 0 1 50%;\r\n}\r\n\r\n.sb-view-header-form-actions .sb-view-header-form-actions-std button {\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-header-form-actions .sb-view-header-form-actions-view {\r\n    margin-left: auto;\r\n}\r\n\r\n.sb-view-header-form-actions .sb-view-header-form-actions-view button {\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-form-group {\r\n    padding: 12px;\r\n}\r\n\r\n.sb-view-form-row:not(:first-child) {\r\n    padding-top: 24px;\r\n}\r\n\r\n.sb-view-form-group-title {\r\n    font-size: 20px;\r\n    margin-bottom: 12px;\r\n}\r\n\r\n.sb-view-form-sections-tabbar {\r\n    margin-bottom: 12px;\r\n}\r\n\r\n.sb-view-layout-list .mdc-line-ripple::before, .sb-view-layout-list .mdc-line-ripple::after {\r\n  border: none !important;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget label.mdc-text-field .mdc-floating-label {\r\n    display: none !important;\r\n}\r\n.sb-view-layout-list .sb-widget.sb-widget-mode-view label.mdc-text-field::before {\r\n    display: none !important;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget.sb-widget-mode-view input {\r\n    height: 100%;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget.sb-widget-type-many2one.sb-widget-mode-view input {\r\n    cursor: pointer;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget.sb-widget-type-many2one.sb-widget-mode-view input:hover {\r\n    text-decoration: underline;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget-mode-edit button.mdc-icon-button {\r\n    padding: 0 0 0 5px;\r\n    height: auto;\r\n    width: auto;\r\n    position: absolute;\r\n}\r\n\r\n.sb-view-layout-form-input-button {\r\n    width: 25px;\r\n    height: 30px;\r\n    position: absolute;\r\n    right: 12px;\r\n    top: calc(50% - 15px);\r\n}\r\n\r\n.sb-view-layout-form-input-decoy {\r\n    position: absolute;\r\n    left: 16px;\r\n    bottom: 10px;\r\n    z-index: -1;\r\n    opacity: 0;\r\n}\r\n\r\n\r\n.sb-widget {\r\n    position: relative;\r\n}\r\n\r\n.sb-ui-checkbox {\r\n    position: relative;\r\n}\r\n\r\n.sb-ui-menu.mdc-menu-surface--is-open-below {\r\n    margin-top: 48px;\r\n}\r\n\r\n.sb-ui-menu.mdc-menu-surface--open {\r\n    margin-bottom: 48px;\r\n}\r\n\r\n\r\n/* Material Components customizations */\r\n\r\n/* fix for ripple not working on icon-button */\r\nbutton.mdc-icon-button:hover, button.mdc-icon-button:active, button.mdc-icon-button:focus {\r\n    border-radius: 50%;\r\n    background-color: rgba(0,0,0,0.10);\r\n}\r\n\r\n/* fix tooltip not hiding */\r\n.mdc-tooltip--hide {\r\n    opacity: 0;\r\n}\r\n\r\n/* Special SB widgets customizations */\r\n\r\n/* support for title strings */\r\n.sb-widget.title {\r\n    margin-top: -14px; \r\n}\r\n\r\n.sb-widget.title span.mdc-floating-label--float-above {\r\n    transform: translateY(-166%) !important;\r\n}\r\n.sb-widget.title label.mdc-text-field {\r\n  height: 70px;\r\n}\r\n.sb-widget.title input.mdc-text-field__input {\r\n  font-size: 30px;\r\n  margin-top: auto; \r\n  height: 60px;\r\n}\r\n\r\n.sb-view-layout-form {\r\n    overflow-y: scroll;\r\n}\r\n\r\n\r\n.sb-view-layout-form::-webkit-scrollbar {\r\n    width: 6px;\r\n    overflow-y: scroll;\r\n    background: transparent;\r\n\r\n}\r\n\r\n.sb-view-layout-form::-webkit-scrollbar-thumb {\r\n    background: var(--mdc-theme-primary, #6200ee);\r\n    border-radius: 10px;\r\n}\r\n\r\n\r\n.sb-view-layout-form .sb-widget.sb-widget-type-boolean {\r\n    height: 56px;\r\n    vertical-align: middle;\r\n    display: table-cell;\r\n    padding-left: 16px;\r\n}\r\n\r\n\r\n/* adapt inputs for inline editing */\r\n.sb-widget-cell .mdc-text-field {\r\n  height: 100%;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field {\r\n    padding-left: 0;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-text-field {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    padding-left: 5px;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-select__anchor {\r\n    padding-left: 5px;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field-helper-line {\r\n  display: none;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--filled::before {\r\n  display: none;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--filled:not(.mdc-text-field--disabled) {\r\n    background-color: inherit;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-text-field--filled:not(.mdc-text-field--disabled) {\r\n    background-color: white;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--invalid .mdc-text-field__input {\r\n    color: var(--mdc-theme-error, #b00020);\r\n}\r\n\r\n.sb-widget-cell .mdc-select {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    margin-top: -14px;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit.mdc-select {\r\n    margin-top: 0;\r\n}\r\n\r\n\r\n.sb-widget-cell .mdc-select__anchor {\r\n    height: 100%;\r\n}\r\n\r\n/* make mini-fab flat (mini save buttons) */ \r\n.sb-view-layout-list-row-checkbox .mdc-fab--mini {\r\n    box-shadow: none !important;\r\n    margin: 2px 0;\r\n}\r\n\r\n.mdc-data-table {\r\n    height: 100%;\r\n}\r\n\r\n.mdc-data-table__table-container::-webkit-scrollbar {\r\n    width: 6px;\r\n    overflow-y: scroll;\r\n    background: transparent;\r\n\r\n}\r\n\r\n.mdc-data-table__table-container::-webkit-scrollbar-thumb {\r\n    background: var(--mdc-theme-primary, #6200ee);\r\n    border-radius: 10px;\r\n}\r\n\r\n\r\n.mdc-data-table__pagination {\r\n    border-top: 0;\r\n}\r\n\r\n.mdc-data-table__cell {\r\n    height: 44px;\r\n    padding: 0 2px;\r\n}\r\n\r\n\r\n.mdc-data-table__header-cell {\r\n    padding: 0 2px;\r\n}\r\n\r\n.mdc-data-table__cell:first-child, .mdc-data-table__header-cell:first-child {\r\n    padding-left: 12px;\r\n}\r\n\r\n.mdc-data-table__cell--checkbox {\r\n    padding: 0 !important;\r\n}\r\n\r\n.mdc-data-table__header-cell--checkbox {\r\n    width: 44px;\r\n    padding: 0 !important;\r\n}\r\n\r\n.mdc-data-table__row--selected {\r\n    background-color: var(--mdc-theme-primary-selected) !important;\r\n}\r\n\r\n\r\n/* custom style for special button with icon only */\r\n.mdc-button-icon {\r\n\tmin-width: 36px;\r\n}\r\n\r\n.mdc-button-icon  .mdc-button__ripple {\r\n\tborder-radius: 50%;\r\n    width: 36px;\r\n}\r\n\r\n\r\n\r\n.mdc-menu {\r\n    min-width: var(--mdc-menu-min-width, 200px) !important;\r\n    max-width: calc(100vw - 32px) !important;\r\n}\r\n\r\n.mdc-text-field:not(.mdc-text-field--disabled) .mdc-text-field__icon {\r\n    color: rgba(0,0,0,.54);\r\n    background-color: white;\r\n}\r\n\r\n.mdc-text-field--focused .mdc-text-field-helper-line .mdc-text-field-helper-text {\r\n    opacity: 1 !important;\r\n}\r\n\r\n.mdc-text-field--with-trailing-icon .mdc-text-field__icon {\r\n    left: initial;\r\n    right: 12px;\r\n}\r\n\r\n.mdc-text-field--with-leading-icon .mdc-text-field__icon, .mdc-text-field--with-trailing-icon .mdc-text-field__icon {\r\n    position: absolute;\r\n    top: 50%;\r\n    transform: translateY(-50%);\r\n    cursor: pointer;\r\n}\r\n\r\n.mdc-text-field--textarea {\r\n    outline: solid 1px rgba(0, 0,0,0.1);\r\n}\r\n\r\n.sb-view-layout.sb-view-layout-form .mdc-text-field--filled:not(.mdc-text-field--disabled), .mdc-select--filled:not(.mdc-select--disabled) .mdc-select__anchor {\r\n    background: transparent !important;\r\n}\r\n\r\n.mdc-layout-grid__cell {\r\n    position: relative;\r\n}\r\n\r\n.mdc-text-field-helper-line {\r\n    position: absolute;\r\n    width: 100%;\r\n    max-width: 100%;\r\n    padding-left: 0 !important;    \r\n    padding-right: 0 !important;    \r\n}\r\n\r\n\r\n.mdc-list-item .mdc-checkbox {\r\n    margin-left: -11px;\r\n}\r\n\r\n.mdc-list-item__graphic {\r\n    color: rgba(0,0,0,.54) !important;\r\n    margin-right: 12px;\r\n}\r\n\r\n.mdc-list-item__text {\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;    \r\n}\r\n\r\n.mdc-chip .mdc-chip__icon {\r\n    font-size: 22px;\r\n    height: 22px;\r\n}\r\n\r\n.mdc-list-item {\r\n    height: 44px;\r\n    align-items: center !important;\r\n}\r\n\r\n\r\n.mdc-text-field {\r\n    width: 100%;\r\n}\r\n\r\n.mdc-floating-label {\r\n    font-size: 16px !important;\r\n    /* color: rgba(0, 0, 0, 0.8) !important;*/\r\n}\r\n\r\n\r\n.mdc-text-field-helper-line .mdc-text-field-helper-text {\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n\r\n.mdc-text-field--invalid:not(.mdc-text-field--disabled) .mdc-text-field-helper-line .mdc-text-field-helper-text--validation-msg {\r\n    color: var(--mdc-theme-error, #b00020) !important;\r\n}\r\n\r\n.mdc-text-field--focused:not(.mdc-text-field--disabled) .mdc-floating-label {\r\n    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;\r\n}\r\n\r\n.mdc-select--focused:not(.mdc-text-field--disabled) .mdc-floating-label {\r\n    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;\r\n}\r\n\r\n.mdc-select {\r\n    width: 100%;\r\n}\r\n\r\n.mdc-select .mdc-text-field-helper-line {\r\n    position: absolute;\r\n    top: 100%;\r\n}\r\n\r\n.mdc-tab {\r\n    max-width: 280px;\r\n}\r\n\r\n.mdc-tab-bar {\r\n    margin-top: 12px;\r\n    border-bottom: 1px solid rgba(0, 0, 0, 0.12);\r\n}\r\n\r\n.mdc-tab__text-label {\r\n    user-select: none;\r\n}\r\n.mdc-tab.mdc-tab--active .mdc-tab__ripple {\r\n    background-color: var(--mdc-ripple-color, var(--mdc-theme-primary, #6200ee));\r\n    opacity: 0.1;\r\n}\r\n\r\n\r\n\r\n/* jqueryui datepicker material styling */\r\n\r\n\r\n.ui-datepicker {\r\n    /*z-index: 3 !important;*/\r\n    font-family: \"Roboto\";\r\n}\r\n\r\n.ui-datepicker {\r\n    padding: 0;\r\n    border: none;  \r\n    width: 325px;\r\n    box-shadow: 4px 4px 10px 2px rgba(0, 0, 0, 0.24);\r\n    margin-left: -16px;\r\n    margin-top: 6px;\r\n    font-size: 14px;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-title {\r\n    font-size: 17px;\r\n}\r\n\r\n.ui-datepicker-trigger {\r\n    position: absolute;\r\n    right: 12px;\r\n    top: 50%;\r\n    opacity: 0;\r\n    margin-top: -10px;\r\n    cursor: pointer;\r\n}\r\n\r\n.ui-corner-all {\r\n  border-radius: 0;\r\n}\r\n\r\n.ui-widget-header {\r\n  border: 0;\r\n}\r\n\r\n.ui-datepicker-header {\r\n  text-align: center;\r\n  background: white;\r\n  padding-bottom: 15px;\r\n  font-weight: 300;\r\n}\r\n.ui-datepicker-header .ui-datepicker-prev,\r\n.ui-datepicker-header .ui-datepicker-next,\r\n.ui-datepicker-header .ui-datepicker-title {\r\n  border: none;\r\n  outline: none;\r\n  margin: 5px;\r\n}\r\n\r\n.ui-datepicker-prev.ui-state-hover,\r\n.ui-datepicker-next.ui-state-hover {\r\n  border: none;\r\n  outline: none;\r\n  background: #b4cbe5;\r\n}\r\n\r\n.ui-datepicker .ui-state-default {\r\n  background: none;\r\n  border: none;\r\n  text-align: center;\r\n  height: 33px;\r\n  width: 33px;\r\n  line-height: 30px;\r\n  z-index: 1;\r\n}\r\n.ui-datepicker .ui-state-highlight {\r\n  color: var(--mdc-theme-primary);\r\n}\r\n.ui-datepicker .ui-state-active {\r\n  color: white;\r\n}\r\n\r\n\r\n\r\n.ui-datepicker-calendar thead th {\r\n    color: #999999;\r\n    font-weight: 200;\r\n}\r\n\r\n.ui-datepicker-buttonpane {\r\n  border: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-state-default {\r\n  background: white;\r\n  border: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-datepicker-close,\r\n.ui-datepicker-buttonpane .ui-datepicker-current {\r\n  background: white;\r\n  color: #284B72;\r\n  text-transform: uppercase;\r\n  border: none;\r\n  opacity: 1;\r\n  font-weight: 200;\r\n  outline: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-datepicker-close:hover,\r\n.ui-datepicker-buttonpane .ui-datepicker-current:hover {\r\n  background: #b4cbe5;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev {\r\n    text-decoration: none;\r\n    height: auto !important;\r\n    width: auto !important;\r\n\tleft: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-next {\r\n    text-decoration: none;\r\n    height: auto !important;\r\n    width: auto !important;\r\n\tright: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev .ui-icon, .ui-datepicker .ui-datepicker-next .ui-icon {\r\n    display: none !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev::after {\r\n    font-family: FontAwesome;\r\n\tcontent: \"\\f053\";\r\n\tdisplay: block;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-next::after {\r\n    font-family: FontAwesome;\r\n\tcontent: \"\\f054\";\r\n\tdisplay: block;\r\n}\r\n\r\n\r\n.ui-datepicker .ui-datepicker-prev.ui-state-hover, .ui-datepicker .ui-datepicker-next.ui-state-hover {\r\n    background: none;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev-hover {\r\n\tleft: 8px !important;\r\n    top: 8px !important;\r\n}\r\n.ui-datepicker .ui-datepicker-next-hover {\r\n\tright: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n\r\n\r\n\r\n\r\nbutton.ui-state-hover {\r\n    background: unset !important;\r\n    background-color: var(--mdc-theme-primary-hover) !important;\r\n    border: unset !important;\r\n    color: white !important;\r\n    box-shadow: 0px 3px 1px -2px rgb(0 0 0 / 20%), 0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%) !important;\r\n}\r\n\r\n\r\n\r\n/* jquery ui datepicker month year picker */\r\n.ui-datepicker .ui-datepicker-select-month td ,\r\n.ui-datepicker .ui-datepicker-select-year td {\r\n\theight: 33px;\r\n}\r\n.ui-datepicker .ui-datepicker-select-month td span,\r\n.ui-datepicker .ui-datepicker-select-month td a,\r\n.ui-datepicker .ui-datepicker-select-year td span,\r\n.ui-datepicker .ui-datepicker-select-year td a  {\r\n\ttext-align: center;\r\n}\r\n.ui-datepicker .ui-datepicker-select-year td.outoffocus {\r\n\topacity: 0.5;\r\n}\r\n\r\n.ui-datepicker-select-month .ui-state-default, .ui-datepicker-select-year .ui-state-default {\r\n    margin: auto;\r\n}\r\n\r\n.ui-datepicker td {\r\n    font-size: 14px !important;\r\n}\r\n\r\n.ui-datepicker .ui-state-default, .ui-datepicker .ui-state-active {\r\n    position: relative;\r\n    border: 0 !important;\r\n    background: none !important;\r\n}\r\n\r\n.ui-datepicker .ui-state-active::after {\r\n    position: absolute;\r\n    display: block;\r\n    content: '';\r\n    background-color:var(--mdc-theme-primary);\r\n    border-radius: 50%;\r\n    width: 34px;\r\n    height: 34px;\r\n    z-index: -1;\r\n    top: 0;\r\n    left: calc(50% - 16px)\r\n}\r\n\r\n\r\n.ui-datepicker .ui-state-default:not(.ui-state-active).ui-state-hover::after {\r\n    position: absolute;\r\n    display: block;\r\n    content: '';\r\n    background-color: rgba(0,0,0,0.05);\r\n    border-radius: 50%;\r\n    width: 34px;\r\n    height: 34px;\r\n    z-index: -1;\r\n    top: 0;\r\n    left: calc(50% - 16px)\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header {\r\n    display: flex;\r\n    align-items: center;\r\n    padding: 4px 24px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header .ui-datepicker-title {\r\n    flex: 1;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header-time-switch {\r\n    flex: 1;\r\n    line-height: 100%;\r\n    height: 100%;\r\n    align-self: center;\r\n}\r\n\r\n\r\n.timepicker{\r\n    display:block;\r\n    user-select:none;\r\n    margin:0 auto;\r\n    width:100%;\r\n    height:100%;\r\n    font-size:14px;\r\n}\r\n.timepicker__title{background-image:-webkit-linear-gradient(top,#fff 0,#f2f2f2 100%);position:relative;background:#f2f2f2;margin:0 auto;border-bottom:1px solid #e5e5e5;padding:12px 11px 10px 15px;color:#4C4C4C;font-size:inherit}\r\n.timepicker__close{-webkit-transform:translateY(-25%);-moz-transform:translateY(-25%);-ms-transform:translateY(-25%);-o-transform:translateY(-25%);transform:translateY(-25%);position:absolute;top:25%;right:10px;color:#34495e;cursor:pointer}\r\n.timepicker__close:before{content:'\\00d7'}\r\n.timepicker__controls{padding:10px 0;line-height:normal;margin:0}\r\n.timepicker__controls__control,.timepicker__controls__control--separator{vertical-align:middle;display:inline-block;font-size:inherit;margin:0 auto;width:35px;letter-spacing:1.3px}\r\n.timepicker__controls__control-down,.timepicker__controls__control-up{color:#34495e;position:relative;display:block;margin:3px auto;font-size:18px;cursor:pointer}\r\n.timepicker__controls__control-up:before{content:'\\f0d8'}\r\n.timepicker__controls__control-down:after{content:'\\f0d7'}\r\n.timepicker__controls__control--separator{width:5px}\r\n.text-center,.timepicker__controls,.timepicker__controls__control,.timepicker__controls__control--separator,.timepicker__controls__control-down,.timepicker__controls__control-up,.timepicker__title{text-align:center}\r\n.hover-state{color:#3498db}\r\n \r\n.fontello-after:after,.fontello:before,.timepicker__controls__control-down:after,.timepicker__controls__control-up:before{font-family:FontAwesome;font-style:normal;font-weight:400;display:inline-block;text-decoration:inherit;width:1em;margin-right:.2em;text-align:center;font-variant:normal;text-transform:none;line-height:1em;margin-left:.2em;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}  \r\n.clearable-picker{position:relative;display:inline-block}  \r\n.clearable-picker>.hastimepicker{padding-right:1em}  \r\n.clearable-picker>.hastimepicker::-ms-clear{display:none}  \r\n.clearable-picker>[data-clear-picker]{position:absolute;top:50%;right:0;transform:translateY(-50%);font-weight:700;font-size:.8em;padding:0 .3em .2em;line-height:1;color:#bababa;cursor:pointer}  \r\n.clearable-picker>[data-clear-picker]:hover{color:#a1a1a1}\r\n.timepicker__controls__control span {\r\n    outline: none;\r\n}", "",{"version":3,"sources":["webpack://./css/equal.css"],"names":[],"mappings":"AAAA;IACI,oBAAoB;IACpB,4BAA4B;IAC5B,kCAAkC;;IAElC,qCAAqC;IACrC,oCAAoC;;IAEpC,wBAAwB;IACxB,8BAA8B;IAC9B,UAAU;IACV,0CAA0C;IAC1C,kBAAkB;IAClB,2CAA2C;;;IAG3C,sCAAsC;IACtC,sCAAsC;IACtC,qCAAqC;IACrC,qCAAqC;IACrC,oCAAoC;IACpC,oCAAoC;;AAExC;;AAEA;IACI,SAAS;IACT,UAAU;IACV,WAAW;AACf;;AAEA;IACI,aAAa;IACb,YAAY;IACZ,wBAAwB;AAC5B;;AAEA;IACI,qBAAqB;AACzB;;AAEA;IACI,WAAW;IACX,YAAY;IACZ,gBAAgB;IAChB,cAAc;IACd,sBAAsB;IACtB,aAAa;AACjB;;AAEA;IACI,kBAAkB;IAClB,YAAY;IACZ,kCAAkC;AACtC;;AAEA;IACI,iBAAiB;IACjB,mBAAmB;IACnB,gBAAgB;IAChB,uBAAuB;AAC3B;;AAEA;IACI,eAAe;IACf,qBAAqB;IACrB,+BAA+B;AACnC;;;AAGA;IACI,sCAAsC;IACtC,yBAAyB;AAC7B;;AAEA;IACI,kBAAkB;IAClB,YAAY;AAChB;;AAEA;IACI,2FAA2F;IAC3F,0BAA0B;IAC1B,wBAAwB;AAC5B;;AAEA;IACI,2FAA2F;IAC3F,yBAAyB;IACzB,oBAAoB;AACxB;;AAEA;IACI,qBAAqB;AACzB;;AAEA;IACI,kBAAkB;IAClB,YAAY;AAChB;;;AAGA;CACC,gBAAgB;AACjB;;AAEA;CACC,mBAAmB;AACpB;;AAEA;CACC,gBAAgB;AACjB;;AAEA;CACC,mBAAmB;AACpB;;AAEA;IACI,eAAe;IACf,iBAAiB;IACjB,gBAAgB;IAChB,MAAM;IACN,UAAU;AACd;;AAEA;IACI,yBAAyB;AAC7B;;AAEA;IACI,YAAY;AAChB;;AAEA;IACI,kBAAkB;IAClB,gBAAgB;IAChB,wBAAwB;IACxB,YAAY;AAChB;;AAEA;IACI,gBAAgB;AACpB;;AAEA;IACI,gBAAgB;AACpB;;AAEA;IACI,eAAe;AACnB;;AAEA;IACI,kBAAkB;IAClB,iBAAiB;IACjB;;;KAGC;AACL;;AAEA;IACI,iBAAiB;IACjB,gBAAgB;AACpB;;AAEA;IACI,aAAa;IACb,iBAAiB;AACrB;;AAEA;IACI,kBAAkB;AACtB;;AAEA;IACI,kBAAkB;IAClB,aAAa;AACjB;;AAEA,2CAA2C;AAC3C;IACI,mBAAmB;AACvB;;AAEA;IACI,gBAAgB;AACpB;;AAEA;IACI,kBAAkB;IAClB,gBAAgB;IAChB,wBAAwB;IACxB,YAAY;AAChB;;AAEA;IACI,YAAY;IACZ,iBAAiB;IACjB,aAAa;IACb,iBAAiB;AACrB;;AAEA;IACI,eAAe;AACnB;;AAEA;IACI,gBAAgB;AACpB;;;AAGA;IACI,YAAY;AAChB;;AAEA;IACI,aAAa;AACjB;;AAEA;IACI,cAAc;IACd,QAAQ;AACZ;;AAEA;IACI,aAAa;AACjB;;AAEA;IACI,eAAe;AACnB;;;AAGA;IACI,kBAAkB;IAClB,eAAe;IACf,kBAAkB;IAClB,iBAAiB;AACrB;;;AAGA;IACI,2BAA2B;IAC3B,2BAA2B;AAC/B;;AAEA;IACI,OAAO;IACP,YAAY;;AAEhB;;AAEA;IACI,iBAAiB;AACrB;;AAEA;IACI,iBAAiB;AACrB;;;AAGA;IACI,uBAAuB;IACvB,iBAAiB;AACrB;;AAEA;;IAEI,iCAAiC;IACjC,iBAAiB;IACjB,eAAe;IACf,gBAAgB;AACpB;;AAEA;;IAEI,iCAAiC;IACjC,gBAAgB;AACpB;;AAEA;;IAEI,iCAAiC;IACjC,gBAAgB;AACpB;;AAEA;;IAEI,iCAAiC;IACjC,gBAAgB;AACpB;;;AAGA;IACI,kBAAkB;IAClB,YAAY;AAChB;;AAEA;IACI,aAAa;IACb,iBAAiB;IACjB,gBAAgB;IAChB,iBAAiB;AACrB;;AAEA;IACI,aAAa;AACjB;;AAEA;IACI,kBAAkB;AACtB;;AAEA;IACI,iBAAiB;AACrB;;AAEA;IACI,kBAAkB;AACtB;;AAEA;IACI,aAAa;AACjB;;AAEA;IACI,iBAAiB;AACrB;;AAEA;IACI,eAAe;IACf,mBAAmB;AACvB;;AAEA;IACI,mBAAmB;AACvB;;AAEA;EACE,uBAAuB;AACzB;;AAEA;IACI,wBAAwB;AAC5B;AACA;IACI,wBAAwB;AAC5B;;AAEA;IACI,YAAY;AAChB;;AAEA;IACI,eAAe;AACnB;;AAEA;IACI,0BAA0B;AAC9B;;AAEA;IACI,kBAAkB;IAClB,YAAY;IACZ,WAAW;IACX,kBAAkB;AACtB;;AAEA;IACI,WAAW;IACX,YAAY;IACZ,kBAAkB;IAClB,WAAW;IACX,qBAAqB;AACzB;;AAEA;IACI,kBAAkB;IAClB,UAAU;IACV,YAAY;IACZ,WAAW;IACX,UAAU;AACd;;;AAGA;IACI,kBAAkB;AACtB;;AAEA;IACI,kBAAkB;AACtB;;AAEA;IACI,gBAAgB;AACpB;;AAEA;IACI,mBAAmB;AACvB;;;AAGA,uCAAuC;;AAEvC,8CAA8C;AAC9C;IACI,kBAAkB;IAClB,kCAAkC;AACtC;;AAEA,2BAA2B;AAC3B;IACI,UAAU;AACd;;AAEA,sCAAsC;;AAEtC,8BAA8B;AAC9B;IACI,iBAAiB;AACrB;;AAEA;IACI,uCAAuC;AAC3C;AACA;EACE,YAAY;AACd;AACA;EACE,eAAe;EACf,gBAAgB;EAChB,YAAY;AACd;;AAEA;IACI,kBAAkB;AACtB;;;AAGA;IACI,UAAU;IACV,kBAAkB;IAClB,uBAAuB;;AAE3B;;AAEA;IACI,6CAA6C;IAC7C,mBAAmB;AACvB;;;AAGA;IACI,YAAY;IACZ,sBAAsB;IACtB,mBAAmB;IACnB,kBAAkB;AACtB;;;AAGA,oCAAoC;AACpC;EACE,YAAY;AACd;;AAEA;IACI,eAAe;AACnB;;AAEA;IACI,mDAAmD;IACnD,iBAAiB;AACrB;;AAEA;IACI,iBAAiB;AACrB;;AAEA;EACE,aAAa;AACf;;AAEA;EACE,aAAa;AACf;;AAEA;IACI,yBAAyB;AAC7B;;AAEA;IACI,uBAAuB;AAC3B;;AAEA;IACI,sCAAsC;AAC1C;;AAEA;IACI,mDAAmD;IACnD,iBAAiB;AACrB;;AAEA;IACI,aAAa;AACjB;;;AAGA;IACI,YAAY;AAChB;;AAEA,2CAA2C;AAC3C;IACI,2BAA2B;IAC3B,aAAa;AACjB;;AAEA;IACI,YAAY;AAChB;;AAEA;IACI,UAAU;IACV,kBAAkB;IAClB,uBAAuB;;AAE3B;;AAEA;IACI,6CAA6C;IAC7C,mBAAmB;AACvB;;;AAGA;IACI,aAAa;AACjB;;AAEA;IACI,YAAY;IACZ,cAAc;AAClB;;;AAGA;IACI,cAAc;AAClB;;AAEA;IACI,kBAAkB;AACtB;;AAEA;IACI,qBAAqB;AACzB;;AAEA;IACI,WAAW;IACX,qBAAqB;AACzB;;AAEA;IACI,8DAA8D;AAClE;;;AAGA,mDAAmD;AACnD;CACC,eAAe;AAChB;;AAEA;CACC,kBAAkB;IACf,WAAW;AACf;;;;AAIA;IACI,sDAAsD;IACtD,wCAAwC;AAC5C;;AAEA;IACI,sBAAsB;IACtB,uBAAuB;AAC3B;;AAEA;IACI,qBAAqB;AACzB;;AAEA;IACI,aAAa;IACb,WAAW;AACf;;AAEA;IACI,kBAAkB;IAClB,QAAQ;IACR,2BAA2B;IAC3B,eAAe;AACnB;;AAEA;IACI,mCAAmC;AACvC;;AAEA;IACI,kCAAkC;AACtC;;AAEA;IACI,kBAAkB;AACtB;;AAEA;IACI,kBAAkB;IAClB,WAAW;IACX,eAAe;IACf,0BAA0B;IAC1B,2BAA2B;AAC/B;;;AAGA;IACI,kBAAkB;AACtB;;AAEA;IACI,iCAAiC;IACjC,kBAAkB;AACtB;;AAEA;IACI,mBAAmB;IACnB,gBAAgB;IAChB,uBAAuB;AAC3B;;AAEA;IACI,eAAe;IACf,YAAY;AAChB;;AAEA;IACI,YAAY;IACZ,8BAA8B;AAClC;;;AAGA;IACI,WAAW;AACf;;AAEA;IACI,0BAA0B;IAC1B,yCAAyC;AAC7C;;;AAGA;IACI,mBAAmB;IACnB,gBAAgB;IAChB,uBAAuB;AAC3B;;;AAGA;IACI,iDAAiD;AACrD;;AAEA;IACI,kEAAkE;AACtE;;AAEA;IACI,kEAAkE;AACtE;;AAEA;IACI,WAAW;AACf;;AAEA;IACI,kBAAkB;IAClB,SAAS;AACb;;AAEA;IACI,gBAAgB;AACpB;;AAEA;IACI,gBAAgB;IAChB,4CAA4C;AAChD;;AAEA;IACI,iBAAiB;AACrB;AACA;IACI,4EAA4E;IAC5E,YAAY;AAChB;;;;AAIA,yCAAyC;;;AAGzC;IACI,yBAAyB;IACzB,qBAAqB;AACzB;;AAEA;IACI,UAAU;IACV,YAAY;IACZ,YAAY;IACZ,gDAAgD;IAChD,kBAAkB;IAClB,eAAe;IACf,eAAe;AACnB;;AAEA;IACI,eAAe;AACnB;;AAEA;IACI,kBAAkB;IAClB,WAAW;IACX,QAAQ;IACR,UAAU;IACV,iBAAiB;IACjB,eAAe;AACnB;;AAEA;EACE,gBAAgB;AAClB;;AAEA;EACE,SAAS;AACX;;AAEA;EACE,kBAAkB;EAClB,iBAAiB;EACjB,oBAAoB;EACpB,gBAAgB;AAClB;AACA;;;EAGE,YAAY;EACZ,aAAa;EACb,WAAW;AACb;;AAEA;;EAEE,YAAY;EACZ,aAAa;EACb,mBAAmB;AACrB;;AAEA;EACE,gBAAgB;EAChB,YAAY;EACZ,kBAAkB;EAClB,YAAY;EACZ,WAAW;EACX,iBAAiB;EACjB,UAAU;AACZ;AACA;EACE,+BAA+B;AACjC;AACA;EACE,YAAY;AACd;;;;AAIA;IACI,cAAc;IACd,gBAAgB;AACpB;;AAEA;EACE,YAAY;AACd;AACA;EACE,iBAAiB;EACjB,YAAY;AACd;AACA;;EAEE,iBAAiB;EACjB,cAAc;EACd,yBAAyB;EACzB,YAAY;EACZ,UAAU;EACV,gBAAgB;EAChB,aAAa;AACf;AACA;;EAEE,mBAAmB;AACrB;;AAEA;IACI,qBAAqB;IACrB,uBAAuB;IACvB,sBAAsB;CACzB,oBAAoB;IACjB,mBAAmB;AACvB;;AAEA;IACI,qBAAqB;IACrB,uBAAuB;IACvB,sBAAsB;CACzB,qBAAqB;IAClB,mBAAmB;AACvB;;AAEA;IACI,wBAAwB;AAC5B;;AAEA;IACI,wBAAwB;CAC3B,gBAAgB;CAChB,cAAc;AACf;;AAEA;IACI,wBAAwB;CAC3B,gBAAgB;CAChB,cAAc;AACf;;;AAGA;IACI,gBAAgB;AACpB;;AAEA;CACC,oBAAoB;IACjB,mBAAmB;AACvB;AACA;CACC,qBAAqB;IAClB,mBAAmB;AACvB;;;;;;AAMA;IACI,4BAA4B;IAC5B,2DAA2D;IAC3D,wBAAwB;IACxB,uBAAuB;IACvB,4HAA4H;AAChI;;;;AAIA,2CAA2C;AAC3C;;CAEC,YAAY;AACb;AACA;;;;CAIC,kBAAkB;AACnB;AACA;CACC,YAAY;AACb;;AAEA;IACI,YAAY;AAChB;;AAEA;IACI,0BAA0B;AAC9B;;AAEA;IACI,kBAAkB;IAClB,oBAAoB;IACpB,2BAA2B;AAC/B;;AAEA;IACI,kBAAkB;IAClB,cAAc;IACd,WAAW;IACX,yCAAyC;IACzC,kBAAkB;IAClB,WAAW;IACX,YAAY;IACZ,WAAW;IACX,MAAM;IACN;AACJ;;;AAGA;IACI,kBAAkB;IAClB,cAAc;IACd,WAAW;IACX,kCAAkC;IAClC,kBAAkB;IAClB,WAAW;IACX,YAAY;IACZ,WAAW;IACX,MAAM;IACN;AACJ;;AAEA;IACI,aAAa;IACb,mBAAmB;IACnB,4BAA4B;AAChC;;AAEA;IACI,OAAO;AACX;;AAEA;IACI,OAAO;IACP,iBAAiB;IACjB,YAAY;IACZ,kBAAkB;AACtB;;;AAGA;IACI,aAAa;IACb,gBAAgB;IAChB,aAAa;IACb,UAAU;IACV,WAAW;IACX,cAAc;AAClB;AACA,mBAAmB,iEAAiE,CAAC,iBAAiB,CAAC,kBAAkB,CAAC,aAAa,CAAC,+BAA+B,CAAC,2BAA2B,CAAC,aAAa,CAAC,iBAAiB;AACnO,mBAAmB,kCAAkC,CAAC,+BAA+B,CAAC,8BAA8B,CAAC,6BAA6B,CAAC,0BAA0B,CAAC,iBAAiB,CAAC,OAAO,CAAC,UAAU,CAAC,aAAa,CAAC,cAAc;AAC/O,0BAA0B,eAAe;AACzC,sBAAsB,cAAc,CAAC,kBAAkB,CAAC,QAAQ;AAChE,yEAAyE,qBAAqB,CAAC,oBAAoB,CAAC,iBAAiB,CAAC,aAAa,CAAC,UAAU,CAAC,oBAAoB;AACnL,sEAAsE,aAAa,CAAC,iBAAiB,CAAC,aAAa,CAAC,eAAe,CAAC,cAAc,CAAC,cAAc;AACjK,yCAAyC,eAAe;AACxD,0CAA0C,eAAe;AACzD,0CAA0C,SAAS;AACnD,qMAAqM,iBAAiB;AACtN,aAAa,aAAa;;AAE1B,0HAA0H,uBAAuB,CAAC,iBAAiB,CAAC,eAAe,CAAC,oBAAoB,CAAC,uBAAuB,CAAC,SAAS,CAAC,iBAAiB,CAAC,iBAAiB,CAAC,mBAAmB,CAAC,mBAAmB,CAAC,eAAe,CAAC,gBAAgB,CAAC,kCAAkC,CAAC,iCAAiC;AAC5Z,kBAAkB,iBAAiB,CAAC,oBAAoB;AACxD,iCAAiC,iBAAiB;AAClD,4CAA4C,YAAY;AACxD,sCAAsC,iBAAiB,CAAC,OAAO,CAAC,OAAO,CAAC,0BAA0B,CAAC,eAAe,CAAC,cAAc,CAAC,mBAAmB,CAAC,aAAa,CAAC,aAAa,CAAC,cAAc;AAChM,4CAA4C,aAAa;AACzD;IACI,aAAa;AACjB","sourcesContent":[":root {\r\n    /* colored buttons */\r\n    --mdc-theme-primary: #3f51b5;\r\n    --mdc-theme-primary-hover: #4f61c5;\r\n\r\n    --mdc-theme-primary-selected: #f5f5ff;\r\n    --mdc-theme-primary-outline: #b1b1dc;\r\n\r\n    /* checkbox background */\r\n    --mdc-theme-secondary: #3f51b5;\r\n    /* menus */\r\n    --mdc-typography-subtitle1-font-size: 14px;\r\n    /* table headers */\r\n    --mdc-typography-subtitle2-font-weight: 600;\r\n\r\n\r\n    --mdc-layout-grid-margin-desktop: 12px;\r\n    --mdc-layout-grid-gutter-desktop: 24px;\r\n    --mdc-layout-grid-margin-tablet: 12px;\r\n    --mdc-layout-grid-gutter-tablet: 18px;\r\n    --mdc-layout-grid-margin-phone: 12px;\r\n    --mdc-layout-grid-gutter-phone: 16px;\r\n\r\n}\r\n    \r\nbody, html {\r\n    margin: 0;\r\n    padding: 0;\r\n    height:100%;\r\n}\r\n\r\n#sb-root {\r\n    display: flex;\r\n    height: 100%;\r\n    flex-flow: column nowrap;\r\n}\r\n\r\n#sb-menu .sb-menu-button {\r\n    display: inline-block;\r\n}\r\n\r\n#sb-container, .sb-container {\r\n    width: 100%;\r\n    height: 100%;\r\n    overflow: hidden;\r\n    flex: 1 1 100%;\r\n    box-sizing: border-box;\r\n    display: none;\r\n}\r\n\r\n.sb-container-header {\r\n    padding-left: 12px;\r\n    height: 48px;\r\n    border-bottom: solid 1px lightgrey;\r\n}\r\n\r\n.sb-container-header h3 {\r\n    line-height: 48px;\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n.sb-container-header a {\r\n    cursor: pointer;\r\n    text-decoration: none;\r\n    color: var(--mdc-theme-primary);\r\n}\r\n\r\n\r\n.sb-context {\r\n    /* container height minus the header */\r\n    height: calc(100% - 48px);\r\n}\r\n\r\n.sb-view { \r\n    position: relative;\r\n    height: 100%;\r\n}\r\n\r\n.sb-view-layout-list {\r\n    /* height must be decremented by height of other elements from parent (header and footer) */\r\n    height: calc(100% - 112px);\r\n    padding: 0 12px 6px 12px;\r\n}\r\n\r\n.sb-view-layout-form {\r\n    /* height must be decremented by height of other elements from parent (header and footer) */\r\n    height: calc(100% - 56px);\r\n    padding-bottom: 10px;\r\n}\r\n\r\n.sb-view-list-inline-actions-button {\r\n    transform: scale(0.7);\r\n}\r\n\r\n.sb-layout {\r\n    position: relative;\r\n    height: 100%;\r\n}\r\n\r\n\r\n#bulk_assign_dialog .mdc-dialog__container {\r\n\tmax-width: 400px;\r\n}\r\n\r\n#bulk_assign_dialog .mdc-select {\r\n\tmargin-bottom: 12px;\r\n}\r\n\r\n#custom_filter_dialog .mdc-dialog__container {\r\n\tmax-width: 400px;\r\n}\r\n\r\n#custom_filter_dialog .mdc-select {\r\n\tmargin-bottom: 12px;\r\n}\r\n\r\n.sb-view-layout-list table th {\r\n    cursor: pointer;\r\n    user-select: none;\r\n    position: sticky;\r\n    top: 0;\r\n    z-index: 3;\r\n}\r\n\r\n.sb-view-layout-list table th.sortable.hover {\r\n    background-color: #f0f0f0;\r\n}\r\n\r\n.sb-view-layout-list table th.sorted {\r\n    color: black;\r\n}\r\n\r\n.sb-view-layout-list table th.asc::after, .sb-view-layout-list table th.desc::after {\r\n    position: absolute;\r\n    margin-left: 6px;\r\n    font-family: FontAwesome;\r\n    opacity: 0.3;\r\n}\r\n\r\n.sb-view-layout-list table th.asc::after {\r\n    content: \"\\f0d7\";\r\n}\r\n\r\n.sb-view-layout-list table th.desc::after {\r\n    content: \"\\f0d8\";\r\n}\r\n\r\n.sb-view-layout-list table tr {\r\n    cursor: pointer;\r\n}\r\n\r\n.sb-view-header-list {\r\n    position: relative;\r\n    max-height: 112px;\r\n    /*\r\n    height: 112px;\r\n    line-height: 112px;\r\n    */\r\n}\r\n\r\n.sb-view-header-list-actions {\r\n    margin-left: 12px;\r\n    max-height: 56px;\r\n}\r\n\r\n.sb-view-header-list-actions-set {\r\n    display: flex;\r\n    padding-top: 10px;\r\n}\r\n\r\n.sb-view-header-list-actions button {\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-header-list-actions-selected {\r\n    position: relative;\r\n    display: flex;\r\n}\r\n\r\n/* todo: improve this (add a custom class)*/\r\n.sb-view-header-list-actions-selected .mdc-button__label {\r\n    padding-right: 10px;\r\n}\r\n\r\n.sb-view-header-list-actions-selected .mdc-button__label::after {\r\n    content: \"\\f0d7\";\r\n}\r\n\r\n.sb-view-header-list-actions-selected .mdc-button__label::after {\r\n    position: absolute;\r\n    margin-left: 6px;\r\n    font-family: FontAwesome;\r\n    opacity: 0.5;\r\n}\r\n\r\n.sb-view-header-list-navigation {\r\n    height: 56px;\r\n    line-height: 56px;\r\n    display: flex;\r\n    margin-left: 12px;\r\n}\r\n\r\n.sb-view-header-list-filters {\r\n    margin-top: 4px;\r\n}\r\n\r\n.sb-view-header-list-filters .sb-view-header-list-filters-menu {\r\n    min-width: 250px;\r\n}\r\n\r\n\r\n.sb-view-header-list-filters-search .mdc-text-field {\r\n    height: 36px;\r\n}\r\n\r\n.sb-view-header-list-filters-search .mdc-text-field__icon--trailing {\r\n    display: none;    \r\n}\r\n\r\n.sb-view-header-list-filters-search .mdc-text-field--label-floating .mdc-text-field__icon--trailing {\r\n    display: block;\r\n    right: 0;\r\n}\r\n\r\n.sb-view-header-list-filters-search .mdc-floating-label--float-above {\r\n    display: none;\r\n}\r\n\r\n.sb-view-header-list-filters-set {\r\n    margin-top: 4px;\r\n}\r\n\r\n\r\n.sb-view-header-list-fields_toggle {\r\n    /* flex-grow: 1; */\r\n    margin-top: 4px;\r\n    margin-right: 10px;\r\n    text-align: right;\r\n}\r\n\r\n\r\n.sb-view-header-list-fields_toggle .sb-view-header-list-fields_toggle-menu {\r\n    min-width: 250px !important;\r\n    max-width: 250px !important;\r\n}\r\n\r\n.sb-view-header-list-pagination {\r\n    flex: 1;\r\n    flex-grow: 1;\r\n\r\n}\r\n\r\n.sb-view-header-list-pagination-limit_select {\r\n    margin-left: 12px;\r\n}\r\n\r\n.sb-view-header-list-pagination .pagination-navigation {\r\n    user-select: none; \r\n}\r\n\r\n\r\n.sb-widget-mode-view input {\r\n    color: black !important;\r\n    user-select: none;\r\n}\r\n\r\n.sb-widget-mode-view .mdc-text-field .mdc-floating-label,\r\n.sb-widget-mode-view.mdc-select .mdc-floating-label {\r\n    color: rgba(0,0,0,0.5) !important;\r\n    user-select: none;\r\n    font-size: 16px;\r\n    font-weight: 400;\r\n}\r\n\r\n.sb-widget-mode-edit .mdc-text-field .mdc-floating-label, \r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label {\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n}\r\n\r\n.sb-widget-mode-view .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above, \r\n.sb-widget-mode-view.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n}\r\n\r\n.sb-widget-mode-edit .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above, \r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.6) !important;\r\n    font-weight: 400;\r\n}\r\n\r\n\r\n.sb-view-header-form {\r\n    position: relative;\r\n    height: 56px;\r\n}\r\n\r\n.sb-view-header-form-actions {\r\n    display: flex;\r\n    margin-left: 12px;\r\n    max-height: 56px;\r\n    padding-top: 10px;\r\n}\r\n\r\n.sb-view-header-form-actions .sb-view-header-form-actions-std {\r\n    flex: 0 1 50%;\r\n}\r\n\r\n.sb-view-header-form-actions .sb-view-header-form-actions-std button {\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-header-form-actions .sb-view-header-form-actions-view {\r\n    margin-left: auto;\r\n}\r\n\r\n.sb-view-header-form-actions .sb-view-header-form-actions-view button {\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-form-group {\r\n    padding: 12px;\r\n}\r\n\r\n.sb-view-form-row:not(:first-child) {\r\n    padding-top: 24px;\r\n}\r\n\r\n.sb-view-form-group-title {\r\n    font-size: 20px;\r\n    margin-bottom: 12px;\r\n}\r\n\r\n.sb-view-form-sections-tabbar {\r\n    margin-bottom: 12px;\r\n}\r\n\r\n.sb-view-layout-list .mdc-line-ripple::before, .sb-view-layout-list .mdc-line-ripple::after {\r\n  border: none !important;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget label.mdc-text-field .mdc-floating-label {\r\n    display: none !important;\r\n}\r\n.sb-view-layout-list .sb-widget.sb-widget-mode-view label.mdc-text-field::before {\r\n    display: none !important;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget.sb-widget-mode-view input {\r\n    height: 100%;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget.sb-widget-type-many2one.sb-widget-mode-view input {\r\n    cursor: pointer;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget.sb-widget-type-many2one.sb-widget-mode-view input:hover {\r\n    text-decoration: underline;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget-mode-edit button.mdc-icon-button {\r\n    padding: 0 0 0 5px;\r\n    height: auto;\r\n    width: auto;\r\n    position: absolute;\r\n}\r\n\r\n.sb-view-layout-form-input-button {\r\n    width: 25px;\r\n    height: 30px;\r\n    position: absolute;\r\n    right: 12px;\r\n    top: calc(50% - 15px);\r\n}\r\n\r\n.sb-view-layout-form-input-decoy {\r\n    position: absolute;\r\n    left: 16px;\r\n    bottom: 10px;\r\n    z-index: -1;\r\n    opacity: 0;\r\n}\r\n\r\n\r\n.sb-widget {\r\n    position: relative;\r\n}\r\n\r\n.sb-ui-checkbox {\r\n    position: relative;\r\n}\r\n\r\n.sb-ui-menu.mdc-menu-surface--is-open-below {\r\n    margin-top: 48px;\r\n}\r\n\r\n.sb-ui-menu.mdc-menu-surface--open {\r\n    margin-bottom: 48px;\r\n}\r\n\r\n\r\n/* Material Components customizations */\r\n\r\n/* fix for ripple not working on icon-button */\r\nbutton.mdc-icon-button:hover, button.mdc-icon-button:active, button.mdc-icon-button:focus {\r\n    border-radius: 50%;\r\n    background-color: rgba(0,0,0,0.10);\r\n}\r\n\r\n/* fix tooltip not hiding */\r\n.mdc-tooltip--hide {\r\n    opacity: 0;\r\n}\r\n\r\n/* Special SB widgets customizations */\r\n\r\n/* support for title strings */\r\n.sb-widget.title {\r\n    margin-top: -14px; \r\n}\r\n\r\n.sb-widget.title span.mdc-floating-label--float-above {\r\n    transform: translateY(-166%) !important;\r\n}\r\n.sb-widget.title label.mdc-text-field {\r\n  height: 70px;\r\n}\r\n.sb-widget.title input.mdc-text-field__input {\r\n  font-size: 30px;\r\n  margin-top: auto; \r\n  height: 60px;\r\n}\r\n\r\n.sb-view-layout-form {\r\n    overflow-y: scroll;\r\n}\r\n\r\n\r\n.sb-view-layout-form::-webkit-scrollbar {\r\n    width: 6px;\r\n    overflow-y: scroll;\r\n    background: transparent;\r\n\r\n}\r\n\r\n.sb-view-layout-form::-webkit-scrollbar-thumb {\r\n    background: var(--mdc-theme-primary, #6200ee);\r\n    border-radius: 10px;\r\n}\r\n\r\n\r\n.sb-view-layout-form .sb-widget.sb-widget-type-boolean {\r\n    height: 56px;\r\n    vertical-align: middle;\r\n    display: table-cell;\r\n    padding-left: 16px;\r\n}\r\n\r\n\r\n/* adapt inputs for inline editing */\r\n.sb-widget-cell .mdc-text-field {\r\n  height: 100%;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field {\r\n    padding-left: 0;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-text-field {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    padding-left: 5px;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-select__anchor {\r\n    padding-left: 5px;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field-helper-line {\r\n  display: none;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--filled::before {\r\n  display: none;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--filled:not(.mdc-text-field--disabled) {\r\n    background-color: inherit;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-text-field--filled:not(.mdc-text-field--disabled) {\r\n    background-color: white;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--invalid .mdc-text-field__input {\r\n    color: var(--mdc-theme-error, #b00020);\r\n}\r\n\r\n.sb-widget-cell .mdc-select {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    margin-top: -14px;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit.mdc-select {\r\n    margin-top: 0;\r\n}\r\n\r\n\r\n.sb-widget-cell .mdc-select__anchor {\r\n    height: 100%;\r\n}\r\n\r\n/* make mini-fab flat (mini save buttons) */ \r\n.sb-view-layout-list-row-checkbox .mdc-fab--mini {\r\n    box-shadow: none !important;\r\n    margin: 2px 0;\r\n}\r\n\r\n.mdc-data-table {\r\n    height: 100%;\r\n}\r\n\r\n.mdc-data-table__table-container::-webkit-scrollbar {\r\n    width: 6px;\r\n    overflow-y: scroll;\r\n    background: transparent;\r\n\r\n}\r\n\r\n.mdc-data-table__table-container::-webkit-scrollbar-thumb {\r\n    background: var(--mdc-theme-primary, #6200ee);\r\n    border-radius: 10px;\r\n}\r\n\r\n\r\n.mdc-data-table__pagination {\r\n    border-top: 0;\r\n}\r\n\r\n.mdc-data-table__cell {\r\n    height: 44px;\r\n    padding: 0 2px;\r\n}\r\n\r\n\r\n.mdc-data-table__header-cell {\r\n    padding: 0 2px;\r\n}\r\n\r\n.mdc-data-table__cell:first-child, .mdc-data-table__header-cell:first-child {\r\n    padding-left: 12px;\r\n}\r\n\r\n.mdc-data-table__cell--checkbox {\r\n    padding: 0 !important;\r\n}\r\n\r\n.mdc-data-table__header-cell--checkbox {\r\n    width: 44px;\r\n    padding: 0 !important;\r\n}\r\n\r\n.mdc-data-table__row--selected {\r\n    background-color: var(--mdc-theme-primary-selected) !important;\r\n}\r\n\r\n\r\n/* custom style for special button with icon only */\r\n.mdc-button-icon {\r\n\tmin-width: 36px;\r\n}\r\n\r\n.mdc-button-icon  .mdc-button__ripple {\r\n\tborder-radius: 50%;\r\n    width: 36px;\r\n}\r\n\r\n\r\n\r\n.mdc-menu {\r\n    min-width: var(--mdc-menu-min-width, 200px) !important;\r\n    max-width: calc(100vw - 32px) !important;\r\n}\r\n\r\n.mdc-text-field:not(.mdc-text-field--disabled) .mdc-text-field__icon {\r\n    color: rgba(0,0,0,.54);\r\n    background-color: white;\r\n}\r\n\r\n.mdc-text-field--focused .mdc-text-field-helper-line .mdc-text-field-helper-text {\r\n    opacity: 1 !important;\r\n}\r\n\r\n.mdc-text-field--with-trailing-icon .mdc-text-field__icon {\r\n    left: initial;\r\n    right: 12px;\r\n}\r\n\r\n.mdc-text-field--with-leading-icon .mdc-text-field__icon, .mdc-text-field--with-trailing-icon .mdc-text-field__icon {\r\n    position: absolute;\r\n    top: 50%;\r\n    transform: translateY(-50%);\r\n    cursor: pointer;\r\n}\r\n\r\n.mdc-text-field--textarea {\r\n    outline: solid 1px rgba(0, 0,0,0.1);\r\n}\r\n\r\n.sb-view-layout.sb-view-layout-form .mdc-text-field--filled:not(.mdc-text-field--disabled), .mdc-select--filled:not(.mdc-select--disabled) .mdc-select__anchor {\r\n    background: transparent !important;\r\n}\r\n\r\n.mdc-layout-grid__cell {\r\n    position: relative;\r\n}\r\n\r\n.mdc-text-field-helper-line {\r\n    position: absolute;\r\n    width: 100%;\r\n    max-width: 100%;\r\n    padding-left: 0 !important;    \r\n    padding-right: 0 !important;    \r\n}\r\n\r\n\r\n.mdc-list-item .mdc-checkbox {\r\n    margin-left: -11px;\r\n}\r\n\r\n.mdc-list-item__graphic {\r\n    color: rgba(0,0,0,.54) !important;\r\n    margin-right: 12px;\r\n}\r\n\r\n.mdc-list-item__text {\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;    \r\n}\r\n\r\n.mdc-chip .mdc-chip__icon {\r\n    font-size: 22px;\r\n    height: 22px;\r\n}\r\n\r\n.mdc-list-item {\r\n    height: 44px;\r\n    align-items: center !important;\r\n}\r\n\r\n\r\n.mdc-text-field {\r\n    width: 100%;\r\n}\r\n\r\n.mdc-floating-label {\r\n    font-size: 16px !important;\r\n    /* color: rgba(0, 0, 0, 0.8) !important;*/\r\n}\r\n\r\n\r\n.mdc-text-field-helper-line .mdc-text-field-helper-text {\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n\r\n.mdc-text-field--invalid:not(.mdc-text-field--disabled) .mdc-text-field-helper-line .mdc-text-field-helper-text--validation-msg {\r\n    color: var(--mdc-theme-error, #b00020) !important;\r\n}\r\n\r\n.mdc-text-field--focused:not(.mdc-text-field--disabled) .mdc-floating-label {\r\n    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;\r\n}\r\n\r\n.mdc-select--focused:not(.mdc-text-field--disabled) .mdc-floating-label {\r\n    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;\r\n}\r\n\r\n.mdc-select {\r\n    width: 100%;\r\n}\r\n\r\n.mdc-select .mdc-text-field-helper-line {\r\n    position: absolute;\r\n    top: 100%;\r\n}\r\n\r\n.mdc-tab {\r\n    max-width: 280px;\r\n}\r\n\r\n.mdc-tab-bar {\r\n    margin-top: 12px;\r\n    border-bottom: 1px solid rgba(0, 0, 0, 0.12);\r\n}\r\n\r\n.mdc-tab__text-label {\r\n    user-select: none;\r\n}\r\n.mdc-tab.mdc-tab--active .mdc-tab__ripple {\r\n    background-color: var(--mdc-ripple-color, var(--mdc-theme-primary, #6200ee));\r\n    opacity: 0.1;\r\n}\r\n\r\n\r\n\r\n/* jqueryui datepicker material styling */\r\n\r\n\r\n.ui-datepicker {\r\n    /*z-index: 3 !important;*/\r\n    font-family: \"Roboto\";\r\n}\r\n\r\n.ui-datepicker {\r\n    padding: 0;\r\n    border: none;  \r\n    width: 325px;\r\n    box-shadow: 4px 4px 10px 2px rgba(0, 0, 0, 0.24);\r\n    margin-left: -16px;\r\n    margin-top: 6px;\r\n    font-size: 14px;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-title {\r\n    font-size: 17px;\r\n}\r\n\r\n.ui-datepicker-trigger {\r\n    position: absolute;\r\n    right: 12px;\r\n    top: 50%;\r\n    opacity: 0;\r\n    margin-top: -10px;\r\n    cursor: pointer;\r\n}\r\n\r\n.ui-corner-all {\r\n  border-radius: 0;\r\n}\r\n\r\n.ui-widget-header {\r\n  border: 0;\r\n}\r\n\r\n.ui-datepicker-header {\r\n  text-align: center;\r\n  background: white;\r\n  padding-bottom: 15px;\r\n  font-weight: 300;\r\n}\r\n.ui-datepicker-header .ui-datepicker-prev,\r\n.ui-datepicker-header .ui-datepicker-next,\r\n.ui-datepicker-header .ui-datepicker-title {\r\n  border: none;\r\n  outline: none;\r\n  margin: 5px;\r\n}\r\n\r\n.ui-datepicker-prev.ui-state-hover,\r\n.ui-datepicker-next.ui-state-hover {\r\n  border: none;\r\n  outline: none;\r\n  background: #b4cbe5;\r\n}\r\n\r\n.ui-datepicker .ui-state-default {\r\n  background: none;\r\n  border: none;\r\n  text-align: center;\r\n  height: 33px;\r\n  width: 33px;\r\n  line-height: 30px;\r\n  z-index: 1;\r\n}\r\n.ui-datepicker .ui-state-highlight {\r\n  color: var(--mdc-theme-primary);\r\n}\r\n.ui-datepicker .ui-state-active {\r\n  color: white;\r\n}\r\n\r\n\r\n\r\n.ui-datepicker-calendar thead th {\r\n    color: #999999;\r\n    font-weight: 200;\r\n}\r\n\r\n.ui-datepicker-buttonpane {\r\n  border: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-state-default {\r\n  background: white;\r\n  border: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-datepicker-close,\r\n.ui-datepicker-buttonpane .ui-datepicker-current {\r\n  background: white;\r\n  color: #284B72;\r\n  text-transform: uppercase;\r\n  border: none;\r\n  opacity: 1;\r\n  font-weight: 200;\r\n  outline: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-datepicker-close:hover,\r\n.ui-datepicker-buttonpane .ui-datepicker-current:hover {\r\n  background: #b4cbe5;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev {\r\n    text-decoration: none;\r\n    height: auto !important;\r\n    width: auto !important;\r\n\tleft: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-next {\r\n    text-decoration: none;\r\n    height: auto !important;\r\n    width: auto !important;\r\n\tright: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev .ui-icon, .ui-datepicker .ui-datepicker-next .ui-icon {\r\n    display: none !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev::after {\r\n    font-family: FontAwesome;\r\n\tcontent: \"\\f053\";\r\n\tdisplay: block;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-next::after {\r\n    font-family: FontAwesome;\r\n\tcontent: \"\\f054\";\r\n\tdisplay: block;\r\n}\r\n\r\n\r\n.ui-datepicker .ui-datepicker-prev.ui-state-hover, .ui-datepicker .ui-datepicker-next.ui-state-hover {\r\n    background: none;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev-hover {\r\n\tleft: 8px !important;\r\n    top: 8px !important;\r\n}\r\n.ui-datepicker .ui-datepicker-next-hover {\r\n\tright: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n\r\n\r\n\r\n\r\nbutton.ui-state-hover {\r\n    background: unset !important;\r\n    background-color: var(--mdc-theme-primary-hover) !important;\r\n    border: unset !important;\r\n    color: white !important;\r\n    box-shadow: 0px 3px 1px -2px rgb(0 0 0 / 20%), 0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%) !important;\r\n}\r\n\r\n\r\n\r\n/* jquery ui datepicker month year picker */\r\n.ui-datepicker .ui-datepicker-select-month td ,\r\n.ui-datepicker .ui-datepicker-select-year td {\r\n\theight: 33px;\r\n}\r\n.ui-datepicker .ui-datepicker-select-month td span,\r\n.ui-datepicker .ui-datepicker-select-month td a,\r\n.ui-datepicker .ui-datepicker-select-year td span,\r\n.ui-datepicker .ui-datepicker-select-year td a  {\r\n\ttext-align: center;\r\n}\r\n.ui-datepicker .ui-datepicker-select-year td.outoffocus {\r\n\topacity: 0.5;\r\n}\r\n\r\n.ui-datepicker-select-month .ui-state-default, .ui-datepicker-select-year .ui-state-default {\r\n    margin: auto;\r\n}\r\n\r\n.ui-datepicker td {\r\n    font-size: 14px !important;\r\n}\r\n\r\n.ui-datepicker .ui-state-default, .ui-datepicker .ui-state-active {\r\n    position: relative;\r\n    border: 0 !important;\r\n    background: none !important;\r\n}\r\n\r\n.ui-datepicker .ui-state-active::after {\r\n    position: absolute;\r\n    display: block;\r\n    content: '';\r\n    background-color:var(--mdc-theme-primary);\r\n    border-radius: 50%;\r\n    width: 34px;\r\n    height: 34px;\r\n    z-index: -1;\r\n    top: 0;\r\n    left: calc(50% - 16px)\r\n}\r\n\r\n\r\n.ui-datepicker .ui-state-default:not(.ui-state-active).ui-state-hover::after {\r\n    position: absolute;\r\n    display: block;\r\n    content: '';\r\n    background-color: rgba(0,0,0,0.05);\r\n    border-radius: 50%;\r\n    width: 34px;\r\n    height: 34px;\r\n    z-index: -1;\r\n    top: 0;\r\n    left: calc(50% - 16px)\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header {\r\n    display: flex;\r\n    align-items: center;\r\n    padding: 4px 24px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header .ui-datepicker-title {\r\n    flex: 1;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header-time-switch {\r\n    flex: 1;\r\n    line-height: 100%;\r\n    height: 100%;\r\n    align-self: center;\r\n}\r\n\r\n\r\n.timepicker{\r\n    display:block;\r\n    user-select:none;\r\n    margin:0 auto;\r\n    width:100%;\r\n    height:100%;\r\n    font-size:14px;\r\n}\r\n.timepicker__title{background-image:-webkit-linear-gradient(top,#fff 0,#f2f2f2 100%);position:relative;background:#f2f2f2;margin:0 auto;border-bottom:1px solid #e5e5e5;padding:12px 11px 10px 15px;color:#4C4C4C;font-size:inherit}\r\n.timepicker__close{-webkit-transform:translateY(-25%);-moz-transform:translateY(-25%);-ms-transform:translateY(-25%);-o-transform:translateY(-25%);transform:translateY(-25%);position:absolute;top:25%;right:10px;color:#34495e;cursor:pointer}\r\n.timepicker__close:before{content:'\\00d7'}\r\n.timepicker__controls{padding:10px 0;line-height:normal;margin:0}\r\n.timepicker__controls__control,.timepicker__controls__control--separator{vertical-align:middle;display:inline-block;font-size:inherit;margin:0 auto;width:35px;letter-spacing:1.3px}\r\n.timepicker__controls__control-down,.timepicker__controls__control-up{color:#34495e;position:relative;display:block;margin:3px auto;font-size:18px;cursor:pointer}\r\n.timepicker__controls__control-up:before{content:'\\f0d8'}\r\n.timepicker__controls__control-down:after{content:'\\f0d7'}\r\n.timepicker__controls__control--separator{width:5px}\r\n.text-center,.timepicker__controls,.timepicker__controls__control,.timepicker__controls__control--separator,.timepicker__controls__control-down,.timepicker__controls__control-up,.timepicker__title{text-align:center}\r\n.hover-state{color:#3498db}\r\n \r\n.fontello-after:after,.fontello:before,.timepicker__controls__control-down:after,.timepicker__controls__control-up:before{font-family:FontAwesome;font-style:normal;font-weight:400;display:inline-block;text-decoration:inherit;width:1em;margin-right:.2em;text-align:center;font-variant:normal;text-transform:none;line-height:1em;margin-left:.2em;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}  \r\n.clearable-picker{position:relative;display:inline-block}  \r\n.clearable-picker>.hastimepicker{padding-right:1em}  \r\n.clearable-picker>.hastimepicker::-ms-clear{display:none}  \r\n.clearable-picker>[data-clear-picker]{position:absolute;top:50%;right:0;transform:translateY(-50%);font-weight:700;font-size:.8em;padding:0 .3em .2em;line-height:1;color:#bababa;cursor:pointer}  \r\n.clearable-picker>[data-clear-picker]:hover{color:#a1a1a1}\r\n.timepicker__controls__control span {\r\n    outline: none;\r\n}"],"sourceRoot":""}]);
+___CSS_LOADER_EXPORT___.push([module.id, ":root {\r\n    /* colored buttons */\r\n    --mdc-theme-primary: #3f51b5;\r\n    --mdc-theme-primary-hover: #4f61c5;\r\n\r\n    --mdc-theme-primary-selected: #f5f5ff;\r\n    --mdc-theme-primary-outline: #b1b1dc;\r\n\r\n    /* checkbox background */\r\n    --mdc-theme-secondary: #3f51b5;\r\n    /* menus */\r\n    --mdc-typography-subtitle1-font-size: 14px;\r\n    /* table headers */\r\n    --mdc-typography-subtitle2-font-weight: 600;\r\n\r\n\r\n    --mdc-layout-grid-margin-desktop: 12px;\r\n    --mdc-layout-grid-gutter-desktop: 24px;\r\n    --mdc-layout-grid-margin-tablet: 12px;\r\n    --mdc-layout-grid-gutter-tablet: 18px;\r\n    --mdc-layout-grid-margin-phone: 12px;\r\n    --mdc-layout-grid-gutter-phone: 16px;\r\n\r\n}\r\n    \r\nbody, html {\r\n    margin: 0;\r\n    padding: 0;\r\n    height:100%;\r\n}\r\n\r\n#sb-root {\r\n    display: flex;\r\n    height: 100%;\r\n    flex-flow: column nowrap;\r\n}\r\n\r\n#sb-menu .sb-menu-button {\r\n    display: inline-block;\r\n}\r\n\r\n#sb-container, .sb-container {\r\n    width: 100%;\r\n    height: 100%;\r\n    overflow: hidden;\r\n    flex: 1 1 100%;\r\n    box-sizing: border-box;\r\n    display: none;\r\n}\r\n\r\n.sb-container-header {\r\n    padding-left: 12px;\r\n    height: 48px;\r\n    border-bottom: solid 1px lightgrey;\r\n}\r\n\r\n.sb-container-header h3 {\r\n    line-height: 48px;\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n.sb-container-header a {\r\n    cursor: pointer;\r\n    text-decoration: none;\r\n    color: var(--mdc-theme-primary);\r\n}\r\n\r\n\r\n.sb-context {\r\n    /* container height minus the header */\r\n    height: calc(100% - 48px);\r\n}\r\n\r\n.sb-view { \r\n    position: relative;\r\n    height: 100%;\r\n}\r\n\r\n.sb-view-layout-list {\r\n    /* height must be decremented by height of other elements from parent (header and footer) */\r\n    height: calc(100% - 112px);\r\n    padding: 0 12px 6px 12px;\r\n}\r\n\r\n.sb-view-layout-form {\r\n    /* height must be decremented by height of other elements from parent (header and footer) */\r\n    height: calc(100% - 56px);\r\n    padding-bottom: 10px;\r\n}\r\n\r\n.sb-view-list-inline-actions-button {\r\n    transform: scale(0.7);\r\n}\r\n\r\n.sb-layout {\r\n    position: relative;\r\n    height: 100%;\r\n}\r\n\r\n\r\n#bulk_assign_dialog .mdc-dialog__container {\r\n\tmax-width: 400px;\r\n}\r\n\r\n#bulk_assign_dialog .mdc-select {\r\n\tmargin-bottom: 12px;\r\n}\r\n\r\n#custom_filter_dialog .mdc-dialog__container {\r\n\tmax-width: 400px;\r\n}\r\n\r\n#custom_filter_dialog .mdc-select {\r\n\tmargin-bottom: 12px;\r\n}\r\n\r\n.sb-view-layout-list table th {\r\n    cursor: pointer;\r\n    user-select: none;\r\n    position: sticky;\r\n    top: 0;\r\n    z-index: 3;\r\n}\r\n\r\n.sb-view-layout-list table th.sortable.hover {\r\n    background-color: #f0f0f0;\r\n}\r\n\r\n.sb-view-layout-list table th.sorted {\r\n    color: black;\r\n}\r\n\r\n.sb-view-layout-list table th.asc::after, .sb-view-layout-list table th.desc::after {\r\n    position: absolute;\r\n    margin-left: 6px;\r\n    font-family: FontAwesome;\r\n    opacity: 0.3;\r\n}\r\n\r\n.sb-view-layout-list table th.asc::after {\r\n    content: \"\\f0d7\";\r\n}\r\n\r\n.sb-view-layout-list table th.desc::after {\r\n    content: \"\\f0d8\";\r\n}\r\n\r\n.sb-view-layout-list table tr {\r\n    cursor: pointer;\r\n}\r\n\r\n.sb-view-header-list {\r\n    position: relative;\r\n    max-height: 112px;\r\n    /*\r\n    height: 112px;\r\n    line-height: 112px;\r\n    */\r\n}\r\n\r\n.sb-view-header-list-actions {\r\n    margin-left: 12px;\r\n    max-height: 56px;\r\n}\r\n\r\n.sb-view-header-list-actions-set {\r\n    display: flex;\r\n    padding-top: 10px;\r\n}\r\n\r\n.sb-view-header-list-actions button {\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-header-list-actions-selected {\r\n    position: relative;\r\n    display: flex;\r\n}\r\n\r\n/* todo: improve this (add a custom class)*/\r\n.sb-view-header-list-actions-selected .mdc-button__label {\r\n    padding-right: 10px;\r\n}\r\n\r\n.sb-view-header-list-actions-selected .mdc-button__label::after {\r\n    content: \"\\f0d7\";\r\n}\r\n\r\n.sb-view-header-list-actions-selected .mdc-button__label::after {\r\n    position: absolute;\r\n    margin-left: 6px;\r\n    font-family: FontAwesome;\r\n    opacity: 0.5;\r\n}\r\n\r\n.sb-view-header-list-navigation {\r\n    height: 56px;\r\n    line-height: 56px;\r\n    display: flex;\r\n    margin-left: 12px;\r\n}\r\n\r\n.sb-view-header-list-filters {\r\n    margin-top: 4px;\r\n}\r\n\r\n.sb-view-header-list-filters .sb-view-header-list-filters-menu {\r\n    min-width: 250px;\r\n}\r\n\r\n\r\n.sb-view-header-list-filters-search .mdc-text-field {\r\n    height: 36px;\r\n}\r\n\r\n.sb-view-header-list-filters-search .mdc-text-field__icon--trailing {\r\n    display: none;    \r\n}\r\n\r\n.sb-view-header-list-filters-search .mdc-text-field--label-floating .mdc-text-field__icon--trailing {\r\n    display: block;\r\n    right: 0;\r\n}\r\n\r\n.sb-view-header-list-filters-search .mdc-floating-label--float-above {\r\n    display: none;\r\n}\r\n\r\n.sb-view-header-list-filters-set {\r\n    margin-top: 4px;\r\n}\r\n\r\n\r\n.sb-view-header-list-fields_toggle {\r\n    /* flex-grow: 1; */\r\n    margin-top: 4px;\r\n    margin-right: 10px;\r\n    text-align: right;\r\n}\r\n\r\n\r\n.sb-view-header-list-fields_toggle .sb-view-header-list-fields_toggle-menu {\r\n    min-width: 250px !important;\r\n    max-width: 250px !important;\r\n}\r\n\r\n.sb-view-header-list-pagination {\r\n    flex: 1;\r\n    flex-grow: 1;\r\n\r\n}\r\n\r\n.sb-view-header-list-pagination-limit_select {\r\n    margin-left: 12px;\r\n}\r\n\r\n.sb-view-header-list-pagination .pagination-navigation {\r\n    user-select: none; \r\n}\r\n\r\n\r\n.sb-widget-mode-view input {\r\n    color: black !important;\r\n    user-select: none;\r\n}\r\n\r\n.sb-widget-mode-view .mdc-text-field .mdc-floating-label,\r\n.sb-widget-mode-view.mdc-select .mdc-floating-label {\r\n    color: rgba(0,0,0,0.5) !important;\r\n    user-select: none;\r\n    font-size: 16px;\r\n    font-weight: 400;\r\n}\r\n\r\n.sb-widget-mode-edit .mdc-text-field .mdc-floating-label, \r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label {\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n}\r\n\r\n.sb-widget-mode-view .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above, \r\n.sb-widget-mode-view.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n}\r\n\r\n.sb-widget-mode-edit .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above, \r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.6) !important;\r\n    font-weight: 400;\r\n}\r\n\r\n\r\n.sb-view-header-form {\r\n    position: relative;\r\n    height: 56px;\r\n}\r\n\r\n.sb-view-header-form-actions {\r\n    display: flex;\r\n    margin-left: 12px;\r\n    max-height: 56px;\r\n    padding-top: 10px;\r\n}\r\n\r\n.sb-view-header-form-actions .sb-view-header-form-actions-std {\r\n    flex: 0 1 50%;\r\n}\r\n\r\n.sb-view-header-form-actions .sb-view-header-form-actions-std button {\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-header-form-actions .sb-view-header-form-actions-view {\r\n    margin-left: auto;\r\n}\r\n\r\n.sb-view-header-form-actions .sb-view-header-form-actions-view button {\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-form-group {\r\n    padding: 12px;\r\n}\r\n\r\n.sb-view-form-row:not(:first-child) {\r\n    padding-top: 24px;\r\n}\r\n\r\n.sb-view-form-group-title {\r\n    font-size: 20px;\r\n    margin-bottom: 12px;\r\n}\r\n\r\n.sb-view-form-sections-tabbar {\r\n    margin-bottom: 12px;\r\n}\r\n\r\n.sb-view-layout-list .mdc-line-ripple::before, .sb-view-layout-list .mdc-line-ripple::after {\r\n  border: none !important;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget label.mdc-text-field .mdc-floating-label {\r\n    display: none !important;\r\n}\r\n.sb-view-layout-list .sb-widget.sb-widget-mode-view label.mdc-text-field::before {\r\n    display: none !important;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget.sb-widget-mode-view input {\r\n    height: 100%;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget.sb-widget-type-many2one.sb-widget-mode-view input {\r\n    cursor: pointer;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget.sb-widget-type-many2one.sb-widget-mode-view input:hover {\r\n    text-decoration: underline;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget-mode-edit button.mdc-icon-button {\r\n    padding: 0 0 0 5px;\r\n    height: auto;\r\n    width: auto;\r\n    position: absolute;\r\n}\r\n\r\n.sb-view-layout-form-input-button {\r\n    width: 25px;\r\n    height: 30px;\r\n    position: absolute;\r\n    right: 12px;\r\n    top: calc(50% - 15px);\r\n}\r\n\r\n.sb-view-layout-form-input-decoy {\r\n    position: absolute;\r\n    left: 16px;\r\n    bottom: 10px;\r\n    z-index: -1;\r\n    opacity: 0;\r\n}\r\n\r\n\r\n.sb-widget {\r\n    position: relative;\r\n}\r\n\r\n.sb-ui-checkbox {\r\n    position: relative;\r\n}\r\n\r\n.sb-ui-menu.mdc-menu-surface--is-open-below {\r\n    margin-top: 80px !important;\r\n}\r\n\r\n.sb-ui-menu.mdc-menu-surface--open {\r\n    margin-bottom: 60px !important;\r\n}\r\n\r\n\r\n/* Material Components customizations */\r\n\r\n/* fix for ripple not working on icon-button */\r\nbutton.mdc-icon-button:hover, button.mdc-icon-button:active, button.mdc-icon-button:focus {\r\n    border-radius: 50%;\r\n    background-color: rgba(0,0,0,0.10);\r\n}\r\n\r\n/* fix tooltip not hiding */\r\n.mdc-tooltip--hide {\r\n    opacity: 0;\r\n}\r\n\r\n/* Special SB widgets customizations */\r\n\r\n/* support for title strings */\r\n.sb-widget.title {\r\n    margin-top: -14px; \r\n}\r\n\r\n.sb-widget.title span.mdc-floating-label--float-above {\r\n    transform: translateY(-166%) !important;\r\n}\r\n.sb-widget.title label.mdc-text-field {\r\n  height: 70px;\r\n}\r\n.sb-widget.title input.mdc-text-field__input {\r\n  font-size: 30px;\r\n  margin-top: auto; \r\n  height: 60px;\r\n}\r\n\r\n.sb-view-layout-form {\r\n    overflow-y: scroll;\r\n    overflow-x: hidden;\r\n}\r\n\r\n\r\n.sb-view-layout-form::-webkit-scrollbar {\r\n    width: 6px;\r\n    overflow-y: scroll;\r\n    background: transparent;\r\n\r\n}\r\n\r\n.sb-view-layout-form::-webkit-scrollbar-thumb {\r\n    background: var(--mdc-theme-primary, #6200ee);\r\n    border-radius: 10px;\r\n}\r\n\r\n\r\n.sb-view-layout-form .sb-widget.sb-widget-type-boolean {\r\n    height: 56px;\r\n    vertical-align: middle;\r\n    display: table-cell;\r\n    padding-left: 16px;\r\n}\r\n\r\n\r\n/* adapt inputs for inline editing */\r\n.sb-widget-cell .mdc-text-field {\r\n  height: 100%;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field {\r\n    padding-left: 0;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-text-field {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    padding-left: 5px;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-select__anchor {\r\n    padding-left: 5px;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field-helper-line {\r\n  display: none;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--filled::before {\r\n  display: none;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--filled:not(.mdc-text-field--disabled) {\r\n    background-color: inherit;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-text-field--filled:not(.mdc-text-field--disabled) {\r\n    background-color: white;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--invalid .mdc-text-field__input {\r\n    color: var(--mdc-theme-error, #b00020);\r\n}\r\n\r\n.sb-widget-cell .mdc-select {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    margin-top: -14px;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit.mdc-select {\r\n    margin-top: 0;\r\n}\r\n\r\n\r\n.sb-widget-cell .mdc-select__anchor {\r\n    height: 100%;\r\n}\r\n\r\n/* make mini-fab flat (mini save buttons) */ \r\n.sb-view-layout-list-row-checkbox .mdc-fab--mini {\r\n    box-shadow: none !important;\r\n    margin: 2px 0;\r\n}\r\n\r\n.mdc-data-table {\r\n    height: 100%;\r\n}\r\n\r\n.mdc-data-table__table-container::-webkit-scrollbar {\r\n    width: 6px;\r\n    overflow-y: scroll;\r\n    background: transparent;\r\n\r\n}\r\n\r\n.mdc-data-table__table-container::-webkit-scrollbar-thumb {\r\n    background: var(--mdc-theme-primary, #6200ee);\r\n    border-radius: 10px;\r\n}\r\n\r\n\r\n.mdc-data-table__pagination {\r\n    border-top: 0;\r\n}\r\n\r\n.mdc-data-table__cell {\r\n    height: 44px;\r\n    padding: 0 2px;\r\n}\r\n\r\n\r\n.mdc-data-table__header-cell {\r\n    padding: 0 2px;\r\n}\r\n\r\n.mdc-data-table__cell:first-child, .mdc-data-table__header-cell:first-child {\r\n    padding-left: 12px;\r\n}\r\n\r\n.mdc-data-table__cell--checkbox {\r\n    padding: 0 !important;\r\n}\r\n\r\n.mdc-data-table__header-cell--checkbox {\r\n    width: 44px;\r\n    padding: 0 !important;\r\n}\r\n\r\n.mdc-data-table__row--selected {\r\n    background-color: var(--mdc-theme-primary-selected) !important;\r\n}\r\n\r\n\r\n/* custom style for special button with icon only */\r\n.mdc-button-icon {\r\n\tmin-width: 36px;\r\n}\r\n\r\n.mdc-button-icon  .mdc-button__ripple {\r\n\tborder-radius: 50%;\r\n    width: 36px;\r\n}\r\n\r\n\r\n\r\n.mdc-menu {\r\n    min-width: var(--mdc-menu-min-width, 200px) !important;\r\n    max-width: calc(100vw - 32px) !important;\r\n}\r\n\r\n.mdc-text-field:not(.mdc-text-field--disabled) .mdc-text-field__icon {\r\n    color: rgba(0,0,0,.54);\r\n    background-color: white;\r\n}\r\n\r\n.mdc-text-field--focused .mdc-text-field-helper-line .mdc-text-field-helper-text {\r\n    opacity: 1 !important;\r\n}\r\n\r\n.mdc-text-field--with-trailing-icon .mdc-text-field__icon {\r\n    left: initial;\r\n    right: 12px;\r\n}\r\n\r\n.mdc-text-field--with-leading-icon .mdc-text-field__icon, .mdc-text-field--with-trailing-icon .mdc-text-field__icon {\r\n    position: absolute;\r\n    top: 50%;\r\n    transform: translateY(-50%);\r\n    cursor: pointer;\r\n}\r\n\r\n.mdc-text-field--textarea {\r\n    outline: solid 1px rgba(0, 0,0,0.1);\r\n}\r\n\r\n.sb-view-layout.sb-view-layout-form .mdc-text-field--filled:not(.mdc-text-field--disabled), .mdc-select--filled:not(.mdc-select--disabled) .mdc-select__anchor {\r\n    background: transparent !important;\r\n}\r\n\r\n.mdc-layout-grid__cell {\r\n    position: relative;\r\n}\r\n\r\n.mdc-text-field-helper-line {\r\n    position: absolute;\r\n    width: 100%;\r\n    max-width: 100%;\r\n    padding-left: 0 !important;    \r\n    padding-right: 0 !important;    \r\n}\r\n\r\n\r\n.mdc-list-item .mdc-checkbox {\r\n    margin-left: -11px;\r\n}\r\n\r\n.mdc-list-item__graphic {\r\n    color: rgba(0,0,0,.54) !important;\r\n    margin-right: 12px;\r\n}\r\n\r\n.mdc-list-item__text {\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;    \r\n}\r\n\r\n.mdc-chip .mdc-chip__icon {\r\n    font-size: 22px;\r\n    height: 22px;\r\n}\r\n\r\n.mdc-list-item {\r\n    height: 44px;\r\n    align-items: center !important;\r\n}\r\n\r\n\r\n.mdc-text-field {\r\n    width: 100%;\r\n}\r\n\r\n.mdc-floating-label {\r\n    font-size: 16px !important;\r\n    /* color: rgba(0, 0, 0, 0.8) !important;*/\r\n}\r\n\r\n\r\n.mdc-text-field-helper-line .mdc-text-field-helper-text {\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n\r\n.mdc-text-field--invalid:not(.mdc-text-field--disabled) .mdc-text-field-helper-line .mdc-text-field-helper-text--validation-msg {\r\n    color: var(--mdc-theme-error, #b00020) !important;\r\n}\r\n\r\n.mdc-text-field--focused:not(.mdc-text-field--disabled) .mdc-floating-label {\r\n    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;\r\n}\r\n\r\n.mdc-select--focused:not(.mdc-text-field--disabled) .mdc-floating-label {\r\n    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;\r\n}\r\n\r\n.mdc-select {\r\n    width: 100%;\r\n}\r\n\r\n.mdc-select .mdc-text-field-helper-line {\r\n    position: absolute;\r\n    top: 100%;\r\n}\r\n\r\n.mdc-tab {\r\n    max-width: 280px;\r\n}\r\n\r\n.mdc-tab-bar {\r\n    margin-top: 12px;\r\n    border-bottom: 1px solid rgba(0, 0, 0, 0.12);\r\n}\r\n\r\n.mdc-tab__text-label {\r\n    user-select: none;\r\n}\r\n.mdc-tab.mdc-tab--active .mdc-tab__ripple {\r\n    background-color: var(--mdc-ripple-color, var(--mdc-theme-primary, #6200ee));\r\n    opacity: 0.1;\r\n}\r\n\r\n\r\n\r\n/* jqueryui datepicker material styling */\r\n\r\n\r\n.ui-datepicker {\r\n    /*z-index: 3 !important;*/\r\n    font-family: \"Roboto\";\r\n}\r\n\r\n.ui-datepicker {\r\n    padding: 0;\r\n    border: none;  \r\n    width: 325px;\r\n    box-shadow: 4px 4px 10px 2px rgba(0, 0, 0, 0.24);\r\n    margin-left: -16px;\r\n    margin-top: 6px;\r\n    font-size: 14px;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-title {\r\n    font-size: 17px;\r\n}\r\n\r\n.ui-datepicker-trigger {\r\n    position: absolute;\r\n    right: 12px;\r\n    top: 50%;\r\n    opacity: 0;\r\n    margin-top: -10px;\r\n    cursor: pointer;\r\n}\r\n\r\n.ui-corner-all {\r\n  border-radius: 0;\r\n}\r\n\r\n.ui-widget-header {\r\n  border: 0;\r\n}\r\n\r\n.ui-datepicker-header {\r\n  text-align: center;\r\n  background: white;\r\n  padding-bottom: 15px;\r\n  font-weight: 300;\r\n}\r\n.ui-datepicker-header .ui-datepicker-prev,\r\n.ui-datepicker-header .ui-datepicker-next,\r\n.ui-datepicker-header .ui-datepicker-title {\r\n  border: none;\r\n  outline: none;\r\n  margin: 5px;\r\n}\r\n\r\n.ui-datepicker-prev.ui-state-hover,\r\n.ui-datepicker-next.ui-state-hover {\r\n  border: none;\r\n  outline: none;\r\n  background: #b4cbe5;\r\n}\r\n\r\n.ui-datepicker .ui-state-default {\r\n  background: none;\r\n  border: none;\r\n  text-align: center;\r\n  height: 33px;\r\n  width: 33px;\r\n  line-height: 30px;\r\n  z-index: 1;\r\n}\r\n.ui-datepicker .ui-state-highlight {\r\n  color: var(--mdc-theme-primary);\r\n}\r\n.ui-datepicker .ui-state-active {\r\n  color: white;\r\n}\r\n\r\n\r\n\r\n.ui-datepicker-calendar thead th {\r\n    color: #999999;\r\n    font-weight: 200;\r\n}\r\n\r\n.ui-datepicker-buttonpane {\r\n  border: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-state-default {\r\n  background: white;\r\n  border: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-datepicker-close,\r\n.ui-datepicker-buttonpane .ui-datepicker-current {\r\n  background: white;\r\n  color: #284B72;\r\n  text-transform: uppercase;\r\n  border: none;\r\n  opacity: 1;\r\n  font-weight: 200;\r\n  outline: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-datepicker-close:hover,\r\n.ui-datepicker-buttonpane .ui-datepicker-current:hover {\r\n  background: #b4cbe5;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev {\r\n    text-decoration: none;\r\n    height: auto !important;\r\n    width: auto !important;\r\n\tleft: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-next {\r\n    text-decoration: none;\r\n    height: auto !important;\r\n    width: auto !important;\r\n\tright: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev .ui-icon, .ui-datepicker .ui-datepicker-next .ui-icon {\r\n    display: none !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev::after {\r\n    font-family: FontAwesome;\r\n\tcontent: \"\\f053\";\r\n\tdisplay: block;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-next::after {\r\n    font-family: FontAwesome;\r\n\tcontent: \"\\f054\";\r\n\tdisplay: block;\r\n}\r\n\r\n\r\n.ui-datepicker .ui-datepicker-prev.ui-state-hover, .ui-datepicker .ui-datepicker-next.ui-state-hover {\r\n    background: none;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev-hover {\r\n\tleft: 8px !important;\r\n    top: 8px !important;\r\n}\r\n.ui-datepicker .ui-datepicker-next-hover {\r\n\tright: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n\r\n\r\n\r\n\r\nbutton.ui-state-hover {\r\n    background: unset !important;\r\n    background-color: var(--mdc-theme-primary-hover) !important;\r\n    border: unset !important;\r\n    color: white !important;\r\n    box-shadow: 0px 3px 1px -2px rgb(0 0 0 / 20%), 0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%) !important;\r\n}\r\n\r\n\r\n\r\n/* jquery ui datepicker month year picker */\r\n.ui-datepicker .ui-datepicker-select-month td ,\r\n.ui-datepicker .ui-datepicker-select-year td {\r\n\theight: 33px;\r\n}\r\n.ui-datepicker .ui-datepicker-select-month td span,\r\n.ui-datepicker .ui-datepicker-select-month td a,\r\n.ui-datepicker .ui-datepicker-select-year td span,\r\n.ui-datepicker .ui-datepicker-select-year td a  {\r\n\ttext-align: center;\r\n}\r\n.ui-datepicker .ui-datepicker-select-year td.outoffocus {\r\n\topacity: 0.5;\r\n}\r\n\r\n.ui-datepicker-select-month .ui-state-default, .ui-datepicker-select-year .ui-state-default {\r\n    margin: auto;\r\n}\r\n\r\n.ui-datepicker td {\r\n    font-size: 14px !important;\r\n}\r\n\r\n.ui-datepicker .ui-state-default, .ui-datepicker .ui-state-active {\r\n    position: relative;\r\n    border: 0 !important;\r\n    background: none !important;\r\n}\r\n\r\n.ui-datepicker .ui-state-active::after {\r\n    position: absolute;\r\n    display: block;\r\n    content: '';\r\n    background-color:var(--mdc-theme-primary);\r\n    border-radius: 50%;\r\n    width: 34px;\r\n    height: 34px;\r\n    z-index: -1;\r\n    top: 0;\r\n    left: calc(50% - 16px)\r\n}\r\n\r\n\r\n.ui-datepicker .ui-state-default:not(.ui-state-active).ui-state-hover::after {\r\n    position: absolute;\r\n    display: block;\r\n    content: '';\r\n    background-color: rgba(0,0,0,0.05);\r\n    border-radius: 50%;\r\n    width: 34px;\r\n    height: 34px;\r\n    z-index: -1;\r\n    top: 0;\r\n    left: calc(50% - 16px)\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header {\r\n    display: flex;\r\n    align-items: center;\r\n    padding: 4px 24px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header .ui-datepicker-title {\r\n    flex: 1;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header-time-switch {\r\n    flex: 1;\r\n    line-height: 100%;\r\n    height: 100%;\r\n    align-self: center;\r\n}\r\n\r\n\r\n.timepicker{\r\n    display:block;\r\n    user-select:none;\r\n    margin:0 auto;\r\n    width:100%;\r\n    height:100%;\r\n    font-size:14px;\r\n}\r\n.timepicker__title{background-image:-webkit-linear-gradient(top,#fff 0,#f2f2f2 100%);position:relative;background:#f2f2f2;margin:0 auto;border-bottom:1px solid #e5e5e5;padding:12px 11px 10px 15px;color:#4C4C4C;font-size:inherit}\r\n.timepicker__close{-webkit-transform:translateY(-25%);-moz-transform:translateY(-25%);-ms-transform:translateY(-25%);-o-transform:translateY(-25%);transform:translateY(-25%);position:absolute;top:25%;right:10px;color:#34495e;cursor:pointer}\r\n.timepicker__close:before{content:'\\00d7'}\r\n.timepicker__controls{padding:10px 0;line-height:normal;margin:0}\r\n.timepicker__controls__control,.timepicker__controls__control--separator{vertical-align:middle;display:inline-block;font-size:inherit;margin:0 auto;width:35px;letter-spacing:1.3px}\r\n.timepicker__controls__control-down,.timepicker__controls__control-up{color:#34495e;position:relative;display:block;margin:3px auto;font-size:18px;cursor:pointer}\r\n.timepicker__controls__control-up:before{content:'\\f0d8'}\r\n.timepicker__controls__control-down:after{content:'\\f0d7'}\r\n.timepicker__controls__control--separator{width:5px}\r\n.text-center,.timepicker__controls,.timepicker__controls__control,.timepicker__controls__control--separator,.timepicker__controls__control-down,.timepicker__controls__control-up,.timepicker__title{text-align:center}\r\n.hover-state{color:#3498db}\r\n \r\n.fontello-after:after,.fontello:before,.timepicker__controls__control-down:after,.timepicker__controls__control-up:before{font-family:FontAwesome;font-style:normal;font-weight:400;display:inline-block;text-decoration:inherit;width:1em;margin-right:.2em;text-align:center;font-variant:normal;text-transform:none;line-height:1em;margin-left:.2em;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}  \r\n.clearable-picker{position:relative;display:inline-block}  \r\n.clearable-picker>.hastimepicker{padding-right:1em}  \r\n.clearable-picker>.hastimepicker::-ms-clear{display:none}  \r\n.clearable-picker>[data-clear-picker]{position:absolute;top:50%;right:0;transform:translateY(-50%);font-weight:700;font-size:.8em;padding:0 .3em .2em;line-height:1;color:#bababa;cursor:pointer}  \r\n.clearable-picker>[data-clear-picker]:hover{color:#a1a1a1}\r\n.timepicker__controls__control span {\r\n    outline: none;\r\n}", "",{"version":3,"sources":["webpack://./css/equal.css"],"names":[],"mappings":"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","sourcesContent":[":root {\r\n    /* colored buttons */\r\n    --mdc-theme-primary: #3f51b5;\r\n    --mdc-theme-primary-hover: #4f61c5;\r\n\r\n    --mdc-theme-primary-selected: #f5f5ff;\r\n    --mdc-theme-primary-outline: #b1b1dc;\r\n\r\n    /* checkbox background */\r\n    --mdc-theme-secondary: #3f51b5;\r\n    /* menus */\r\n    --mdc-typography-subtitle1-font-size: 14px;\r\n    /* table headers */\r\n    --mdc-typography-subtitle2-font-weight: 600;\r\n\r\n\r\n    --mdc-layout-grid-margin-desktop: 12px;\r\n    --mdc-layout-grid-gutter-desktop: 24px;\r\n    --mdc-layout-grid-margin-tablet: 12px;\r\n    --mdc-layout-grid-gutter-tablet: 18px;\r\n    --mdc-layout-grid-margin-phone: 12px;\r\n    --mdc-layout-grid-gutter-phone: 16px;\r\n\r\n}\r\n    \r\nbody, html {\r\n    margin: 0;\r\n    padding: 0;\r\n    height:100%;\r\n}\r\n\r\n#sb-root {\r\n    display: flex;\r\n    height: 100%;\r\n    flex-flow: column nowrap;\r\n}\r\n\r\n#sb-menu .sb-menu-button {\r\n    display: inline-block;\r\n}\r\n\r\n#sb-container, .sb-container {\r\n    width: 100%;\r\n    height: 100%;\r\n    overflow: hidden;\r\n    flex: 1 1 100%;\r\n    box-sizing: border-box;\r\n    display: none;\r\n}\r\n\r\n.sb-container-header {\r\n    padding-left: 12px;\r\n    height: 48px;\r\n    border-bottom: solid 1px lightgrey;\r\n}\r\n\r\n.sb-container-header h3 {\r\n    line-height: 48px;\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n.sb-container-header a {\r\n    cursor: pointer;\r\n    text-decoration: none;\r\n    color: var(--mdc-theme-primary);\r\n}\r\n\r\n\r\n.sb-context {\r\n    /* container height minus the header */\r\n    height: calc(100% - 48px);\r\n}\r\n\r\n.sb-view { \r\n    position: relative;\r\n    height: 100%;\r\n}\r\n\r\n.sb-view-layout-list {\r\n    /* height must be decremented by height of other elements from parent (header and footer) */\r\n    height: calc(100% - 112px);\r\n    padding: 0 12px 6px 12px;\r\n}\r\n\r\n.sb-view-layout-form {\r\n    /* height must be decremented by height of other elements from parent (header and footer) */\r\n    height: calc(100% - 56px);\r\n    padding-bottom: 10px;\r\n}\r\n\r\n.sb-view-list-inline-actions-button {\r\n    transform: scale(0.7);\r\n}\r\n\r\n.sb-layout {\r\n    position: relative;\r\n    height: 100%;\r\n}\r\n\r\n\r\n#bulk_assign_dialog .mdc-dialog__container {\r\n\tmax-width: 400px;\r\n}\r\n\r\n#bulk_assign_dialog .mdc-select {\r\n\tmargin-bottom: 12px;\r\n}\r\n\r\n#custom_filter_dialog .mdc-dialog__container {\r\n\tmax-width: 400px;\r\n}\r\n\r\n#custom_filter_dialog .mdc-select {\r\n\tmargin-bottom: 12px;\r\n}\r\n\r\n.sb-view-layout-list table th {\r\n    cursor: pointer;\r\n    user-select: none;\r\n    position: sticky;\r\n    top: 0;\r\n    z-index: 3;\r\n}\r\n\r\n.sb-view-layout-list table th.sortable.hover {\r\n    background-color: #f0f0f0;\r\n}\r\n\r\n.sb-view-layout-list table th.sorted {\r\n    color: black;\r\n}\r\n\r\n.sb-view-layout-list table th.asc::after, .sb-view-layout-list table th.desc::after {\r\n    position: absolute;\r\n    margin-left: 6px;\r\n    font-family: FontAwesome;\r\n    opacity: 0.3;\r\n}\r\n\r\n.sb-view-layout-list table th.asc::after {\r\n    content: \"\\f0d7\";\r\n}\r\n\r\n.sb-view-layout-list table th.desc::after {\r\n    content: \"\\f0d8\";\r\n}\r\n\r\n.sb-view-layout-list table tr {\r\n    cursor: pointer;\r\n}\r\n\r\n.sb-view-header-list {\r\n    position: relative;\r\n    max-height: 112px;\r\n    /*\r\n    height: 112px;\r\n    line-height: 112px;\r\n    */\r\n}\r\n\r\n.sb-view-header-list-actions {\r\n    margin-left: 12px;\r\n    max-height: 56px;\r\n}\r\n\r\n.sb-view-header-list-actions-set {\r\n    display: flex;\r\n    padding-top: 10px;\r\n}\r\n\r\n.sb-view-header-list-actions button {\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-header-list-actions-selected {\r\n    position: relative;\r\n    display: flex;\r\n}\r\n\r\n/* todo: improve this (add a custom class)*/\r\n.sb-view-header-list-actions-selected .mdc-button__label {\r\n    padding-right: 10px;\r\n}\r\n\r\n.sb-view-header-list-actions-selected .mdc-button__label::after {\r\n    content: \"\\f0d7\";\r\n}\r\n\r\n.sb-view-header-list-actions-selected .mdc-button__label::after {\r\n    position: absolute;\r\n    margin-left: 6px;\r\n    font-family: FontAwesome;\r\n    opacity: 0.5;\r\n}\r\n\r\n.sb-view-header-list-navigation {\r\n    height: 56px;\r\n    line-height: 56px;\r\n    display: flex;\r\n    margin-left: 12px;\r\n}\r\n\r\n.sb-view-header-list-filters {\r\n    margin-top: 4px;\r\n}\r\n\r\n.sb-view-header-list-filters .sb-view-header-list-filters-menu {\r\n    min-width: 250px;\r\n}\r\n\r\n\r\n.sb-view-header-list-filters-search .mdc-text-field {\r\n    height: 36px;\r\n}\r\n\r\n.sb-view-header-list-filters-search .mdc-text-field__icon--trailing {\r\n    display: none;    \r\n}\r\n\r\n.sb-view-header-list-filters-search .mdc-text-field--label-floating .mdc-text-field__icon--trailing {\r\n    display: block;\r\n    right: 0;\r\n}\r\n\r\n.sb-view-header-list-filters-search .mdc-floating-label--float-above {\r\n    display: none;\r\n}\r\n\r\n.sb-view-header-list-filters-set {\r\n    margin-top: 4px;\r\n}\r\n\r\n\r\n.sb-view-header-list-fields_toggle {\r\n    /* flex-grow: 1; */\r\n    margin-top: 4px;\r\n    margin-right: 10px;\r\n    text-align: right;\r\n}\r\n\r\n\r\n.sb-view-header-list-fields_toggle .sb-view-header-list-fields_toggle-menu {\r\n    min-width: 250px !important;\r\n    max-width: 250px !important;\r\n}\r\n\r\n.sb-view-header-list-pagination {\r\n    flex: 1;\r\n    flex-grow: 1;\r\n\r\n}\r\n\r\n.sb-view-header-list-pagination-limit_select {\r\n    margin-left: 12px;\r\n}\r\n\r\n.sb-view-header-list-pagination .pagination-navigation {\r\n    user-select: none; \r\n}\r\n\r\n\r\n.sb-widget-mode-view input {\r\n    color: black !important;\r\n    user-select: none;\r\n}\r\n\r\n.sb-widget-mode-view .mdc-text-field .mdc-floating-label,\r\n.sb-widget-mode-view.mdc-select .mdc-floating-label {\r\n    color: rgba(0,0,0,0.5) !important;\r\n    user-select: none;\r\n    font-size: 16px;\r\n    font-weight: 400;\r\n}\r\n\r\n.sb-widget-mode-edit .mdc-text-field .mdc-floating-label, \r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label {\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n}\r\n\r\n.sb-widget-mode-view .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above, \r\n.sb-widget-mode-view.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n}\r\n\r\n.sb-widget-mode-edit .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above, \r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.6) !important;\r\n    font-weight: 400;\r\n}\r\n\r\n\r\n.sb-view-header-form {\r\n    position: relative;\r\n    height: 56px;\r\n}\r\n\r\n.sb-view-header-form-actions {\r\n    display: flex;\r\n    margin-left: 12px;\r\n    max-height: 56px;\r\n    padding-top: 10px;\r\n}\r\n\r\n.sb-view-header-form-actions .sb-view-header-form-actions-std {\r\n    flex: 0 1 50%;\r\n}\r\n\r\n.sb-view-header-form-actions .sb-view-header-form-actions-std button {\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-header-form-actions .sb-view-header-form-actions-view {\r\n    margin-left: auto;\r\n}\r\n\r\n.sb-view-header-form-actions .sb-view-header-form-actions-view button {\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-form-group {\r\n    padding: 12px;\r\n}\r\n\r\n.sb-view-form-row:not(:first-child) {\r\n    padding-top: 24px;\r\n}\r\n\r\n.sb-view-form-group-title {\r\n    font-size: 20px;\r\n    margin-bottom: 12px;\r\n}\r\n\r\n.sb-view-form-sections-tabbar {\r\n    margin-bottom: 12px;\r\n}\r\n\r\n.sb-view-layout-list .mdc-line-ripple::before, .sb-view-layout-list .mdc-line-ripple::after {\r\n  border: none !important;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget label.mdc-text-field .mdc-floating-label {\r\n    display: none !important;\r\n}\r\n.sb-view-layout-list .sb-widget.sb-widget-mode-view label.mdc-text-field::before {\r\n    display: none !important;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget.sb-widget-mode-view input {\r\n    height: 100%;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget.sb-widget-type-many2one.sb-widget-mode-view input {\r\n    cursor: pointer;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget.sb-widget-type-many2one.sb-widget-mode-view input:hover {\r\n    text-decoration: underline;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget-mode-edit button.mdc-icon-button {\r\n    padding: 0 0 0 5px;\r\n    height: auto;\r\n    width: auto;\r\n    position: absolute;\r\n}\r\n\r\n.sb-view-layout-form-input-button {\r\n    width: 25px;\r\n    height: 30px;\r\n    position: absolute;\r\n    right: 12px;\r\n    top: calc(50% - 15px);\r\n}\r\n\r\n.sb-view-layout-form-input-decoy {\r\n    position: absolute;\r\n    left: 16px;\r\n    bottom: 10px;\r\n    z-index: -1;\r\n    opacity: 0;\r\n}\r\n\r\n\r\n.sb-widget {\r\n    position: relative;\r\n}\r\n\r\n.sb-ui-checkbox {\r\n    position: relative;\r\n}\r\n\r\n.sb-ui-menu.mdc-menu-surface--is-open-below {\r\n    margin-top: 80px !important;\r\n}\r\n\r\n.sb-ui-menu.mdc-menu-surface--open {\r\n    margin-bottom: 60px !important;\r\n}\r\n\r\n\r\n/* Material Components customizations */\r\n\r\n/* fix for ripple not working on icon-button */\r\nbutton.mdc-icon-button:hover, button.mdc-icon-button:active, button.mdc-icon-button:focus {\r\n    border-radius: 50%;\r\n    background-color: rgba(0,0,0,0.10);\r\n}\r\n\r\n/* fix tooltip not hiding */\r\n.mdc-tooltip--hide {\r\n    opacity: 0;\r\n}\r\n\r\n/* Special SB widgets customizations */\r\n\r\n/* support for title strings */\r\n.sb-widget.title {\r\n    margin-top: -14px; \r\n}\r\n\r\n.sb-widget.title span.mdc-floating-label--float-above {\r\n    transform: translateY(-166%) !important;\r\n}\r\n.sb-widget.title label.mdc-text-field {\r\n  height: 70px;\r\n}\r\n.sb-widget.title input.mdc-text-field__input {\r\n  font-size: 30px;\r\n  margin-top: auto; \r\n  height: 60px;\r\n}\r\n\r\n.sb-view-layout-form {\r\n    overflow-y: scroll;\r\n    overflow-x: hidden;\r\n}\r\n\r\n\r\n.sb-view-layout-form::-webkit-scrollbar {\r\n    width: 6px;\r\n    overflow-y: scroll;\r\n    background: transparent;\r\n\r\n}\r\n\r\n.sb-view-layout-form::-webkit-scrollbar-thumb {\r\n    background: var(--mdc-theme-primary, #6200ee);\r\n    border-radius: 10px;\r\n}\r\n\r\n\r\n.sb-view-layout-form .sb-widget.sb-widget-type-boolean {\r\n    height: 56px;\r\n    vertical-align: middle;\r\n    display: table-cell;\r\n    padding-left: 16px;\r\n}\r\n\r\n\r\n/* adapt inputs for inline editing */\r\n.sb-widget-cell .mdc-text-field {\r\n  height: 100%;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field {\r\n    padding-left: 0;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-text-field {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    padding-left: 5px;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-select__anchor {\r\n    padding-left: 5px;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field-helper-line {\r\n  display: none;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--filled::before {\r\n  display: none;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--filled:not(.mdc-text-field--disabled) {\r\n    background-color: inherit;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-text-field--filled:not(.mdc-text-field--disabled) {\r\n    background-color: white;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--invalid .mdc-text-field__input {\r\n    color: var(--mdc-theme-error, #b00020);\r\n}\r\n\r\n.sb-widget-cell .mdc-select {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    margin-top: -14px;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit.mdc-select {\r\n    margin-top: 0;\r\n}\r\n\r\n\r\n.sb-widget-cell .mdc-select__anchor {\r\n    height: 100%;\r\n}\r\n\r\n/* make mini-fab flat (mini save buttons) */ \r\n.sb-view-layout-list-row-checkbox .mdc-fab--mini {\r\n    box-shadow: none !important;\r\n    margin: 2px 0;\r\n}\r\n\r\n.mdc-data-table {\r\n    height: 100%;\r\n}\r\n\r\n.mdc-data-table__table-container::-webkit-scrollbar {\r\n    width: 6px;\r\n    overflow-y: scroll;\r\n    background: transparent;\r\n\r\n}\r\n\r\n.mdc-data-table__table-container::-webkit-scrollbar-thumb {\r\n    background: var(--mdc-theme-primary, #6200ee);\r\n    border-radius: 10px;\r\n}\r\n\r\n\r\n.mdc-data-table__pagination {\r\n    border-top: 0;\r\n}\r\n\r\n.mdc-data-table__cell {\r\n    height: 44px;\r\n    padding: 0 2px;\r\n}\r\n\r\n\r\n.mdc-data-table__header-cell {\r\n    padding: 0 2px;\r\n}\r\n\r\n.mdc-data-table__cell:first-child, .mdc-data-table__header-cell:first-child {\r\n    padding-left: 12px;\r\n}\r\n\r\n.mdc-data-table__cell--checkbox {\r\n    padding: 0 !important;\r\n}\r\n\r\n.mdc-data-table__header-cell--checkbox {\r\n    width: 44px;\r\n    padding: 0 !important;\r\n}\r\n\r\n.mdc-data-table__row--selected {\r\n    background-color: var(--mdc-theme-primary-selected) !important;\r\n}\r\n\r\n\r\n/* custom style for special button with icon only */\r\n.mdc-button-icon {\r\n\tmin-width: 36px;\r\n}\r\n\r\n.mdc-button-icon  .mdc-button__ripple {\r\n\tborder-radius: 50%;\r\n    width: 36px;\r\n}\r\n\r\n\r\n\r\n.mdc-menu {\r\n    min-width: var(--mdc-menu-min-width, 200px) !important;\r\n    max-width: calc(100vw - 32px) !important;\r\n}\r\n\r\n.mdc-text-field:not(.mdc-text-field--disabled) .mdc-text-field__icon {\r\n    color: rgba(0,0,0,.54);\r\n    background-color: white;\r\n}\r\n\r\n.mdc-text-field--focused .mdc-text-field-helper-line .mdc-text-field-helper-text {\r\n    opacity: 1 !important;\r\n}\r\n\r\n.mdc-text-field--with-trailing-icon .mdc-text-field__icon {\r\n    left: initial;\r\n    right: 12px;\r\n}\r\n\r\n.mdc-text-field--with-leading-icon .mdc-text-field__icon, .mdc-text-field--with-trailing-icon .mdc-text-field__icon {\r\n    position: absolute;\r\n    top: 50%;\r\n    transform: translateY(-50%);\r\n    cursor: pointer;\r\n}\r\n\r\n.mdc-text-field--textarea {\r\n    outline: solid 1px rgba(0, 0,0,0.1);\r\n}\r\n\r\n.sb-view-layout.sb-view-layout-form .mdc-text-field--filled:not(.mdc-text-field--disabled), .mdc-select--filled:not(.mdc-select--disabled) .mdc-select__anchor {\r\n    background: transparent !important;\r\n}\r\n\r\n.mdc-layout-grid__cell {\r\n    position: relative;\r\n}\r\n\r\n.mdc-text-field-helper-line {\r\n    position: absolute;\r\n    width: 100%;\r\n    max-width: 100%;\r\n    padding-left: 0 !important;    \r\n    padding-right: 0 !important;    \r\n}\r\n\r\n\r\n.mdc-list-item .mdc-checkbox {\r\n    margin-left: -11px;\r\n}\r\n\r\n.mdc-list-item__graphic {\r\n    color: rgba(0,0,0,.54) !important;\r\n    margin-right: 12px;\r\n}\r\n\r\n.mdc-list-item__text {\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;    \r\n}\r\n\r\n.mdc-chip .mdc-chip__icon {\r\n    font-size: 22px;\r\n    height: 22px;\r\n}\r\n\r\n.mdc-list-item {\r\n    height: 44px;\r\n    align-items: center !important;\r\n}\r\n\r\n\r\n.mdc-text-field {\r\n    width: 100%;\r\n}\r\n\r\n.mdc-floating-label {\r\n    font-size: 16px !important;\r\n    /* color: rgba(0, 0, 0, 0.8) !important;*/\r\n}\r\n\r\n\r\n.mdc-text-field-helper-line .mdc-text-field-helper-text {\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n\r\n.mdc-text-field--invalid:not(.mdc-text-field--disabled) .mdc-text-field-helper-line .mdc-text-field-helper-text--validation-msg {\r\n    color: var(--mdc-theme-error, #b00020) !important;\r\n}\r\n\r\n.mdc-text-field--focused:not(.mdc-text-field--disabled) .mdc-floating-label {\r\n    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;\r\n}\r\n\r\n.mdc-select--focused:not(.mdc-text-field--disabled) .mdc-floating-label {\r\n    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;\r\n}\r\n\r\n.mdc-select {\r\n    width: 100%;\r\n}\r\n\r\n.mdc-select .mdc-text-field-helper-line {\r\n    position: absolute;\r\n    top: 100%;\r\n}\r\n\r\n.mdc-tab {\r\n    max-width: 280px;\r\n}\r\n\r\n.mdc-tab-bar {\r\n    margin-top: 12px;\r\n    border-bottom: 1px solid rgba(0, 0, 0, 0.12);\r\n}\r\n\r\n.mdc-tab__text-label {\r\n    user-select: none;\r\n}\r\n.mdc-tab.mdc-tab--active .mdc-tab__ripple {\r\n    background-color: var(--mdc-ripple-color, var(--mdc-theme-primary, #6200ee));\r\n    opacity: 0.1;\r\n}\r\n\r\n\r\n\r\n/* jqueryui datepicker material styling */\r\n\r\n\r\n.ui-datepicker {\r\n    /*z-index: 3 !important;*/\r\n    font-family: \"Roboto\";\r\n}\r\n\r\n.ui-datepicker {\r\n    padding: 0;\r\n    border: none;  \r\n    width: 325px;\r\n    box-shadow: 4px 4px 10px 2px rgba(0, 0, 0, 0.24);\r\n    margin-left: -16px;\r\n    margin-top: 6px;\r\n    font-size: 14px;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-title {\r\n    font-size: 17px;\r\n}\r\n\r\n.ui-datepicker-trigger {\r\n    position: absolute;\r\n    right: 12px;\r\n    top: 50%;\r\n    opacity: 0;\r\n    margin-top: -10px;\r\n    cursor: pointer;\r\n}\r\n\r\n.ui-corner-all {\r\n  border-radius: 0;\r\n}\r\n\r\n.ui-widget-header {\r\n  border: 0;\r\n}\r\n\r\n.ui-datepicker-header {\r\n  text-align: center;\r\n  background: white;\r\n  padding-bottom: 15px;\r\n  font-weight: 300;\r\n}\r\n.ui-datepicker-header .ui-datepicker-prev,\r\n.ui-datepicker-header .ui-datepicker-next,\r\n.ui-datepicker-header .ui-datepicker-title {\r\n  border: none;\r\n  outline: none;\r\n  margin: 5px;\r\n}\r\n\r\n.ui-datepicker-prev.ui-state-hover,\r\n.ui-datepicker-next.ui-state-hover {\r\n  border: none;\r\n  outline: none;\r\n  background: #b4cbe5;\r\n}\r\n\r\n.ui-datepicker .ui-state-default {\r\n  background: none;\r\n  border: none;\r\n  text-align: center;\r\n  height: 33px;\r\n  width: 33px;\r\n  line-height: 30px;\r\n  z-index: 1;\r\n}\r\n.ui-datepicker .ui-state-highlight {\r\n  color: var(--mdc-theme-primary);\r\n}\r\n.ui-datepicker .ui-state-active {\r\n  color: white;\r\n}\r\n\r\n\r\n\r\n.ui-datepicker-calendar thead th {\r\n    color: #999999;\r\n    font-weight: 200;\r\n}\r\n\r\n.ui-datepicker-buttonpane {\r\n  border: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-state-default {\r\n  background: white;\r\n  border: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-datepicker-close,\r\n.ui-datepicker-buttonpane .ui-datepicker-current {\r\n  background: white;\r\n  color: #284B72;\r\n  text-transform: uppercase;\r\n  border: none;\r\n  opacity: 1;\r\n  font-weight: 200;\r\n  outline: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-datepicker-close:hover,\r\n.ui-datepicker-buttonpane .ui-datepicker-current:hover {\r\n  background: #b4cbe5;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev {\r\n    text-decoration: none;\r\n    height: auto !important;\r\n    width: auto !important;\r\n\tleft: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-next {\r\n    text-decoration: none;\r\n    height: auto !important;\r\n    width: auto !important;\r\n\tright: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev .ui-icon, .ui-datepicker .ui-datepicker-next .ui-icon {\r\n    display: none !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev::after {\r\n    font-family: FontAwesome;\r\n\tcontent: \"\\f053\";\r\n\tdisplay: block;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-next::after {\r\n    font-family: FontAwesome;\r\n\tcontent: \"\\f054\";\r\n\tdisplay: block;\r\n}\r\n\r\n\r\n.ui-datepicker .ui-datepicker-prev.ui-state-hover, .ui-datepicker .ui-datepicker-next.ui-state-hover {\r\n    background: none;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev-hover {\r\n\tleft: 8px !important;\r\n    top: 8px !important;\r\n}\r\n.ui-datepicker .ui-datepicker-next-hover {\r\n\tright: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n\r\n\r\n\r\n\r\nbutton.ui-state-hover {\r\n    background: unset !important;\r\n    background-color: var(--mdc-theme-primary-hover) !important;\r\n    border: unset !important;\r\n    color: white !important;\r\n    box-shadow: 0px 3px 1px -2px rgb(0 0 0 / 20%), 0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%) !important;\r\n}\r\n\r\n\r\n\r\n/* jquery ui datepicker month year picker */\r\n.ui-datepicker .ui-datepicker-select-month td ,\r\n.ui-datepicker .ui-datepicker-select-year td {\r\n\theight: 33px;\r\n}\r\n.ui-datepicker .ui-datepicker-select-month td span,\r\n.ui-datepicker .ui-datepicker-select-month td a,\r\n.ui-datepicker .ui-datepicker-select-year td span,\r\n.ui-datepicker .ui-datepicker-select-year td a  {\r\n\ttext-align: center;\r\n}\r\n.ui-datepicker .ui-datepicker-select-year td.outoffocus {\r\n\topacity: 0.5;\r\n}\r\n\r\n.ui-datepicker-select-month .ui-state-default, .ui-datepicker-select-year .ui-state-default {\r\n    margin: auto;\r\n}\r\n\r\n.ui-datepicker td {\r\n    font-size: 14px !important;\r\n}\r\n\r\n.ui-datepicker .ui-state-default, .ui-datepicker .ui-state-active {\r\n    position: relative;\r\n    border: 0 !important;\r\n    background: none !important;\r\n}\r\n\r\n.ui-datepicker .ui-state-active::after {\r\n    position: absolute;\r\n    display: block;\r\n    content: '';\r\n    background-color:var(--mdc-theme-primary);\r\n    border-radius: 50%;\r\n    width: 34px;\r\n    height: 34px;\r\n    z-index: -1;\r\n    top: 0;\r\n    left: calc(50% - 16px)\r\n}\r\n\r\n\r\n.ui-datepicker .ui-state-default:not(.ui-state-active).ui-state-hover::after {\r\n    position: absolute;\r\n    display: block;\r\n    content: '';\r\n    background-color: rgba(0,0,0,0.05);\r\n    border-radius: 50%;\r\n    width: 34px;\r\n    height: 34px;\r\n    z-index: -1;\r\n    top: 0;\r\n    left: calc(50% - 16px)\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header {\r\n    display: flex;\r\n    align-items: center;\r\n    padding: 4px 24px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header .ui-datepicker-title {\r\n    flex: 1;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header-time-switch {\r\n    flex: 1;\r\n    line-height: 100%;\r\n    height: 100%;\r\n    align-self: center;\r\n}\r\n\r\n\r\n.timepicker{\r\n    display:block;\r\n    user-select:none;\r\n    margin:0 auto;\r\n    width:100%;\r\n    height:100%;\r\n    font-size:14px;\r\n}\r\n.timepicker__title{background-image:-webkit-linear-gradient(top,#fff 0,#f2f2f2 100%);position:relative;background:#f2f2f2;margin:0 auto;border-bottom:1px solid #e5e5e5;padding:12px 11px 10px 15px;color:#4C4C4C;font-size:inherit}\r\n.timepicker__close{-webkit-transform:translateY(-25%);-moz-transform:translateY(-25%);-ms-transform:translateY(-25%);-o-transform:translateY(-25%);transform:translateY(-25%);position:absolute;top:25%;right:10px;color:#34495e;cursor:pointer}\r\n.timepicker__close:before{content:'\\00d7'}\r\n.timepicker__controls{padding:10px 0;line-height:normal;margin:0}\r\n.timepicker__controls__control,.timepicker__controls__control--separator{vertical-align:middle;display:inline-block;font-size:inherit;margin:0 auto;width:35px;letter-spacing:1.3px}\r\n.timepicker__controls__control-down,.timepicker__controls__control-up{color:#34495e;position:relative;display:block;margin:3px auto;font-size:18px;cursor:pointer}\r\n.timepicker__controls__control-up:before{content:'\\f0d8'}\r\n.timepicker__controls__control-down:after{content:'\\f0d7'}\r\n.timepicker__controls__control--separator{width:5px}\r\n.text-center,.timepicker__controls,.timepicker__controls__control,.timepicker__controls__control--separator,.timepicker__controls__control-down,.timepicker__controls__control-up,.timepicker__title{text-align:center}\r\n.hover-state{color:#3498db}\r\n \r\n.fontello-after:after,.fontello:before,.timepicker__controls__control-down:after,.timepicker__controls__control-up:before{font-family:FontAwesome;font-style:normal;font-weight:400;display:inline-block;text-decoration:inherit;width:1em;margin-right:.2em;text-align:center;font-variant:normal;text-transform:none;line-height:1em;margin-left:.2em;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}  \r\n.clearable-picker{position:relative;display:inline-block}  \r\n.clearable-picker>.hastimepicker{padding-right:1em}  \r\n.clearable-picker>.hastimepicker::-ms-clear{display:none}  \r\n.clearable-picker>[data-clear-picker]{position:absolute;top:50%;right:0;transform:translateY(-50%);font-weight:700;font-size:.8em;padding:0 .3em .2em;line-height:1;color:#bababa;cursor:pointer}  \r\n.clearable-picker>[data-clear-picker]:hover{color:#a1a1a1}\r\n.timepicker__controls__control span {\r\n    outline: none;\r\n}"],"sourceRoot":""}]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 
@@ -74241,13 +74320,13 @@ var update = _node_modules_style_loader_dist_runtime_injectStylesIntoStyleTag_js
 "use strict";
 
 
-var stylesInDom = [];
+var stylesInDOM = [];
 
 function getIndexByIdentifier(identifier) {
   var result = -1;
 
-  for (var i = 0; i < stylesInDom.length; i++) {
-    if (stylesInDom[i].identifier === identifier) {
+  for (var i = 0; i < stylesInDOM.length; i++) {
+    if (stylesInDOM[i].identifier === identifier) {
       result = i;
       break;
     }
@@ -74266,20 +74345,24 @@ function modulesToDom(list, options) {
     var count = idCountMap[id] || 0;
     var identifier = "".concat(id, " ").concat(count);
     idCountMap[id] = count + 1;
-    var index = getIndexByIdentifier(identifier);
+    var indexByIdentifier = getIndexByIdentifier(identifier);
     var obj = {
       css: item[1],
       media: item[2],
-      sourceMap: item[3]
+      sourceMap: item[3],
+      supports: item[4],
+      layer: item[5]
     };
 
-    if (index !== -1) {
-      stylesInDom[index].references++;
-      stylesInDom[index].updater(obj);
+    if (indexByIdentifier !== -1) {
+      stylesInDOM[indexByIdentifier].references++;
+      stylesInDOM[indexByIdentifier].updater(obj);
     } else {
-      stylesInDom.push({
+      var updater = addElementStyle(obj, options);
+      options.byIndex = i;
+      stylesInDOM.splice(i, 0, {
         identifier: identifier,
-        updater: addStyle(obj, options),
+        updater: updater,
         references: 1
       });
     }
@@ -74290,12 +74373,13 @@ function modulesToDom(list, options) {
   return identifiers;
 }
 
-function addStyle(obj, options) {
+function addElementStyle(obj, options) {
   var api = options.domAPI(options);
   api.update(obj);
-  return function updateStyle(newObj) {
+
+  var updater = function updater(newObj) {
     if (newObj) {
-      if (newObj.css === obj.css && newObj.media === obj.media && newObj.sourceMap === obj.sourceMap) {
+      if (newObj.css === obj.css && newObj.media === obj.media && newObj.sourceMap === obj.sourceMap && newObj.supports === obj.supports && newObj.layer === obj.layer) {
         return;
       }
 
@@ -74304,6 +74388,8 @@ function addStyle(obj, options) {
       api.remove();
     }
   };
+
+  return updater;
 }
 
 module.exports = function (list, options) {
@@ -74316,7 +74402,7 @@ module.exports = function (list, options) {
     for (var i = 0; i < lastIdentifiers.length; i++) {
       var identifier = lastIdentifiers[i];
       var index = getIndexByIdentifier(identifier);
-      stylesInDom[index].references--;
+      stylesInDOM[index].references--;
     }
 
     var newLastIdentifiers = modulesToDom(newList, options);
@@ -74326,10 +74412,10 @@ module.exports = function (list, options) {
 
       var _index = getIndexByIdentifier(_identifier);
 
-      if (stylesInDom[_index].references === 0) {
-        stylesInDom[_index].updater();
+      if (stylesInDOM[_index].references === 0) {
+        stylesInDOM[_index].updater();
 
-        stylesInDom.splice(_index, 1);
+        stylesInDOM.splice(_index, 1);
       }
     }
 
@@ -74399,10 +74485,10 @@ module.exports = insertBySelector;
 
 /* istanbul ignore next  */
 function insertStyleElement(options) {
-  var style = document.createElement("style");
-  options.setAttributes(style, options.attributes);
-  options.insert(style);
-  return style;
+  var element = document.createElement("style");
+  options.setAttributes(element, options.attributes);
+  options.insert(element, options.options);
+  return element;
 }
 
 module.exports = insertStyleElement;
@@ -74419,11 +74505,11 @@ module.exports = insertStyleElement;
 
 
 /* istanbul ignore next  */
-function setAttributesWithoutAttributes(style) {
+function setAttributesWithoutAttributes(styleElement) {
   var nonce =  true ? __webpack_require__.nc : 0;
 
   if (nonce) {
-    style.setAttribute("nonce", nonce);
+    styleElement.setAttribute("nonce", nonce);
   }
 }
 
@@ -74441,16 +74527,38 @@ module.exports = setAttributesWithoutAttributes;
 
 
 /* istanbul ignore next  */
-function apply(style, options, obj) {
-  var css = obj.css;
-  var media = obj.media;
-  var sourceMap = obj.sourceMap;
+function apply(styleElement, options, obj) {
+  var css = "";
 
-  if (media) {
-    style.setAttribute("media", media);
-  } else {
-    style.removeAttribute("media");
+  if (obj.supports) {
+    css += "@supports (".concat(obj.supports, ") {");
   }
+
+  if (obj.media) {
+    css += "@media ".concat(obj.media, " {");
+  }
+
+  var needLayer = typeof obj.layer !== "undefined";
+
+  if (needLayer) {
+    css += "@layer".concat(obj.layer.length > 0 ? " ".concat(obj.layer) : "", " {");
+  }
+
+  css += obj.css;
+
+  if (needLayer) {
+    css += "}";
+  }
+
+  if (obj.media) {
+    css += "}";
+  }
+
+  if (obj.supports) {
+    css += "}";
+  }
+
+  var sourceMap = obj.sourceMap;
 
   if (sourceMap && typeof btoa !== "undefined") {
     css += "\n/*# sourceMappingURL=data:application/json;base64,".concat(btoa(unescape(encodeURIComponent(JSON.stringify(sourceMap)))), " */");
@@ -74459,28 +74567,28 @@ function apply(style, options, obj) {
   /* istanbul ignore if  */
 
 
-  options.styleTagTransform(css, style);
+  options.styleTagTransform(css, styleElement, options.options);
 }
 
-function removeStyleElement(style) {
+function removeStyleElement(styleElement) {
   // istanbul ignore if
-  if (style.parentNode === null) {
+  if (styleElement.parentNode === null) {
     return false;
   }
 
-  style.parentNode.removeChild(style);
+  styleElement.parentNode.removeChild(styleElement);
 }
 /* istanbul ignore next  */
 
 
 function domAPI(options) {
-  var style = options.insertStyleElement(options);
+  var styleElement = options.insertStyleElement(options);
   return {
     update: function update(obj) {
-      apply(style, options, obj);
+      apply(styleElement, options, obj);
     },
     remove: function remove() {
-      removeStyleElement(style);
+      removeStyleElement(styleElement);
     }
   };
 }
@@ -74499,15 +74607,15 @@ module.exports = domAPI;
 
 
 /* istanbul ignore next  */
-function styleTagTransform(css, style) {
-  if (style.styleSheet) {
-    style.styleSheet.cssText = css;
+function styleTagTransform(css, styleElement) {
+  if (styleElement.styleSheet) {
+    styleElement.styleSheet.cssText = css;
   } else {
-    while (style.firstChild) {
-      style.removeChild(style.firstChild);
+    while (styleElement.firstChild) {
+      styleElement.removeChild(styleElement.firstChild);
     }
 
-    style.appendChild(document.createTextNode(css));
+    styleElement.appendChild(document.createTextNode(css));
   }
 }
 

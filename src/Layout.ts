@@ -58,6 +58,7 @@ export class Layout {
      * @param config 
      */
     public openContext(config: any) {
+        console.log("Layout::openContext", config);
         this.view.openContext(config);
     }
 
@@ -181,25 +182,48 @@ export class Layout {
      * @param field_name 
      */
     private getWidgetConfig(item: any) {
-        let field = item.value;
-        
+        let config:any = {};
+
         let translation = this.view.getTranslation();
         let model_fields = this.view.getModelFields();
+
+        let field = item.value;
 
         if(!model_fields || !model_fields.hasOwnProperty(field)) {
             return null;
         }
 
-        let def = model_fields[field];
+        let def = model_fields[field];        
 
         let label = (item.hasOwnProperty('label'))?item.label:field;
-// #todo - handle help and relay to Context        
+        // #todo - handle help and relay to Context        
         let helper = (item.hasOwnProperty('help'))?item.help:(def.hasOwnProperty('help'))?def['help']:'';
         let description = (item.hasOwnProperty('description'))?item.description:(def.hasOwnProperty('description'))?def['description']:'';
-
-        let config:any = {...def};
         
-        if(config.hasOwnProperty('selection')) {
+        
+        if(def.hasOwnProperty('type')) {
+            let type = def['type'];
+            if(def.hasOwnProperty('result_type')) {
+                type = def['result_type'];
+            }
+            config.type = type;
+        }
+        else {
+            // we shouldn't end up here : malformed schema
+            console.log('ERROR - malformed schema for field '+field);
+            return config;
+        }
+
+        if(def.hasOwnProperty('foreign_object')) {
+            config.foreign_object = def.foreign_object;
+        }
+
+        if(def.hasOwnProperty('foreign_field')) {
+            config.foreign_field = def.foreign_field;
+        }
+
+        if(def.hasOwnProperty('selection')) {
+            config.selection = def.selection;
             config.type = 'select';
             let translated = TranslationService.resolve(translation, 'model', [], field, config.selection, 'selection');
             let values = translated;
@@ -213,6 +237,7 @@ export class Layout {
             config.values = values;
         }
         // ready property is set to true during the 'feed' phase
+        config.visible = true;
         config.ready = false;
         config.title = TranslationService.resolve(translation, 'model', [], field, label, 'label');
         config.description = TranslationService.resolve(translation, 'model', [], field, description, 'description');
@@ -221,15 +246,16 @@ export class Layout {
         config.sortable = (item.hasOwnProperty('sortable') && item.sortable);
         config.layout = this.view.getType();
         config.lang = this.view.getLang();
-
+        
         if(item.hasOwnProperty('widget')) {
-            // overload config with widget config
+            // overload config with widget config, if any
             config = {...config, ...item.widget};
         }
 
-        if(!config.hasOwnProperty('visible')) {
-            config.visible = true;
+        if(def.hasOwnProperty('visible')) {
+            config.visible = def.visible;
         }
+
         if(item.hasOwnProperty('visible')) {
             config.visible = item.visible;
         }
@@ -237,14 +263,8 @@ export class Layout {
         // convert visible property to JSON
         config.visible = eval(config.visible);
 
-        let type = def['type'];
-        if(def.hasOwnProperty('result_type')) {
-            type = def['result_type'];
-            config.type = type;
-        }
-
         // for relational fields, we need to check if the Model has been fetched al
-        if(['one2many', 'many2one', 'many2many'].indexOf(type) > -1) {
+        if(['one2many', 'many2one', 'many2many'].indexOf(config.type) > -1) {
             // defined config for Widget's view with a custom domain according to object values
             let view_id = (config.hasOwnProperty('view'))?config.view:'list.default';
             let parts = view_id.split(".", 2); 
@@ -252,12 +272,13 @@ export class Layout {
             let view_name = (parts.length > 1)?parts[1]:parts[0];
 
             let def_domain = (def.hasOwnProperty('domain'))?def['domain']:[];
-            let view_domain = (item.hasOwnProperty('domain'))?item['domain']:[];
+            let view_domain = (config.hasOwnProperty('domain'))?config['domain']:[];
+
             let domain = new Domain(def_domain);
             domain.merge(new Domain(view_domain));
 
             // add join condition for limiting list to the current object
-            if(['one2many', 'many2many'].indexOf(type) > -1 && def.hasOwnProperty('foreign_field')) {
+            if(['one2many', 'many2many'].indexOf(config.type) > -1 && def.hasOwnProperty('foreign_field')) {
                 domain.merge(new Domain([def['foreign_field'], 'contains', 'object.id']));                
             }
 
@@ -373,7 +394,8 @@ export class Layout {
                                     }
                                 }
                                 else if(item.type == 'label') {
-                                    $cell.append('<span style="font-weight: 600;">'+item.value+'</span>');
+                                    let label_title = TranslationService.resolve(translation, 'view', [this.view.getId(), 'layout'], item.id, item.value);
+                                    $cell.append('<span style="font-weight: 600;">'+label_title+'</span>');
                                 }
                                 else if(item.type == 'button') {
                                     $cell.append(UIHelper.createButton(item.action, item.value,  'raised', (item.icon)?item.icon:''));

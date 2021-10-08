@@ -121,7 +121,22 @@ export class Domain {
                     if(!object.hasOwnProperty(target)) {
                         continue;
                     }
-                    value = object[target];
+                    let tmp = object[target];
+                    // target points to an object with subfields
+                    if(typeof tmp === 'object') {
+                        if(tmp.hasOwnProperty('id')) {
+                            value = tmp.id;
+                        }
+                        else if(tmp.hasOwnProperty('name')) {
+                            value = tmp.name;
+                        }
+                        else {
+                            continue;
+                        } 
+                    }
+                    else {
+                        value = object[target];
+                    }                    
                 }
                 // handle user references as `value` part
                 else if(typeof value === 'string' && value.indexOf('user.') == 0) {

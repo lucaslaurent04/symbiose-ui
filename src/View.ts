@@ -47,6 +47,9 @@ export class View {
     // Map of available custom exports with their definition
     private exports: any;
 
+    // custom actions of the view
+    private custom_actions: any;
+
     // config object for setting display of list controls and action buttons
     private config: any;
 
@@ -70,7 +73,7 @@ export class View {
      *
      * @param entity    entity (package\Class) to be loaded: should be set only once (depend on the related view)
      * @param type      type of the view ('list', 'form', ...)
-     * @param name
+     * @param name      name of the view (eg. 'default')
      * @param domain
      * @param mode
      * @param purpose
@@ -205,6 +208,7 @@ export class View {
         this.applied_filters_ids = [];
 
         this.filters = {};
+        this.custom_actions = {};
 
         this.exports = {
             "export.pdf": {
@@ -273,6 +277,12 @@ export class View {
             if(this.view_schema.hasOwnProperty("exports")) {
                 for(let item of this.view_schema.exports) {
                     this.exports[item.id] = item;
+                }
+            }
+
+            if(this.view_schema.hasOwnProperty("actions")) {
+                for(let item of this.view_schema.actions) {
+                    this.custom_actions[item.id] = item;
                 }
             }
 
@@ -577,8 +587,16 @@ export class View {
                         UIHelper.createButton('action-edit', TranslationService.instant('SB_ACTIONS_BUTTON_CREATE'), 'raised')
                         .on('click', async () => {
                             try {
+                                let view_type = 'form';
+                                let view_name = this.name;
+                                if(this.custom_actions.hasOwnProperty('ACTIONS.CREATE')) {
+                                    let parts = this.custom_actions['ACTIONS.CREATE'].view.split('.');
+                                    if(parts.length) view_type = <string>parts.shift();
+                                    if(parts.length) view_name = <string>parts.shift();
+                
+                                }            
                                 // request a new Context for editing a new object
-                                await this.openContext({entity: this.entity, type: 'form', name: this.name, domain: this.domain, mode: 'edit', purpose: 'create'});
+                                await this.openContext({entity: this.entity, type: view_type, name: view_name, domain: this.domain, mode: 'edit', purpose: 'create'});
                             }
                             catch(response) {
                                 this.displayErrorFeedback(response);

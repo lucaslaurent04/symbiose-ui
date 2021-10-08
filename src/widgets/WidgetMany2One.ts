@@ -24,19 +24,19 @@ export default class WidgetMany2One extends Widget {
 // #todo : display many2one as sub-forms
 
         // on right side of widget, add an icon to open the target object (current selection) into a new context
-        let $button_open = UIHelper.createButton('m2o-actions-open', '', 'icon', 'open_in_new');
-        let $button_create = UIHelper.createButton('m2o-actions-create', '', 'icon', 'add');
+        let $button_open = UIHelper.createButton('m2o-actions-open-'+this.id, '', 'icon', 'open_in_new');
+        let $button_create = UIHelper.createButton('m2o-actions-create-'+this.id, '', 'icon', 'add');
 
         switch(this.mode) {
             case 'edit':
                 let objects:Array<any> = [];
                 this.$elem = $('<div />');
 
-                let $select = UIHelper.createInput('', this.label, value, this.config.description, '', this.readonly).addClass('mdc-menu-surface--anchor').css({"width": "calc(100% - 48px)", "display": "inline-block"});
+                let $select = UIHelper.createInput('m2o-input-'+this.id, this.label, value, this.config.description, '', this.readonly).addClass('mdc-menu-surface--anchor').css({"width": "calc(100% - 48px)", "display": "inline-block"});
 
-                let $menu = UIHelper.createMenu('').appendTo($select);
-                let $menu_list = UIHelper.createList('').appendTo($menu);
-                let $link = UIHelper.createListItem('SB_WIDGETS_MANY2ONE_ADVANCED_SEARCH-'+this.id, '<a style="text-decoration: underline;">'+TranslationService.instant('SB_WIDGETS_MANY2ONE_ADVANCED_SEARCH')+'</a>');
+                let $menu = UIHelper.createMenu('m2o-menu-'+this.id).appendTo($select);
+                let $menu_list = UIHelper.createList('m2o-menu-list-'+this.id).appendTo($menu);
+                let $link = UIHelper.createListItem('m2o-actions-create-'+this.id, '<a style="text-decoration: underline;">'+TranslationService.instant('SB_WIDGETS_MANY2ONE_ADVANCED_SEARCH')+'</a>');
 
                 if(value.length) {
                     $button_create.hide();
@@ -52,70 +52,6 @@ export default class WidgetMany2One extends Widget {
 
                 UIHelper.decorateMenu($menu);
 
-                let feedObjects = () => {
-                    let tmpDomain = new Domain(['name', 'ilike', '%'+$select.find('input').val()+'%']);
-                    tmpDomain.merge(new Domain(domain));
-                    // fetch 5 first objects from config.foreign_object (use config.domain) + add an extra line ("advanced search...")
-                    ApiService.collect(this.config.foreign_object, tmpDomain.toArray(), ['id', 'name'], 'id', 'asc', 0, 5, this.config.lang)
-                    .then( (response:any) => {
-                        objects = response;
-                        $menu_list.empty();
-                        for(let object of objects) {
-                            UIHelper.createListItem(this.id+'-object-'+object.id, object.name)
-                            .appendTo($menu_list)
-                            .attr('id', object.id)
-                            .on('click', (event) => {
-                                $select.find('input').val(object.name);
-                                $select.trigger('change');
-                            })
-                        }
-                        $menu_list.append(UIHelper.createListDivider());
-                        $menu_list.append($link);
-                    })
-                    .catch( (response) => {
-                        console.log(response);
-                    });
-                };
-
-                if(!this.readonly) {
-                    // make the menu sync with its parent width (menu is 'fixed')
-                    $select.on('click', () => {
-                        $select.find('.mdc-menu-surface').width(<number>$select.width());
-                        $menu.trigger('_toggle');
-                        feedObjects();
-                    });
-
-                    let timeout:any = null;
-
-                    $select.find('input')
-                    .on('keyup', () => {
-                        if(timeout) {
-                            clearTimeout(timeout);
-                        }
-                        timeout = setTimeout(() => {
-                            timeout = null;
-                            feedObjects();
-                        }, 300);
-                    });
-
-                    // upon value change, relay updated value to parent layout
-                    $select.on('change', (event) => {
-                        console.log('WidgetMany2One : received change event');
-                        // m2o relations are always loaded as an object with {id:, name:}
-                        let value = $select.find('input').val();
-                        let object = objects.find( o => o.name == value);
-                        if(object) {
-                            $button_create.hide();
-                            $button_open.show();
-                            this.value = {id: object.id, name: value};
-                            this.$elem.trigger('_updatedWidget');
-                        }
-                        else {
-                            $button_create.show();
-                            $button_open.hide();
-                        }
-                    });
-                }
 
                 // open targeted object in new context
                 $button_open.on('click', async () => {
@@ -156,12 +92,15 @@ export default class WidgetMany2One extends Widget {
                     });
                 });
 
-                // advanced search
-                $link.on('click', async () => {
+                let openSelectContext = () => {
                     this.getLayout().openContext({
                         entity: this.config.foreign_object,
+                        /*
                         type: (this.config.hasOwnProperty('view_type'))?this.config.view_type:'list',
                         name: (this.config.hasOwnProperty('view_name'))?this.config.view_name:'default',
+                        */
+                        type: 'list',
+                        name: 'default',
                         domain: domain,
                         mode: 'view',
                         purpose: 'select',
@@ -174,9 +113,87 @@ export default class WidgetMany2One extends Widget {
                             }
                         }
                     });
-                    return false;
-                });
+                };
 
+                let feedObjects = () => {
+                    let $input = $select.find('input');
+                    if(!$input.length) return;
+                    let val = <string> $input.val();
+                    let parts:string[] = val.split(" ");
+
+                    let domainArray = [];
+                    for(let word of parts) {
+                        let cond = ['name', 'ilike', '%'+word+'%'];
+                        domainArray.push(cond);
+                    }
+                    let tmpDomain = new Domain(domainArray);
+                    tmpDomain.merge(new Domain(domain));
+                    // fetch 5 first objects from config.foreign_object (use config.domain) + add an extra line ("advanced search...")
+                    ApiService.collect(this.config.foreign_object, tmpDomain.toArray(), ['id', 'name'], 'id', 'asc', 0, 5, this.config.lang)
+                    .then( (response:any) => {
+                        objects = response;
+                        $menu_list.empty();
+                        for(let object of objects) {
+                            UIHelper.createListItem(this.id+'-object-'+object.id, object.name)
+                            .appendTo($menu_list)
+                            .attr('id', object.id)
+                            .on('click', (event) => {
+                                $select.find('input').val(object.name);
+                                $select.trigger('change');
+                            })
+                        }
+                        if(objects.length) {
+                            $menu_list.append(UIHelper.createListDivider());
+                        }
+                        // advanced search button
+                        $link.on('click', openSelectContext);
+                        $menu_list.append($link);
+                    })
+                    .catch( (response) => {
+                        console.log('request failed', response);
+                    });
+                };
+
+                if(!this.readonly) {
+                    
+                    $select.on('click', () => {
+                        // make the menu sync with its parent width (menu is 'fixed')
+                        $select.find('.mdc-menu-surface').width(<number>$select.width());
+                        $menu.trigger('_toggle');
+                        feedObjects();
+                    });
+
+                    let timeout:any = null;
+
+                    $select.find('input')
+                    .on('keyup', () => {
+                        if(timeout) {
+                            clearTimeout(timeout);
+                        }
+                        timeout = setTimeout(() => {
+                            timeout = null;
+                            feedObjects();
+                        }, 300);
+                    });
+
+                    // upon value change, relay updated value to parent layout
+                    $select.on('change', (event) => {
+                        console.log('WidgetMany2One : received change event');
+                        // m2o relations are always loaded as an object with {id:, name:}
+                        let value = $select.find('input').val();
+                        let object = objects.find( o => o.name == value);
+                        if(object) {
+                            $button_create.hide();
+                            $button_open.show();
+                            this.value = {id: object.id, name: value};
+                            this.$elem.trigger('_updatedWidget');
+                        }
+                        else {
+                            $button_create.show();
+                            $button_open.hide();
+                        }
+                    });
+                }
 
                 // #memo - do not load on init (to prevent burst requests when view are displayed in edit mode)
                 // feedObjects();                
