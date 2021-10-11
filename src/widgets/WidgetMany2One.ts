@@ -13,7 +13,7 @@ export default class WidgetMany2One extends Widget {
     }
 
     public render():JQuery {
-
+console.log('rendering M2O', this);
         // in edit mode, we should have received an id, and in view mode, a name
         let value:string = this.value?this.value:'';
         let domain:any = [];
@@ -55,15 +55,12 @@ export default class WidgetMany2One extends Widget {
 
                 // open targeted object in new context
                 $button_open.on('click', async () => {
-                    let value = $select.find('input').val();
-                    let object = objects.find( o => o.name == value);
-                    if(object && object.hasOwnProperty('id')) {
-                        let object = objects.find( o => o.name == value);
+                    if(this.config.hasOwnProperty('object_id')) {
                         this.getLayout().openContext({
                             entity: this.config.foreign_object,
                             type: 'form',
                             name: (this.config.hasOwnProperty('view_name'))?this.config.view_name:'default',
-                            domain: ['id', '=', object.id]
+                            domain: ['id', '=', this.config.object_id]
                         });
                     }
                 });

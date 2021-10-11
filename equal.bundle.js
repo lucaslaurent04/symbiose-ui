@@ -2158,7 +2158,7 @@ var Frame = /*#__PURE__*/function () {
                   object = objects[0]; // by convention, collections should always request the `name` field
 
                   if (object.hasOwnProperty('name') && purpose != 'create') {
-                    result += ' <small>[' + object['name'] + ']</small>';
+                    result += ' <small>[' + object['name'] + ' - ' + object['id'] + ']</small>';
                   }
                 }
 
@@ -9087,7 +9087,8 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
     value: function render() {
       var _this = this;
 
-      // in edit mode, we should have received an id, and in view mode, a name
+      console.log('rendering M2O', this); // in edit mode, we should have received an id, and in view mode, a name
+
       var value = this.value ? this.value : '';
       var domain = [];
 
@@ -9131,31 +9132,20 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
 
 
           $button_open.on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
-            var value, object, _object;
-
             return _regenerator.default.wrap(function _callee$(_context) {
               while (1) {
                 switch (_context.prev = _context.next) {
                   case 0:
-                    value = $select.find('input').val();
-                    object = objects.find(function (o) {
-                      return o.name == value;
-                    });
-
-                    if (object && object.hasOwnProperty('id')) {
-                      _object = objects.find(function (o) {
-                        return o.name == value;
-                      });
-
+                    if (_this.config.hasOwnProperty('object_id')) {
                       _this.getLayout().openContext({
                         entity: _this.config.foreign_object,
                         type: 'form',
                         name: _this.config.hasOwnProperty('view_name') ? _this.config.view_name : 'default',
-                        domain: ['id', '=', _object.id]
+                        domain: ['id', '=', _this.config.object_id]
                       });
                     }
 
-                  case 3:
+                  case 1:
                   case "end":
                     return _context.stop();
                 }

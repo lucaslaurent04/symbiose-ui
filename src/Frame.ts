@@ -116,7 +116,7 @@ export class Frame {
                 let object = objects[0];
                 // by convention, collections should always request the `name` field
                 if(object.hasOwnProperty('name') && purpose != 'create') {
-                    result += ' <small>['+object['name']+']</small>';
+                    result += ' <small>[' + object['name'] + ' - ' + object['id'] + ']</small>';
                 }    
             }
         }
