@@ -24,7 +24,7 @@ export class _ApiService {
 
     constructor() {
         $.ajaxSetup({
-            cache:false,
+            cache: true,            // allow brower to cache the responses
             beforeSend: (xhr) => {
                 /*
                 // #removed for XSS protection (we use httpOnly cookie instead)
@@ -198,13 +198,13 @@ export class _ApiService {
         return result;
     }
 
-    public async create(entity:string, fields:any = {}) {
+    public async create(entity:string, fields:any = {}, lang: string = environment.lang) {
         let result: any;
         try {
             let params = {
                 entity: entity,
                 fields: fields,
-                lang: environment.lang
+                lang: lang
             };
             const response = await $.get({
                 url: environment.backend_url+'/?do=model_create',
@@ -220,14 +220,14 @@ export class _ApiService {
         return result;
     }
     
-    public async read(entity:string, ids:any[], fields:[]) {
+    public async read(entity:string, ids:any[], fields:[], lang: string = environment.lang) {
         let result: any;
         try {
             let params = {
                 entity: entity,
                 ids: ids,
                 fields: fields,
-                lang: environment.lang
+                lang: lang
             };
             const response = await $.get({
                 url: environment.backend_url+'/?get=model_read',
@@ -294,7 +294,7 @@ export class _ApiService {
      * @param ids 
      * @param fields 
      */
-    public async update(entity:string, ids:any[], fields:any, force: boolean=false) {
+    public async update(entity:string, ids:any[], fields:any, force: boolean=false, lang: string = environment.lang) {
         console.log('ApiService::update', entity, ids, fields);
         let result: any = true;
         try {
@@ -302,7 +302,7 @@ export class _ApiService {
                 entity: entity,
                 ids: ids,
                 fields: fields,
-                lang: environment.lang,
+                lang: lang,
                 force: force
             };
             const response = await $.post({

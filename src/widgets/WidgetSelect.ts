@@ -36,6 +36,11 @@ export default class WidgetSelect extends Widget {
                 this.$elem = UIHelper.createInputView('', this.label, val);
                 break;
         }
+
+        if(this.config.hasOwnProperty('header') && this.config.layout == 'form') {
+            this.$elem.addClass('title');
+        }
+
         this.$elem.addClass('sb-widget').addClass('sb-widget-mode-'+this.mode).attr('id', this.getId());
 
         return this.$elem;

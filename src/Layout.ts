@@ -10,9 +10,9 @@ import View from "./View";
 
 /*
     There are two main branches of Layouts depending on what is to be displayed:
-        - 1 single object : Form 
+        - 1 single object : Form
         - several objects : List (grid, kanban, graph)
-        
+
     Forms can be displayed in two modes : 'view' or 'edit'
     Lists can be editable on a Cell basis (using Widgets)
 */
@@ -20,7 +20,7 @@ import View from "./View";
 export class Layout {
 
     private view: View;             // parent view the layout belongs to
-    
+
     private $layout: any;
 
     private model_widgets: any;
@@ -38,14 +38,14 @@ export class Layout {
     }
 
     public async init() {
-        console.log('Layout::init');        
+        console.log('Layout::init');
         try {
             // initialize the layout
             this.layout();
         }
         catch(err) {
             console.log('Something went wrong ', err);
-        }        
+        }
     }
 
     public getView() {
@@ -54,8 +54,8 @@ export class Layout {
 
     /**
      * Relay Context opening requests to parent View.
-     * 
-     * @param config 
+     *
+     * @param config
      */
     public openContext(config: any) {
         console.log("Layout::openContext", config);
@@ -63,9 +63,9 @@ export class Layout {
     }
 
     /**
-     * 
-     * @param field 
-     * @param message 
+     *
+     * @param field
+     * @param message
      */
     public markFieldAsInvalid(object_id: number, field: string, message: string) {
         console.log('Layout::markFieldAsInvalid', object_id, field);
@@ -77,7 +77,7 @@ export class Layout {
             let widget = this.model_widgets[object_id][field];
             let $elem = this.$layout.find('#'+widget.getId())
             $elem.addClass('mdc-text-field--invalid');
-            $elem.find('.mdc-text-field-helper-text').addClass('mdc-text-field-helper-text--persistent mdc-text-field-helper-text--validation-msg').text(message).attr('title', message);    
+            $elem.find('.mdc-text-field-helper-text').addClass('mdc-text-field-helper-text--persistent mdc-text-field-helper-text--validation-msg').text(message).attr('title', message);
         }
     }
 
@@ -106,15 +106,15 @@ export class Layout {
 
         if(this.model_widgets[object_id][field]) {
             this.model_widgets[object_id][field].setValue(value);
-        }        
+        }
     }
 
     // refresh layout
-    // this method is called in response to parent View `onchangeModel` method 
+    // this method is called in response to parent View `onchangeModel` method
     public async refresh(full: boolean = false) {
         console.log('Layout::refresh');
 
-        // also re-generate the layout                     
+        // also re-generate the layout
         if(full) {
             this.$layout.empty();
             this.layout();
@@ -123,8 +123,8 @@ export class Layout {
         // feed layout with current Model
         let objects = await this.view.getModel().get();
         this.feed(objects);
-    }       
-    
+    }
+
     public getSelected() {
         var selection = <any>[];
         let $tbody = this.$layout.find("tbody");
@@ -132,12 +132,12 @@ export class Layout {
             let data = $(elem).attr('data-id');
             if(data != undefined) {
                 selection.push( parseInt(<string>data, 10) );
-            }            
+            }
         });
         return selection;
     }
 
-    
+
     public getSelectedSections() {
         let selectedSections:any = {};
         this.$layout.find('.sb-view-form-group').each( (i:number, group: any) => {
@@ -148,11 +148,11 @@ export class Layout {
             });
         });
         return selectedSections;
-    }    
+    }
 
     private layout() {
         console.log('Layout::layout');
-                
+
         switch(this.view.getType()) {
             case 'form':
                 this.layoutForm();
@@ -165,7 +165,7 @@ export class Layout {
 
     private feed(objects: []) {
         console.log('Layout::feed');
-        
+
         switch(this.view.getType()) {
             case 'form':
                 this.feedForm(objects);
@@ -179,7 +179,7 @@ export class Layout {
 
     /**
      * Generate a widget config based on a layout item (from View schema)
-     * @param field_name 
+     * @param field_name
      */
     private getWidgetConfig(item: any) {
         let config:any = {};
@@ -193,18 +193,29 @@ export class Layout {
             return null;
         }
 
-        let def = model_fields[field];        
+        let def = model_fields[field];
 
         let label = (item.hasOwnProperty('label'))?item.label:field;
-        // #todo - handle help and relay to Context        
+        // #todo - handle help and relay to Context
         let helper = (item.hasOwnProperty('help'))?item.help:(def.hasOwnProperty('help'))?def['help']:'';
         let description = (item.hasOwnProperty('description'))?item.description:(def.hasOwnProperty('description'))?def['description']:'';
-        
-        
+
         if(def.hasOwnProperty('type')) {
             let type = def['type'];
             if(def.hasOwnProperty('result_type')) {
                 type = def['result_type'];
+            }
+            if(def.hasOwnProperty('usage')) {
+                switch(def.usage) {
+                    // #todo - complete the list
+                    case 'markup/html': 
+                        type = 'text';
+                        break;
+                    case 'uri/url:http':
+                    case 'uri/url':
+                        type = 'link';
+                        break;
+                }
             }
             config.type = type;
         }
@@ -246,7 +257,7 @@ export class Layout {
         config.sortable = (item.hasOwnProperty('sortable') && item.sortable);
         config.layout = this.view.getType();
         config.lang = this.view.getLang();
-        
+
         if(item.hasOwnProperty('widget')) {
             // overload config with widget config, if any
             config = {...config, ...item.widget};
@@ -267,7 +278,7 @@ export class Layout {
         if(['one2many', 'many2one', 'many2many'].indexOf(config.type) > -1) {
             // defined config for Widget's view with a custom domain according to object values
             let view_id = (config.hasOwnProperty('view'))?config.view:'list.default';
-            let parts = view_id.split(".", 2); 
+            let parts = view_id.split(".", 2);
             let view_type = (parts.length > 1)?parts[0]:'list';
             let view_name = (parts.length > 1)?parts[1]:parts[0];
 
@@ -279,10 +290,10 @@ export class Layout {
 
             // add join condition for limiting list to the current object
             if(['one2many', 'many2many'].indexOf(config.type) > -1 && def.hasOwnProperty('foreign_field')) {
-                domain.merge(new Domain([def['foreign_field'], 'contains', 'object.id']));                
+                domain.merge(new Domain([def['foreign_field'], 'contains', 'object.id']));
             }
 
-            config = {...config, 
+            config = {...config,
                 entity: def['foreign_object'],
                 view_type: view_type,
                 view_name: view_name,
@@ -292,12 +303,12 @@ export class Layout {
         }
 
         return config;
-    } 
+    }
 
     /**
-     * 
+     *
      * This method also stores the list of instanciated widgets to allow switching from view mode to edit mode  (for a form or a cell)
-     * 
+     *
      */
     private layoutForm() {
         console.log('Layout::layoutForm');
@@ -330,11 +341,12 @@ export class Layout {
             let $tabs = UIHelper.createTabBar('sections-'+group_id, '', '').addClass('sb-view-form-sections-tabbar');
 
             if(group.sections.length > 1 ||  group.sections[0].hasOwnProperty('label')){
-                $group.append($tabs);    
+                $group.append($tabs);
             }
-            
+
             $.each(group.sections, (j:number, section) => {
                 let section_id = group_id+'-section-'+j;
+
                 let $section = $('<div />').attr('id', section_id).addClass('sb-view-form-section mdc-layout-grid').appendTo($group);
 
                 if(j != selected_section) {
@@ -353,10 +365,14 @@ export class Layout {
                         $group.find('.sb-view-form-section').hide();
                         $group.find('#'+section_id).show();
                     });
-    
-                    $tabs.find('.sb-view-form-sections').append($tab);                    
+
+                    if(section.hasOwnProperty('visible')) {
+                        $tab.attr('data-visible', JSON.stringify(section.visible));
+                    }    
+
+                    $tabs.find('.sb-view-form-sections').append($tab);
                 }
-                
+
 
                 $.each(section.rows, (k:number, row) => {
                     let $row = $('<div />').addClass('sb-view-form-row mdc-layout-grid__inner').appendTo($section);
@@ -364,7 +380,7 @@ export class Layout {
                         let $column = $('<div />').addClass('mdc-layout-grid__cell').appendTo($row);
 
                         if(column.hasOwnProperty('width')) {
-                            $column.addClass('mdc-layout-grid__cell--span-' + Math.round((parseInt(column.width, 10) / 100) * 12));
+                            $column.addClass('mdc-layout-grid__cell--span-' + Math.floor((parseInt(column.width, 10) / 100) * 12));
                         }
 
                         let $inner_cell = $('<div />').addClass('mdc-layout-grid__cell').appendTo($column);
@@ -373,13 +389,12 @@ export class Layout {
                         $.each(column.items, (i, item) => {
                             let $cell = $('<div />').addClass('mdc-layout-grid__cell').appendTo($column);
                             // compute the width (on a 12 columns grid basis), from 1 to 12
-                            let width = (item.hasOwnProperty('width'))?Math.round((parseInt(item.width, 10) / 100) * 12): 12;
-                            
+                            let width = (item.hasOwnProperty('width'))?Math.floor((parseInt(item.width, 10) / 100) * 12): 12;
                             $cell.addClass('mdc-layout-grid__cell--span-' + width);
 
                             if(item.hasOwnProperty('type') && item.hasOwnProperty('value')) {
                                 if(item.type == 'field') {
-                                   
+
                                     let config = this.getWidgetConfig(item);
 
                                     if(config) {
@@ -390,7 +405,7 @@ export class Layout {
                                             this.model_widgets[0] = {};
                                         }
                                         this.model_widgets[0][item.value] = widget;
-                                        $cell.append(widget.attach());    
+                                        $cell.append(widget.attach());
                                     }
                                 }
                                 else if(item.type == 'label') {
@@ -403,15 +418,15 @@ export class Layout {
                             }
                         });
                     });
-                });                
+                });
             });
             UIHelper.decorateTabBar($tabs);
         });
 
-        
+
         this.$layout.append($elem);
     }
-    
+
     private layoutList() {
         // create table
 
@@ -422,7 +437,7 @@ export class Layout {
         let $table = $('<table/>').css({"width": "100%"}).appendTo($container);
         let $thead = $('<thead/>').appendTo($table);
         let $tbody = $('<tbody/>').appendTo($table);
-            
+
         // instanciate header row and the first column which contains the 'select-all' checkbox
         let $hrow = $('<tr/>');
 
@@ -430,7 +445,7 @@ export class Layout {
             UIHelper.createTableCellCheckbox(true)
             .appendTo($hrow)
             .find('input')
-            .on('click', () => setTimeout( () => this.view.onchangeSelection(this.getSelected()) ) );    
+            .on('click', () => setTimeout( () => this.view.onchangeSelection(this.getSelected()) ) );
         }
 
         // create other columns, based on the col_model given in the configuration
@@ -482,7 +497,7 @@ export class Layout {
                             // unselect all lines
                             this.$layout.find('input[type="checkbox"]').each( (i:number, elem:any) => {
                                 $(elem).prop('checked', false).prop('indeterminate', false);
-                            });                    
+                            });
                         }, 100);
                     }
                 });
@@ -501,9 +516,9 @@ export class Layout {
 
         UIHelper.decorateTable($elem);
     }
-    
 
-    
+
+
     private feedList(objects: any) {
         console.log('Layout::feed', objects);
 
@@ -512,7 +527,7 @@ export class Layout {
         let $elem = this.$layout.children().first();
         $elem.find('tbody').remove();
 
-        let $tbody = $('<tbody/>');       
+        let $tbody = $('<tbody/>');
 
         for (let object of objects) {
 
@@ -547,7 +562,7 @@ export class Layout {
                             value[field] = widget.getValue();
                             // propagate model change, without requesting a layout refresh
                             this.view.onchangeViewModel([object.id], value, false);
-                        });        
+                        });
                     }
                 });
             })
@@ -577,11 +592,14 @@ export class Layout {
 
                 let config = this.getWidgetConfig(item);
 
-                if(!config.visible) continue;
+                // unknown or invisible field
+                if(config === null || (config.hasOwnProperty('visible') && !config.visible)) continue;
 
                 let value = object[item.value];
 
+                // for relational fields, we need to check if the Model has been fetched
                 if(['one2many', 'many2one', 'many2many'].indexOf(config.type) > -1) {
+
                     // if widget has a domain, parse it using current object and user
                     if(config.hasOwnProperty('original_domain')) {
                         let user = this.view.getUser();
@@ -591,7 +609,7 @@ export class Layout {
                     else {
                         config.domain = [];
                     }
-                                        
+
                     // by convention, `name` subfield is always loaded for relational fields
                     if(config.type == 'many2one') {
                         value = object[item.value]['name'];
@@ -604,7 +622,7 @@ export class Layout {
                         value = "...";
                         // we need the current object id for new objects creation
                         config.object_id = object.id;
-                    }                    
+                    }
                 }
 
                 let widget:Widget = WidgetFactory.getWidget(this, config.type, '', '', config);
@@ -624,13 +642,13 @@ export class Layout {
 
             $tbody.append($row);
         }
-        
-        
+
+
         $elem.find('table').append($tbody);
 
         UIHelper.decorateTable($elem);
     }
-    
+
     private feedForm(objects: any) {
         console.log('Layout::feedForm', objects);
         // display the first object from the collection
@@ -647,7 +665,7 @@ export class Layout {
 
             // update actions in view header
             let view_schema = this.view.getViewSchema();
-            
+
             if(view_schema.hasOwnProperty('actions')) {
                 let $view_actions = this.view.getContainer().find('.sb-view-header-form-actions-view');
                 $view_actions.empty();
@@ -667,25 +685,74 @@ export class Layout {
                         let action_title = TranslationService.resolve(this.view.getTranslation(), 'view', [this.view.getId(), 'actions'], action.id, action.label);
                         let $button = UIHelper.createButton('action-view-'+action.id, action_title, 'outlined')
                         .on('click', async () => {
-                            try {
-                                const result = await ApiService.fetch("/", {do: action.controller, id: object.id});
-                                console.log(result);
-                                await this.view.getModel().refresh();
-                                await this.refresh();
+                            var defer = $.Deferred();
+
+                            // prompt for confirmation if required
+                            if(action.hasOwnProperty('confirm') && action.confirm) {
+
+                                // display confirmation dialog with checkbox for archive
+                                let $dialog = UIHelper.createDialog('confirm_action_dialog', TranslationService.instant('SB_ACTIONS_CONFIRM'), TranslationService.instant('SB_DIALOG_ACCEPT'), TranslationService.instant('SB_DIALOG_CANCEL'));
+                                $dialog.appendTo(this.view.getContainer());
+                                // inject component as dialog content
+                                $dialog.find('.mdc-dialog__content').append($('<p />').text(
+                                    TranslationService.resolve(this.view.getTranslation(), 'view', [this.view.getId(), 'actions'], action.id, action.description, 'description')
+                                ));
+
+                                $dialog
+                                .on('_accept', () => {
+                                    defer.resolve();
+                                })
+                                .on('_reject', () => {
+                                    defer.reject();
+                                });
+
+                                $dialog.trigger('_open');
                             }
-                            catch(response) {
-                                console.warn(response);
-                            }                            
+                            else {
+                                defer.resolve();
+                            }
+
+                            defer.promise().then( async () => {
+                                try {
+                                    const result = await ApiService.fetch("/", {do: action.controller, id: object.id});
+                                    console.log(result);
+                                    await this.view.onchangeView();
+                                    // await this.view.getModel().refresh();
+                                    // await this.refresh();
+                                }
+                                catch(response) {
+                                    console.log('error', response);
+                                    await this.view.displayErrorFeedback(response);
+                                }
+                            });
+
                         });
                         $view_actions.append($button);
                     }
                 }
             }
 
+            // update tabs visibility, if any
+            let $tabs = this.$layout.find('.mdc-tab.sb-view-form-section-tab');
+            $tabs.each( (i:number, elem:any) => {
+                let $tab = $(elem);
+                let visible = $tab.attr('data-visible');
+                if(visible != undefined) {
+                    console.log('section visible', visible);
+                    let domain = new Domain(JSON.parse(visible));
+                    if(domain.evaluate(object)) {
+                        $tab.show();
+                    }
+                    else {
+                        $tab.hide();
+                    }
+                }
+            });
+
             for(let field of fields) {
-                
+
                 let widget = this.model_widgets[0][field];
-                
+
                 // widget might be missing (if not visible)
                 if(!widget) continue;
 
@@ -697,7 +764,7 @@ export class Layout {
                 if(model_def.hasOwnProperty('result_type')) {
                     type = model_def['result_type'];
                 }
-        
+
                 let has_changed = false;
                 let value = (object.hasOwnProperty(field))?object[field]:undefined;
                 let config = widget.getConfig();
@@ -728,14 +795,14 @@ export class Layout {
                             $parent.data('value', null);
                         }
 
-                        // for m2m fields, the value of the field is an array of ids 
+                        // for m2m fields, the value of the field is an array of ids
                         // by convention, when a relation is to be removed, the id field is set to its negative value
                         value = object[field];
 
                         // select ids to load by filtering targeted objects
                         let ids_to_add = object[field].filter( (id:number) => id > 0 );
                         let ids_to_del = object[field].filter( (id:number) => id < 0 ).map( (id:number) => -id );
-                        
+
                         // we need the current object id for new objects creation
                         config.object_id = object.id;
 
@@ -761,7 +828,7 @@ export class Layout {
                 $parent.data('value', JSON.stringify(value));
 
                 let visible = true;
-                // handle visibility tests (domain)           
+                // handle visibility tests (domain)
                 if(config.hasOwnProperty('visible')) {
                     // visible attribute is a Domain
                     if(Array.isArray(config.visible)) {
@@ -781,12 +848,12 @@ export class Layout {
                 else {
                     let $widget = widget.render();
                     // Handle Widget update handler
-                    $widget.on('_updatedWidget', (event:any) => {
+                    $widget.on('_updatedWidget', (event:any, refresh: boolean = true) => {
                         console.log("Layout::feedForm : received _updatedWidget", field, widget.getValue());
                         // update object with new value
                         let value:any = {};
                         value[field] = widget.getValue();
-                        this.view.onchangeViewModel([object.id], value);
+                        this.view.onchangeViewModel([object.id], value, refresh);
                     });
                     // prevent refreshing objects that haven't changed
                     if(has_changed) {
@@ -799,7 +866,7 @@ export class Layout {
             $('#'+focused_widget_id).find('input').trigger('focus');
         }
     }
-    
+
 }
 
 export default Layout;

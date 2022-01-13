@@ -46,6 +46,42 @@ body, html {
     flex: 1 1 100%;
     box-sizing: border-box;
     display: none;
+    /* added for WP compliance */
+    background-color: white;
+    position: relative;
+    z-index: 2;  
+}
+
+
+.sb-popup-wrapper {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0,0,0,0.3);
+    z-index: 1000;
+}
+
+.sb-popup {
+    position: absolute;
+    left: 10%;
+    top: 15%;
+    width: 80%;
+    height: 70%;
+    background-color: white;
+    border: solid 1px black;
+    border-radius: 10px;
+    padding: 10px;
+}
+
+.sb-popup-wrapper .sb-container-header .context-close {
+    display: block;
+    margin-left: auto;
+}
+
+.sb-popup-inner {
+    height: 100%;
 }
 
 .sb-container-header {
@@ -78,6 +114,11 @@ body, html {
     height: 100%;
 }
 
+
+.sb-view .mdc-snackbar__action:not(:disabled) {
+    color: #ff4081;;
+}
+
 .sb-view-layout-list {
     /* height must be decremented by height of other elements from parent (header and footer) */
     height: calc(100% - 112px);
@@ -89,6 +130,24 @@ body, html {
     height: calc(100% - 56px);
     padding-bottom: 10px;
 }
+
+/* added for WP compliance */
+.sb-view-layout-form .sb-widget.sb-widget-mode-view input {
+    background: transparent;
+    border-color: transparent;
+}
+
+/* added for WP compliance */
+.sb-view .sb-widget input {
+    box-shadow: none;
+}
+
+/* added for WP compliance */
+.sb-view-layout-form .sb-widget input {
+    border: 0;
+    padding: 0;
+}
+  
 
 .sb-view-list-inline-actions-button {
     transform: scale(0.7);
@@ -292,6 +351,24 @@ body, html {
     font-weight: 400;
 }
 
+.sb-widget.sb-ui-textarea {
+    height: 200px;
+}
+
+.sb-widget-mode-view.sb-ui-textarea {
+    border: solid 1px lightgrey;
+    overflow-y: auto;
+}
+
+.sb-widget-mode-view.sb-ui-textarea p {
+    margin: 0;
+}
+
+.sb-widget-mode-edit.mdc-select .mdc-floating-label.mdc-floating-label--float-above {
+    color: rgba(0,0,0,0.6) !important;
+    font-weight: 400;
+}
+
 
 .sb-view-header-form {
     position: relative;
@@ -335,7 +412,8 @@ body, html {
 }
 
 .sb-view-form-sections-tabbar {
-    margin-bottom: 12px;
+    margin-top: 24px;
+    margin-bottom: 6px;
 }
 
 .sb-view-layout-list .mdc-line-ripple::before, .sb-view-layout-list .mdc-line-ripple::after {
@@ -351,6 +429,9 @@ body, html {
 
 .sb-view-layout-list .sb-widget.sb-widget-mode-view input {
     height: 100%;
+    background: none;
+    border-color: transparent;
+    box-shadow: none;    
 }
 
 .sb-view-layout-list .sb-widget.sb-widget-type-many2one.sb-widget-mode-view input {
@@ -393,15 +474,6 @@ body, html {
     position: relative;
 }
 
-.sb-ui-menu.mdc-menu-surface--is-open-below {
-    margin-top: 80px !important;
-}
-
-.sb-ui-menu.mdc-menu-surface--open {
-    margin-bottom: 60px !important;
-}
-
-
 /* Material Components customizations */
 
 /* fix for ripple not working on icon-button */
@@ -425,7 +497,7 @@ button.mdc-icon-button:hover, button.mdc-icon-button:active, button.mdc-icon-but
 .sb-widget.title span.mdc-floating-label--float-above {
     transform: translateY(-166%) !important;
 }
-.sb-widget.title label.mdc-text-field {
+.sb-widget.title label.mdc-text-field, .sb-widget.title .mdc-select__anchor {
   height: 70px;
 }
 .sb-widget.title input.mdc-text-field__input {
@@ -433,6 +505,13 @@ button.mdc-icon-button:hover, button.mdc-icon-button:active, button.mdc-icon-but
   margin-top: auto; 
   height: 60px;
 }
+
+.sb-widget.title .mdc-select__selected-text {
+    font-size: 30px;
+    margin-top: 27px;
+    height: 30px;
+}
+
 
 .sb-view-layout-form {
     overflow-y: scroll;
@@ -460,6 +539,11 @@ button.mdc-icon-button:hover, button.mdc-icon-button:active, button.mdc-icon-but
     padding-left: 16px;
 }
 
+/* added for WP colmpliance */ 
+.sb-widget.sb-widget-type-boolean .mdc-switch__native-control {
+    opacity: 0 !important;
+}
+
 
 /* adapt inputs for inline editing */
 .sb-widget-cell .mdc-text-field {
@@ -473,6 +557,8 @@ button.mdc-icon-button:hover, button.mdc-icon-button:active, button.mdc-icon-but
 .sb-widget-cell .sb-widget-mode-edit .mdc-text-field {
     outline: solid 1px var(--mdc-theme-primary-outline);
     padding-left: 5px;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;    
 }
 
 .sb-widget-cell .sb-widget-mode-edit .mdc-select__anchor {
@@ -506,6 +592,22 @@ button.mdc-icon-button:hover, button.mdc-icon-button:active, button.mdc-icon-but
 
 .sb-widget-cell .sb-widget-mode-edit.mdc-select {
     margin-top: 0;
+}
+
+.sb-widget.sb-widget-mode-edit .sb-ui-menu.mdc-menu-surface--is-open-below {
+    margin-top: 80px !important;
+}
+
+.sb-widget-cell .sb-widget-mode-edit .sb-ui-menu.mdc-menu-surface--is-open-below {
+    margin-top: 30px !important;
+}
+
+.sb-ui-menu.mdc-menu-surface--open {
+    margin-bottom: 60px !important;
+}
+
+.sb-ui-menu.mdc-menu-surface--is-open-below {
+    margin-top: 45px !important;
 }
 
 
@@ -696,7 +798,6 @@ button.mdc-icon-button:hover, button.mdc-icon-button:active, button.mdc-icon-but
 }
 
 .mdc-tab-bar {
-    margin-top: 12px;
     border-bottom: 1px solid rgba(0, 0, 0, 0.12);
 }
 

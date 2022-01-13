@@ -1,7 +1,6 @@
 import { $ } from "./jquery-lib";
 
 import { Frame, View } from "./equal-lib";
-import { ApiService } from "./equal-services";
 import { environment } from "./environment";
 
 
@@ -13,8 +12,6 @@ export class Context {
 
     private view: View;
 
-    // User (requested as instanciation of the View). This value might be applied on subsequent Domain objects.
-    private user: any;
 
     // callback to be called when the context closes
     private callback: (data:any) => void;
@@ -50,24 +47,13 @@ and can be displayed to user as an indication of the expected action.
         // inject View in parent Context object
         this.$container.append(this.view.getContainer());
 
-        this.user = {id: 0};
-
-        this.init();
     }    
 
-    private async init() {
-        try {
-            this.user = await ApiService.getUser();
-        }
-        catch(err) {
-            console.warn('unable to retrieve user info');
-        }
-    }
 
     public getUser() {
-        return this.user;
+        return this.frame.getUser();
     }
-    
+        
     /**
      * Close current context.    
      * Should be called only by parent Frame.
@@ -120,8 +106,16 @@ and can be displayed to user as an indication of the expected action.
         return this.view.name;
     }
 
+    public getDomain() {
+        return this.view.domain;
+    }
+
     public getPurpose() {
         return this.view.purpose;
+    }
+
+    public getLang() {
+        return this.view.lang;
     }
 
     public getContainer() {

@@ -10,10 +10,10 @@ import { environment } from "./environment";
 
 /**
  * Frames handle a stack of contexts. They're in charge of their header.
- * 
+ *
  */
 export class Frame {
-    
+
     private eq: any;
 
     private $headerContainer: any;
@@ -30,21 +30,30 @@ export class Frame {
     // DOM selector of the element to which current Frame relates
     private domContainerSelector:string;
 
-    constructor(eq:any, domContainerSelector:string='#sb-container') {        
+    // interaction mode ('stacked' or 'popup')
+    private display_mode: string;
+
+    constructor(eq:any, domContainerSelector:string='#sb-container') {
         this.eq = eq;
         this.context = <Context>{};
         this.stack = [];
+        // default mode : contexts are displayed in the same container
+        this.display_mode = 'stacked';
         // As a convention, DOM element referenced by given selector must be present in the document.
         this.domContainerSelector = domContainerSelector;
         this.init();
     }
-        
-    private async init() {        
+
+    public getContext() {
+        return this.context;
+    }
+
+    private async init() {
         // trigger header re-draw when available horizontal space changes
         var resize_debounce:any;
-        $(window).on('resize', () => { 
+        $(window).on('resize', () => {
             clearTimeout(resize_debounce);
-            resize_debounce = setTimeout( async () => this.updateHeader(), 100);             
+            resize_debounce = setTimeout( async () => this.updateHeader(), 100);
         });
 
     }
@@ -66,7 +75,7 @@ export class Frame {
         let entity = context.getEntity();
         let type = context.getType();
         let name = context.getName();
-        let purpose = context.getPurpose();    
+        let purpose = context.getPurpose();
 
         let view_schema = await ApiService.getView(entity, type+'.'+name);
         let translation = await ApiService.getTranslation(entity, environment.lang);
@@ -79,7 +88,7 @@ export class Frame {
         }
         else {
             let parts = entity.split('\\');
-            entity = <string>parts.pop();    
+            entity = <string>parts.pop();
             // set the first letter uppercase
             entity = entity.charAt(0).toUpperCase() + entity.slice(1);
         }
@@ -88,7 +97,7 @@ export class Frame {
             result = entity;
             if(type == 'list') {
                 if(translation.hasOwnProperty('plural')) {
-                    result = translation['plural'];    
+                    result = translation['plural'];
                 }
             }
         }
@@ -117,7 +126,7 @@ export class Frame {
                 // by convention, collections should always request the `name` field
                 if(object.hasOwnProperty('name') && purpose != 'create') {
                     result += ' <small>[' + object['name'] + ' - ' + object['id'] + ']</small>';
-                }    
+                }
             }
         }
 
@@ -127,11 +136,11 @@ export class Frame {
     /**
      * Refresh the header breadcrumb, according to available space.
      * .sb-container-header is managed automatically and shows the breadcrumb of the stack
-     * 
-     * @returns 
+     *
+     * @returns
      */
     private async updateHeader() {
-        console.log('update header');        
+        console.log('update header');
 
         let $domContainer = $(this.domContainerSelector);
 
@@ -139,7 +148,7 @@ export class Frame {
 
         // instanciate header upon first call
         this.$headerContainer = $domContainer.find('.sb-container-header');
-        if(this.$headerContainer.length == 0) {            
+        if(this.$headerContainer.length == 0) {
             this.$headerContainer = $('<div/>').addClass('sb-container-header').prependTo($domContainer);
         }
 
@@ -175,9 +184,9 @@ export class Frame {
             // use all contexts in stack (loop in reverse order)
             for(let i = this.stack.length-1; i >= 0; --i) {
                 let context = this.stack[i];
-                if(context.hasOwnProperty('$container')) {                
+                if(context.hasOwnProperty('$container')) {
                     let context_purpose_string = await this.getPurposeString(context);
-                    
+
                     let text_width = this.getTextWidth(context_purpose_string + ' > ', font);
                     let overflow = false;
                     if(text_width+total_text_width >= available_width) {
@@ -193,22 +202,22 @@ export class Frame {
 
 
                     $('<a>'+context_purpose_string+'</a>').prependTo($elem)
-                    .on('click', async () => {                    
+                    .on('click', async () => {
                         // close all contexts after the one clicked
                         for(let j = this.stack.length-1; j > i; --j) {
                             // unstack contexts silently (except for the targeted one), and ask for validation at each step
                             if(this.context.hasChanged()) {
                                 let validation = confirm(TranslationService.instant('SB_ACTIONS_MESSAGE_ABANDON_CHANGE'));
-                                if(!validation) return;        
-                                this.closeContext(true);
+                                if(!validation) return;
+                                this.closeContext(null, true);
                             }
                             else {
-                                this.closeContext(true);
+                                this.closeContext(null, true);
                             }
                         }
                         this.closeContext();
                     });
-                    
+
                     if(overflow) {
                         break;
                     }
@@ -225,20 +234,23 @@ export class Frame {
         // ... plus the active context
         if(prepend_contexts_count > 0) {
             $('<span> › </span>').css({'margin': '0 10px'}).appendTo($elem);
-        }            
+        }
         $('<span>'+current_purpose_string+'</span>').appendTo($elem);
         // if(this.stack.length > 1) {
         // for integration, we need to let user close any context
         if(true) {
-            UIHelper.createButton('context-close', '', 'mini-fab', 'close').css({'transform': 'scale(0.5)', 'margin-top': '3px', 'background': '#bababa', 'box-shadow': 'none'}).appendTo($elem)
-            .on('click', () => {                    
+            UIHelper.createButton('context-close', '', 'mini-fab', 'close')
+            .css({'transform': 'scale(0.5)', 'margin-top': '3px', 'background': '#bababa', 'box-shadow': 'none'})
+            .appendTo($elem)
+            .addClass('context-close')
+            .on('click', () => {
                 let validation = true;
                 if(this.context.hasChanged()) {
                     validation = confirm(TranslationService.instant('SB_ACTIONS_MESSAGE_ABANDON_CHANGE'));
                 }
                 if(!validation) return;
                 this.closeContext();
-            });                
+            });
         }
         this.$headerContainer.show().empty().append($elem);
     }
@@ -246,7 +258,7 @@ export class Frame {
 
     /**
      * Generate an object mapping fields of current entity with default values, based on current domain.
-     * 
+     *
      * @returns Object  A map of fields with their related default values
      */
      private async getNewObjectDefaults(entity:string, domain:[] = []) {
@@ -255,7 +267,7 @@ export class Frame {
         // retrieve fields definition
         let model_schema = await ApiService.getSchema(entity);
         let model_fields = model_schema.fields;
-        // use View domain for setting default values  
+        // use View domain for setting default values
         let tmpDomain = new Domain(domain);
         for(let clause of tmpDomain.getClauses()) {
             for(let condition of clause.getConditions()) {
@@ -267,45 +279,79 @@ export class Frame {
             }
         }
         return fields;
-    }       
+    }
+
+    public getUser() {
+        return this.eq.getUser();
+    }
 
     /**
      * This method can be called by any child or sub-child (view, layout, widgets)
-     * 
-     * @param config 
+     *
+     * @param config
      */
     public async openContext(config: any) {
         config.target = this.domContainerSelector;
         // we use eventlistener :: open() method in order to relay the context change to the outside
-        this.eq.open(config);
+
+        if(this.display_mode == 'stacked') {
+            this.eq.open(config);
+        }
+        else if(this.display_mode == 'popup') {
+            this.eq.popup(config);
+        }
+    }
+
+    /**
+     * @param data
+     * @param silent
+     */
+    public async closeContext(data:any = null, silent: boolean = false) {
+        if(this.display_mode == 'stacked') {
+            this.eq.close({
+                target: this.domContainerSelector,
+                data:   data,
+                silent: silent
+            });
+        }
+        else if(this.display_mode == 'popup') {
+            this.eq.popup_close({
+                data:   data,
+            });
+        }
     }
 
     /**
      * Instanciate a new context and push it on the contexts stack.
-     * Only eQ object should call this method.
-     * 
-     * @param config 
+     *
+     * This method is meant to be called by the eventListener only (eQ object).
+     *
+     * @param config
      */
     public async _openContext(config: any) {
         console.log('Frame: received _openContext', config);
         // extend default params with received config
         config = {...{
-            entity:     '', 
-            type:       'list', 
-            name:       'default', 
-            domain:     [], 
+            entity:     '',
+            type:       'list',
+            name:       'default',
+            domain:     [],
             mode:       'view',             // view, edit
             purpose:    'view',             // view, select, add, create
             lang:       environment.lang,
             callback:   null
         }, ...config};
 
+        if(config.hasOwnProperty('display_mode')) {
+            this.display_mode = config.display_mode;
+        }
+
         // create a draft object if required: Edition is based on asynchronous creation: a draft is created (or recylcled) and is turned into an instance if 'update' action is triggered.
         if(config.purpose == 'create') {
             console.log('requesting dratf object');
             let defaults    = await this.getNewObjectDefaults(config.entity, config.domain);
             let object      = await ApiService.create(config.entity, defaults);
-            config.domain   = [['id', '=', object.id], ['state', '=', 'draft']];    
+            config.domain   = [['id', '=', object.id], ['state', '=', 'draft']];
         }
 
         let context: Context = new Context(this, config.entity, config.type, config.name, config.domain, config.mode, config.purpose, config.lang, config.callback, config);
@@ -325,7 +371,7 @@ export class Frame {
             $(this.domContainerSelector).append(this.context.getContainer());
             // relay event to the outside
             $(this.domContainerSelector).show().trigger('_open', [{context: config}]);
-            this.updateHeader();            
+            this.updateHeader();
         });
 
     }
@@ -334,21 +380,23 @@ export class Frame {
     public closeAll() {
         // close all contexts silently
         while(this.stack.length) {
-            this.closeContext(true);
+            this.closeContext(null, true);
         }
     };
 
     /**
      * Handler for request for closing current context (top of stack).
      * When closing, a context might transmit some value (its the case, for instance, when selecting one or more records for m2m or o2m fields).
-     * 
-     * @param silent do not show the pop-ed context and do not refresh the header 
+     *
+     * This method is meant to be called by the eventListener only (eQ object).
+     *
+     * @param silent do not show the pop-ed context and do not refresh the header
      */
-    public async closeContext(data:any = null, silent: boolean = false) {
+    public async _closeContext(data:any = null, silent: boolean = false) {
 
         if(this.stack.length) {
             let has_changed:boolean = this.context.hasChanged();
-            
+
             // destroy current context and run callback, if any
             this.context.close(data);
 
@@ -359,7 +407,7 @@ export class Frame {
                 if( this.context != undefined && this.context.hasOwnProperty('$container') ) {
                     if(has_changed && this.context.getMode() == 'view') {
                         await this.context.refresh();
-                    }    
+                    }
                     this.context.$container.show();
                 }
                 this.updateHeader();
@@ -372,7 +420,7 @@ export class Frame {
             }
         }
     }
-    
+
 }
 
 export default Frame;

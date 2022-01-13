@@ -27,7 +27,7 @@ export class View {
     private sort: string;
     private start: number;
     private limit: number;
-    private lang: string;
+    public  lang: string;
 
     private layout: Layout;
     private model: Model;
@@ -86,6 +86,11 @@ export class View {
         this.entity = entity;
         this.type = type;
         this.name = name;
+        this.domain = domain;
+        this.mode = mode;
+        this.purpose = purpose;
+        this.lang = lang;
+
         this.is_ready_promise = $.Deferred();
 
         // default config
@@ -130,7 +135,11 @@ export class View {
                         }
                         catch(response) {
                             console.log('unexpected error', response);
-                            this.displayErrorFeedback(response);
+                            try {
+                                await this.displayErrorFeedback(response);
+                            }
+                            catch(error) {
+                            }
                         }
                     }
                 },
@@ -153,7 +162,12 @@ export class View {
                                 await this.onchangeView();
                                 }
                             catch(response) {
-                                this.displayErrorFeedback(response);
+                                try {
+                                    await this.displayErrorFeedback(response);
+                                }
+                                catch(error) {
+
+                                }
                             }
                         });
                     }
@@ -178,7 +192,12 @@ export class View {
                                     await this.onchangeView();
                                 }
                                 catch(response) {
-                                    this.displayErrorFeedback(response);
+                                    try {
+                                        await this.displayErrorFeedback(response);
+                                    }
+                                    catch(error) {
+
+                                    }
                                 }
                             }
                         });
@@ -193,15 +212,10 @@ export class View {
             this.config = {...this.config, ...config};
         }
 
-        this.mode = mode;
-        this.purpose = purpose;
-
-        this.domain = domain;
         this.order = (this.config.hasOwnProperty('order'))?this.config.order:'id';
         this.sort = (this.config.hasOwnProperty('sort'))?this.config.sort:'asc';
         this.start = 0;
         this.limit = 25;
-        this.lang = lang;
 
         this.selected_ids = [];
 
@@ -476,6 +490,10 @@ export class View {
     public getLang() {
         return this.lang;
     }
+    public getModelLang() {
+        // #todo - allow swithing amongst available langs
+        return this.lang;
+    }
     public getTotal() {
         return this.getModel().getTotal();
     }
@@ -497,16 +515,18 @@ export class View {
     }
 
     /**
-     * Return a Map of layout fields items mapping names with their definition
+     * Returns a Map of layout fields items mapping names with their definition
      */
     public getViewFields() {
         return this.view_fields;
     }
 
+    /**
+     * Returns a Map of model fields items mapping names with their definition
+     */
     public getModelFields() {
         return this.model_fields;
     }
-
 
 
     /**
@@ -593,13 +613,18 @@ export class View {
                                     let parts = this.custom_actions['ACTIONS.CREATE'].view.split('.');
                                     if(parts.length) view_type = <string>parts.shift();
                                     if(parts.length) view_name = <string>parts.shift();
-                
-                                }            
+
+                                }
                                 // request a new Context for editing a new object
                                 await this.openContext({entity: this.entity, type: view_type, name: view_name, domain: this.domain, mode: 'edit', purpose: 'create'});
                             }
                             catch(response) {
-                                this.displayErrorFeedback(response);
+                                try {
+                                    await this.displayErrorFeedback(response);
+                                }
+                                catch(error) {
+
+                                }
                             }
                         })
                     );
@@ -614,7 +639,12 @@ export class View {
                                 await this.openContext({entity: this.entity, type: 'form', name: this.name, domain: this.domain, mode: 'edit', purpose: 'create'});
                             }
                             catch(response) {
-                                this.displayErrorFeedback(response);
+                                try {
+                                    await this.displayErrorFeedback(response);
+                                }
+                                catch(error) {
+
+                                }
                             }
                         })
                     )
@@ -638,7 +668,12 @@ export class View {
                                 await this.openContext({entity: this.entity, type: 'form', name: this.name, domain: this.domain, mode: 'edit', purpose: 'create'});
                             }
                             catch(response) {
-                                this.displayErrorFeedback(response);
+                                try {
+                                    await this.displayErrorFeedback(response);
+                                }
+                                catch(error) {
+
+                                }
                             }
                         })
                     )
@@ -671,8 +706,11 @@ export class View {
         let $filters_search = $('<div />').addClass('sb-view-header-list-filters-search');
         let $search_input = UIHelper.createInput('sb-view-header-search', TranslationService.instant('SB_FILTERS_SEARCH'), '', '', '', false, 'outlined', 'close').appendTo($filters_search);
 
-        $search_input.find('.mdc-text-field__icon').on('click', (e) => {
+        $search_input.find('.mdc-text-field__icon').on('click', async (e) => {
+            // reset input value
             $search_input.find('input').val('').trigger('focus').trigger('blur');
+            // unapply related filter
+            await this.unapplyFilter('filter_search_on_name');
         });
         $search_input.on('keypress', (e) => {
             if(e.key == 'Enter') $search_input.find('input').trigger('blur');
@@ -687,9 +725,10 @@ export class View {
                         "description": TranslationService.instant('SB_FILTERS_SEARCH_ON_NAME'),
                         "clause": ['name', 'ilike', '%'+value+'%']
                     };
+                    // add filter to available filters
                     this.filters[filter.id] = filter;
                     this.applyFilter(filter.id);
-                }    
+                }
             }, 100);
         });
 
@@ -993,7 +1032,7 @@ export class View {
                             let object = objects[0];
                             try {
                                 // update new object (set to instance)
-                                const response = await ApiService.update(this.entity, [object['id']], this.model.export(object));
+                                const response = await ApiService.update(this.entity, [object['id']], this.model.export(object), false, this.getModelLang());
                                 if(response && response.length) {
                                     // merge object with response (state and name fields might have changed)
                                     object = {...object, ...response[0]};
@@ -1002,7 +1041,16 @@ export class View {
                                 this.closeContext({selection: [object.id], objects: [object]});
                             }
                             catch(response) {
-                                this.displayErrorFeedback(response, object, false);
+                                try {
+                                    const res = await this.displayErrorFeedback(response, object, false);
+                                    if(res !== false) {
+                                        // relay new object_id to parent view
+                                        this.closeContext({selection: [object.id], objects: [object]});
+                                    }
+                                }
+                                catch(error) {
+
+                                }
                             }
                         }
                     })
@@ -1171,7 +1219,7 @@ export class View {
                     $select_value = UIHelper.createSelect('custom_filter_select_value', TranslationService.instant('SB_FILTERS_DIALOG_VALUE'), ['true', 'false']);
                     $select_value.find('input').on('change', (event) => {
                         let $this = $(event.currentTarget);
-                        selected_value = ($this.children("option:selected").val() == 'true');
+                        selected_value = ($this.val() == 'true')?'1':'0';
                     });
                     break;
                 case 'date':
@@ -1344,27 +1392,40 @@ export class View {
     private async applyFilter(filter_id:string) {
         let filter = this.filters[filter_id];
         let $filters_set = this.$headerContainer.find('.sb-view-header-list-filters-set');
+        // make sure not to append a chip for same filter twice
+        $filters_set.find('#'+filter_id).remove();
         $filters_set.append(
             UIHelper.createChip(filter.description)
             .attr('id', filter.id)
-            .on('click', (event) => {
+            .on('click', async (event) => {
                 // unapply filter
                 let $this = $(event.currentTarget)
-                let index = this.applied_filters_ids.indexOf($this.attr('id'));
-                if (index > -1) {
-                    let filters = this.applied_filters_ids.splice(index, 1);
-                    if(filters[0] == 'filter_search_on_name') {
-                        this.$headerContainer.find('.sb-view-header-list-filters-search').find('.mdc-text-field__icon').trigger('click');
-                    }
-                    this.setStart(0);
-                    this.onchangeView();
-                }
-                $this.remove();
+                await this.unapplyFilter($this.attr('id'));
             })
         );
         this.applied_filters_ids.push(filter.id);
         this.setStart(0);
         this.onchangeView();
+    }
+
+    private async unapplyFilter(filter_id:any) {
+
+        let index = this.applied_filters_ids.indexOf(filter_id);
+        if (index > -1) {
+            this.applied_filters_ids.splice(index, 1);
+            delete this.filters[filter_id];
+
+            let $filters_set = this.$headerContainer.find('.sb-view-header-list-filters-set');
+            $filters_set.find('#'+filter_id).remove();
+
+            if(filter_id == 'filter_search_on_name') {
+                // reset value of search input
+                this.$headerContainer.find('.sb-view-header-list-filters-search').find('.mdc-text-field__icon').trigger('click');
+            }
+
+            this.setStart(0);
+            this.onchangeView();
+        }
     }
 
     private async actionBulkAssign(selection: any) {
@@ -1405,7 +1466,7 @@ export class View {
                             }
                             else {
                                 try {
-                                    const response = await ApiService.update(this.entity, [object_id], this.model.export(object));
+                                    const response = await ApiService.update(this.entity, [object_id], this.model.export(object), false, this.getModelLang());
                                     $tr.trigger('_toggle_mode', 'view');
                                     $tr.attr('data-edit', '0');
                                     // update the modfied field otherwise a confirmation will be displayed at next update
@@ -1416,8 +1477,13 @@ export class View {
                                 }
                                 catch(response) {
                                     try {
-                                        let result:any = await this.displayErrorFeedback(response, object, true);
-                                        reject();
+                                        const res = await this.displayErrorFeedback(response, object, true);
+                                        if(res === false ) {
+                                            reject();
+                                        }
+                                        else {
+                                            resolve(true);
+                                        }
                                     }
                                     catch(response) {
                                         reject();
@@ -1490,7 +1556,16 @@ export class View {
         }
     }
 
-    private async displayErrorFeedback(response:any, object:any = null, snack:boolean = true) {
+    /**
+     *
+     * This method can be invoked by methods from the Layout class.
+     *
+     * @param response
+     * @param object
+     * @param snack
+     * @returns
+     */
+    public async displayErrorFeedback(response:any, object:any = null, snack:boolean = true) {
         if(response && response.hasOwnProperty('errors')) {
             let errors = response['errors'];
 
@@ -1515,6 +1590,11 @@ export class View {
                     ++i;
                 }
             }
+            else if(errors.hasOwnProperty('MISSING_PARAM')) {
+                let msg = TranslationService.instant('SB_ERROR_CONFIG_MISSING_PARAM');
+                let $snack = UIHelper.createSnackbar(msg + ' ' + errors['MISSING_PARAM'], 'Error', '', 4000);
+                this.$container.append($snack);
+            }
             else if(errors.hasOwnProperty('NOT_ALLOWED')) {
                 let msg = TranslationService.instant('SB_ERROR_NOT_ALLOWED');
                 let $snack = UIHelper.createSnackbar(msg, '', '', 4000);
@@ -1538,15 +1618,14 @@ export class View {
                         ++i;
                     }
                 }
-                // object has been modified in the meanwhile
-                else {
+                else if(errors['CONFLICT_OBJECT'] == 'concurrent_change') {
+                    // object has been modified in the meanwhile
                     try {
                         await new Promise( (resolve, reject) => {
                             let confirmed = confirm(TranslationService.instant('SB_ACTIONS_MESSAGE_ERASE_CONUCRRENT_CHANGES'));
                             return confirmed ? resolve(true) : reject(false);
                         });
-
-                        const response = await ApiService.update(this.entity, [object['id']], this.model.export(object), true);
+                        const response = await ApiService.update(this.entity, [object['id']], this.model.export(object), true, this.getModelLang());
                         // this.closeContext();
                         return response;
                     }
@@ -1554,6 +1633,16 @@ export class View {
                         throw response;
                     }
 
+                }
+                // errors['CONFLICT_OBJECT'] is a string
+                else {
+                    if(snack) {
+                        let title = TranslationService.instant('SB_ERROR_CONFLICT');
+                        // try to resolve the error message
+                        let msg = TranslationService.resolve(this.translation, 'error', [], 'errors', errors['CONFLICT_OBJECT'], errors['CONFLICT_OBJECT']);
+                        let $snack = UIHelper.createSnackbar(title+': '+msg, 'Error', '', 4000);
+                        this.$container.append($snack);
+                    }
                 }
             }
         }

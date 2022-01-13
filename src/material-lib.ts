@@ -452,6 +452,9 @@ class UIHelper {
             if(event.detail.action == 'accept') {
                 $elem.trigger('_accept');
             }
+            if(event.detail.action == 'reject') {
+                $elem.trigger('_reject');
+            }
         });
 
 

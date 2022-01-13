@@ -118,12 +118,12 @@ export class Domain {
                 // handle object references as `value` part
                 if(typeof value === 'string' && value.indexOf('object.') == 0 ) {
                     let target = value.substring('object.'.length);
-                    if(!object.hasOwnProperty(target)) {
+                    if(!object || !object.hasOwnProperty(target)) {
                         continue;
                     }
                     let tmp = object[target];
                     // target points to an object with subfields
-                    if(typeof tmp === 'object') {
+                    if(typeof tmp === 'object' && !Array.isArray(tmp)) {
                         if(tmp.hasOwnProperty('id')) {
                             value = tmp.id;
                         }
@@ -141,7 +141,7 @@ export class Domain {
                 // handle user references as `value` part
                 else if(typeof value === 'string' && value.indexOf('user.') == 0) {
                     let target = value.substring('user.'.length);
-                    if(!user.hasOwnProperty(target)) {
+                    if(!user || !user.hasOwnProperty(target)) {
                         continue;
                     }
                     value = user[target];
@@ -187,16 +187,39 @@ export class Domain {
                     operator = '!=';
                 }
 
-                if(operator == 'in') {
+                if(operator == 'is' && typeof value == 'number') {
+                    operator = '==';
+                }
+
+                if(operator == 'is') {
+                    if( value === true ) {
+                        cc_res = operand;
+                    }
+                    else if( [false, null, 'null', 'empty'].includes(value) ) {
+                        cc_res = (['', false, undefined, null].includes(operand) || (Array.isArray(operand) && !operand.length) );
+                    }
+                    else {
+                        continue;
+                    }
+                }
+                else if(operator == 'in') {
                     if(!Array.isArray(value)) {
                         continue;
                     }
                     cc_res = (value.indexOf(operand) > -1);
                 }
+                else if(operator == 'not in') {
+                    if(!Array.isArray(value)) {
+                        continue;
+                    }
+                    cc_res = (value.indexOf(operand) == -1);
+                }
                 else {
                     let c_condition = "( '" + operand + "' "+operator+" '" + value + "')";
+
                     cc_res = <boolean>eval(c_condition);
                 }
+                console.log('evaluating ', cc_res);
                 c_res = c_res && cc_res;
             }
             res = res || c_res;

@@ -38,11 +38,19 @@ var menu = [
         type: 'parent',
     	children: [
             {
-                name: 'Prices',
+                name: 'Packs',
                 description: '',
                 icon: '',
                 type: 'entry',
-                entity: 'sale\\price\\Price',
+                entity: 'qursus\\Pack',
+                target: 'list.default'
+            },
+            {
+                name: 'Modules',
+                description: '',
+                icon: '',
+                type: 'entry',
+                entity: 'qursus\\Module',
                 target: 'list.default'
             },
             {
@@ -233,6 +241,10 @@ $(document).ready( function() {
 
     eq.loadMenu(menu);
 
+    $('#eq-test').on('click', function () {
+        eq.popup({entity: 'core\\User', type: 'list'});
+    });
+
 /*
 for(var i = 0; i < menu.length; ++i) {
     var item = menu[i];
@@ -269,7 +281,7 @@ A new context can be invoked either ways:
         <div><input type="text" id="datepicker"></div>
         -->
 
-        <div id="sb-menu"></div>
+        <div id="sb-menu"><a id="eq-test" href="#">test</a></div>
         <div id="sb-container"></div>
     </div>
     <div style="display: none;" id="eq-listener"></div>

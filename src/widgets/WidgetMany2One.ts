@@ -13,7 +13,7 @@ export default class WidgetMany2One extends Widget {
     }
 
     public render():JQuery {
-console.log('rendering M2O', this);
+
         // in edit mode, we should have received an id, and in view mode, a name
         let value:string = this.value?this.value:'';
         let domain:any = [];
@@ -125,8 +125,9 @@ console.log('rendering M2O', this);
                     }
                     let tmpDomain = new Domain(domainArray);
                     tmpDomain.merge(new Domain(domain));
-                    // fetch 5 first objects from config.foreign_object (use config.domain) + add an extra line ("advanced search...")
-                    ApiService.collect(this.config.foreign_object, tmpDomain.toArray(), ['id', 'name'], 'id', 'asc', 0, 5, this.config.lang)
+                    // fetch first objects from config.foreign_object (use config.domain) + add an extra line ("advanced search...")
+                    let limit = (this.config.limit)?this.config.limit:5;
+                    ApiService.collect(this.config.foreign_object, tmpDomain.toArray(), ['id', 'name'], 'id', 'asc', 0, limit, this.config.lang)
                     .then( (response:any) => {
                         objects = response;
                         $menu_list.empty();

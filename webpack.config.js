@@ -18,7 +18,7 @@
         modules: [
             path.resolve(__dirname, 'build/'),
             path.join(__dirname, 'node_modules/')
-        ],        
+        ],
         extensions: ['*', '.js']
     },
     module: {
@@ -28,9 +28,25 @@
                 test: require.resolve("jquery"),
                 loader: "expose-loader",
                 options: {
-                    exposes: ["$", "jQuery"],
+                    exposes: {
+                        globalName: "$",
+                        override: true
+                    }
                 }
             },
+/*
+            {
+                test: /\.jquery\.js$/,
+                use: [
+                    {
+                        loader: 'raw-loader',
+                        options: {
+                            esModule: false,
+                        }
+                    }                
+                ],
+            },
+*/
             {
                 test: /\.css$/,
                 use: [
@@ -40,6 +56,13 @@
             }            
         ]
     },
+    plugins: [
+        // Provides jQuery for other JS bundled with Webpack
+        new webpack.ProvidePlugin({
+          $: 'jquery',
+          jQuery: 'jquery'
+        })
+    ],
     optimization: {
         minimize: false
     }
