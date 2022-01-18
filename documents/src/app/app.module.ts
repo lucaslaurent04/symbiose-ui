@@ -21,14 +21,16 @@ import { registerLocaleData } from '@angular/common';
 import localeFr from '@angular/common/locales/fr';
 
 import { MAT_SNACK_BAR_DEFAULT_OPTIONS } from '@angular/material/snack-bar';
-
+import { NgxDropzoneModule } from 'ngx-dropzone';
+import { MatTableModule } from '@angular/material/table';
 
 registerLocaleData(localeFr);
 
 @NgModule({
   declarations: [
     AppRootComponent,
-    AppComponent
+    AppComponent,
+
   ],
   imports: [
     AppRoutingModule,
@@ -36,7 +38,9 @@ registerLocaleData(localeFr);
     BrowserAnimationsModule,
     SharedLibModule,
     PlatformModule,
-    NgxMaterialTimepickerModule.setLocale('fr-BE')
+    NgxMaterialTimepickerModule.setLocale('fr-BE'),
+    NgxDropzoneModule,
+    MatTableModule,
   ],
   providers: [
     // add HTTP interceptor to inject AUTH header to any outgoing request

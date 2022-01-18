@@ -8,14 +8,14 @@ import * as $ from 'jquery';
 import { type } from 'jquery';
 
 
-/* 
+/*
 This is the component that is bootstrapped by app.module.ts
 */
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.root.component.html',
-  styleUrls: ['./app.root.component.scss']  
+  styleUrls: ['./app.root.component.scss']
 })
 export class AppRootComponent implements OnInit {
 
@@ -27,17 +27,17 @@ export class AppRootComponent implements OnInit {
 
 
   public translations: any = {};
-  
+
 
 
   constructor(
-    private router: Router, 
-    private context:ContextService, 
+    private router: Router,
+    private context:ContextService,
     private api:ApiService,
     private auth:AuthService
   ) {}
 
-  
+
   public async ngOnInit() {
 
     try {
@@ -50,25 +50,25 @@ export class AppRootComponent implements OnInit {
 
     // load menus from server
     try {
-      const data:any = await this.api.fetch('?get=model_menu&package=sale'+'&menu_id='+'sale.left');
+      const data:any = await this.api.fetch('?get=model_menu&package=documents'+'&menu_id='+'documents.left');
 
       this.navMenuItems = data.layout.items;
-      try {
-        const i18n = await this.api.fetch('?get=config_i18n-menu&package=sale'+'&menu_id='+'sale.left');
-        if(i18n && i18n.view) {
-          this.translations = i18n.view;
-        }
-      }
-      catch(response) {
-        console.log(response);
-      }
+      // try {
+      //   const i18n = await this.api.fetch('?get=config_i18n-menu&package=documents'+'&menu_id='+'documents.left');
+      //   if(i18n && i18n.view) {
+      //     this.translations = i18n.view;
+      //   }
+      // }
+      // catch(response) {
+      //   console.log(response);
+      // }
     }
     catch(err) {
       console.log(err);
     }
 
     try {
-      const data:any = await this.api.fetch('?get=model_menu&package=sale'+'&menu_id='+'sale.top');
+      const data:any = await this.api.fetch('?get=model_menu&package=documents'+'&menu_id='+'documents.top');
       this.topMenuItems = data.layout.items;
     }
     catch(err) {
@@ -76,10 +76,10 @@ export class AppRootComponent implements OnInit {
     }
 
     this.context.getObservable().subscribe( (context:any) => {
-      console.log('AppRootComponent: received context update', context);      
+      console.log('AppRootComponent: received context update', context);
       window.context = context;
       $('#eq-context').trigger('click');
-    });    
+    });
 
   }
 
@@ -110,7 +110,7 @@ export class AppRootComponent implements OnInit {
    * Items are handled as descriptors.
    * They always have a `route` property (if not, it is added and set to '/').
    * And might have an additional `context` property.
-   * @param item 
+   * @param item
    */
   public onSelectItem(item:any) {
     let descriptor:any = {};
@@ -123,7 +123,7 @@ export class AppRootComponent implements OnInit {
     }
 
     if(item.hasOwnProperty('context')) {
-      descriptor.context = { 
+      descriptor.context = {
         ...{
           type:    'list',
           name:    'default',
@@ -134,20 +134,20 @@ export class AppRootComponent implements OnInit {
         },
         ...item.context
       };
-      
+
       if( item.context.hasOwnProperty('view') ) {
         let parts = item.context.view.split('.');
         if(parts.length) descriptor.context.type = <string>parts.shift();
         if(parts.length) descriptor.context.name = <string>parts.shift();
       }
-  
+
       if( item.context.hasOwnProperty('purpose') && item.context.purpose == 'create') {
         // descriptor.context.type = 'form';
         descriptor.context.mode = 'edit';
-      } 
+      }
 
-    }    
-    
+    }
+
     this.context.change(descriptor);
   }
 
@@ -159,5 +159,5 @@ export class AppRootComponent implements OnInit {
 
   public toggleSideBar() {
     this.show_side_bar = !this.show_side_bar;
-  }  
+  }
 }

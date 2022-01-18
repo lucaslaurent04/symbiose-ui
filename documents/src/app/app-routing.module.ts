@@ -7,8 +7,8 @@ import { AppComponent } from './in/app.component';
 const routes: Routes = [
   /* routes specific to current app */
   {
-    path: 'payments',
-    loadChildren: () => import(`./in/payments/payments.module`).then(m => m.AppInPaymentsModule) 
+    path: 'documents',
+    loadChildren: () => import(`./in/import/documents.import.module`).then(m => m.AppInDocumentsModule)
   },
   {
     /*
@@ -19,12 +19,12 @@ const routes: Routes = [
      */
     path: '',
     component: AppComponent
-  }  
+  }
 ];
 
 @NgModule({
   imports: [
-    RouterModule.forRoot(routes, { preloadingStrategy: PreloadAllModules })  
+    RouterModule.forRoot(routes, { preloadingStrategy: PreloadAllModules })
   ],
   exports: [RouterModule]
 })
