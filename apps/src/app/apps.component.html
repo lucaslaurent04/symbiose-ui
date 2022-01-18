@@ -1,0 +1,19 @@
+<div class="container">
+    <div class="container-header">
+        <button mat-button [matMenuTriggerFor]="auth_menu"><strong>{{user.name}}</strong> ({{user.login}})</button>
+        <mat-menu #auth_menu="matMenu">
+            <button mat-menu-item (click)="onDisconnect()">Se déconnecter</button>
+        </mat-menu>        
+    </div>
+    <div class="box">
+        <div class="app" *ngFor="let app of user_apps">
+            <button mat-raised-button 
+                    [ngClass]="app" 
+                    color="primary" 
+                    [style]="'background-color: #'+apps[app].color" 
+                    (click)="onSelect(app)">
+                <mat-icon>{{apps[app].icon}}</mat-icon> {{apps[app].name | translate}}
+            </button>
+        </div>    
+    </div>
+</div>

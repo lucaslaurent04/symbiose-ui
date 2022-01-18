@@ -1,0 +1,94 @@
+<!-- template vars -->
+<div #vUnit="var" [var]="{items: []}"></div>
+
+<table>
+
+  <thead>
+    <tr><th style="width: 25%">Unité locative</th><th colspan="2">occupation</th></tr>
+  </thead>
+
+  <tbody cdkDropListGroup>
+
+    <tr *ngFor="let rental_unit of rental_units; let index = index;">
+      <td>
+        <div style="display: flex;">
+          <div class="cell" style="flex: 0 1 66%;">{{rental_unit.name}}, {{rental_unit.code}} ({{rental_unit.capacity}})</div>
+          <div class="cell" style="margin-left: auto;">
+            <button mat-icon-button (click)="onOpenRentalUnit(rental_unit.id)">
+              <mat-icon>open_in_new</mat-icon>
+            </button>
+          </div>  
+        </div>
+      </td>
+      <td style="width: 8%; text-align: center;">
+        <div class="cell">{{composition_items[rental_unit.id].length}}</div>
+      </td>
+
+      <td >
+        <div  class="part">
+
+          <div class="part-toggle" *ngIf="rental_unit.capacity > 5">
+            <button mat-icon-button *ngIf="!vUnit.items[index]" (click)="vUnit.items[index] = !vUnit.items[index]">
+              <mat-icon style="font-size: 15px;">keyboard_arrow_right</mat-icon>
+            </button>
+            <button mat-icon-button *ngIf="vUnit.items[index]" (click)="vUnit.items[index] = !vUnit.items[index]">
+              <mat-icon style="font-size: 15px;">keyboard_arrow_up</mat-icon>
+            </button>
+          </div>
+        
+          <div class="part-container" 
+               id="{{rental_unit.id}}"
+               cdkDropList
+               [cdkDropListData]="rental_unit.id"
+               (cdkDropListDropped)="onDrop($event)">
+
+            <div *ngIf="!vUnit.items[index] && rental_unit.capacity > 5">Voir le listing</div> 
+
+            <div *ngIf="vUnit.items[index] || rental_unit.capacity < 6" class="composition-container">
+              <div class="composition-container-header"> 
+                <div class="composition-container-column header column-index">#</div>
+                <div class="composition-container-column header column-lastname">Nom</div>
+                <div class="composition-container-column header column-firstname">Prénom</div>
+                <div class="composition-container-column header column-gender">Genre</div>
+                <div class="composition-container-column header column-birthdate">DDN</div>
+                <div class="composition-container-column header column-email">Email</div>
+                <div class="composition-container-column header column-phone">Tél</div>                                                
+                <div class="composition-container-column header"><!-- actions --></div>
+              </div>
+
+              <div cdkDrag 
+                   class="composition-container-item"
+                   *ngFor="let item of composition_items[rental_unit.id]; let i = index;" 
+                   (click)="onToggle($event, item)"
+                   [class.selected]="item.selected"
+                   [class.dragging]="dragging"
+                   (cdkDragStarted)="onDragStart($event)"
+                   [cdkDragDisabled]="!item.selected">
+                <div class="drag-preview" *cdkDragPreview>
+                  <div class="drag-preview-inner">{{ selection.length > 0 ? selection.length : 1 }}</div>
+                </div>
+                <div class="composition-container-column column-index">{{i+1}}.</div> 
+                <div class="composition-container-column column-lastname">{{item.lastname}}</div>
+                <div class="composition-container-column column-firstname">{{item.firstname}}</div>
+                <div class="composition-container-column column-gender">{{item.gender}}</div>
+                <div class="composition-container-column column-birthdate">{{item.date_of_birth | date:'shortDate'}}</div>
+                <div class="composition-container-column column-email"><a [href]="'mailto:' + item.email">{{item.email}}</a></div>
+                <div class="composition-container-column column-phone">{{item.phone}}</div>                
+                <div class="composition-container-column" style="text-align: right;">
+                  <button mat-icon-button (click)="onOpenCompositionItem(item.id)">
+                    <mat-icon>open_in_new</mat-icon>
+                  </button>
+                </div>
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+      </td>
+
+    </tr>
+
+  </tbody>
+</table>

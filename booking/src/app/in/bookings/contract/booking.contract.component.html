@@ -1,0 +1,110 @@
+<div class="container">
+
+  <div [class.hidden]="!loading" class="loader"><mat-spinner></mat-spinner></div>
+
+  <div class="booking-header">Réservation <small>[{{booking.name}} - {{booking.id}}]</small> <span> › </span> Envoi du Contrat</div>
+
+  <div class="booking-body">
+
+    <div class="body-actions" style="display: flex;">
+      <div class="actions-std"></div>
+      <div class="actions-view">
+        <button mat-stroked-button color="primary" (click)="onSend()" [disabled]="is_sent">Envoyer</button>
+      </div>      
+    </div>   
+
+
+    <div class="row">
+      <div class="column">
+        <div class="cell">Réservation</div>
+        <div class="cell">{{ booking.name }}</div>
+      </div>
+      <div class="column">
+        <div class="cell">Client</div>
+        <div class="cell">{{ customer.name }}</div>        
+      </div>
+    </div>
+
+    <div class="row">
+    </div>
+
+    <div class="row">
+
+      <div class="column">
+        <div class="cell">Expéditeur</div>
+        <div class="cell">
+          <mat-form-field>
+            <mat-label>Adresses d'expédition</mat-label>
+            <mat-select [formControl]="vm.sender.formControl" (selectionChange)="vm.sender.change($event)" required>
+              <mat-option *ngFor="let address of vm.sender.addresses" [value]="address">{{address}}</mat-option>
+            </mat-select>
+            <mat-error *ngIf="vm.sender.formControl.invalid">
+              Ne peut être vide.
+            </mat-error>
+          </mat-form-field>
+        </div>
+      </div>
+
+      
+      <div class="column">
+        <div class="cell">Destinataire</div>
+        <div class="cell">
+          <mat-form-field>
+            <mat-label>Adressses de destination</mat-label>
+            <mat-select [formControl]="vm.recipient.formControl" (selectionChange)="vm.recipient.change($event)" required>
+              <mat-option *ngFor="let address of vm.recipient.addresses" [value]="address">{{address}}</mat-option>
+            </mat-select>
+            <mat-error *ngIf="vm.sender.formControl.invalid">
+              Ne peut être vide.
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        
+      </div>
+    </div>
+
+
+    <div class="row">
+
+      <div class="column" style="width: 100%">
+        <div class="cell" style="flex: 0 1 15%;">Titre</div>
+        <div class="cell" style="flex: 1; max-width: 100%;">
+        <mat-form-field>
+          <input  type="text" 
+                  autocomplete="off"
+                  placeholder="Titre"
+                  matInput 
+                  (blur)="vm.title.change($event)"
+                  [formControl]="vm.title.formControl" >
+          <mat-error *ngIf="vm.title.formControl.hasError('required')">
+            Ne peut être vide.
+          </mat-error>
+        </mat-form-field>
+        </div>
+      </div>
+    </div>      
+
+    <div class="row">
+
+      <div class="column" style="display: block; width: 100%">
+        <quill-editor 
+          [formControl]="vm.message.formControl" 
+          theme="snow"
+          (onEditorChanged)="vm.message.change($event)">
+        </quill-editor>
+      </div>
+      
+    </div>    
+
+    <div class="row" style="margin-top: 30px;">
+      <div class="column" style="width: 100%">
+        <a target="_blank" [attr.href]="'/?get=lodging_booking_print-contract&view_id=print.default&lang=fr&id=' + contract_id">Voir le contrat
+          <button mat-icon-button disabled aria-label="Example icon button with a open in new tab icon">
+            <mat-icon>open_in_new</mat-icon>
+          </button>
+        </a>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,16 @@
+<div class="container" [class.hidden]="showSbContainer">
+  <div class="planning-header">Calendrier</div>
+  <div class="planning-body">
+    <planning-calendar 
+      [day]="day" 
+      [month]="month" 
+      [year]="year"
+      [rental_units]="rental_units"
+      [bookings]="bookings"
+      (filters)="onFiltersChange($event)">
+    </planning-calendar>
+  </div>
+
+</div>
+
+<div id="sb-planning-container" class="sb-container"></div>

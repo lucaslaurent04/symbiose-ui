@@ -1,0 +1,135 @@
+:host {
+
+  .container {
+    overflow-y: scroll; 
+    height: calc(100vh - 200px);
+    padding: 0 15px 15px 15px;
+  }
+
+  .container::-webkit-scrollbar {
+    width: 6px;
+    overflow-y: scroll;
+    background: transparent;
+  }
+
+  .container::-webkit-scrollbar-thumb {
+    background: var(--mdc-theme-primary, #6200ee);
+    border-radius: 10px;
+  }
+
+  table {
+    border-spacing: 0;
+    width: 100%;
+    border: solid 1px #e0e0e0;    
+  }
+
+  
+  .container::-webkit-scrollbar {
+    width: 6px;
+    overflow-y: scroll;
+    background: transparent;
+  }
+
+  .container::-webkit-scrollbar-thumb {
+    background: var(--mdc-theme-primary, #6200ee);
+    border-radius: 10px;
+  }
+
+
+  table.tabreservation {
+    margin-top: 20px;
+  } 
+
+  tr td {
+    min-width: 30px;
+    width: 30px;
+  }
+  tr.head {
+    color: rgba(0,0,0,.54) !important;
+  }
+
+  tr.head .head-days, tr.head .head-months {
+    height: 46px;
+    font-size: 16px;
+  }
+
+
+  tr.head .head-days {
+    border-top: solid 1px #e0e0e0;
+  }
+
+  tr.head th, tr.head td {
+    text-align: center;
+    border-right: solid 1px #e0e0e0;
+  }
+
+  tr.head th.head-days, tr.rows td.cell-days {
+    text-align: center;
+    border-right: solid 1px #e0e0e0;
+
+    /* force all cells to have the same width : will grow evenly is there is more room */
+    max-width: 40px !important;
+    width: 40px !important;
+    min-width: 40px !important;
+  }
+
+  tr.head:last-child {
+    box-shadow: 0 3px 5px 0 rgb(0 0 0 / 10%) !important;
+  }
+
+  tr.head th {
+    position: sticky;
+    top: 0;
+    background: white;
+    z-index: 2;
+    box-shadow: 0 3px 5px 0 rgb(0 0 0 / 10%) !important;
+  }
+
+  tr.head td:last-child {
+    border-right: 0;
+  }
+
+
+  tr td.cell-room {
+    width: 40px;
+    min-width: 40px;
+    max-width: 40px;
+    font-size: 12px;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  tr.rows {
+    height: 45px;
+  }
+
+  tr.rows:hover {
+    background-color: #e0e0e0;
+  }
+
+  tr.rows td {
+    padding: 0;
+    text-align: center;
+    border-right: solid 1px #e0e0e0;
+    border-top: solid 1px #e0e0e0;
+  }
+
+  tr.rows td:last-child {
+    border-right: 0;
+  }
+
+
+  th:first-child, td:first-child {
+    padding-left: 2px;
+  }
+
+  th:last-child, td:last-child {
+    padding-right: 2px;
+  }
+
+  .rows span {
+    font-size: 13px;
+  }    
+
+}

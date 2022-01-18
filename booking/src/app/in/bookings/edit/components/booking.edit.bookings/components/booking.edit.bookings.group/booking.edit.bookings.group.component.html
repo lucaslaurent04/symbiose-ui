@@ -1,0 +1,339 @@
+
+<!-- template vars -->
+<div #vGroup="var" [var]="{folded: (!lines.length), identification: {folded: true}, products: {folded: false}, accomodations: {folded: false}}"></div>
+
+<div [class.hidden]="!ready">
+
+  <div class="group-expand" style="position: absolute;right: 50px;" *ngIf="folded"><button mat-icon-button (click)="toggleFold()"> <mat-icon>expand_more</mat-icon></button></div>
+  <div class="group-collapse" style="position: absolute;right: 50px;" *ngIf="!folded"><button mat-icon-button (click)="toggleFold()"> <mat-icon>expand_less</mat-icon></button></div>
+
+  <div *ngIf="folded" style="height: 35px; padding: 8px 125px 0 35px;">
+    <div style="display: flex;">
+        <div style="flex: 0 1 40%; white-space: nowrap; overflow: hidden; margin-right: 20px;">{{vm.name.display_name}}</div>
+        <div style="flex: 0 1 20%; white-space: nowrap; overflow: hidden; display: flex;">
+          <ng-container *ngIf="vm.daterange.nights_count > 0">
+            {{vm.daterange.start.formControl.value | date: 'dd/MM/YY'}}<i class="material-icons">arrow_right_alt</i>{{vm.daterange.end.formControl.value | date: 'dd/MM/YY'}}
+            &nbsp;
+            ({{vm.daterange.nights_count}} nuit<span *ngIf="vm.daterange.nights_count > 1">s</span>)
+          </ng-container>
+          <ng-container *ngIf="vm.daterange.nights_count == 0">
+            {{vm.daterange.start.formControl.value | date: 'dd/MM/YY'}}
+          </ng-container>
+        </div>
+        <div style="flex: 0 1 10%; white-space: nowrap; overflow: hidden;">{{vm.participants_count.value}} pers.</div>
+        <div style="margin-left: auto; white-space: nowrap; overflow: hidden;">{{vm.price.value | number : '1.2-2'}} €</div>
+    </div>
+  </div>
+
+  <div [class.hidden]="folded">
+  <!-- identification-->
+  <div class="part">
+
+    <div class="part-toggle">
+      <button mat-icon-button *ngIf="!vGroup.identification.folded" (click)="vGroup.identification.folded = !vGroup.identification.folded">
+        <mat-icon style="font-size: 15px;">keyboard_arrow_up</mat-icon>
+      </button>
+      <button mat-icon-button *ngIf="vGroup.identification.folded" (click)="vGroup.identification.folded = !vGroup.identification.folded">
+        <mat-icon style="font-size: 15px;">keyboard_arrow_right</mat-icon>
+      </button>
+    </div>
+
+    <div class="part-container" *ngIf="vGroup.identification.folded">
+
+      <div class="row">
+
+        <!-- sojourn name -->
+        <div class="" style="min-width: 350px;">
+          <mat-form-field class="header">
+            <mat-label>Intitulé</mat-label>
+            <input  type="text"
+                    matInput
+                    (blur)="vm.name.change()"
+                    [formControl]="vm.name.formControl" >
+            <mat-hint>Libellé du regroupement.</mat-hint>
+            <mat-error *ngIf="vm.name.formControl.hasError('required')">
+              Ne peut être vide.
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <!-- sojourn Dates -->
+        <div class="cell" style="max-width: 260px;">
+          <mat-form-field >
+            <mat-label>Dates</mat-label>
+            <mat-date-range-input
+              [rangePicker]="sojournDateRangePicker">
+              <input matStartDate placeholder="dd/mm/yyyy" (blur)="vm.daterange.change()" [formControl]="vm.daterange.start.formControl">
+              <input matEndDate placeholder="dd/mm/yyyy" (blur)="vm.daterange.change()" [formControl]="vm.daterange.end.formControl">
+            </mat-date-range-input>
+            <mat-datepicker-toggle matSuffix [for]="sojournDateRangePicker"></mat-datepicker-toggle>
+            <mat-date-range-picker #sojournDateRangePicker (closed)="vm.daterange.change()"></mat-date-range-picker>
+            <mat-hint [align]="'end'"><strong>{{vm.daterange.nights_count}} {{(vm.daterange.nights_count > 1)?'nuitées':'nuitée'}}</strong></mat-hint>
+          </mat-form-field>
+        </div>
+
+        <!-- participants -->
+        <div class="cell" style="max-width: 150px;">
+          <mat-form-field>
+            <mat-label>Participants</mat-label>
+            <input  type="number"
+                    matInput
+                    (blur)="vm.participants_count.change()"
+                    [value]="vm.participants_count.value"
+                    [formControl]="vm.participants_count.formControl" >
+            <mat-hint>Nombre d'hôtes</mat-hint>
+            <mat-error *ngIf="vm.participants_count.formControl.hasError('required')">
+              Doit être supérieur à 0.
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="part-container" *ngIf="!vGroup.identification.folded">
+
+      <div class="row">
+
+        <!-- sojourn name -->
+        <div class="" style="min-width: 350px;">
+          <mat-form-field class="header">
+            <mat-label>Intitulé</mat-label>
+            <input  type="text"
+                    matInput
+                    (blur)="vm.name.change()"
+                    [formControl]="vm.name.formControl" >
+            <mat-hint>Libellé du regroupement.</mat-hint>
+            <mat-error *ngIf="vm.name.formControl.hasError('required')">
+              Ne peut être vide.
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+        <!-- sojourn Dates -->
+        <div class="cell" style="max-width: 260px;">
+          <mat-form-field >
+            <mat-label>Dates</mat-label>
+            <mat-date-range-input
+              [rangePicker]="sojournDateRangePicker">
+              <input matStartDate placeholder="dd/mm/yyyy" (blur)="vm.daterange.change()" [formControl]="vm.daterange.start.formControl">
+              <input matEndDate placeholder="dd/mm/yyyy" (blur)="vm.daterange.change()" [formControl]="vm.daterange.end.formControl">
+            </mat-date-range-input>
+            <mat-datepicker-toggle matSuffix [for]="sojournDateRangePicker"></mat-datepicker-toggle>
+            <mat-date-range-picker #sojournDateRangePicker (closed)="vm.daterange.change()"></mat-date-range-picker>
+            <mat-hint [align]="'end'"><strong>{{vm.daterange.nights_count}} {{(vm.daterange.nights_count > 1)?'nuitées':'nuitée'}}</strong></mat-hint>
+          </mat-form-field>
+        </div>
+
+        <!-- participants -->
+        <div class="cell" style="max-width: 150px;">
+          <mat-form-field>
+            <mat-label>Participants</mat-label>
+            <input  type="number"
+                    matInput
+                    (blur)="vm.participants_count.change()"
+                    [value]="vm.participants_count.value"
+                    [formControl]="vm.participants_count.formControl" >
+            <mat-hint>Nombre d'hôtes</mat-hint>
+            <mat-error *ngIf="vm.participants_count.formControl.hasError('required')">
+              Doit être supérieur à 0.
+            </mat-error>
+          </mat-form-field>
+        </div>
+
+      </div>
+
+      <div class="row">
+
+
+
+        <!-- rateClass -->
+        <div class="cell" style="max-width: 350px;">
+          <mat-form-field>
+            <mat-label>Catégorie tarifaire</mat-label>
+            <input  matInput
+                    type="text"
+                    [matAutocomplete]="rateClassAutocomplete"
+                    [value]="vm.rate_class.name"
+                    (keyup)="vm.rate_class.inputChange($event)"
+                    (focus)="vm.rate_class.focus()"
+                    (blur)="vm.rate_class.restore()"
+                    placeholder="Commencez à taper le nom" />
+
+            <button mat-button *ngIf="vm.rate_class.name.length" matSuffix mat-icon-button aria-label="Clear" (click)="vm.rate_class.reset()">
+              <mat-icon>close</mat-icon>
+            </button>
+
+            <mat-autocomplete #rateClassAutocomplete="matAutocomplete" [displayWith]="vm.rate_class.display" (optionSelected)="vm.rate_class.change($event)">
+              <div  *ngIf="vm.rate_class.filteredList | async; let list">
+                <mat-option *ngFor="let rate_class of list" [value]="rate_class">
+                  {{rate_class.name}} - {{rate_class.description}}
+                </mat-option>
+                <mat-option *ngIf="list.length == 0"><i>pas de résultat</i></mat-option>
+              </div>
+            </mat-autocomplete>
+
+            <mat-hint [align]="'start'" style="opacity: 1">
+              <span>Catégorie tarifaire de facturation</span>
+            </mat-hint>
+          </mat-form-field>
+        </div>
+
+        <!-- sojourn type -->
+        <div class="cell" style="max-width: 120px;">
+          <mat-form-field>
+            <mat-label>Type de séjour</mat-label>
+            <mat-select [ngModel]="vm.sojourn_type.value" (selectionChange)="vm.sojourn_type.change($event)">
+              <mat-option value="GG">GG</mat-option>
+              <mat-option value="GA">GA</mat-option>
+            </mat-select>
+          </mat-form-field>
+        </div>
+
+
+      </div>
+
+
+      <div class="row">
+
+        <!-- has pack -->
+        <div class="cell" style="max-width: 200px;">
+        <mat-form-field floatLabel="always" class="invisible">
+          <mat-slide-toggle color="primary" [ngModel]="vm.pack.has_pack" (change)="vm.pack.change('has_pack', $event.checked)">Utiliser un pack ?</mat-slide-toggle>
+          <textarea matInput hidden></textarea>
+        </mat-form-field>
+      </div>
+
+        <!-- ref pack-->
+        <div class="cell" style="max-width: 450px;" *ngIf="vm.pack.has_pack">
+          <mat-form-field >
+            <mat-label>Pack de référence</mat-label>
+            <input  matInput
+                    type="text"
+                    [matAutocomplete]="packAutocomplete"
+                    [value]="vm.pack.name"
+                    (keyup)="vm.pack.inputChange($event)"
+                    (focus)="vm.pack.focus()"
+                    (blur)="vm.pack.restore()"
+                    placeholder="Commencez à taper le nom" />
+
+            <button mat-button *ngIf="vm.pack.name.length" matSuffix mat-icon-button aria-label="Clear" (click)="vm.pack.reset()">
+              <mat-icon>close</mat-icon>
+            </button>
+
+            <mat-autocomplete #packAutocomplete="matAutocomplete" [displayWith]="vm.pack.display" (optionSelected)="vm.pack.change('name', $event.option.value)">
+              <div  *ngIf="vm.pack.filteredList | async; let list">
+                <mat-option *ngFor="let pack of list" [value]="pack">
+                  {{pack.name}}
+                </mat-option>
+                <mat-option *ngIf="list.length == 0"><i>pas de résultat</i></mat-option>
+              </div>
+            </mat-autocomplete>
+
+            <mat-hint [align]="'start'" style="opacity: 1">
+              <span>Type de séjour de la réservation</span>
+            </mat-hint>
+          </mat-form-field>
+        </div>
+
+        <!-- locked pack -->
+        <div class="cell" *ngIf="vm.pack.has_pack">
+          <mat-form-field floatLabel="always" class="invisible">
+            <mat-slide-toggle [ngModel]="vm.pack.is_locked" (change)="vm.pack.change('is_locked', $event.checked)">Liste des produits verrouillée</mat-slide-toggle>
+            <textarea matInput hidden></textarea>
+          </mat-form-field>
+        </div>
+
+      </div>
+
+    </div>
+
+
+  </div>
+
+
+  <!-- products -->
+  <div class="part">
+
+    <div class="part-toggle">
+      <button mat-icon-button *ngIf="!vGroup.products.folded" (click)="vGroup.products.folded = !vGroup.products.folded">
+        <mat-icon style="font-size: 15px;">keyboard_arrow_up</mat-icon>
+      </button>
+      <button mat-icon-button *ngIf="vGroup.products.folded" (click)="vGroup.products.folded = !vGroup.products.folded">
+        <mat-icon style="font-size: 15px;">keyboard_arrow_right</mat-icon>
+      </button>
+    </div>
+
+    <div class="part-container">
+      <div class="row">
+        <div class="row-products-title">Produits ({{lines.length}}) <button *ngIf="!vm.pack.is_locked" mat-mini-fab color="primary" style="transform: scale(0.65);" (click)="vm.lines.add()"> <mat-icon>add</mat-icon></button></div>
+        <div class="row-products-price">TOTAL TTC &nbsp;:&nbsp; {{vm.price.value | number : '1.2-2'}} €</div>
+      </div>
+      <div class="row" [class.hidden]="vGroup.products.folded">
+          <div style="width: 100%;">
+            <div class="products-header">
+              <div style="display: flex; width: 100%; margin-bottom: 6px;">
+                <div class="product-cell" style="text-align: left;">SKU</div>
+                <div class="product-cell">QTÉ</div>
+                <div class="product-cell">GTÉ</div>
+                <div class="product-cell">P.U.</div>
+                <div class="product-cell">RÉDUC</div>
+                <div class="product-cell">TAX</div>
+                <div class="product-cell">PRIX</div>
+                <!-- actions -->
+                <div class="product-cell" style="max-width: 35px;"></div>
+              </div>
+            </div>
+
+            <div class="products-list" cdkDropList (cdkDropListDropped)="vm.lines.drop($event)">
+              <!-- products -->
+              <div class="product-item" cdkDrag [cdkDragData]="line" *ngFor="let line of lines; let index = index;">
+                <div class="product-handle" cdkDragHandle><mat-icon style="font-size: 16px;">drag_indicator</mat-icon></div>
+                <div class="product-remove"><button *ngIf="!vm.pack.is_locked" mat-icon-button (click)="vm.lines.remove(line)"> <mat-icon>delete</mat-icon></button></div>
+                <booking-edit-bookings-group-line [bookingInput]="bookingInput" [groupInput]="group" [lineInput]="_lineOutput[index]" [lineOutput]="_lineInput"></booking-edit-bookings-group-line>
+              </div>
+            </div>
+
+          </div>
+
+      </div>
+    </div>
+
+  </div>
+
+
+  <!-- accomodations -->
+  <div class="part">
+
+    <div class="part-toggle">
+      <button mat-icon-button *ngIf="!vGroup.accomodations.folded" (click)="vGroup.accomodations.folded = !vGroup.accomodations.folded">
+        <mat-icon style="font-size: 15px;">keyboard_arrow_up</mat-icon>
+      </button>
+      <button mat-icon-button *ngIf="vGroup.accomodations.folded" (click)="vGroup.accomodations.folded = !vGroup.accomodations.folded">
+        <mat-icon style="font-size: 15px;">keyboard_arrow_right</mat-icon>
+      </button>
+    </div>
+
+    <div class="part-container" *ngIf="vGroup.accomodations.folded">
+      <div class="row">
+        <div style="margin-top: 8px;">Logements </div>
+      </div>
+    </div>
+
+    <div class="part-container" *ngIf="!vGroup.accomodations.folded">
+      <div class="row">
+        <div style="margin-top: 8px;">Unités locatives </div>
+      </div>
+      <div class="row" style="display: block;">
+        <div class="accomodation-item" *ngFor="let accomodation of accomodations; let index = index;">
+          <booking-edit-bookings-group-accomodation [groupInput]="group" [bookingInput]="bookingInput" [accomodationInput]="_accomodationOutput[index]" [accomodationOutput]="_accomodationInput"></booking-edit-bookings-group-accomodation>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  </div>
+
+
+</div>

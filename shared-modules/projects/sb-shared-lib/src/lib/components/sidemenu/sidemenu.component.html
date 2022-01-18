@@ -1,0 +1,77 @@
+<div class="side-inner">
+    <div class="header-tabs" >
+        <div class="tab-button">
+            <button mat-icon-button (click)="selected_tab_id = 'object-routes'"><mat-icon >play_circle_outline</mat-icon></button>
+        </div>
+        <div class="tab-button">
+            <button mat-icon-button (click)="selected_tab_id = 'validity-check'"><mat-icon >check_circle_outline</mat-icon></button>
+        </div>
+        <div class="tab-button">
+            <button mat-icon-button (click)="selected_tab_id = 'view-help'" ><mat-icon >help_outline</mat-icon></button>
+        </div>
+        <div class="tab-button">
+            <button mat-icon-button (click)="selected_tab_id = 'object-history'" ><mat-icon >history</mat-icon></button>
+        </div>
+        <div class="tab-button">
+            <button mat-icon-button (click)="selected_tab_id = 'user-settings'" ><mat-icon >settings</mat-icon></button>
+        </div>
+    </div>
+
+
+    <div class="tab-inner" [class.hidden]="selected_tab_id != 'object-routes'">
+        <div class="object-routes-item" *ngFor="let item of object_routes_items">
+            <button mat-stroked-button (click)="onObjectRoute(item)"><mat-icon >{{item.icon}}</mat-icon> &nbsp; {{item.label}} </button>
+        </div>
+    </div>
+
+    <div class="tab-inner" [class.hidden]="selected_tab_id != 'validity-check'">
+        <div class="validity-check-item" *ngFor="let item of object_checks_items">
+            <button mat-stroked-button (click)="onObjectCheck(item)"><mat-icon >check_box</mat-icon> {{item.label}} </button>
+        </div>
+        <div class="validity-check-result">
+            <span class="result-title">{{object_checks_result.title}}</span>
+            <div class="result-content">
+                <div *ngFor="let line of object_checks_result.content">
+                    <span *ngIf="line.type == 'message'">{{line.message}}</span>
+                    <span *ngIf="line.type == 'object'">
+                        <button mat-button (click)="onObjectCheckResult(line)">{{line.object_name}}</button>
+                    </span>
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    <div class="tab-inner" [class.hidden]="selected_tab_id != 'view-help'">
+        <div style="display: flex; width: 100%">
+            <button mat-icon-button  (click)="onHelpFullScreen()" style="margin-left: auto; transform: scale(0.8);">
+                <mat-icon>open_in_full</mat-icon>
+            </button>            
+        </div>        
+        <div #helpfullscreen class="context-help" [innerHTML]="view_description | markdown"></div>
+    </div>
+
+    <div class="tab-inner" [class.hidden]="selected_tab_id != 'object-history'">
+
+        <div class="object-history-item" *ngFor="let change of latest_changes; let index = index" >
+            <div><strong>{{change.user_id.name}}</strong></div>
+            <div class="item-time"><span>{{change.modified | date : 'EEE dd MMMM yyyy HH:mm'}}</span></div>
+        </div>
+
+    </div>
+
+    <div class="tab-inner" [class.hidden]="selected_tab_id != 'user-settings'">
+        <div class="user-settings-item" >
+            <strong>{{user.name}}</strong><br />
+            {{user.login}}
+        </div>
+        <div class="user-settings-item" >
+            <button mat-stroked-button (click)="onUserSettings()"><mat-icon >settings</mat-icon> Paramètres utilisateur</button>
+        </div>
+        <div class="user-settings-item" >
+            <button mat-stroked-button (click)="onDisconnect()"><mat-icon >logout</mat-icon> Se déconnecter</button>
+        </div>
+    </div>
+
+
+</div>
