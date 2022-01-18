@@ -97,9 +97,7 @@ export class DocumentsImportComponent implements OnInit, AfterContentInit {
             });
 
            await this.api.create("documents\\DocumentTag", {
-              name: "graccus",
-              document_ids:1
-             
+              name: "graccos",
           });
             files[i].id = response.id;
 
