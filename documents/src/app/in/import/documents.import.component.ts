@@ -21,9 +21,7 @@ export class DocumentsImportComponent implements OnInit, AfterContentInit {
 
   public files: any[] = [];
   public rejectedFiles : any[] = [];
-  public acceptedFiles = "image/jpeg,image/jpg,image/png,image/gif,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/pdf"
   public loading = false;
-
 
   public name: string = '';
 
@@ -98,14 +96,12 @@ export class DocumentsImportComponent implements OnInit, AfterContentInit {
                 name: files[i].name,
                 type: files[i].type,
                 data: data,
-                categories_ids: 3
+                
             
             });
-
            await this.api.create("documents\\DocumentCategory", {
               name: "graccus",
               // parent_id: 2
-              
           });
             files[i].id = response.id;
 
@@ -119,7 +115,6 @@ export class DocumentsImportComponent implements OnInit, AfterContentInit {
         }
     }
     this.loading = false;
-
 }
 
 // preview(file:any){
@@ -247,8 +242,6 @@ export class DialogDocumentRename {
   async rename(file: any) {
 
     // Only with dblclick
-
-
     console.log("name", this.name);
 
     console.log("fileee", file);
@@ -261,9 +254,8 @@ export class DialogDocumentRename {
     this.dialogRef.close({
       data:this.name
     })
-
+}
 }
 
-}
 
 

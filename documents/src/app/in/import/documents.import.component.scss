@@ -35,6 +35,14 @@
               width: 13.3%;
             }
           }
+         .formatError{
+            width: 70%;
+            margin:auto; 
+            text-align: center; 
+            background-color: brown; 
+            color: white; 
+            padding: 0.2rem;
+         }
       }
       .booking-body::-webkit-scrollbar {
           width: 6px;
