@@ -7,7 +7,7 @@
 
   <!-- ngx-dropzone  -->
           <div style="width: 70%; margin: auto;" color="accent">
-            <ngx-dropzone (change)="onSelect($event)" color="warm">
+            <ngx-dropzone (change)="onSelect($event)" color="warm" accept="acceptedFiles">
 
               <ngx-dropzone-label *ngIf="!loading">Choose or Drop your files here!
 
@@ -17,7 +17,9 @@
 
           </div>
         </div>
-
+        <div style="width: 70%; margin:auto; text-align: center;" *ngFor = "let file of rejectedFiles">
+         <p>"{{file.name}}" isn't an allowed file type. The accepted types are : <span style="font-weight: bold;">{{this.acceptedFiles}}</span> </p> 
+        </div>
         <div style="width: 100%;">
           <table mat-table class="mat-elevation-z8" [dataSource]="files">
             ID Column

@@ -20,7 +20,8 @@ export class DocumentsImportComponent implements OnInit, AfterContentInit {
 
 
   public files: any[] = [];
-
+  public rejectedFiles : any[] = [];
+  public acceptedFiles = "image/jpeg,image/jpg,image/png,image/gif,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/pdf"
   public loading = false;
 
 
@@ -80,12 +81,16 @@ export class DocumentsImportComponent implements OnInit, AfterContentInit {
 
 
   public async onSelect(event:any) {
-    console.log("event", event);
+    
 
+    
+    this.rejectedFiles = event.rejectedFiles;
+    console.log(this.rejectedFiles);
     let files = event.addedFiles;
     this.loading = true;
-
+    
     for (var i = 0; i < files.length; i++) {
+      
         const data = await this.readFile(files[i]);
         console.log(data);
         try {
@@ -93,11 +98,14 @@ export class DocumentsImportComponent implements OnInit, AfterContentInit {
                 name: files[i].name,
                 type: files[i].type,
                 data: data,
-                tag_ids: 1
+                categories_ids: 3
+            
             });
 
-           await this.api.create("documents\\DocumentTag", {
-              name: "graccos",
+           await this.api.create("documents\\DocumentCategory", {
+              name: "graccus",
+              // parent_id: 2
+              
           });
             files[i].id = response.id;
 
