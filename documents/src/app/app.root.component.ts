@@ -26,7 +26,8 @@ export class AppRootComponent implements OnInit {
   public navMenuItems: any = [];
 
 
-  public translations: any = {};
+  public translationsMenuLeft: any = {};
+  public translationsMenuTop: any = {};
 
 
 
@@ -53,15 +54,16 @@ export class AppRootComponent implements OnInit {
       const data:any = await this.api.fetch('?get=model_menu&package=documents'+'&menu_id='+'documents.left');
 
       this.navMenuItems = data.layout.items;
-      // try {
-      //   const i18n = await this.api.fetch('?get=config_i18n-menu&package=documents'+'&menu_id='+'documents.left');
-      //   if(i18n && i18n.view) {
-      //     this.translations = i18n.view;
-      //   }
-      // }
-      // catch(response) {
-      //   console.log(response);
-      // }
+      try {
+        const i18n = await this.api.fetch('?get=config_i18n-menu&package=documents'+'&menu_id='+'documents.left');
+        if(i18n && i18n.view) {
+          this.translationsMenuLeft = i18n.view;
+          console.log("traductions", this.translationsMenuLeft)
+        }
+      }
+      catch(response) {
+        console.log(response);
+      }
     }
     catch(err) {
       console.log(err);
@@ -70,6 +72,17 @@ export class AppRootComponent implements OnInit {
     try {
       const data:any = await this.api.fetch('?get=model_menu&package=documents'+'&menu_id='+'documents.top');
       this.topMenuItems = data.layout.items;
+
+      try {
+        const i18n = await this.api.fetch('?get=config_i18n-menu&package=documents'+'&menu_id='+'documents.top');
+        if(i18n && i18n.view) {
+          this.translationsMenuTop = i18n.view;
+          console.log("traductionsMenuTop", this.translationsMenuTop)
+        }
+      }
+      catch(response) {
+        console.log(response);
+      }
     }
     catch(err) {
       console.log(err);
@@ -119,7 +132,7 @@ export class AppRootComponent implements OnInit {
       descriptor.route = item.route;
     }
     else {
-      descriptor.route = '/';
+      descriptor.route = '/tables';
     }
 
     if(item.hasOwnProperty('context')) {

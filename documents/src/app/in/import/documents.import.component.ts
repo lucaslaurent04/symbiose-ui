@@ -95,14 +95,8 @@ export class DocumentsImportComponent implements OnInit, AfterContentInit {
             const response = await this.api.create("documents\\Document", {
                 name: files[i].name,
                 type: files[i].type,
-                data: data,
-                
-            
+                data: data,  
             });
-           await this.api.create("documents\\DocumentCategory", {
-              name: "graccus",
-              // parent_id: 2
-          });
             files[i].id = response.id;
 
             this.files.push(files[i]);
