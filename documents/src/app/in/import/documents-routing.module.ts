@@ -8,7 +8,7 @@ import { DocumentsImportComponent } from './documents.import.component';
 const routes: Routes = [
 
     {
-        path: 'import',
+        path: '',
         component: DocumentsImportComponent
     },
     {

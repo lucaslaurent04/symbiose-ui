@@ -7,7 +7,7 @@ import { SharedLibModule, AuthInterceptorService,  } from 'sb-shared-lib';
 
 import { DocumentsRoutingModule } from './documents-routing.module';
 
-import { DocumentsImportComponent, DialogDocumentRename } from './documents.import.component';
+import { DocumentsImportComponent, DialogDocumentRename, DialogDeleteConfirmation } from './documents.import.component';
 
 import { NgxDropzoneModule } from 'ngx-dropzone';
 
@@ -23,8 +23,10 @@ import { NgxDocViewerModule } from 'ngx-doc-viewer';
   ],
   declarations: [
     DocumentsImportComponent,
-    DialogDocumentRename
+    DialogDocumentRename,
+    DialogDeleteConfirmation
   ],
+ 
   // , PaymentsImportDialogConfirm
   providers: [
     { provide: DateAdapter, useClass: CustomDateAdapter, deps: [MAT_DATE_LOCALE, Platform] }

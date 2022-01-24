@@ -7,7 +7,7 @@ import { AppComponent } from './in/app.component';
 const routes: Routes = [
   /* routes specific to current app */
   {
-    path: '',
+    path: 'import',
     loadChildren: () => import(`./in/import/documents.import.module`).then(m => m.AppInDocumentsModule)
   },
   {
@@ -17,7 +17,7 @@ const routes: Routes = [
       2) ask for permissions (and store choices)
       3) redirect to applicable page (/auth/sign or /in)
      */
-    path: 'menu',
+    path: '',
     component: AppComponent
   }
 ];
