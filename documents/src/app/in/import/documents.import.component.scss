@@ -28,11 +28,17 @@
             width: 70%;
             margin: auto;
             margin-bottom: 20px;
-            .mat-column-name, .mat-column-type, .mat-column-size{
-              width: 20%;
+            .mat-column-name{
+              width: 9%;
+              text-align: center;
+            }
+            .mat-column-type, .mat-column-size{
+              width: 7.5%;
+              text-align: center;
             }
             .mat-column-rename, .mat-column-viewImg, .mat-column-delete{
-              width: 13.3%;
+              width: 10%;
+              text-align: center;
             }
           }
          .formatError{

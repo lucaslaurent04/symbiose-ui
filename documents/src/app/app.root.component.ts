@@ -132,7 +132,7 @@ export class AppRootComponent implements OnInit {
       descriptor.route = item.route;
     }
     else {
-      descriptor.route = '/tables';
+      descriptor.route = '/';
     }
 
     if(item.hasOwnProperty('context')) {

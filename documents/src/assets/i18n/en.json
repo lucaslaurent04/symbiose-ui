@@ -1,7 +1,7 @@
 {
-
     "SB_DIALOG_ACCEPT": "Valider",
     "SB_DIALOG_CANCEL": "Annuler",
+
     "SB_PURPOSE_CREATE": "Création",
     "SB_PURPOSE_UPDATE": "Modification",
     "SB_PURPOSE_SELECT": "Sélection",
@@ -44,6 +44,7 @@
 
     "SB_EXPORTS_AS_PDF": "Imprimer en PDF",
     "SB_EXPORTS_AS_XLS": "Exporter en XLS",
+
     "SB_WIDGETS_MANY2ONE_ADVANCED_SEARCH": "Recherche avancée ...",
 
     "SB_ERROR_DUPLICATE_VALUE": "Cette valeur doit être unique mais existe déjà.",
@@ -64,12 +65,14 @@
     "AUTH_RECOVER_EMAIL": "Adresse email",
     "AUTH_RECOVER_ACTION_RECOVER": "Réinitialiser",
     "AUTH_RECOVER_ACTION_SIGNIN": "S'identifer",
+
     "AUTH_RESET_TITLE" : "Nouveau mot de passe",
     "AUTH_RESET_SUBTITLE": "Définir un nouveau mot de passe",
     "AUTH_RESET_PASSWORD": "Mot de passe",
     "AUTH_RESET_CONFIRM": "Confirmation",
     "AUTH_RESET_ACTION_SUBMIT": "Réinitialiser",
     "AUTH_RESET_ACTION_SIGNIN": "S'identifier",
+
     "AUTH_ERROR_MISSING_USERNAME": "Nom d'utilisateur requis",
     "AUTH_ERROR_MISSING_PASSWORD": "Mot de passe requis",
     "AUTH_ERROR_INVALID_PASSWORD": "Mot de passe invalide (min 8 car.)",
@@ -87,33 +90,27 @@
     "APPS_APP_DOCUMENTS": "Documents",
 	"APPS_APP_STATS": "Statistiques",
 
-
     "DOCS_LIST_DOCUMENT": "Documents",
-    "DOCS_LIST_IMPORT": "Importer",
-    
-    "DOCS_ERRORS_FAILED_UPLOAD": "Échec du téléchargement du fichier",
-    "DOCS_ERROR_BAD_FORMAT": "n'est pas un format autorisé. Les formats autorisés: JPEG, JPG, PNG, GIF, DOCX, PDF, AI, XLS, PSD.",
-    "DOCS_DROP_TITLE": "Choisissez ou déposez vos fichiers ici !",
-    "DOCS_DROP_NAME": "Nom",
+    "DOCS_LIST_IMPORT": "Import",
+
+    "DOCS_ERRORS_FAILED_UPLOAD": "Download of the file failed",
+    "DOCS_ERROR_BAD_FORMAT": "isn't an allowed format. The accepted formats are: JPEG, JPG, PNG, GIF, DOCX, PDF, AI, XLS, PSD.",
+    "DOCS_DROP_TITLE": "Choose or Drop your files here !",
+    "DOCS_DROP_NAME": "Name",
     "DOCS_DROP_TYPE": "Type",
-    "DOCS_DROP_SIZE": "Taille",
+    "DOCS_DROP_SIZE": "Size",
 
 
-    "DOCS_DROP_ACTION_VIEWDOC": "Afficher le document",
-    "DOCS_DROP_ACTION_DELETEDOC": "Supprimer le document",
-    "DOCS_DROP_ACTION_CONFIRMATION": "Êtes-vous sûr de vouloir supprimer ce document ?",
+    "DOCS_DROP_ACTION_VIEWDOC": "Display the document",
+    "DOCS_DROP_ACTION_DELETEDOC": "Delete the document",
+    "DOCS_DROP_ACTION_CONFIRMATION": "Are you sure you want to delete the document?",
     "DOCS_DROP_ACTION_RENAMEDOC": "Renommer le document",
 
 
-    "DOCS_DIALOG_CONTENT_RENAME": "Cet assistant vous permet de modifier le nom de votre document.",
-    "DOCS_DIALOG_ACTION_BUTTON_RENAME": "Renommer",
-    "DOCS_DIALOG_ACTION_BUTTON_CANCEL": "Annuler",
-    "DOCS_DIALOG_ACTION_BUTTON_VALIDATE": "Valider",
-    "DOCS_DIALOG_CONTENT_DELETE":"Êtes-vous sûr de voulour supprimer le document ?",
-
-
-
-
-    "BOOKING_PLANNING_HEADER_TODAY": "Aujourd'hui"
+    "DOCS_DIALOG_CONTENT_RENAME": "This assistant allows you to modify the name of your document",
+    "DOCS_DIALOG_ACTION_BUTTON_RENAME": "Rename",
+    "DOCS_DIALOG_ACTION_BUTTON_CANCEL": "Cancel",
+    "DOCS_DIALOG_ACTION_BUTTON_VALIDATE": "Delete",
+    "DOCS_DIALOG_CONTENT_DELETE":"Are you sure you want to delete the document ?"
 
 }
