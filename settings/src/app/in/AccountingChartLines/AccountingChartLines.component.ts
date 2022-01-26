@@ -16,12 +16,15 @@ import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 
 
 @Component({
-  selector: 'boking',
-  templateUrl: 'booking.component.html',
-  styleUrls: ['booking.component.scss']
+  selector: 'accounting-chart-lines',
+  templateUrl: 'AccountingChartLines.component.html',
+  styleUrls: ['AccountingChartLines.component.scss']
 })
-export class BookingComponent implements OnInit, AfterViewInit  {
+export class AccountingChartLinesComponent implements OnInit, AfterViewInit  {
 
+
+
+  public AccountingCharts : any[]= [];
 
   constructor(
               private auth: AuthService,
@@ -38,9 +41,12 @@ export class BookingComponent implements OnInit, AfterViewInit  {
 
   }
 
-  public ngOnInit() {
-
+  public async  ngOnInit() {
+    this.AccountingCharts = await this.api.collect('finance\\accounting\\AccountChart', [], []);
+    console.log(this.AccountingCharts);
   }
 
-
+  public getChartLines(){
+    this.router.navigateByUrl('/AccountingChartLines2');
+  }
 }

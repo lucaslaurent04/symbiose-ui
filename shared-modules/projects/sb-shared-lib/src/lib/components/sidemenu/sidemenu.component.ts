@@ -9,6 +9,7 @@ import { environment } from '../../environment/environment';
 import * as screenfull from 'screenfull';
 import { HttpErrorResponse } from '@angular/common/http';
 
+
 @Component({
   selector: 'app-sidemenu',
   templateUrl: './sidemenu.component.html',
@@ -55,13 +56,16 @@ export class AppSideMenuComponent implements OnInit {
 
   private object: any = {};
 
+  public message: any;
+
   constructor(
     private context:ContextService,
     private router: Router,
     private api:ApiService,
     private auth:AuthService,
-    private zone:NgZone
+    private zone:NgZone,
   ) {}
+  
 
   ngOnInit(): void {
 

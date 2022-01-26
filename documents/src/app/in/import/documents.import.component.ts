@@ -260,7 +260,6 @@ export class DialogDocumentRename {
   <input type="checkbox" id="dialogDelete" name="dialogDelete" [(ngModel)]="deleteConfirmation"
   checked>
   <label for="dialogDelete"> {{ 'DOCS_DIALOG_CONTENT_DELETE' | translate }}</label>
-
   </div>
 
   <div mat-dialog-actions>

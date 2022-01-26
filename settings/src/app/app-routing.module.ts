@@ -2,7 +2,9 @@ import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 import { AppComponent } from './in/app.component';
 
-import { BookingComponent } from './in/booking/booking.component';
+import { AccountingChartLinesComponent } from './in/AccountingChartLines/AccountingChartLines.component';
+import { AccountingChartLines2Component } from './in/AccountingChartLines/AccountingChartLines2/AccountingChartLines2.component';
+import { SettingsComponent } from './in/settings/settings.component';
 
 
 const routes: Routes = [
@@ -18,9 +20,17 @@ const routes: Routes = [
     component: AppComponent
   },
   {
-    path: 'booking',
-    component: BookingComponent
-  }  
+    path: 'AccountingChartLines',
+    component: AccountingChartLinesComponent
+  },
+  {
+    path: 'AccountingChartLines2',
+    component: AccountingChartLines2Component
+  },
+  {
+    path: 'settings',
+    component: SettingsComponent
+  } 
 ];
 
 @NgModule({
