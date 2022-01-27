@@ -1,0 +1,35 @@
+<div style="display: flex; ">
+  <div>
+    <h6 style="font-weight: 0.8rem; margin-top:0.8rem; padding: 0.6rem;">{{title}}</h6>
+    <p></p>
+  </div>
+  
+  <mat-form-field appearance="standard">
+    <mat-label>{{title}}</mat-label>
+    <mat-select (selectionChange)="consoler('e')">
+      <mat-option *ngFor="let option of choices" value="{{option.value}}">
+        {{option.value}}
+
+        <!-- value foireux -->
+      </mat-option>
+    </mat-select>
+    <mat-hint>{{description}}</mat-hint>
+  </mat-form-field>
+</div>
+
+
+
+<!-- this solution works for Angular 11.2.1 and Material 11.2.1
+
+You need to capture the changes with valueChanges observable
+
+this.editForm.valueChanges
+ .subscribe(value=> {
+       if (this.editForm.dirty) {
+              //do something
+              }
+           });
+Notes to observe:
+
+typically you don't need to put the filter if(this.editForm.dirty) {...} , because the normal behavior is this observer should kick in only if it is changed (dirty), but due to the material components mat-xxx, this observer is kicked in few times after the value changed of the field , so to avoid multiple unnecessary execution to the event you would have to filter the observable by this condition if (this.editForm.dirty) {...} it will execute only once it is changed. -->
+<!-- again this works with reactive forms, I just noticed your question uses Template-driven but worth noting just in case someone is looking at solution for reactive forms. --> 

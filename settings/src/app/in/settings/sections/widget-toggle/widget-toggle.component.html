@@ -1,4 +1,12 @@
-<mat-form-field floatLabel="always" appearance="fill">
-    <mat-slide-toggle [(ngModel)]="Override" > <span class="text-invisible">{{title}}</span></mat-slide-toggle>
-    <textarea matInput hidden></textarea>
-</mat-form-field>
+<div style="display: flex; ">
+    <div>
+        <h6 style="font-weight: 0.8rem; margin-top:0.8rem; padding: 0.6rem;">{{setting.title}}</h6>
+        <p></p>
+    </div>
+    <mat-form-field floatLabel="always" appearance="standard">
+        <mat-slide-toggle (click)="getFucked()" value="false" [(ngModel)]="Override"> <span
+                class="text-invisible">{{setting.title}}</span></mat-slide-toggle>
+        <textarea matInput hidden></textarea>
+        <mat-hint>{{setting.description}}</mat-hint>
+    </mat-form-field>
+</div>

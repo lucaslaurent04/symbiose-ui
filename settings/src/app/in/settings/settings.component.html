@@ -1,27 +1,27 @@
-<div class="container" >
+<div class="container">
     <div class="import-header">Settings <span> › </span> General </div>
     <div class="import-body">
 
-        <div class="container" style="display: flex; flex-wrap: wrap;">
-            <mat-card *ngFor="let element of dataSorted;" style="box-shadow: none; width: 50%;">
-                <mat-card-title style="border-bottom: 1px solid grey; background-color: #3f51b5; color: white; padding: 0.3rem;">{{element[0].section}}</mat-card-title>
-                <mat-card-content  style="display: flex; justify-content:space-evenly; flex-wrap: wrap;">
-                    
+        <div class="container">
+            <mat-card *ngFor="let element of dataSorted;" style="box-shadow: none; padding:0;">
+                <mat-card-title
+                    style="border-bottom: 1px solid grey; background-color: #3f51b5; color: white; padding: 0.3rem;">
+                    {{element[0].section}}</mat-card-title>
+                <mat-card-content class="wrapper">
                     <div *ngFor="let value of element">
-                        <app-widget-toggle [title]="value.name" *ngIf="value.type == 'boolean'"  (click) = "openSnackBar(value.name, 'ra')"></app-widget-toggle>
+                        <app-widget-toggle [description]="value.description" [title]="value.title" [setting] = "value" [label]="value.setting_values_ids[0].value"
+                            *ngIf="value.type == 'boolean'"
+                            (click)="openSnackBar(value.name, value.setting_values_ids[0].id, true, $event.target)">
+                        </app-widget-toggle>
 
-                        <app-widget-select *ngIf="value.type != 'boolean'" [title]= "value.name" [label]="value.setting_values_ids[0].value" > </app-widget-select> 
-                        
+                        <app-widget-select  [description]="value.description" *ngIf="value.type != 'boolean'"
+                            [title]="value.title" [label]="value.setting_values_ids[0].value"
+                            [choices]="value.setting_choices_ids"> </app-widget-select>
                         <!-- if else not working properly -->
                     </div>
-                                    
+
                 </mat-card-content>
-            </mat-card>     
+            </mat-card>
         </div>
     </div>
 </div>
-
-
-
-
-

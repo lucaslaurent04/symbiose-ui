@@ -28,9 +28,9 @@ const routes: Routes = [
     component: AccountingChartLines2Component
   },
   {
-    path: 'settings',
+    path: 'settings/:package',
     component: SettingsComponent
-  } 
+  },
 ];
 
 @NgModule({

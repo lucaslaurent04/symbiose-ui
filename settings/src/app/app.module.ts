@@ -28,7 +28,8 @@ import { SettingsComponent } from './in/settings/settings.component';
 import { WidgetToggleComponent } from './in/settings/sections/widget-toggle/widget-toggle.component';
 import { SnackUndoComponent } from './in/settings/sections/snack-undo/snack-undo.component';
 import { ContainerComponent } from './in/settings/sections/container/container.component';
-import { WidgetSelectComponent } from './in/settings/widget-select/widget-select.component';
+import {WidgetSelectComponent} from './in/settings/sections/widget-select/widget-select.component';
+import { SaleSettingsComponent } from './in/settings/sale-settings/sale-settings.component'
 
 
 
@@ -44,6 +45,7 @@ registerLocaleData(localeFr);
     SnackUndoComponent,
     ContainerComponent,
     WidgetSelectComponent,
+    SaleSettingsComponent,
 
   ],
   imports: [
