@@ -19,17 +19,14 @@ import { HTTP_INTERCEPTORS } from '@angular/common/http';
 
 import { registerLocaleData } from '@angular/common';
 import localeFr from '@angular/common/locales/fr';
-
 import { MAT_SNACK_BAR_DEFAULT_OPTIONS } from '@angular/material/snack-bar';
 import { AccountingChartLinesComponent } from './in/AccountingChartLines/AccountingChartLines.component';
 import { AccountingChartLines2Component } from './in/AccountingChartLines/AccountingChartLines2/AccountingChartLines2.component';
-
 import { SettingsComponent } from './in/settings/settings.component';
 import { WidgetToggleComponent } from './in/settings/sections/widget-toggle/widget-toggle.component';
-import { SnackUndoComponent } from './in/settings/sections/snack-undo/snack-undo.component';
-import { ContainerComponent } from './in/settings/sections/container/container.component';
 import {WidgetSelectComponent} from './in/settings/sections/widget-select/widget-select.component';
-import { SaleSettingsComponent } from './in/settings/sale-settings/sale-settings.component'
+import { WidgetFormComponent } from './in/settings/sections/widget-form/widget-form.component';
+
 
 
 
@@ -42,11 +39,8 @@ registerLocaleData(localeFr);
     AccountingChartLines2Component,
     SettingsComponent,
     WidgetToggleComponent,
-    SnackUndoComponent,
-    ContainerComponent,
     WidgetSelectComponent,
-    SaleSettingsComponent,
-
+    WidgetFormComponent,
   ],
   imports: [
     AppRoutingModule,

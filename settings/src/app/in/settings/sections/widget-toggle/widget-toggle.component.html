@@ -1,12 +1,13 @@
-<div style="display: flex; ">
-    <div>
-        <h6 style="font-weight: 0.8rem; margin-top:0.8rem; padding: 0.6rem;">{{setting.title}}</h6>
-        <p></p>
+
+<mat-card style="display: flex; height: 9rem;margin:0.3rem">
+    <div style="border-right:0.5px solid black; padding: 0.2rem; margin:0.2rem; overflow: hidden; width:50%">
+        <mat-card-title style="font-size: 1rem;">{{setting.title}}</mat-card-title>
+        <mat-card-subtitle style="font-size: 0.8rem;">{{setting.help}}</mat-card-subtitle>
     </div>
-    <mat-form-field floatLabel="always" appearance="standard">
-        <mat-slide-toggle (click)="getFucked()" value="false" [(ngModel)]="Override"> <span
+    <mat-form-field floatLabel="always" appearance="standard" style="width: 50%;">
+        <mat-slide-toggle   [checked]="settingValue" (change)="valueChange($event)"> <span
                 class="text-invisible">{{setting.title}}</span></mat-slide-toggle>
         <textarea matInput hidden></textarea>
         <mat-hint>{{setting.description}}</mat-hint>
     </mat-form-field>
-</div>
+</mat-card>

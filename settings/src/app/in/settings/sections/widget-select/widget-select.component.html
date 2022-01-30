@@ -1,21 +1,24 @@
-<div style="display: flex; ">
-  <div>
-    <h6 style="font-weight: 0.8rem; margin-top:0.8rem; padding: 0.6rem;">{{title}}</h6>
-    <p></p>
-  </div>
-  
-  <mat-form-field appearance="standard">
-    <mat-label>{{title}}</mat-label>
-    <mat-select (selectionChange)="consoler('e')">
-      <mat-option *ngFor="let option of choices" value="{{option.value}}">
-        {{option.value}}
 
-        <!-- value foireux -->
-      </mat-option>
-    </mat-select>
-    <mat-hint>{{description}}</mat-hint>
-  </mat-form-field>
-</div>
+  <mat-card style="display: flex; height: 9rem;margin:0.3rem">
+    <div style="border-right:0.5px solid black; padding: 0.2rem; margin:0.2rem;overflow: hidden;width:50%">
+      <mat-card-title style="font-size: 1rem;">{{setting.title}}</mat-card-title>
+      <mat-card-subtitle style="font-size: 0.8rem;">{{setting.help}}</mat-card-subtitle>
+    </div>
+    
+    <mat-form-field appearance="standard" style="width:50%">
+      <mat-label>{{setting.title}}</mat-label>
+      <mat-select [value]="settingValue"  (selectionChange)="onChange($event)">
+        <mat-option *ngFor="let choice of choices" value = "{{choice.value}}" >
+         <span *ngIf="choice.name != ''" >{{choice.name}} <b>({{choice.value}})</b> </span>
+         <span *ngIf="choice.name == ''" >{{choice.value}}</span>
+          <!-- value foireux -->
+        </mat-option>
+      </mat-select> 
+      <mat-hint>{{setting.description}}</mat-hint>
+    </mat-form-field>
+  </mat-card>
+  
+
 
 
 

@@ -1,0 +1,17 @@
+
+<mat-card style="display: flex; height: 9rem;margin:0.3rem">
+    <div style="border-right:0.5px solid black; padding: 0.2rem; margin:0.2rem;overflow: hidden; width: 50%;">
+      <mat-card-title style="font-size: 1rem;">{{setting.title}}</mat-card-title>
+      <mat-card-subtitle style="font-size: 0.8rem;">{{setting.help}}</mat-card-subtitle>
+    </div>
+    
+    <mat-form-field appearance="standard" style="width: 50%;" (ngSubmit)="change($event)">
+      <mat-label>{{setting.title}}</mat-label>
+      <input
+      placeholder="{{setting.setting_values_ids[0].value}}"
+      matInput
+      >
+      <mat-hint>{{setting.description}}</mat-hint>
+      
+    </mat-form-field>
+  </mat-card>

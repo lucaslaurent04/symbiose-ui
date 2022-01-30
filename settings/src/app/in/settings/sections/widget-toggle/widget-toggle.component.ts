@@ -1,6 +1,7 @@
 import { Component, Input, OnInit, OnChanges, SimpleChanges } from '@angular/core';
 import { MatSnackBar } from '@angular/material/snack-bar';
-
+import { MatSlideToggleChange } from "@angular/material/slide-toggle";
+import { SettingService } from 'src/app/settingService';
 @Component({
   selector: 'app-widget-toggle',
   templateUrl: './widget-toggle.component.html',
@@ -8,29 +9,35 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 })
 export class WidgetToggleComponent implements OnInit {
 
-  constructor() { }
+  constructor(private service : SettingService) { }
 
-  public Override : any;
-  @Input() title:string;
-  @Input() choices: string;
-  @Input() description:any;
+  
   @Input() setting : any;
-  @Input() label : any;
-  public value:any;
+  public settingValue:any;
+  
   ngOnInit(): void {
-  //  this.title = this.title.replace(/[,_]/g, ' ');
-  console.log(this.setting);
-    this.value = this.label;
-  }
-  public test(){
-    console.log(this.title);
-  }
 
-  public getFucked(){
-    this.value = !this.label;
+   if(this.setting.setting_values_ids[0].value == 0){
+    this.settingValue = false;
+   }else{
+    this.settingValue = true;
+   }
+    console.log(this.settingValue);
   }
-
-  ngOnChanges(changes:SimpleChanges){
-    console.log('Jean',changes);
-  }
+  
+  public async valueChange(event:MatSlideToggleChange){ 
+    // if(!this.settingValue){
+    //   event.source.checked = false;
+    //   console.log(event.source.checked);
+    // }
+    console.log('value', this.settingValue);
+    this.service.fillQueue(this.setting.id, {newValue: event.checked, oldValue: this.settingValue}).subscribe((r)=>{
+      if(this.settingValue == r){
+        event.source.checked =this.settingValue;
+      }
+      this.settingValue=r;
+    
+    });
+     console.log(this.settingValue);
+  }  
 }
