@@ -4,14 +4,18 @@
       <mat-card-title style="font-size: 1rem;">{{setting.title}}</mat-card-title>
       <mat-card-subtitle style="font-size: 0.8rem;">{{setting.help}}</mat-card-subtitle>
     </div>
-    
-    <mat-form-field appearance="standard" style="width: 50%;" (ngSubmit)="change($event)">
+    <form  (ngSubmit)="change($event)" style="width: 50%;" >
+    <mat-form-field appearance="standard" >
       <mat-label>{{setting.title}}</mat-label>
-      <input
+      <input [formControl] ="control" [value]="settingValue"
       placeholder="{{setting.setting_values_ids[0].value}}"
       matInput
       >
       <mat-hint>{{setting.description}}</mat-hint>
-      
     </mat-form-field>
+    <mat-card-actions style="margin-left: 0.5rem;">
+      <button mat-raised-button type="submit" color="primary">submit</button>
+    </mat-card-actions>
+    
+  </form>
   </mat-card>
