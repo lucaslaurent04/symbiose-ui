@@ -16,11 +16,12 @@
 <div class="container" style="display: flex;">
 
 <div class="div" >
-  <div class="div" *ngFor="let value of AccountingChartsLinesParents; index as i"> 
-    <select  (change)="onChange($event.target)">
-      <option value="" disabled selected>{{i}}</option>
-      <option *ngFor="let validite of value" style="width: 15%;"> {{substring(validite.code)}} </option>
-    </select>
+  <div class="div" *ngFor="let value of AccountingChartsLinesParents; index as i">
+    <mat-form-field appearance="legacy">
+    <mat-select  [value]="i" (change)="onChange($event.target)" >
+      <mat-option *ngFor="let validite of value" style="width: 15%;"> {{substring(validite.code)}} </mat-option>
+    </mat-select>
+  </mat-form-field> 
   
 </div>
 </div>
