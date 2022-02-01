@@ -11,39 +11,41 @@ import { pairwise, startWith } from 'rxjs/operators';
 })
 export class WidgetToggleComponent implements OnInit {
 
-  constructor(private service : SettingService) { }
+  constructor(private service: SettingService) { }
 
-  
-  @Input() setting : any;
-  public settingValue:any;
-  public control=new FormControl();
+
+  @Input() setting: any;
+  public settingValue: any;
+  public previousValue: any;
+  public focusState: any;
+  public control = new FormControl();
   ngOnInit(): void {
 
-   if(this.setting.setting_values_ids[0].value == 0){
-    this.settingValue = false;
-   }else{
-    this.settingValue = true;
-   }
-
-   this.control.valueChanges.pipe(
-    startWith(this.settingValue),
-    pairwise()
-  ).subscribe(
-    ([old,value])=>{
+    if (this.setting.setting_values_ids[0].value == 0) {
+      this.settingValue = false;
+    } else {
+      this.settingValue = true;
     }
-  )
-  this.control.setValue(this.settingValue);
-  }
-  
-  public async valueChange(event:MatSlideToggleChange){ 
-  
-    this.service.toQueue(this.setting.id, {newValue: event.checked, oldValue: this.settingValue}).subscribe((r)=>{
-      if(this.settingValue == r){
-        this.control.setValue(r);
+
+    this.control.valueChanges.pipe(
+      startWith(this.settingValue),
+      pairwise()
+    ).subscribe(
+      ([old, value]) => {
+        this.settingValue = value;
+        this.previousValue = old;
       }
-      this.settingValue=r;
-  
+    )
+    this.control.setValue(this.settingValue);
+  }
+
+  public async valueChange(event: MatSlideToggleChange) {
+    console.log('change');
+    this.service.toQueue(this.setting.id, { newValue: this.settingValue, oldValue: this.previousValue }).subscribe((r) => {
+      if ('action' == r) {
+        this.control.setValue(this.previousValue);
+      }
     });
-     
-  }  
+
+  }
 }

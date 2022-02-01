@@ -3,15 +3,15 @@
     <mat-card-title>{{setting.title}}</mat-card-title>
     <mat-card-subtitle>{{setting.help}}</mat-card-subtitle>
   </div>
-  <mat-form-field appearance="standard">
+  <mat-form-field appearance="standard" (mouseenter)="focusState = true" (mouseleave)="focusState = false">
     <mat-label>{{setting.title}}</mat-label>
-    <mat-select ([value])="settingValue" [formControl]="control" (selectionChange)="onChange($event)"
+    <mat-select  ([value])="settingValue" [formControl]="control" (selectionChange)="onChange($event)"
       disableOptionCentering>
       <mat-option *ngFor="let choice of choices" value="{{choice.value}}">
         <span *ngIf="choice.name != ''">{{choice.value}} <b>({{choice.name}})</b> </span>
         <span *ngIf="choice.name == ''">{{choice.value}}</span>
       </mat-option>
     </mat-select>
-    <mat-hint>{{setting.description}}</mat-hint>
+    <mat-hint *ngIf="focusState">{{setting.description}}</mat-hint>
   </mat-form-field>
 </mat-card>

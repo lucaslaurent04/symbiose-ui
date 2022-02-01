@@ -17,23 +17,25 @@
     }
     .mat-form-field{
         width: 100%;
-        .btn1{
-            display: none;
-          }
-        .btnStyle{
-            display: inline-block;
-          }
-        .submitButton{
-            min-width: 2.2rem; 
-            padding-left: 0.4rem;
-            padding-right: 0.3rem; 
-            border-radius: 50%;
-            margin-bottom: 0.2rem;
-        }
+        padding: 0.2rem;
+        margin:0.2rem;
         .resetButton{
             min-width: 0.4rem; 
             padding-left: 0.4rem;
             padding-right: 0.3rem;
         }
+    }
+    .btn1{
+        display: none;
+      }
+    .btnStyle{
+        display: inline-block;
+      }
+    .submitButton{
+        min-width: 2.35rem; 
+        padding-left: 0.4rem;
+        padding-right: 0.3rem; 
+        border-radius: 50%;
+        margin-bottom: 0.2rem;
     }
 }

@@ -11,11 +11,11 @@ import { SettingService } from 'src/app/settingService';
 export class WidgetFormComponent implements OnInit {
   @Input() setting: any;
   public settingValue: any;
-  public previousValue: string;
   public control = new FormControl();
   public btn: string;
   public btnStyle = 'btn1';
   public focusState:any;
+  public previousValue:any;
   constructor(public service: SettingService) { }
 
   ngOnInit(): void {
@@ -28,6 +28,7 @@ export class WidgetFormComponent implements OnInit {
       ([old, value]) => {
         this.settingValue = value;
         this.previousValue = old;
+        
       }
     )
     // preset the value of control
@@ -48,12 +49,10 @@ export class WidgetFormComponent implements OnInit {
   public change(event: any) {
     console.log('ok');
     if (this.btn != 'reset') {
-      this.service.toQueue(this.setting.id, { newValue: this.settingValue, oldValue: this.previousValue }).subscribe((r) => {
-        if (this.settingValue == r) {
-          this.control.setValue(r);
+      this.service.toQueue(this.setting.id, {newValue: this.settingValue, oldValue: this.previousValue}).subscribe((r)=>{  
+        if('action' == r){
+          this.control.setValue(this.previousValue);
         }
-        this.settingValue = r
-        console.log('ok');
       });
       this.btnStyle = "btn1";
     }

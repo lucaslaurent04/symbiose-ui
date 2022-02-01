@@ -20,7 +20,6 @@ export class SettingService {
         let subject = new Subject<string>();
         //adding the elements to the queue
         this.queue.push({ id: idSetting, fields: fieldsSetting });
-
         let snackBarRef = this._snackBar.open(' changes confirmed ?', 'Undo', {
             duration: 3000,
             verticalPosition: 'bottom',
@@ -28,18 +27,21 @@ export class SettingService {
         });
         console.log(this.queue);
         snackBarRef.onAction().subscribe(() => {
-            console.log('action', this.queue);
+            console.log('action', fieldsSetting);
         // if undo, remove from the queue and send the old value back
             this.queue.shift();
-            subject.next(fieldsSetting.oldValue);
+        // sends actions to understand that it didn't come from dismissed.
+            subject.next('action');
+           
         })
        
         snackBarRef.afterDismissed().subscribe(() => {
-            console.log('dismissed', this.queue);
+            
         // if didn't do anything, sends the new value back
-            this.api.update('core\\SettingValue', [this.queue[0].id], { value: this.queue[0].fields.newValue }, true);
-            subject.next(fieldsSetting.newValue);
-   
+            if(this.queue.length > 0){
+                this.api.update('core\\SettingValue', [this.queue[0].id], { value: this.queue[0].fields.newValue }, true);
+                subject.next(fieldsSetting.newValue);
+            }
             this.queue.shift();
         });
 

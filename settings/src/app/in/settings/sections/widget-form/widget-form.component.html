@@ -4,16 +4,17 @@
     <mat-card-title>{{setting.title}}</mat-card-title>
     <mat-card-subtitle>{{setting.help}}</mat-card-subtitle>
   </div>
-  <form (ngSubmit)="change($event)">
-    <mat-form-field appearance="standard">
+  <form (ngSubmit)="change($event)" style="display: flex; align-items: center;" >
+    <mat-form-field appearance="standard" style="display: flex;">
       <mat-label>{{setting.title}}</mat-label>
-      <input (focus)="focusState = true" (focusout)="focusState = true" [formControl]="control" [value]="settingValue" placeholder="{{setting.setting_values_ids[0].value}}"
-        matInput (input)="submit()">
+      <input  [formControl]="control" [value]="settingValue"  (mouseenter)="focusState = true" (mouseleave)="focusState = false"
+        matInput (input)="submit()" >
       <mat-hint *ngIf="focusState">{{setting.description}}</mat-hint>
-      <button mat-raised-button matSuffix type="submit" class="btn1 submitButton" [ngClass]="[btnStyle]" color="primary">
-        <mat-icon [inline]="true">check</mat-icon>
-      </button>
-      <button mat-icon-button matSuffix (click)="reset()" class="resetButton" color="primary">x</button>
+      
+      <button mat-icon-button matSuffix (click)="reset()" class="resetButton" color="primary">x</button>   
     </mat-form-field>
+    <button  mat-raised-button type="submit" class="btn1 submitButton" [ngClass]="[btnStyle]" color="primary">
+      <mat-icon [inline]="true">check</mat-icon>
+    </button>
   </form>
 </mat-card>
