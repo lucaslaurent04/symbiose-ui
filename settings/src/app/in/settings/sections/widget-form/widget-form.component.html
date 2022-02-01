@@ -1,20 +1,35 @@
-
 <mat-card>
+
   <div class="titleBox">
     <mat-card-title>{{setting.title}}</mat-card-title>
     <mat-card-subtitle>{{setting.help}}</mat-card-subtitle>
   </div>
-  <form (ngSubmit)="change($event)" style="display: flex; align-items: center;" >
-    <mat-form-field appearance="standard" style="display: flex;">
+  
+  <form (mouseenter)="focusState = true" (mouseleave)="focusState = false">
+
+    <mat-form-field appearance="standard">
+
       <mat-label>{{setting.title}}</mat-label>
-      <input  [formControl]="control" [value]="settingValue"  (mouseenter)="focusState = true" (mouseleave)="focusState = false"
-        matInput (input)="submit()" >
+
+      <input matInput autocomplete="off"
+            [formControl]="formControl"
+            (input)="onChange()"
+            (blur)="onBlur()" 
+            (focus)="onFocus()" />
+
       <mat-hint *ngIf="focusState">{{setting.description}}</mat-hint>
-      
-      <button mat-icon-button matSuffix (click)="reset()" class="resetButton" color="primary">x</button>   
+
+      <button mat-icon-button matSuffix style="z-index:3"
+              (mousedown)="onReset($event)"
+              [class]="{hidden: !showResetButton}">
+        <mat-icon [inline]="true">close</mat-icon>
+      </button>
+
     </mat-form-field>
-    <button  mat-raised-button type="submit" class="btn1 submitButton" [ngClass]="[btnStyle]" color="primary">
-      <mat-icon [inline]="true">check</mat-icon>
+
+    <button mat-fab color="primary" (mousedown)="onSubmit($event)" [class]="{hidden: !showSubmitButton}">
+      <mat-icon>check</mat-icon>
     </button>
+
   </form>
 </mat-card>

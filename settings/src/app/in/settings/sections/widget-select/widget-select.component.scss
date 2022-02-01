@@ -1,21 +1,22 @@
-.mat-card{
+.mat-card {
     display: flex; 
     height: 9rem;
     margin:0.3rem;
-    .titleBox{
+
+    .titleBox {
         border-right:0.5px solid black; 
         padding: 0.2rem; 
-        margin:0.2rem; 
         overflow: hidden; 
         width:50%;
-        .mat-card-title{
+
+        .mat-card-title {
             font-size:1rem;
         }
-        .mat-card-subtitle{
+        .mat-card-subtitle {
             font-size:0.8rem;
         }
     }
-    .mat-form-field{
+    .mat-form-field {
         width: 50%;
         padding: 0.2rem;
         margin:0.2rem;

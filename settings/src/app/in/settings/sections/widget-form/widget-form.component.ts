@@ -1,6 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
 import { FormControl } from '@angular/forms';
-import { pairwise, startWith } from 'rxjs/operators';
 import { SettingService } from 'src/app/settingService';
 
 @Component({
@@ -10,51 +9,79 @@ import { SettingService } from 'src/app/settingService';
 })
 export class WidgetFormComponent implements OnInit {
   @Input() setting: any;
+
   public settingValue: any;
-  public control = new FormControl();
-  public btn: string;
-  public btnStyle = 'btn1';
-  public focusState:any;
-  public previousValue:any;
-  constructor(public service: SettingService) { }
+
+  public formControl = new FormControl();
+
+  public showResetButton = false;
+  public showSubmitButton = false;
+
+  public focusState: any;
+
+  constructor(public save: SettingService) { }
 
   ngOnInit(): void {
     this.settingValue = this.setting.setting_values_ids[0].value;
-
-    this.control.valueChanges.pipe(
-      startWith(this.settingValue),
-      pairwise()
-    ).subscribe(
-      ([old, value]) => {
-        this.settingValue = value;
-        this.previousValue = old;
-        
-      }
-    )
-    // preset the value of control
-    this.control.setValue(this.settingValue);
-  }
-  public reset() {
-    // clear the input field
-    this.control.reset();
-    this.btn = 'reset';
-  }
-  public submit() {
-    //change de style to make the button visible
-    this.btnStyle = 'btnStyle';
-    this.btn = 'submit';
+    // preset the value of formControl
+    this.formControl.setValue(this.settingValue);
   }
 
+  /**
+   *  Clear the input field.
+   *
+   */
+  public onReset(event:any) {
+    console.log('WidgetFormComponent::onReset');
+    // #memo - we use 'mousedown' instead of 'click' to prevent input from losing the focus
+    event.stopPropagation();
+    event.preventDefault();
+    this.formControl.reset();
+    // hide buttons
+    this.showResetButton = false;
+    this.showSubmitButton = false;
+  }
 
-  public change(event: any) {
-    console.log('ok');
-    if (this.btn != 'reset') {
-      this.service.toQueue(this.setting.id, {newValue: this.settingValue, oldValue: this.previousValue}).subscribe((r)=>{  
-        if('action' == r){
-          this.control.setValue(this.previousValue);
+  /**
+   * Input has been modified : show submit button.
+   */
+  public onChange() {
+    console.log('WidgetFormComponent::onChange');    
+    this.showSubmitButton = true;
+    this.showResetButton = true;    
+  }
+
+  public onFocus(){
+    console.log('WidgetFormComponent::onFocus');
+    this.showResetButton = true;
+  }
+
+  public onBlur(){
+    console.log('WidgetFormComponent::onBlur');
+    // hide buttons
+    this.showResetButton = false;
+    this.showSubmitButton = false;
+    // reset input formControl
+    this.formControl.setValue(this.settingValue);
+  }
+
+  public onSubmit(event:any) {
+    console.log('WidgetFormComponent::onSubmit');
+    // #memo - we use 'mousedown' instead of 'click' to prevent input from losing the focus
+    event.stopPropagation();
+    event.preventDefault();
+
+    let newValue = this.formControl.value;
+    let oldValue = this.settingValue;
+
+    if (newValue != oldValue) {
+      this.settingValue = newValue;
+      this.save.toQueue(this.setting.id, { newValue: newValue, oldValue: oldValue }).subscribe( (action) => {
+        if (action == 'undo') {
+          this.formControl.setValue(oldValue);
+          this.settingValue = oldValue;
         }
       });
-      this.btnStyle = "btn1";
     }
   }
 }

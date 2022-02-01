@@ -41,8 +41,8 @@ export class WidgetToggleComponent implements OnInit {
 
   public async valueChange(event: MatSlideToggleChange) {
     console.log('change');
-    this.service.toQueue(this.setting.id, { newValue: this.settingValue, oldValue: this.previousValue }).subscribe((r) => {
-      if ('action' == r) {
+    this.service.toQueue(this.setting.id, { newValue: this.settingValue, oldValue: this.previousValue }).subscribe((action) => {
+      if (action == 'undo') {
         this.control.setValue(this.previousValue);
       }
     });

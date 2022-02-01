@@ -8,8 +8,8 @@
     <mat-select  ([value])="settingValue" [formControl]="control" (selectionChange)="onChange($event)"
       disableOptionCentering>
       <mat-option *ngFor="let choice of choices" value="{{choice.value}}">
-        <span *ngIf="choice.name != ''">{{choice.value}} <b>({{choice.name}})</b> </span>
-        <span *ngIf="choice.name == ''">{{choice.value}}</span>
+        <ng-container *ngIf="choice.name != ''">{{choice.value}} <b>({{choice.name}})</b> </ng-container>
+        <ng-container *ngIf="choice.name == ''">{{choice.value}}</ng-container>
       </mat-option>
     </mat-select>
     <mat-hint *ngIf="focusState">{{setting.description}}</mat-hint>

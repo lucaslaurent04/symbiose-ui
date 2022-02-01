@@ -32,7 +32,7 @@ export class SettingsComponent implements OnInit {
     this.route.params.subscribe(async params => {
       try {
         if (params.package == "general") {
-          this.data = await this.api.collect('core\\Setting', ['package', '=', ' '], ['package', 'section', 'description', 'setting_values_ids.value', 'type', 'title', 'help', 'form', 'setting_choices_ids.value'], environment.lang);
+          this.data = await this.api.collect('core\\Setting', ['package', '=', 'core'], ['package', 'section', 'description', 'setting_values_ids.value', 'type', 'title', 'help', 'form', 'setting_choices_ids.value'], environment.lang);
           console.log(this.data);
           this.sortData();
           this.settingRoute =  'SETTINGS_LIST_GENERAL';

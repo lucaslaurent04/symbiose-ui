@@ -34,8 +34,8 @@ export class WidgetSelectComponent implements OnInit {
   }
   public onChange(eventValue: any) {
     //use the service to add the elements
-    this.service.toQueue(this.setting.id, { newValue: this.settingValue, oldValue: this.previousValue }).subscribe((r) => {
-      if ('action' == r) {
+    this.service.toQueue(this.setting.id, { newValue: this.settingValue, oldValue: this.previousValue }).subscribe((action) => {
+      if (action == 'undo') {
         this.control.setValue(this.previousValue);
       }
     });
