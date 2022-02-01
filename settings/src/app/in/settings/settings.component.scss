@@ -21,9 +21,9 @@
             padding: 12px;
             .container{
                 .mat-card-title{
-                    border-bottom: 1px solid grey; 
-                    background-color: #3f51b5;
-                    color: white; 
+                    border-bottom: 2px solid #3f51b5; 
+                    background-color: white;
+                    color: #3f51b5; 
                     padding: 0.3rem;
                 }
                 .wrapper {
@@ -46,7 +46,7 @@
                     grid-column-gap: 1em;
                     justify-items: center;             
                     }
-                    
+
                     @media screen and (max-width: 940px) {  
                     margin-left: 1em;
                     margin-right: 1em;

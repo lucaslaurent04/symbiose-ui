@@ -3,7 +3,7 @@
     <div class="import-body">
         <div class="container">
             <mat-card *ngFor="let section of dataSorted;" style="box-shadow: none; padding:0;">
-                <mat-card-title style="background-color: white;color: #3f51b5;border-bottom: 1px solid #3f51b5">{{section[0].section}}</mat-card-title>
+                <mat-card-title>{{section[0].section}}</mat-card-title>
                 <mat-card-content class="wrapper">
                     <div *ngFor="let setting of section" style="width: 100%;">
                         <app-widget-toggle [setting]="setting" *ngIf="setting.form == 'toggle'">
