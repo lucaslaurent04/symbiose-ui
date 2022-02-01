@@ -6,7 +6,6 @@ import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dial
 
 import { ApiService, ContextService, AuthService } from 'sb-shared-lib';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { MatPaginator } from '@angular/material/paginator';
 
 
 @Component({
@@ -17,25 +16,44 @@ import { MatPaginator } from '@angular/material/paginator';
 export class DocumentsImportComponent implements OnInit, AfterContentInit {
 
 
-  @ViewChild(MatPaginator) paginator = MatPaginator;
-
+  public accepted_formats: string[] = ['*'];
+  /*
+  // alternate list for limiting the accepted content types :
+  [
+    'image/jpeg',                                                                 // jpg, jpeg
+    'image/png',                                                                  // png
+    'image/gif',                                                                  // gif
+    'image/webp',                                                                 // webp
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',    // docx
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',          // xlsx
+    'application/vnd.ms-excel',                                                   // xls
+    'application/msword',                                                         // doc
+    'image/vnd.adobe.photoshop',                                                  // psd
+    'application/postscript',                                                     // ps
+    'application/pdf',                                                            // pdf, ai
+    'application/vnd.adobe.illustrator'                                           // ai
+  ];
+  */
 
   public files: any[] = [];
   public rejectedFiles: any[] = [];
+
   public loading = false;
   public name: string = '';
 
   public showSbContainer: boolean = false;
   public selectedTabIndex: number = 0;
-  // public loading = true;
-  public sessionDate: any;
-  public DocumentsDate: string;
+
+
+  public session_timestamp: any;
+
 
   constructor(
     private dialog: MatDialog,
     private api: ApiService,
     private zone: NgZone,
     public auth: AuthService,
+    public snack: MatSnackBar
   ) {
   }
   // private data: DataService
@@ -67,7 +85,8 @@ export class DocumentsImportComponent implements OnInit, AfterContentInit {
   }
 
   ngAfterViewInit(): void {
-    this.sessionDate = ~~(+new Date() / 1000);
+    // get the timestamp in seconds
+    this.session_timestamp = Math.floor(+new Date() / 1000);
   }
 
 
@@ -83,7 +102,7 @@ export class DocumentsImportComponent implements OnInit, AfterContentInit {
     for (var i = 0; i < files.length; i++) {
 
       const data = await this.readFile(files[i]);
-      console.log(data);
+
       try {
         const response = await this.api.create("documents\\Document", {
           name: files[i].name,
@@ -96,28 +115,37 @@ export class DocumentsImportComponent implements OnInit, AfterContentInit {
         // this.onRemove(file[i]);
         this.load();
       }
-      catch (err) {
-        console.log(err);
+      catch (response:any) {
+
+        console.warn('some changes could not be stored', response);
+        let error:string = 'unknonw';
+        if(response && response.hasOwnProperty('error') && response['error'].hasOwnProperty('errors')) {
+          let errors = response['error']['errors'];
+
+          if(errors.hasOwnProperty('INVALID_PARAM')) {
+            error = 'invalid_param';
+          }
+          else if(errors.hasOwnProperty('NOT_ALLOWED')) {
+            error = 'not_allowed';
+          }
+        }
+        switch(error) {
+          case 'not_allowed':
+            this.snack.open("Vous n'avez pas les autorisations pour cette opération.", "Erreur");
+            break;
+          case 'unknonw':
+          case 'invalid_param':
+          default:
+            this.snack.open("Erreur inconnue - certains changements n'ont pas pu être enregistrés.", "Erreur");
+        }
       }
     }
     this.loading = false;
   }
 
-  // async onRemove(file: any) {
-  //   this.files.splice(this.files.indexOf(file), 1);
-  //   try {
-  //     console.log(file);
-  //     this.files = await this.api.remove('documents\\Document', [file.id], true);
-  //     this.load();
-  //   }
-  //   catch (err) {
-  //     console.log("err fetch", err);
-  //   }
-  // }
-
   async load() {
     try {
-      this.files = await this.api.collect('documents\\Document', ['created', '>', this.sessionDate], ['id', 'name', 'hash', 'created', 'size', 'type', 'link', 'data', 'readable_size', 'preview_image']);
+      this.files = await this.api.collect('documents\\Document', ['created', '>', this.session_timestamp], ['id', 'name', 'hash', 'created', 'size', 'type', 'link', 'data', 'readable_size', 'preview_image']);
       console.log("fetch response", this.files);
     }
     catch (err) {
@@ -131,28 +159,35 @@ export class DocumentsImportComponent implements OnInit, AfterContentInit {
       data: file
     });
 
-    dialogDelete.afterClosed().subscribe(
-      res => {
-        console.log('solution', res);
-        try {
-
+    dialogDelete.afterClosed().subscribe( res => {
+      try {
+        if(Object.keys(res).length > 0) {
           let index = this.files.findIndex((f: any) => f.id == res.data.id);
           this.files.splice(index, 1);
-
           this.load();
         }
-        catch (err) {
-          console.log("err delete", err);
-        }
       }
-    )
+      catch (err) {
+        console.log("err delete", err);
+      }
+    });
   }
 
   onDisplay(file: any) {
     window.open(`/document/hash=${file}`, '_blank')
   }
 
-
+  async onRename(file: any) {
+    // Only with dblclick
+    const dialogRef = this.dialog.open(DialogDocumentRename, {
+      data: file
+    });
+    dialogRef.afterClosed().subscribe(
+      res => {
+        this.load();
+      }
+    )
+  }
 
   private readFile(file: any) {
     return new Promise((resolve, reject) => {
@@ -168,23 +203,6 @@ export class DocumentsImportComponent implements OnInit, AfterContentInit {
     });
   }
 
-
-  // addInput(file: any) {
-  //     this.chosenRow = file;
-  // }
-
-  async onRename(file: any) {
-    // Only with dblclick
-    const dialogRef = this.dialog.open(DialogDocumentRename, {
-      data: file
-    });
-    dialogRef.afterClosed().subscribe(
-      res => {
-        this.load();
-      }
-    )
-  }
-
 }
 
 
@@ -195,7 +213,7 @@ export class DocumentsImportComponent implements OnInit, AfterContentInit {
 
 
 
-//Component to Delete the document
+// Delete Dialog component
 
 @Component({
   selector: 'dialog-document-rename',
@@ -243,13 +261,7 @@ export class DialogDocumentRename {
 
 
 
-
-
-
-
-
-
-//Dialog to Delete the document
+// Rename Dialog component
 
 @Component({
   selector: 'dialog-document-rename',
@@ -260,6 +272,7 @@ export class DialogDocumentRename {
   <input type="checkbox" id="dialogDelete" name="dialogDelete" [(ngModel)]="deleteConfirmation"
   checked>
   <label for="dialogDelete"> {{ 'DOCS_DIALOG_CONTENT_DELETE' | translate }}</label>
+
   </div>
 
   <div mat-dialog-actions>
@@ -292,4 +305,3 @@ export class DialogDeleteConfirmation {
     });
   }
 }
-

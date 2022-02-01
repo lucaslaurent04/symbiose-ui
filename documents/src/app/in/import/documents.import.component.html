@@ -7,7 +7,7 @@
 
   <!-- ngx-dropzone  -->
           <div style="width: 70%; margin: auto;" color="accent">
-            <ngx-dropzone (change)="onSelect($event)" color="warm" accept="image/jpeg,image/jpg,image/png,image/gif,application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/vnd.ms-excel, image/vnd.adobe.photoshop, application/postscript, application/pdf">
+            <ngx-dropzone (change)="onSelect($event)" color="warm" accept="{{accepted_formats}}">
 
               <ngx-dropzone-label *ngIf="!loading"> {{ 'DOCS_DROP_TITLE' | translate }}
 

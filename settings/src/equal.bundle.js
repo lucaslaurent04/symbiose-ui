@@ -7909,14 +7909,14 @@ var WidgetFactory = /*#__PURE__*/function () {
     id:
     helper:
     view:
-    domain: 
-    }    
+    domain:
+    }
     */
 
     /**
      * factory : maps type guessed from model and view schema with a specific widget
-     * @param type 
-     * @param value 
+     * @param type
+     * @param value
      */
     function getWidget(layout, type, label) {
       var value = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : null;
@@ -7970,6 +7970,10 @@ var WidgetFactory = /*#__PURE__*/function () {
           return new _WidgetFile.default(layout, label, value, config);
 
         case 'string':
+          if (config.hasOwnProperty('usage') && config.usage == 'string/text' && view_type == 'form') {
+            return new _WidgetText.default(layout, label, value, config);
+          }
+
         default:
           return new _WidgetString.default(layout, label, value, config);
       }
