@@ -42,7 +42,6 @@ export class DocumentsImportComponent implements OnInit, AfterContentInit {
   public name: string = '';
 
   public showSbContainer: boolean = false;
-  public selectedTabIndex: number = 0;
 
 
   public session_timestamp: any;
@@ -69,7 +68,6 @@ export class DocumentsImportComponent implements OnInit, AfterContentInit {
     $('#sb-composition-container').on('_close', (event, data) => {
       this.zone.run(() => {
         this.showSbContainer = false;
-        this.selectedTabIndex = 0;
       });
     });
 
@@ -118,7 +116,7 @@ export class DocumentsImportComponent implements OnInit, AfterContentInit {
       catch (response:any) {
 
         console.warn('some changes could not be stored', response);
-        let error:string = 'unknonw';
+        let error:string = 'unknnown';
         if(response && response.hasOwnProperty('error') && response['error'].hasOwnProperty('errors')) {
           let errors = response['error']['errors'];
 
@@ -133,7 +131,7 @@ export class DocumentsImportComponent implements OnInit, AfterContentInit {
           case 'not_allowed':
             this.snack.open("Vous n'avez pas les autorisations pour cette opération.", "Erreur");
             break;
-          case 'unknonw':
+          case 'unknnown':
           case 'invalid_param':
           default:
             this.snack.open("Erreur inconnue - certains changements n'ont pas pu être enregistrés.", "Erreur");
@@ -143,7 +141,7 @@ export class DocumentsImportComponent implements OnInit, AfterContentInit {
     this.loading = false;
   }
 
-  async load() {
+  private async load() {
     try {
       this.files = await this.api.collect('documents\\Document', ['created', '>', this.session_timestamp], ['id', 'name', 'hash', 'created', 'size', 'type', 'link', 'data', 'readable_size', 'preview_image']);
       console.log("fetch response", this.files);
@@ -153,7 +151,7 @@ export class DocumentsImportComponent implements OnInit, AfterContentInit {
     }
   }
 
-  async onDelete(file: any) {
+  public async onDelete(file: any) {
     // permanent deletion
     const dialogDelete = this.dialog.open(DialogDeleteConfirmation, {
       data: file
@@ -173,11 +171,11 @@ export class DocumentsImportComponent implements OnInit, AfterContentInit {
     });
   }
 
-  onDisplay(file: any) {
+  public onDisplay(file: any) {
     window.open(`/document/hash=${file}`, '_blank')
   }
 
-  async onRename(file: any) {
+  public async onRename(file: any) {
     // Only with dblclick
     const dialogRef = this.dialog.open(DialogDocumentRename, {
       data: file
