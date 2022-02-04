@@ -149,7 +149,7 @@ export class BookingEditComponent implements OnInit, AfterViewInit  {
    * 
    */
   private async load(fields:any) {
-    const result = await this.api.read("lodging\\sale\\booking\\Booking", [this.id], fields);
+    const result = <Array<any>>  await this.api.read("lodging\\sale\\booking\\Booking", [this.id], fields);
     if(result && result.length) {
       return result[0];
     }

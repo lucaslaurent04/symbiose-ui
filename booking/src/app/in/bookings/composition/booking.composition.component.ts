@@ -89,7 +89,7 @@ export class BookingCompositionComponent implements OnInit, AfterContentInit {
   }
 
   private async load(fields: any[]) {
-    const result = await this.api.read("lodging\\sale\\booking\\Booking", [this.booking_id], fields);
+    const result = <Array<any>> await this.api.read("lodging\\sale\\booking\\Booking", [this.booking_id], fields);
     if(result && result.length) {
       return result[0];
     }

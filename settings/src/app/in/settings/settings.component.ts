@@ -16,7 +16,7 @@ export class SettingsComponent implements OnInit {
     private router: Router,
   ) { }
 
-  public settingRoute:string
+  public current_route:string
   private package: string = 'core';
 
   // data sorted by sections
@@ -24,18 +24,11 @@ export class SettingsComponent implements OnInit {
 
   public sectionsMap: any = {};
 
-  public sectionsDescriptions: any = {
-    'locale': 'Paramètres régioniaux',
-    'main': 'Paramètres généraux et de formats',
-    'security': 'Paramètres de sécurité',
-    'units': 'Unités de mesures et systèmes d\'unités'
-  };
-
   ngOnInit() {
     // Gets the right DATA for the right ROUTE PARAM
     this.route.params.subscribe(async params => {
       this.package = params.package;
-      this.settingRoute =  'SETTINGS_LIST_' + this.package.toUpperCase();
+      this.current_route =  'SETTINGS_LIST_' + this.package.toUpperCase();
       this.reset();
     });
 
@@ -54,25 +47,27 @@ export class SettingsComponent implements OnInit {
   public async reset() {
     try {
       const data: any[] = await this.api.collect(
-        'core\\Setting', 
+        'core\\setting\\Setting', 
         ['package', '=', this.package], 
-        ['package', 'section', 'description', 'setting_values_ids.value', 'type', 'setting_choices_ids.value', 'title', 'help', 'form'], 
+        ['package', 'section_id.name', 'section_id.code', 'section_id.description', 'description', 'setting_values_ids.value', 'type', 'setting_choices_ids.value', 'title', 'help', 'form_control'], 
         'id', 'asc', 0, 100
       );
 
       // reset the array
       this.sections = [];
       this.sectionsMap = {};
+
+      // group elements by section
       data.forEach(element => {
-        if(!this.sectionsMap.hasOwnProperty(element.section)) {
-          this.sectionsMap[element.section] = [];
-          this.sections.push(element.section);
+        if(!this.sectionsMap.hasOwnProperty(element.section_id.code)) {
+          this.sectionsMap[element.section_id.code] = [];
+          this.sections.push(element.section_id);
         }
-        this.sectionsMap[element.section].push(element);
+        this.sectionsMap[element.section_id.code].push(element);
       });
     }
     catch(error) {
-      console.log('something went wrong');
+      console.log('something went wrong', error);
     }
   }
 }

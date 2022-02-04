@@ -76,7 +76,7 @@ export class BookingCompositionLinesComponent implements OnInit, OnChanges {
         this.composition_items = {};
         this.rental_units = [];
 
-        const compositions = await this.api.read("sale\\booking\\Composition", 
+        const compositions = <Array<any>> await this.api.read("sale\\booking\\Composition", 
           [this.composition_id], 
           Object.getOwnPropertyNames( new Composition() )
         );
@@ -96,7 +96,7 @@ export class BookingCompositionLinesComponent implements OnInit, OnChanges {
           }
 
           {
-            const data = await this.api.read("lodging\\realestate\\RentalUnit", 
+            const data = <Array<any>> await this.api.read("lodging\\realestate\\RentalUnit", 
               Object.keys(this.composition_items),
               Object.getOwnPropertyNames( new RentalUnit() ) 
             );

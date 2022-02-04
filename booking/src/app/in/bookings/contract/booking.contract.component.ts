@@ -222,7 +222,7 @@ export class BookingContractComponent implements OnInit, AfterContentInit {
 
         if(this.booking.contacts_ids && this.booking.contacts_ids.length) {
           try {
-            const result = await this.loadContacts();
+            const result = <Array<any>> await this.loadContacts();
 
             if(result && result.length) {
               // reset current list
@@ -312,7 +312,7 @@ export class BookingContractComponent implements OnInit, AfterContentInit {
   }
 
   private async loadBooking() {
-    const result = await this.api.read("lodging\\sale\\booking\\Booking", [this.booking_id], Object.getOwnPropertyNames(new Booking()));
+    const result = <Array<any>> await this.api.read("lodging\\sale\\booking\\Booking", [this.booking_id], Object.getOwnPropertyNames(new Booking()));
     if(result && result.length) {
       return result[0];
     }
@@ -320,7 +320,7 @@ export class BookingContractComponent implements OnInit, AfterContentInit {
   }
 
   private async loadCustomer() {
-    const result = await this.api.read("sale\\customer\\Customer", [this.booking.customer_id], Object.getOwnPropertyNames(new Customer()));
+    const result = <Array<any>> await this.api.read("sale\\customer\\Customer", [this.booking.customer_id], Object.getOwnPropertyNames(new Customer()));
     if(result && result.length) {
       return result[0];
     }
@@ -328,7 +328,7 @@ export class BookingContractComponent implements OnInit, AfterContentInit {
   }
 
   private async loadContacts() {
-    const result = await this.api.read("sale\\booking\\Contact", this.booking.contacts_ids, Object.getOwnPropertyNames(new Contact()));
+    const result = <Array<any>> await this.api.read("sale\\booking\\Contact", this.booking.contacts_ids, Object.getOwnPropertyNames(new Contact()));
     if(result && result.length) {
       return result;
     }
@@ -336,7 +336,7 @@ export class BookingContractComponent implements OnInit, AfterContentInit {
   }
 
   private async loadCenter() {
-    const result = await this.api.read("lodging\\identity\\Center", [this.booking.center_id], Object.getOwnPropertyNames(new Center()));
+    const result = <Array<any>> await this.api.read("lodging\\identity\\Center", [this.booking.center_id], Object.getOwnPropertyNames(new Center()));
     if(result && result.length) {
       return result[0];
     }
@@ -344,7 +344,7 @@ export class BookingContractComponent implements OnInit, AfterContentInit {
   }
 
   private async loadOrganisation() {
-    const result = await this.api.read("identity\\Identity", [this.center.organisation_id], Object.getOwnPropertyNames(new Organisation()));
+    const result = <Array<any>> await this.api.read("identity\\Identity", [this.center.organisation_id], Object.getOwnPropertyNames(new Organisation()));
     if(result && result.length) {
       return result[0];
     }

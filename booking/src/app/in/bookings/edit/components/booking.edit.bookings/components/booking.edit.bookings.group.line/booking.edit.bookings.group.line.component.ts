@@ -442,12 +442,12 @@ export class BookingEditBookingsGroupLineComponent implements OnInit  {
 
 
   private async loadAutoDiscounts(ids:Array<any>, fields:any) {
-    let data:any[] = await this.api.read("lodging\\sale\\booking\\BookingPriceAdapter", ids, fields);
+    let data:any[] = <Array<any>> await this.api.read("lodging\\sale\\booking\\BookingPriceAdapter", ids, fields);
     return data;
   }  
 
   private async loadManualDiscounts(ids:Array<any>, fields:any) {
-    let data:any[] = await this.api.read("lodging\\sale\\booking\\BookingPriceAdapter", ids, fields);
+    let data:any[] = <Array<any>> await this.api.read("lodging\\sale\\booking\\BookingPriceAdapter", ids, fields);
     return data;
   }  
 

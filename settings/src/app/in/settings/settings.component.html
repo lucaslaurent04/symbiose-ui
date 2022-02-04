@@ -1,21 +1,21 @@
 <div class="container">
 
-    <div class="import-header">{{ 'SETTINGS_LIST_SETTING' | translate }} <span> › </span>  {{ settingRoute | translate }}  </div>
+    <div class="import-header">{{ 'SETTINGS_LIST_SETTING' | translate }} <span> › </span>  {{ current_route | translate }}  </div>
     <div class="import-body">
 
         <mat-accordion>
             <mat-expansion-panel *ngFor="let section of sections">
 
                 <mat-expansion-panel-header>
-                    <mat-panel-title>{{section}}</mat-panel-title>
-                    <mat-panel-description>{{sectionsDescriptions[section]}}</mat-panel-description>                    
+                    <mat-panel-title>{{section.name}}</mat-panel-title>
+                    <mat-panel-description>{{section.description}}</mat-panel-description>                    
                 </mat-expansion-panel-header>
 
                 <div class="wrapper">
-                    <div *ngFor="let setting of sectionsMap[section]" style="width: 100%;">
-                        <app-widget-form   [setting]="setting" *ngIf="setting.form == 'fill'"></app-widget-form>
-                        <app-widget-toggle [setting]="setting" *ngIf="setting.form == 'toggle'"></app-widget-toggle>
-                        <app-widget-select [setting]="setting" *ngIf="setting.form == 'select'" [choices]="setting.setting_choices_ids"></app-widget-select>
+                    <div *ngFor="let setting of sectionsMap[section.code]" style="width: 100%;">
+                        <app-widget-form   [setting]="setting" *ngIf="setting.form_control == 'string'"></app-widget-form>
+                        <app-widget-toggle [setting]="setting" *ngIf="setting.form_control == 'toggle'"></app-widget-toggle>
+                        <app-widget-select [setting]="setting" *ngIf="setting.form_control == 'select'" [choices]="setting.setting_choices_ids"></app-widget-select>
                     </div>
                 </div>
 
