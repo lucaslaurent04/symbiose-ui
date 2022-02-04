@@ -10828,7 +10828,7 @@ var WidgetMany2Many = /*#__PURE__*/function (_Widget) {
           var $container = view.getContainer();
 
           if (_this2.mode == 'edit') {
-            var has_action_select = _this2.config.action_select ? _this2.config.action_select : (_this2.rel_type = 'many2many') ? true : false;
+            var has_action_select = _this2.config.action_select ? _this2.config.action_select : _this2.rel_type == 'many2many' ? true : false;
             var has_action_create = _this2.config.action_create ? _this2.config.action_create : true;
             var $actions_set = $container.find('.sb-view-header-list-actions-set');
 
@@ -11738,7 +11738,12 @@ var WidgetText = /*#__PURE__*/function (_Widget) {
 
         case 'view':
         default:
-          this.$elem = $('<div class="sb-ui-textarea" />').html(value);
+          if (this.config.layout == 'form') {
+            this.$elem = $('<div class="sb-ui-textarea" />').html(value);
+          } else {
+            this.$elem = $('<div class="sb-ui-textarea" />').html($(value).text());
+          }
+
           break;
       }
 
