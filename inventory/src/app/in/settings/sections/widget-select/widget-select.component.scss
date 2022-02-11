@@ -1,0 +1,24 @@
+.mat-card {
+    display: flex; 
+    height: 9rem;
+    margin:0.3rem;
+
+    .titleBox {
+        border-right:0.5px solid black; 
+        padding: 0.2rem; 
+        overflow: hidden; 
+        width:50%;
+
+        .mat-card-title {
+            font-size:1rem;
+        }
+        .mat-card-subtitle {
+            font-size:0.8rem;
+        }
+    }
+    .mat-form-field {
+        width: 50%;
+        padding: 0.2rem;
+        margin:0.2rem;
+    }
+}
