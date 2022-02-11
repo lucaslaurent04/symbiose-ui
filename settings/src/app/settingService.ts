@@ -29,7 +29,7 @@ export class SettingService {
         snackBarRef.onAction().subscribe( () => {
             // remove from the queue and send the old value back
             this.queue.shift();
-            // send 'undo' to understand that it don't come from dismissed
+            // send 'undo' to understand that it doesn't come from dismissed
             subject.next('undo');           
         })
        
