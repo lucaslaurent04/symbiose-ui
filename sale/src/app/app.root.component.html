@@ -1,7 +1,7 @@
 <div class="container">
     <div class="app-header">
         <app-header [section]="'Ventes'"
-                    [i18n]="translations"
+                    [i18n]="translationsMenuTop"
                     [items]="topMenuItems"
                     (toggleMenu)="toggleSideMenu()"
                     (toggleBar)="toggleSideBar()"
@@ -15,7 +15,7 @@
             <div class="side-inner">
                 <mat-nav-list>
                     <app-menu-list-item *ngFor="let item of navMenuItems"
-                        [i18n]="translations"
+                        [i18n]="translationsMenuLeft"
                         [class.hidden]="item.hidden"
                         [item]="item"
                         (select)="onSelectItem($event)"

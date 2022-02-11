@@ -60,7 +60,13 @@
           border-radius: 10px;
       }
   }
+  .container,.hidden {
+  }
   .container.hidden {
+  }
+  .container .hidden {
       display: none;
+  }
+  .container > .hidden {
   }
 }

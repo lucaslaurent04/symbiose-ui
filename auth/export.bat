@@ -1,3 +1,3 @@
 @echo off
-REM export to bequal public dir
-copy /Y C:\DEV\wamp64\www\symbiose\auth\dist\symbiose\ C:\DEV\wamp64\www\equal\public\auth\
+REM export to equal public dir
+if not exist ..\..\auth mkdir ..\..\auth & copy /Y dist\symbiose\ ..\..\auth\

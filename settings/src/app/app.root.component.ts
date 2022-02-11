@@ -1,11 +1,14 @@
 import { Component, OnInit } from '@angular/core';
+
+import { Router } from '@angular/router';
+
 import { ContextService, ApiService, AuthService } from 'sb-shared-lib';
 
 import * as $ from 'jquery';
 import { type } from 'jquery';
-import { Router } from '@angular/router';
 
-/* 
+
+/*
 This is the component that is bootstrapped by app.module.ts
 */
 
@@ -16,7 +19,7 @@ declare global {
 @Component({
   selector: 'app-root',
   templateUrl: './app.root.component.html',
-  styleUrls: ['./app.root.component.scss']  
+  styleUrls: ['./app.root.component.scss']
 })
 export class AppRootComponent implements OnInit {
 
@@ -25,16 +28,18 @@ export class AppRootComponent implements OnInit {
 
   public topMenuItems = [{name: 'Dashboard'}, {name: 'Users'}, {name: 'Settings'}];
   public navMenuItems: any = [];
-  public translations: any = {};  
+
+  public translationsMenuLeft: any = {};
+  public translationsMenuTop: any = {};
 
   constructor(
-    private router: Router,     
-    private context:ContextService, 
+    private router: Router,
+    private context:ContextService,
     private api:ApiService,
     private auth:AuthService
     ) {}
 
-  
+
   public async ngOnInit() {
 
     try {
@@ -45,39 +50,17 @@ export class AppRootComponent implements OnInit {
       return;
     }
 
-
-
     // load menus from server
-    try {
-      const data:any = await this.api.fetch('?get=model_menu&package=symbiose'+'&menu_id='+'settings.left');
+    const left_menu:any = await this.api.getMenu('symbiose', 'settings.left');
+    this.navMenuItems = left_menu.items;
+    this.translationsMenuLeft = left_menu.translation;
 
-      this.navMenuItems = data.layout.items;
-      try {
-        const i18n = await this.api.fetch('?get=config_i18n-menu&package=symbiose'+'&menu_id='+'settings.left');
-        if(i18n && i18n.view) {
-          this.translations = i18n.view;
-        }
-      }
-      catch(response) {
-        console.log(response);
-      }
-    }
-    catch(err) {
-      console.log(err);
-    }    
-
-
-    try {
-      const data:any = await this.api.fetch('?get=model_menu&package=symbiose'+'&menu_id='+'settings.top');
-      this.topMenuItems = data.layout.items;
-    }
-    catch(err) {
-      console.log(err);
-    }
-
+    const top_menu:any = await this.api.getMenu('symbiose', 'settings.top');
+    this.topMenuItems = top_menu.items;
+    this.translationsMenuTop = top_menu.translation;
 
     this.context.getObservable().subscribe( (context:any) => {
-      console.log('AppRootComponent: received context update', context);      
+      console.log('AppRootComponent: received context update', context);
       window.context = context;
       $('#eq-context').trigger('click');
     });
@@ -110,7 +93,7 @@ export class AppRootComponent implements OnInit {
    * Items are handled as descriptors.
    * They always have a `route` property (if not, it is added and set to '/').
    * And might have an additional `context` property.
-   * @param item 
+   * @param item
    */
    public onSelectItem(item:any) {
     let descriptor:any = {};
@@ -123,7 +106,7 @@ export class AppRootComponent implements OnInit {
     }
 
     if(item.hasOwnProperty('context')) {
-      descriptor.context = { 
+      descriptor.context = {
         ...{
           type:    'list',
           name:    'default',
@@ -134,20 +117,20 @@ export class AppRootComponent implements OnInit {
         },
         ...item.context
       };
-      
+
       if( item.context.hasOwnProperty('view') ) {
         let parts = item.context.view.split('.');
         if(parts.length) descriptor.context.type = <string>parts.shift();
         if(parts.length) descriptor.context.name = <string>parts.shift();
       }
-  
+
       if( item.context.hasOwnProperty('purpose') && item.context.purpose == 'create') {
         // descriptor.context.type = 'form';
         descriptor.context.mode = 'edit';
-      } 
+      }
 
-    }    
-    
+    }
+
     this.context.change(descriptor);
   }
 
@@ -159,5 +142,5 @@ export class AppRootComponent implements OnInit {
 
   public toggleSideBar() {
     this.show_side_bar = !this.show_side_bar;
-  }  
+  }
 }

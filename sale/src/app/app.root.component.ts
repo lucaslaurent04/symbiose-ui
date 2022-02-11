@@ -25,9 +25,8 @@ export class AppRootComponent implements OnInit {
   public topMenuItems = [{name: 'Dashboard'}, {name: 'Users'}, {name: 'Settings'}];
   public navMenuItems: any = [];
 
-
-  public translations: any = {};
-  
+  public translationsMenuLeft: any = {};
+  public translationsMenuTop: any = {};
 
 
   constructor(
@@ -49,31 +48,13 @@ export class AppRootComponent implements OnInit {
     }
 
     // load menus from server
-    try {
-      const data:any = await this.api.fetch('?get=model_menu&package=sale'+'&menu_id='+'sale.left');
+    const left_menu:any = await this.api.getMenu('sale', 'sale.left');
+    this.navMenuItems = left_menu.items;
+    this.translationsMenuLeft = left_menu.translation;
 
-      this.navMenuItems = data.layout.items;
-      try {
-        const i18n = await this.api.fetch('?get=config_i18n-menu&package=sale'+'&menu_id='+'sale.left');
-        if(i18n && i18n.view) {
-          this.translations = i18n.view;
-        }
-      }
-      catch(response) {
-        console.log(response);
-      }
-    }
-    catch(err) {
-      console.log(err);
-    }
-
-    try {
-      const data:any = await this.api.fetch('?get=model_menu&package=sale'+'&menu_id='+'sale.top');
-      this.topMenuItems = data.layout.items;
-    }
-    catch(err) {
-      console.log(err);
-    }
+    const top_menu:any = await this.api.getMenu('sale', 'sale.top');
+    this.topMenuItems = top_menu.items;
+    this.translationsMenuTop = top_menu.translation;
 
     this.context.getObservable().subscribe( (context:any) => {
       console.log('AppRootComponent: received context update', context);      
