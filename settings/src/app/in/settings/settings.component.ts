@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { ApiService } from 'sb-shared-lib';
+import { ApiService, EnvService } from 'sb-shared-lib';
 import { ActivatedRoute, Router, NavigationEnd } from '@angular/router';
 
 
@@ -12,6 +12,7 @@ export class SettingsComponent implements OnInit {
 
   constructor(
     private api: ApiService,
+    private env: EnvService,
     private route: ActivatedRoute,
     private router: Router,
   ) { }
@@ -46,11 +47,13 @@ export class SettingsComponent implements OnInit {
    */  
   public async reset() {
     try {
+      const environment:any = await this.env.getEnv();
       const data: any[] = await this.api.collect(
         'core\\setting\\Setting', 
         ['package', '=', this.package], 
         ['package', 'section_id.name', 'section_id.code', 'section_id.description', 'description', 'setting_values_ids.value', 'type', 'setting_choices_ids.value', 'title', 'help', 'form_control'], 
-        'id', 'asc', 0, 100
+        'id', 'asc', 0, 100,
+        environment.locale
       );
 
       // reset the array

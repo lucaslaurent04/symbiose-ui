@@ -2,8 +2,6 @@ import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 import { AppComponent } from './in/app.component';
 
-import { AccountingChartLinesComponent } from './in/AccountingChartLines/AccountingChartLines.component';
-import { AccountingChartLines2Component } from './in/AccountingChartLines/AccountingChartLines2/AccountingChartLines2.component';
 import { SettingsComponent } from './in/settings/settings.component';
 
 
@@ -18,14 +16,6 @@ const routes: Routes = [
      */
     path: '',
     component: AppComponent
-  },
-  {
-    path: 'AccountingChartLines',
-    component: AccountingChartLinesComponent
-  },
-  {
-    path: 'AccountingChartLines2',
-    component: AccountingChartLines2Component
   },
   {
     path: 'settings/:package',

@@ -44,6 +44,22 @@
             line-height: 48px;
             border-bottom: solid 1px lightgrey;
             font-size: 24px;
+
+            .lang-selector {
+                font-size: 16px;
+                height: 48px;
+                width: 150px;
+                position: absolute;
+                top: 0;
+                right: 0;
+                ::ng-deep .mat-form-field-flex {
+                    padding-top: 4px;
+                }
+                ::ng-deep .mat-form-field-infix {
+                    padding-bottom: 8px;
+                }
+            }
+            
         }
     
         .booking-body {
@@ -78,15 +94,19 @@
 
             .column {
                 flex: 1;
-                display: flex;
+                display: flex;                
 
                 .cell {
-                    flex: 0 1 30%;
+                    flex: 0 1 40%;
                     line-height: 65px;
                     max-width: 250px;
                     overflow: hidden;
                     text-overflow: ellipsis;
                     white-space: nowrap;
+                }
+
+                .cell.title {
+                    flex: 0 1 30%;
                 }
             }
         }

@@ -2,26 +2,44 @@
 
   <div [class.hidden]="!loading" class="loader"><mat-spinner></mat-spinner></div>
 
-  <div class="booking-header">Réservation <small>[{{booking.name}} - {{booking.id}}]</small> <span> › </span> Envoi du Devis</div>
+  <div class="booking-header">
+    <div>Réservation <small>[{{booking.name}} - {{booking.id}}]</small> <span> › </span> Envoi du Devis</div>
+  
+    <div class="lang-selector">             
+      <mat-form-field appearance="fill">
+        <mat-label>Langue</mat-label>
+        <mat-select disableOptionCentering (selectionChange)="onchangeLanguage($event)" [ngModel]="lang">
+          <mat-option *ngFor="let lang of languages" [value]="lang.code">{{lang.name}}</mat-option>
+        </mat-select>
+      </mat-form-field>
+      
+    </div>
+  
+  </div>
 
   <div class="booking-body">
 
     <div class="body-actions" style="display: flex;">
       <div class="actions-std"></div>
       <div class="actions-view">
-        <button mat-stroked-button color="primary" (click)="onSend()" [disabled]="is_sent">Envoyer</button>
+
+        <a target="_blank" [attr.href]="'/?get=lodging_booking_print-booking&view_id=print.default&lang=' + lang + '&id=' + booking_id">
+          <button mat-stroked-button>Voir le devis</button>
+        </a>
+
+        <button mat-flat-button color="accent" (click)="onSend()" [disabled]="is_sent">Envoyer</button>
       </div>      
     </div>   
 
 
     <div class="row">
       <div class="column">
-        <div class="cell">Réservation</div>
+        <div class="cell title">Réservation</div>
         <div class="cell">{{ booking.name }}</div>
       </div>
       <div class="column">
-        <div class="cell">Client</div>
-        <div class="cell">{{ customer.name }}</div>        
+        <div class="cell title">Client</div>
+        <div class="cell">{{ customer.name }} &nbsp; &nbsp;<small>({{getLangName(customer.lang_id)}})</small></div>
       </div>
     </div>
 
@@ -31,7 +49,7 @@
     <div class="row">
 
       <div class="column">
-        <div class="cell">Expéditeur</div>
+        <div class="cell title">Expéditeur</div>
         <div class="cell">
           <mat-form-field>
             <mat-label>Adresses d'expédition</mat-label>
@@ -47,7 +65,7 @@
 
       
       <div class="column">
-        <div class="cell">Destinataire</div>
+        <div class="cell title">Destinataire</div>
         <div class="cell">
           <mat-form-field>
             <mat-label>Adressses de destination</mat-label>
@@ -68,8 +86,6 @@
     <div class="row">
 
       <div class="column" style="width: 100%">
-        <div class="cell" style="flex: 0 1 15%;">Titre</div>
-        <div class="cell" style="flex: 1; max-width: 100%;">
         <mat-form-field>
           <input  type="text" 
                   autocomplete="off"
@@ -81,29 +97,35 @@
             Ne peut être vide.
           </mat-error>
         </mat-form-field>
-        </div>
+
       </div>
     </div>      
 
     <div class="row">
 
-      <div class="column" style="display: block; width: 100%">
+      <div class="column" style="display: block; width: 100%; margin-top: 10px;">
         <quill-editor 
           [formControl]="vm.message.formControl" 
           theme="snow"
-          (onEditorChanged)="vm.message.change($event)">
+          (onEditorChanged)="vm.message.change($event)"
+          [placeholder]="'Corps du message'">
         </quill-editor>
       </div>
       
     </div>    
 
     <div class="row" style="margin-top: 30px;">
-      <div class="column" style="width: 100%">
-        <a target="_blank" [attr.href]="'/?get=lodging_booking_print-booking&view_id=print.default&lang=fr&id=' + booking_id">Voir le devis
-          <button mat-icon-button disabled aria-label="Example icon button with a open in new tab icon">
-            <mat-icon>open_in_new</mat-icon>
+      <div class="column" style="width: 100%; flex-direction: column;">
+
+        <div style="display: flex;"><mat-icon>attach_file</mat-icon> Pièces jointes</div>
+        <div *ngFor="let attachment of vm.attachments.items" style="margin-left: 10px; display: flex; align-items: center;">
+
+          <div><b>{{attachment.name}}</b> ({{attachment.document_id.name}})</div>
+          <button mat-icon-button (click)="onRemoveAttachment(attachment)">
+            <mat-icon>delete</mat-icon>
           </button>
-        </a>
+        </div>  
+
       </div>
     </div>
   </div>

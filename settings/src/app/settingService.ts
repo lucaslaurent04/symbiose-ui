@@ -12,7 +12,8 @@ export class SettingService {
     // booking object for conditionning API calls  
     public queue: any[] = [];
 
-    constructor(private api: ApiService,
+    constructor(
+        private api: ApiService,
         private snackBar: MatSnackBar) { }
 
     public toQueue(idSetting: number, fieldsSetting: any): Observable<string> {

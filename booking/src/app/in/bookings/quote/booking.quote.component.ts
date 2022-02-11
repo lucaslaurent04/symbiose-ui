@@ -1,14 +1,15 @@
-import { Component, AfterContentInit, OnInit, NgZone, Inject, ViewChild, ElementRef } from '@angular/core';
-import { ActivatedRoute } from '@angular/router';
+import { Component, AfterContentInit, OnInit, NgZone } from '@angular/core';
+import { ActivatedRoute, Router, RouterEvent, NavigationEnd } from '@angular/router';
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 
-import { ApiService, AuthService, ContextService } from 'sb-shared-lib';
+import { ApiService, EnvService, AuthService, ContextService } from 'sb-shared-lib';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { FormControl, Validators } from '@angular/forms';
 import { EditorChangeContent, EditorChangeSelection } from 'ngx-quill';
 import { UserClass } from 'sb-shared-lib/lib/classes/user.class';
-import { templateJitUrl } from '@angular/compiler';
 
+import { filter } from 'rxjs/operators';
+import { HttpErrorResponse } from '@angular/common/http';
 
 
 class Booking {
@@ -27,7 +28,8 @@ class Customer {
   constructor(
     public id: number = 0,
     public name: string = '',
-    public email: string = ''
+    public email: string = '',
+    public lang_id: number = 0
   ) {}
 }
 
@@ -37,7 +39,7 @@ class Center {
     public name: string = '',
     public email: string = '',
     public organisation_id: number = 0,
-    public template_category_id: number = 0    
+    public template_category_id: number = 0
   ) {}
 }
 
@@ -46,7 +48,7 @@ class Organisation {
     public id: number = 0,
     public name: string = '',
     public email: string = '',
-    public signature: string = ''    
+    public signature: string = ''
   ) {}
 }
 
@@ -81,6 +83,9 @@ interface vmModel {
     value:        string,
     formControl:  FormControl,
     change:       (event:any) => void
+  },
+  attachments: {
+    items:        any[]
   }
 };
 
@@ -105,6 +110,11 @@ export class BookingQuoteComponent implements OnInit, AfterContentInit {
   public customer: any = new Customer();
   public contacts: any[] = [];
 
+
+  public languages: any[] = [];
+  public lang: string = '';
+  private lang_id: number = 0;
+
   public vm: vmModel;
 
 
@@ -112,6 +122,8 @@ export class BookingQuoteComponent implements OnInit, AfterContentInit {
     private dialog: MatDialog,
     private api: ApiService,
     private auth: AuthService,
+    private env: EnvService,
+    private router: Router,
     private route: ActivatedRoute,
     private context:ContextService,
     private snack: MatSnackBar,
@@ -120,12 +132,12 @@ export class BookingQuoteComponent implements OnInit, AfterContentInit {
 
       this.vm = {
         title: {
-          value:          "Devis pour votre réservation",
+          value:          '',
           formControl:    new FormControl('', Validators.required),
           change:         (event:any) => this.titleChange(event)
         },
         message: {
-          value:          "<p>Nous vous remercions de la confiance que vous nous témoignez pour l'organisation de votre séjour dans l'un de nos Gîtes. <br />Vous trouverez les détails du devis pour votre réservation dans le document joint à ce message.</p>",
+          value:          '',
           formControl:    new FormControl('', Validators.required),
           change:         (event:any) => this.messageChange(event)
         },
@@ -140,8 +152,10 @@ export class BookingQuoteComponent implements OnInit, AfterContentInit {
           value:          '',
           formControl:    new FormControl('', [Validators.required, Validators.email]),
           change:         (event:any) => this.recipientChange(event)
+        },
+        attachments: {
+          items:          []
         }
-
       };
   }
 
@@ -150,13 +164,26 @@ export class BookingQuoteComponent implements OnInit, AfterContentInit {
    */
   public ngAfterContentInit() {
     this.loading = false;
+  }
 
-    this.vm.title.formControl.setValue(this.vm.title.value);    
-    this.vm.message.formControl.setValue(this.vm.message.value);
-
+  /**
+   * invoked on lang change
+   */
+   private refresh(lang_id:number) {
+    if(lang_id != this.lang_id) {
+      for(let lang of this.languages) {
+        if(lang.id == lang_id) {
+          this.lang_id = lang.id;
+          this.lang = lang.code;
+          break;
+        }
+      }
+      this.fetchTemplates();      
+    }
   }
 
   ngOnInit() {
+    this.loadLanguages();
 
     this.auth.getObservable().subscribe( async (user: UserClass) => {
       this.user = user;
@@ -167,7 +194,7 @@ export class BookingQuoteComponent implements OnInit, AfterContentInit {
     this.route.params.subscribe( async (params) => {
       if(params && params.hasOwnProperty('id')) {
         try {
-          this.booking_id = <number> params['id'];
+          this.booking_id = <number> parseInt(params['id']);
           const result = await this.loadBooking();
 
           let booking:any = new Booking();
@@ -178,9 +205,6 @@ export class BookingQuoteComponent implements OnInit, AfterContentInit {
           }
           this.booking = <Booking> booking;
 
-
-          // load template parts
-
           // relay change to context (to display sidemenu panes according to current object)
           this.context.change({
             context_only: true,   // do not change the view
@@ -188,7 +212,7 @@ export class BookingQuoteComponent implements OnInit, AfterContentInit {
               entity: 'lodging\\sale\\booking\\Booking',
               type: 'form',
               purpose: 'view',
-              domain: ['id', '=', this.booking_id]              
+              domain: ['id', '=', this.booking_id]
             }
           });
 
@@ -210,6 +234,9 @@ export class BookingQuoteComponent implements OnInit, AfterContentInit {
             }
             this.customer = <Customer> customer;
             this.refreshRecipientAddresses();
+            if(this.customer.lang_id != this.lang_id) {
+              this.refresh(this.customer.lang_id);
+            }
           }
           catch(error) {
             console.warn(error);
@@ -253,7 +280,7 @@ export class BookingQuoteComponent implements OnInit, AfterContentInit {
             }
             this.center = <Center> center;
             this.refreshSenderAddresses();
-
+            // load templates
             this.fetchTemplates();
           }
           catch(error) {
@@ -280,32 +307,67 @@ export class BookingQuoteComponent implements OnInit, AfterContentInit {
         }
 
       }
-
     });
+
+
   }
 
   /**
-   * fetch template from server for 
-   * 
+   * fetch template from server for
+   *
    * quote.mail.subject, quote.mail.body + organisation signature
    */
   private async fetchTemplates() {
-    const result = await this.api.collect("communication\\Template", [ ['category_id', '=', this.center.template_category_id], ['type', '=', 'quote'] ], ['name', 'value']);
+    console.log('re-fetch templates');
+    try {
+      const templates = await this.api.collect("communication\\Template", [ ['category_id', '=', this.center.template_category_id], ['type', '=', 'quote'], ['code', '=', 'mail']], ['parts_ids', 'attachments_ids'], 'id', 'asc', 0, 1, this.lang);
 
-    if(result && result.length) {
-     console.log(result);
-      for(let template of result) {
-        if(template.name == 'quote.mail.subject') {
-          // strip html nodes
-          this.vm.title.formControl.setValue(template.value.replace(/<[^>]*>?/gm, ''));
+      if(templates && templates.length) {
+        let template = templates[0];
+  
+        const parts = await this.api.collect("communication\\TemplatePart", ['id', 'in', template['parts_ids']], ['name', 'value'], 'id', 'asc', 0, 10, this.lang);
+  
+        for(let part of parts) {
+          if(part.name == 'subject') {
+            // strip html nodes
+            if(part.value && part.value.length) {
+              let title = part.value.replace(/<[^>]*>?/gm, '')
+              this.vm.title.formControl.setValue(title);
+              this.vm.title.value = title;
+            }
+          }
+          else if(part.name == 'body') {
+            this.vm.message.formControl.setValue(part.value);
+            this.vm.message.value = part.value;
+          }
         }
-        else if(template.name == 'quote.mail.body') {
-          this.vm.message.formControl.setValue(template.value);
+
+        // reset attachments list
+        this.vm.attachments.items.splice(0, this.vm.attachments.items.length);
+        const attachments = await this.api.collect("communication\\TemplateAttachment", [['id', 'in', template['attachments_ids']], ['lang_id', '=', this.lang_id]], ['name', 'document_id.name'], 'id', 'asc', 0, 20, this.lang);
+        for(let attachment of attachments) {
+          this.vm.attachments.items.push(attachment)
+        }
+      }
+    }
+    catch(error) {
+      console.log(error);
+    }
+  }
+
+  private async loadLanguages() {
+    const environment:any = await this.env.getEnv();
+    this.lang = environment.lang;
+    const result:Array<any> = <Array<any>> await this.api.collect("core\\Lang", [], ['id', 'code', 'name'], 'name', 'asc', 0, 100, environment.locale);
+    if(result && result.length) {
+      this.languages = result;
+      for(let lang of this.languages) {
+        if(lang.code == this.lang) {
+          this.lang_id = lang.id;
         }
       }
     }
   }
-
 
   private async loadBooking() {
     const result:Array<any> = <Array<any>> await this.api.read("lodging\\sale\\booking\\Booking", [this.booking_id], Object.getOwnPropertyNames(new Booking()));
@@ -345,6 +407,11 @@ export class BookingQuoteComponent implements OnInit, AfterContentInit {
       return result[0];
     }
     return {};
+  }
+
+  public onchangeLanguage($event:any) {
+    const lang = $event.value;    
+    this.refresh(this.getLangId(lang));
   }
 
   public refreshSenderAddresses() {
@@ -420,12 +487,40 @@ export class BookingQuoteComponent implements OnInit, AfterContentInit {
     this.vm.recipient.value = event.value;
   }
 
+  public onRemoveAttachment(attachment:any) {
+    this.vm.attachments.items.splice(this.vm.attachments.items.indexOf(attachment), 1);
+  }
+
+  public getLangId(lang:string) {
+    let index = this.languages.findIndex( (elem) => elem.code == lang );
+    if(index >= 0) {
+      return this.languages[index].id;
+    }
+    return 0;
+  }
+
+  public getLangCode(lang_id:number) {
+    let index = this.languages.findIndex( (elem) => elem.id == lang_id );
+    if(index >= 0) {
+      return this.languages[index].code;
+    }
+    return '';
+  }
+
+  public getLangName(lang_id:number) {
+    let index = this.languages.findIndex( (elem) => elem.id == lang_id );
+    if(index >= 0) {
+      return this.languages[index].name;
+    }
+    return '';
+  }
+
   public async onSend() {
 
     /*
       Validate values (otherwise mark fields as invalid)
     */
-   
+
 
     let is_error = false;
 
@@ -438,7 +533,7 @@ export class BookingQuoteComponent implements OnInit, AfterContentInit {
       this.vm.recipient.formControl.markAsTouched();
       is_error = true;
     }
-    
+
     if(this.vm.title.formControl.invalid || this.vm.title.value.length == 0) {
       this.vm.title.formControl.markAsTouched();
       is_error = true;
@@ -449,7 +544,6 @@ export class BookingQuoteComponent implements OnInit, AfterContentInit {
       is_error = true;
     }
 
-
     if(is_error) return;
 
     try {
@@ -459,15 +553,31 @@ export class BookingQuoteComponent implements OnInit, AfterContentInit {
           sender_email: this.vm.sender.value,
           recipient_email: this.vm.recipient.value,
           title: this.vm.title.value,
-          message: this.vm.message.value
+          message: this.vm.message.value,
+          lang: this.lang,
+          attachments_ids: this.vm.attachments.items.map( (e:any) => e.id )
       });
       this.is_sent = true;
       this.snack.open("Devis envoyé avec succès.");
+      this.loading = false;
     }
-    catch(err) {
-      this.snack.open("Format non reconnu", "Erreur");
-      console.log(err);
+    catch(response:any) {
+      let message: string = 'Erreur inconnue';
+      if(response.error && response.error.errors) {
+        const codes = Object.keys(response.error.errors);
+        if(codes.length) {
+          switch(codes[0]) {
+            case 'NOT_ALLOWED':
+              message = 'Opération non autorisée';
+              break;
+          }
+        }  
+      }
+      setTimeout( () => {
+        this.loading = false;
+        this.snack.open(message, "Erreur");
+      }, 500);
     }
-    this.loading = false;
+    
   }
 }

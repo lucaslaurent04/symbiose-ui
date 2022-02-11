@@ -25,11 +25,8 @@ export class AppRootComponent implements OnInit {
   public topMenuItems = [{name: 'Dashboard'}, {name: 'Users'}, {name: 'Settings'}];
   public navMenuItems: any = [];
 
-
   public translationsMenuLeft: any = {};
   public translationsMenuTop: any = {};
-
-
 
   constructor(
     private router: Router,
@@ -45,48 +42,20 @@ export class AppRootComponent implements OnInit {
       await this.auth.authenticate();
     }
     catch(err) {
+      console.log(err);
       window.location.href = '/apps';
       return;
     }
 
     // load menus from server
-    try {
-      const data:any = await this.api.fetch('?get=model_menu&package=documents'+'&menu_id='+'documents.left');
 
-      this.navMenuItems = data.layout.items;
-      try {
-        const i18n = await this.api.fetch('?get=config_i18n-menu&package=documents'+'&menu_id='+'documents.left');
-        if(i18n && i18n.view) {
-          this.translationsMenuLeft = i18n.view;
-          console.log("traductions", this.translationsMenuLeft)
-        }
-      }
-      catch(response) {
-        console.log(response);
-      }
-    }
-    catch(err) {
-      console.log(err);
-    }
+    const left_menu:any = await this.api.getMenu('documents', 'documents.left');
+    this.navMenuItems = left_menu.items;
+    this.translationsMenuLeft = left_menu.translation;
 
-    try {
-      const data:any = await this.api.fetch('?get=model_menu&package=documents'+'&menu_id='+'documents.top');
-      this.topMenuItems = data.layout.items;
-
-      try {
-        const i18n = await this.api.fetch('?get=config_i18n-menu&package=documents'+'&menu_id='+'documents.top');
-        if(i18n && i18n.view) {
-          this.translationsMenuTop = i18n.view;
-          console.log("traductionsMenuTop", this.translationsMenuTop)
-        }
-      }
-      catch(response) {
-        console.log(response);
-      }
-    }
-    catch(err) {
-      console.log(err);
-    }
+    const top_menu:any = await this.api.getMenu('documents', 'documents.top');
+    this.topMenuItems = top_menu.items;
+    this.translationsMenuTop = top_menu.translation;
 
     this.context.getObservable().subscribe( (context:any) => {
       console.log('AppRootComponent: received context update', context);
