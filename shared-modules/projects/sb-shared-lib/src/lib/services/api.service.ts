@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
-import { environment } from '../environment/environment';
 import { catchError, map } from "rxjs/operators";
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
-
+import { EnvService} from './env.service';
+/*
+*/
 
 @Injectable({
   providedIn: 'root'
@@ -13,44 +14,72 @@ export class ApiService {
   private cache: any = {};
   private cache_validity: number = 1000; // cache validity in milliseconds
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private env:EnvService) {
+  }
 
   /**
    *  Sends a direct GET request to the backend without using API URL
    */
   public fetch(route:string, body:any = {}) {
-    return this.http.get<any>(environment.backend_url+route, {params: body}).toPromise();
+    return new Promise<any>( async (resolve, reject) => {
+      try {
+        const environment:any = await this.env.getEnv();
+        const response:any = await this.http.get<any>(environment.backend_url+route, {params: body}).toPromise();
+        resolve(response);
+      }
+      catch(error) {
+        reject(error);
+      }
+    });
   }
 
   /**
    *  Sends a direct POST request to the backend without using API URL
    */
   public call(route:string, body:any = {}) {
-    return this.http.post<any>(environment.backend_url+route, body).toPromise();
+    return new Promise<any>( async (resolve, reject) => {
+      try {
+        const environment:any = await this.env.getEnv();
+        const response:any = await this.http.post<any>(environment.backend_url+route, body).toPromise();
+        resolve(response);
+      }
+      catch(error) {
+        reject(error);
+      }
+    });
   }
 
   /**
-   * 
-   * @param entity 
-   * @param fields 
+   *
+   * @param entity
+   * @param fields
    * @returns Promise
    */
-  public create(entity:string, fields:any = {}) {
-    return this.http.put<any>(environment.backend_url+'/?do=model_create', {
-      entity: entity,
-      fields: JSON.stringify(fields),
-      lang: environment.lang
-    }).toPromise();
+  public create(entity:string, fields:any = {}, lang: string = '') {
+    return new Promise<any>( async (resolve, reject) => {
+      try {
+        const environment:any = await this.env.getEnv();
+        const response:any = await this.http.put<any>(environment.backend_url+'/?do=model_create', {
+          entity: entity,
+          fields: JSON.stringify(fields),
+          lang: (lang.length)?lang:environment.lang
+        }).toPromise();
+        resolve(response);
+      }
+      catch(error) {
+        reject(error);
+      }
+    });
   }
 
   /**
-   * 
-   * @param entity 
-   * @param ids 
-   * @param fields 
+   *
+   * @param entity
+   * @param ids
+   * @param fields
    * @returns Promise
    */
-  public read(entity:string, ids:any[], fields:any[],  order:string='id', sort:string='asc') {
+  public read(entity:string, ids:any[], fields:any[],  order:string='id', sort:string='asc', lang:string = '') {
 
     let hash = btoa(entity+ids.toString()+fields.toString()+order+sort);
     let now = Date.now();
@@ -65,14 +94,15 @@ export class ApiService {
       }
     }
 
-    return new Promise((resolve, reject) => {
+    return new Promise(async (resolve, reject) => {
+      const environment:any = await this.env.getEnv();
       this.http.get<any>(environment.backend_url+'/?get=model_read', {params: {
           entity: entity,
           ids: JSON.stringify(ids),
           fields: JSON.stringify(fields),
           order: order,
           sort: sort,
-          lang: environment.lang
+          lang: (lang.length)?lang:environment.lang
         }
       }).subscribe(
         data => {
@@ -88,74 +118,93 @@ export class ApiService {
       );
     });
 
-    return this.http.get<any>(environment.backend_url+'/?get=model_read', {params: {
-        entity: entity,
-        ids: JSON.stringify(ids),
-        fields: JSON.stringify(fields),
-        order: order,
-        sort: sort,
-        lang: environment.lang
-      }
-    }).toPromise();
   }
 
   /**
-   * 
-   * @param entity 
-   * @param ids 
-   * @param values 
-   * @param force 
+   *
+   * @param entity
+   * @param ids
+   * @param values
+   * @param force
    * @returns Promise
    */
-  public update(entity:string, ids:number[], values:{}, force: boolean=false) {
-    return this.http.patch<any>(environment.backend_url+'/?do=model_update', {
-        entity: entity,
-        ids: ids,
-        fields: values,
-        lang: environment.lang,
-        force: force
-    }).toPromise();
+  public update(entity:string, ids:number[], values:{}, force: boolean=false, lang:string = '') {
+    return new Promise<any>( async (resolve, reject) => {
+      try {
+        const environment:any = await this.env.getEnv();
+        const response:any = await this.http.patch<any>(environment.backend_url+'/?do=model_update', {
+          entity: entity,
+          ids: ids,
+          fields: values,
+          lang: (lang.length)?lang:environment.lang,
+          force: force
+        }).toPromise();
+        resolve(response);
+      }
+      catch(error) {
+        reject(error);
+      }
+    });
   }
 
   /**
-   * 
-   * @param entity 
-   * @param ids 
-   * @param permanent 
+   *
+   * @param entity
+   * @param ids
+   * @param permanent
    * @returns Promise
    */
   public remove(entity:string, ids:any[], permanent:boolean=false) {
-    return this.http.delete<any>(environment.backend_url+'/?do=model_delete', {body: {
-        entity: entity,
-        ids: ids,
-        permanent: permanent
+    return new Promise<any>( async (resolve, reject) => {
+      try {
+        const environment:any = await this.env.getEnv();
+        const response:any = await this.http.delete<any>(environment.backend_url+'/?do=model_delete', {body: {
+            entity: entity,
+            ids: ids,
+            permanent: permanent
+          }
+        }).toPromise();
+        resolve(response);
       }
-    }).toPromise();
+      catch(error) {
+        reject(error);
+      }
+    });
   }
 
   /**
-   * 
-   * @param entity 
-   * @param domain 
-   * @param fields 
-   * @param order 
-   * @param sort 
-   * @param start 
-   * @param limit 
+   *
+   * @param entity
+   * @param domain
+   * @param fields
+   * @param order
+   * @param sort
+   * @param start
+   * @param limit
    * @returns Promise
    */
-  public collect(entity:string, domain:any[], fields:any[], order:string='id', sort:string='asc', start:number=0, limit:number=25) {
-    return this.http.get<any>(environment.backend_url+'/?get=model_collect', {params: {
-        entity: entity,
-        domain: JSON.stringify(domain),
-        fields: JSON.stringify(fields),
-        order: order,
-        sort: sort,
-        start: start,
-        limit: limit,
-        lang: environment.lang
+  public collect(entity:string, domain:any[], fields:any[], order:string='id', sort:string='asc', start:number=0, limit:number=25, lang: string = '') {
+    return new Promise<any>( async (resolve, reject) => {
+      try {
+        const environment:any = await this.env.getEnv();
+        const response:any = await this.http.get<any>(environment.backend_url+'/?get=model_collect', {
+          params: {
+            entity: entity,
+            domain: JSON.stringify(domain),
+            fields: JSON.stringify(fields),
+            order: order,
+            sort: sort,
+            start: start,
+            limit: limit,
+            lang: (lang.length)?lang:environment.lang
+          }
+        }).toPromise();
+        resolve(response);
       }
-    }).toPromise();
+      catch(error) {
+        reject(error);
+      }
+    });
   }
 
   /*
@@ -171,23 +220,93 @@ export class ApiService {
    * @returns Promise
    */
   public get(route:string, body:any = {}) {
-    return this.http.get<any>(environment.rest_api_url+route, {params: body}).toPromise();
+    return new Promise<any>( async (resolve, reject) => {
+      try {
+        const environment:any = await this.env.getEnv();
+        const response:any = await this.http.get<any>(environment.rest_api_url+route, {params: body}).toPromise();
+        resolve(response);
+      }
+      catch(error) {
+        reject(error);
+      }
+    });
   }
 
   public post(route:string, body:any = {}) {
-    return this.http.post<any>(environment.rest_api_url+route, body).toPromise();
+    return new Promise<any>( async (resolve, reject) => {
+      try {
+        const environment:any = await this.env.getEnv();
+        const response:any = await this.http.post<any>(environment.rest_api_url+route, body).toPromise();
+        resolve(response);
+      }
+      catch(error) {
+        reject(error);
+      }
+    });
   }
 
   public patch(route:string, body:any = {}) {
-    return this.http.patch<any>(environment.rest_api_url+route, body).toPromise();
+    return new Promise<any>( async (resolve, reject) => {
+      try {
+        const environment:any = await this.env.getEnv();
+        const response:any = await this.http.patch<any>(environment.rest_api_url+route, body).toPromise();
+        resolve(response);
+      }
+      catch(error) {
+        reject(error);
+      }
+    });
   }
 
   public put(route:string, body:any = {}) {
-    return this.http.put<any>(environment.rest_api_url+route, body).toPromise();
+    return new Promise<any>( async (resolve, reject) => {
+      try {
+        const environment:any = await this.env.getEnv();
+        const response:any = await this.http.put<any>(environment.rest_api_url+route, body).toPromise();
+        resolve(response);
+      }
+      catch(error) {
+        reject(error);
+      }
+    });
   }
 
   public delete(route:string) {
-    return this.http.delete<any>(environment.rest_api_url+route).toPromise();
+    return new Promise<any>( async (resolve, reject) => {
+      try {
+        const environment:any = await this.env.getEnv();
+        const response:any = await this.http.delete<any>(environment.rest_api_url+route).toPromise();
+        resolve(response);
+      }
+      catch(error) {
+        reject(error);
+      }
+    });
+  }
+
+  public async getMenu(package_name: string, menu_id: string, locale: string = '') {
+    const environment:any = await this.env.getEnv();
+
+    let result:any = {
+      item: [],
+      translation: {}
+    };
+
+    try {
+      const menu:any = await this.fetch('/?get=model_menu&package='+package_name+'&menu_id='+menu_id+'&lang='+((locale.length)?locale:environment.locale));
+      if(menu && menu.layout && menu.layout.items) {
+        result.items = menu.layout.items;
+      }
+      const menu_i18n = await this.fetch('/?get=config_i18n-menu&package='+package_name+'&menu_id='+menu_id+'&lang='+((locale.length)?locale:environment.locale));
+      if(menu_i18n && menu_i18n.view) {
+        result.translation = menu_i18n.view;
+      }
+    }
+    catch(error) {
+      console.log('error retrieving menu:', error);
+    }
+
+    return result;
   }
 
   public async profileUpdate(user_id: string, firstname: string, lastname: string, language: string, avatar: string) {
@@ -208,16 +327,15 @@ export class ApiService {
   }
 
   public async passwordUpdate(user_id: string, password: string, confirm: string) {
+    const environment:any = await this.env.getEnv();
     const data = await this.http.get<any>(environment.backend_url+'/?do=user_pass-update', {
         params: {
           id: user_id,
           password: password,
           confirmation: confirm
         }
-    });
-
+    }).toPromise();
     return data;
   }
-
 
 }

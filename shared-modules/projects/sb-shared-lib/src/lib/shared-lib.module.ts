@@ -1,5 +1,6 @@
 import { NgModule } from '@angular/core';
 import { SharedLibComponent } from './shared-lib.component';
+import { EnvService } from './services/env.service';
 import { MenuListItemComponent } from './components/menu-list-item/menu-list-item.component';
 import { HeaderComponent } from './components/header/header.component';
 import { FooterComponent } from './components/footer/footer.component';
@@ -112,10 +113,13 @@ export function HttpLoaderFactory(http: HttpClient) {
 })
 export class SharedLibModule {
 
-  constructor(private translate: TranslateService) {
+  constructor(private translate: TranslateService, private env:EnvService) {
     // translate.addLangs(["en", "fr", "nl"]);
     translate.addLangs(["en", "fr"]);
-    translate.setDefaultLang('fr');
+    (async () => {
+      const environment = await env.getEnv();
+      translate.setDefaultLang(environment.locale);
+    })();    
   }
 
 }

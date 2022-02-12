@@ -4,11 +4,10 @@ import { debounceTime } from 'rxjs/operators';
 import { ApiService } from '../../services/api.service';
 import { AuthService } from '../../services/auth.service';
 import { ContextService } from '../../services/context.service';
-import { environment } from '../../environment/environment';
+import { EnvService} from '../../services/env.service';
 
 import * as screenfull from 'screenfull';
 import { HttpErrorResponse } from '@angular/common/http';
-
 
 @Component({
   selector: 'app-sidemenu',
@@ -17,6 +16,8 @@ import { HttpErrorResponse } from '@angular/common/http';
 })
 export class AppSideMenuComponent implements OnInit {
   @ViewChild('helpfullscreen') helpFullScreen: ElementRef;
+
+  private environment: any = null;
 
   public panes:any = [
     {
@@ -40,7 +41,7 @@ export class AppSideMenuComponent implements OnInit {
 
   public selected_tab_id = 'object-routes';
   public user: any = {};
-  
+
   public view_description: string = '';
   public object_routes_items:any = [];
   public object_checks_items: any = [];
@@ -56,18 +57,21 @@ export class AppSideMenuComponent implements OnInit {
 
   private object: any = {};
 
-  public message: any;
-
   constructor(
     private context:ContextService,
     private router: Router,
     private api:ApiService,
     private auth:AuthService,
     private zone:NgZone,
+    private env:EnvService
   ) {}
-  
 
   ngOnInit(): void {
+
+    (async () => {
+      this.environment = await this.env.getEnv();
+      console.log('received env val: ', this.environment);
+    })();
 
     this.auth.getObservable().subscribe( (user:any) => {
       this.user = user;
@@ -127,7 +131,7 @@ export class AppSideMenuComponent implements OnInit {
 
           // load routes and look for references to object fields (to append those to the fields to load, `object_fields`)
           try {
-            const view = await this.api.fetch('/?get=model_view&entity='+object_class+'&view_id=routes.default'+'&lang='+environment.lang);
+            const view:any = await this.api.fetch('/?get=model_view&entity='+object_class+'&view_id=routes.default'+'&lang='+this.environment.lang);
             // load routes from view, if any
             if(view.hasOwnProperty('routes') && view.routes.length) {
               view_routes = view.routes;
@@ -156,21 +160,21 @@ export class AppSideMenuComponent implements OnInit {
                 if(route.hasOwnProperty('route')) {
                   const parts = route.route.split('/');
                   for(let part of parts) {
-                    let object_field = part.replace('object.', '');  
+                    let object_field = part.replace('object.', '');
                     if(object_field.length && !object_fields.includes(object_field)) {
                       object_fields.push(object_field);
-                    }  
+                    }
                   }
                 }
                 if(route.hasOwnProperty('context') && route.context.hasOwnProperty('domain')) {
                   let domain = JSON.stringify(route.context.domain);
                   let regexp = /object\.([^"]+)/g;
                   let match = regexp.exec(domain);
-                 
+
                   while(match) {
                     if(match.length) {
                       object_fields.push(match[1]);
-                    }	  
+                    }
                     match = regexp.exec(domain);
                   }
                 }
@@ -183,7 +187,7 @@ export class AppSideMenuComponent implements OnInit {
           }
 
           // read basic field of targeted object
-          const data = await this.api.read(object_class, [object_id], object_fields);
+          const data: any[] = <Array<any>> await this.api.read(object_class, [object_id], object_fields);
           this.object = data[0];
 
           // 'history' : read modifications history
@@ -228,10 +232,10 @@ export class AppSideMenuComponent implements OnInit {
               }
 
               if(Array.isArray(value)) {
-                if(operator == 'in') {                              
-                  res = (value.indexOf(operand) > -1);                
+                if(operator == 'in') {
+                  res = (value.indexOf(operand) > -1);
                 }
-                else if(operator == 'not in') {                
+                else if(operator == 'not in') {
                   res = (value.indexOf(operand) == -1);
                 }
               }
@@ -248,8 +252,8 @@ export class AppSideMenuComponent implements OnInit {
 
 
           // 'checks' : read checks specific to object (verifications)
-          try {              
-            const view = await this.api.fetch('/?get=model_view&entity='+object_class+'&view_id=checks.default'+'&lang='+environment.lang);
+          try {
+            const view:any = await this.api.fetch('/?get=model_view&entity='+object_class+'&view_id=checks.default'+'&lang='+this.environment.lang);
             // load checks from view, if any
             if(view.hasOwnProperty('checks') && view.checks.length) {
               this.object_checks_items = view.checks;
@@ -261,13 +265,13 @@ export class AppSideMenuComponent implements OnInit {
           }
           catch(err) {
             console.warn(err);
-          }            
+          }
 
         }
 
         // 'help' : in all cases, request detailed documentation about the current view
         try {
-          const helper = await this.api.fetch('/?get=model_view-help&entity='+descriptor.context.entity+'&view_id='+this.view_id+'&lang='+environment.lang);
+          const helper:any = await this.api.fetch('/?get=model_view-help&entity='+descriptor.context.entity+'&view_id='+this.view_id+'&lang='+this.environment.lang);
           // #todo : use a cache here
 
           if(helper && helper.hasOwnProperty('result')) {
@@ -277,7 +281,7 @@ export class AppSideMenuComponent implements OnInit {
         }
         catch(err) {
           console.warn(err);
-        }        
+        }
       }
 
 
@@ -343,12 +347,12 @@ export class AppSideMenuComponent implements OnInit {
 
           if(response.hasOwnProperty('error')) {
             this.object_checks_result.content = response.error;
-          }          
+          }
         }
-      }      
+      }
     }
   }
-  
+
 
   public onObjectCheckResult(line:any) {
     console.log(line);
@@ -383,7 +387,7 @@ export class AppSideMenuComponent implements OnInit {
         let domain = JSON.stringify(context.domain);
         for(let object_field of Object.keys(this.object)) {
           domain = domain.replace('object.'+object_field, this.object[object_field]);
-        }        
+        }
         context.domain = JSON.parse(domain);
       }
       descriptor.context = context;
@@ -392,7 +396,7 @@ export class AppSideMenuComponent implements OnInit {
     if(Object.keys(descriptor).length) {
       this.context.change(descriptor);
     }
-    
+
   }
 
 }
