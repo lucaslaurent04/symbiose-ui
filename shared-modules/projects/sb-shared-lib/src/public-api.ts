@@ -4,6 +4,7 @@
 
 export * from './lib/services/http.interceptor.service';
 export * from './lib/services/api.service';
+export * from './lib/services/env.service';
 export * from './lib/services/auth.service';
 export * from './lib/services/context.service';
 export * from './lib/services/eq.service';

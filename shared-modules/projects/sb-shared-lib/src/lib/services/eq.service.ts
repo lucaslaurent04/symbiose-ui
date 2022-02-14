@@ -1,7 +1,4 @@
 import { Injectable } from '@angular/core';
-import { environment } from '../environment/environment';
-import { catchError, map } from "rxjs/operators";
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 
 
 declare global {

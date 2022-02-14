@@ -30,8 +30,7 @@
               "src/favicon.ico",
               "src/assets",
               "src/build",
-              "src/node_modules",
-              "src/i18n"
+              "src/node_modules"
             ],
             "styles": [
               "src/styles.scss"

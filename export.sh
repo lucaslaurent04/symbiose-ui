@@ -1,8 +1,8 @@
 #!/bin/bash
 
-./apps/export.sh
-./auth/export.sh
-./booking/export.sh
-./documents/export.sh
-./inventory/export.sh
-./settings/export.sh
+(cd ./apps/ ; sh export.sh)
+(cd ./auth/ ; sh export.sh)
+(cd ./booking/ ; sh export.sh)
+(cd ./documents/ ; sh export.sh)
+(cd ./inventory/ ; sh export.sh)
+(cd ./settings/ ; sh export.sh)

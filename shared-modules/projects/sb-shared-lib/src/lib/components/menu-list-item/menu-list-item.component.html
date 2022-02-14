@@ -20,7 +20,7 @@
       [depth]="depth+1" 
       [style]="{visibility:(item.expanded)?'visible':'hidden', opacity:(item.expanded)?1:0}"
       (select)="onItemSelected($event)"
-      (toggle)="onItemToggled($event)">
+      (toggle)="onItemToggle($event)">
     </app-menu-list-item>
   </div>
 </div>

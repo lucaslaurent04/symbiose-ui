@@ -1,5 +1,6 @@
 import { Component, Inject, OnInit, OnChanges, NgZone, Output, Input, EventEmitter, SimpleChanges } from '@angular/core';
-import { AuthService, ApiService, ContextService } from 'sb-shared-lib';
+import { AuthService, ContextService } from 'sb-shared-lib';
+import { BookingApiService } from 'src/app/in/bookings/booking.api.service';
 
 import { Observable, ReplaySubject, BehaviorSubject, async } from 'rxjs';
 
@@ -24,7 +25,7 @@ Smart components are in charge of updating the model.
 interface vmModel {
   price: {
       value:        number
-  },  
+  },
   groups: {
     folded:         any,
     toggle:         (event:any) => void,
@@ -70,7 +71,7 @@ export class BookingEditBookingsComponent implements OnInit  {
   public vm: vmModel;
 
   constructor(
-              private api: ApiService,
+              private api: BookingApiService,
               private auth: AuthService,
               private zone: NgZone,
               private snack: MatSnackBar
@@ -108,10 +109,47 @@ export class BookingEditBookingsComponent implements OnInit  {
 
   }
 
+  private errorFeedback(response: any) {
+    console.log('BookingEditBookingsComponent::errorFeedback', response);
+    let error:string = 'unknonw';
+    if(response && response.hasOwnProperty('error') && response['error'].hasOwnProperty('errors')) {
+      let errors = response['error']['errors'];
+
+      if(errors.hasOwnProperty('INVALID_STATUS')) {
+        error = 'invalid_status';
+      }
+      else if(errors.hasOwnProperty('INVALID_PARAM')) {
+        error = 'invalid_param';
+      }
+      else if(errors.hasOwnProperty('NOT_ALLOWED')) {
+        error = 'not_allowed';
+      }
+      else if(errors.hasOwnProperty('CONFLICT_OBJECT')) {
+        error = 'conflict_object';
+      }
+    }
+
+    switch(error) {
+      case 'not_allowed':
+        this.snack.open("Vous n'avez pas les autorisations pour cette opération.", "Erreur");
+        break;
+      case 'conflict_object':
+        this.snack.open("Cette réservation a été modifiée entretemps par un autre utilisateur.", "Erreur");
+        break;
+      case 'invalid_status':
+        this.snack.open("La réservation n'est pas modifiable. Repassez en devis pour la modifier.", "Erreur");
+        break;
+      case 'unknonw':
+      case 'invalid_param':
+      default:
+        this.snack.open("Erreur inconnue - certains changements n'ont pas pu être enregistrés.", "Erreur");
+    }    
+  }
+
   /**
    * Load subitem of current booking object.
-   * 
-   * @param booking 
+   *
+   * @param booking
    */
   private async load(booking:any) {
     this.zone.run( async () => {
@@ -136,7 +174,7 @@ export class BookingEditBookingsComponent implements OnInit  {
                 let item = new ReplaySubject(1);
                 this._groupOutput.push(item);
                 item.next(group);
-                this.groups.push(group);                
+                this.groups.push(group);
               }
               // if lines differ, overwrite previsously assigned line
               else if(JSON.stringify(this.groups[index]) != JSON.stringify(group) ) {
@@ -202,7 +240,7 @@ export class BookingEditBookingsComponent implements OnInit  {
       const group = await this.api.create("lodging\\sale\\booking\\BookingLineGroup", {
         name: "Séjour " + this.center.name,
         order: this.groups.length + 1,
-        booking_id: this.booking.id,        
+        booking_id: this.booking.id,
         rate_class_id: rate_class_id,
         sojourn_type: sojourn_type,
         date_from: this.booking.date_from,
@@ -220,8 +258,8 @@ export class BookingEditBookingsComponent implements OnInit  {
       // emit change to parent
       //this.bookingOutput.next({booking_lines_groups_ids: groups_ids});
     }
-    catch(error) {
-      console.log(error);
+    catch(response: any) {
+      this.errorFeedback(response);
     }
   }
 
@@ -233,7 +271,7 @@ export class BookingEditBookingsComponent implements OnInit  {
       this._groupOutput.splice(index, 1);
     }
     catch(response) {
-      console.warn(response);
+      this.errorFeedback(response);
     }
   }
 
@@ -325,7 +363,7 @@ export class BookingEditBookingsComponent implements OnInit  {
         }
       }
 
-      // handle explicit requests for updating single fields (reload partial object)  
+      // handle explicit requests for updating single fields (reload partial object)
       if(group.hasOwnProperty('refresh')) {
         // some changes have been done that might impact current object
         // refresh property specifies which fields have to be re-loaded
@@ -334,7 +372,7 @@ export class BookingEditBookingsComponent implements OnInit  {
         if(group.refresh.hasOwnProperty('self')) {
           if(Array.isArray(group.refresh.self)) {
             model_fields = group.refresh.self;
-          }          
+          }
           // reload object from server
           let data = await this.loadGroups([group.id], model_fields);
           this._groupOutput[index].next(data[0]);
@@ -349,7 +387,7 @@ export class BookingEditBookingsComponent implements OnInit  {
       }
       // reload whole object from server
       else if(has_change) {
-        
+
         let data = await this.loadGroups([group.id], this.model_fields['BookingLineGroup']);
         let object = data[0];
         for(let field of Object.keys(object)) {
@@ -368,39 +406,9 @@ export class BookingEditBookingsComponent implements OnInit  {
 
     }
     catch(response:any) {
-      console.warn('some changes could not be stored', response);
-      let error:string = 'unknonw';
-      if(response && response.hasOwnProperty('error') && response['error'].hasOwnProperty('errors')) {
-        let errors = response['error']['errors'];
-
-        if(errors.hasOwnProperty('INVALID_PARAM')) {
-          error = 'invalid_param';
-        }
-        else if(errors.hasOwnProperty('NOT_ALLOWED')) {
-          error = 'not_allowed';
-        }
-        else if(errors.hasOwnProperty('CONFLICT_OBJECT')) {            
-          error = 'conflict_object';
-        }
-      }
-
-      switch(error) {
-        case 'not_allowed':
-          this.snack.open("Erreur - Vous n'avez pas les autorisations pour cette opération.", "Erreur");
-          break;
-        case 'conflict_object':
-          this.snack.open("Erreur - Cette réservation a été modifiée entretemps par un autre utilisateur.", "Erreur");
-          break;  
-        case 'unknonw':
-        case 'invalid_param':
-        default:
-          this.snack.open("Erreur inconnue - certains changements n'ont pas pu être enregistrés.", "Erreur");
-      }
-      
+      this.errorFeedback(response);
     }
   };
-
-
 
 
   private async updateName(group:any) {
@@ -447,7 +455,7 @@ export class BookingEditBookingsComponent implements OnInit  {
     let t_group = this.groups.find( (element) => element.id == group.id);
     t_group.sojourn_type = group.sojourn_type;
   }
-  
+
   private async updateOrder(group:any) {
     console.log('BookingEditBookingsComponent::updateOrder', group);
     await this.api.update("lodging\\sale\\booking\\BookingLineGroup", [group.id], <any>{"order": group.order});
@@ -475,7 +483,7 @@ export class BookingEditBookingsComponent implements OnInit  {
       // update local instance
       let t_group = this.groups.find( (element) => element.id == group.id);
       t_group.date_from = group.date_from;
-    }    
+    }
     else {
       await this.api.update("lodging\\sale\\booking\\BookingLineGroup", [group.id], <any>{"date_to": group.date_to});
       // update local instance

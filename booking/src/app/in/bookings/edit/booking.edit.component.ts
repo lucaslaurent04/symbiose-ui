@@ -1,8 +1,10 @@
 import { Component, OnInit, AfterViewInit, ChangeDetectorRef, ElementRef, QueryList, ViewChild, ViewChildren, NgZone  } from '@angular/core';
-import { AuthService, ApiService, ContextService } from 'sb-shared-lib';
+import { AuthService, ContextService } from 'sb-shared-lib';
+import { BookingApiService } from 'src/app/in/bookings/booking.api.service';
+
 import { Router, ActivatedRoute } from '@angular/router';
 
-import {MatSnackBar} from '@angular/material/snack-bar';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 
@@ -73,7 +75,7 @@ export class BookingEditComponent implements OnInit, AfterViewInit  {
 
   constructor(
               private auth: AuthService,
-              private api: ApiService,
+              private api: BookingApiService,
               private router: Router,
               private dialog: MatDialog,
               private route: ActivatedRoute,
@@ -124,6 +126,8 @@ export class BookingEditComponent implements OnInit, AfterViewInit  {
           }          
           // relay to children
           this._bookingOutput.next(this.booking);
+          // assign booking to Booking API service (for conditionning calls)
+          this.api.setBooking(this.booking);
 
           // relay change to context (to display sidemenu panes according to current object)
           this.context.change({
@@ -149,7 +153,7 @@ export class BookingEditComponent implements OnInit, AfterViewInit  {
    * 
    */
   private async load(fields:any) {
-    const result = <Array<any>>  await this.api.read("lodging\\sale\\booking\\Booking", [this.id], fields);
+    const result:any = await this.api.read("lodging\\sale\\booking\\Booking", [this.id], fields);
     if(result && result.length) {
       return result[0];
     }
@@ -242,7 +246,10 @@ export class BookingEditComponent implements OnInit, AfterViewInit  {
       if(response && response.hasOwnProperty('error') && response['error'].hasOwnProperty('errors')) {
         let errors = response['error']['errors'];
 
-        if(errors.hasOwnProperty('INVALID_PARAM')) {
+        if(errors.hasOwnProperty('INVALID_STATUS')) {
+          error = 'invalid_status';
+        }
+        else if(errors.hasOwnProperty('INVALID_PARAM')) {
           error = 'invalid_param';
         }
         else if(errors.hasOwnProperty('NOT_ALLOWED')) {
@@ -255,15 +262,18 @@ export class BookingEditComponent implements OnInit, AfterViewInit  {
 
       switch(error) {
         case 'not_allowed':
-          this.snack.open("Erreur - Vous n'avez pas les autorisations pour cette opération.");
+          this.snack.open("Vous n'avez pas les autorisations pour cette opération.", "Erreur");
           break;
         case 'conflict_object':
-          this.snack.open("Erreur - Cette réservation a été modifiée par un autre utilisateur.");
+          this.snack.open("Cette réservation a été modifiée entretemps par un autre utilisateur.", "Erreur");
           break;  
+        case 'invalid_status':
+          this.snack.open("La réservation n'est pas modifiable. Repassez en devis pour la modifier.", "Erreur");
+          break;
         case 'unknonw':
         case 'invalid_param':
         default:
-          this.snack.open("Erreur - certains changements n'ont pas pu être enregistrés.");
+          this.snack.open("Erreur inconnue - certains changements n'ont pas pu être enregistrés.", "Erreur");
       }
     }
   }

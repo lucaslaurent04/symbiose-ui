@@ -34,18 +34,28 @@ export class MenuListItemComponent implements OnInit {
 
   }
 
-  public onItemToggled(item: any) {
+  public onItemToggle(item: any) {
     // if item is expanded, fold siblings, if any
     if(item.expanded) {
+      // make sure item is visible
+      item.hidden = false;
       if(this.item.children) {
         for(let sibling of this.item.children) {
           if(item != sibling) {
-            sibling.expanded = false;
             sibling.hidden = true;
+            sibling.expanded = false;
           }
         }
       }
+      // and that children are visible but not expanded
+      if(item.children) {
+        for(let sibling of item.children) {
+          sibling.hidden = false;
+          sibling.expanded = false;
+        }
+      }
     }
+    // if item is folded, make sure all sibling are visible
     else {
       if(this.item.children) {
         for(let sibling of this.item.children) {
@@ -53,7 +63,7 @@ export class MenuListItemComponent implements OnInit {
           if(sibling.children) {
             for(let subitem of sibling.children) {
               subitem.expanded = false;
-              subitem.hidden = false;
+              subitem.hidden = true;
             }
           }
         }
