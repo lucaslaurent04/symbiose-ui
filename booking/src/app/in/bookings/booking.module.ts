@@ -9,7 +9,7 @@ import { SharedLibModule, AuthInterceptorService } from 'sb-shared-lib';
 import { BookingRoutingModule } from './booking-routing.module';
 
 import { BookingComponent } from './booking.component';
-import { BookingEditComponent } from './edit/booking.edit.component';
+import { BookingEditComponent, BookingUpdateDialogConfirm, BookingDeletionDialogConfirm } from './edit/booking.edit.component';
 
 
 import { BookingEditBookingsComponent } from './edit/components/booking.edit.bookings/booking.edit.bookings.component';
@@ -24,6 +24,7 @@ import { BookingCompositionLinesComponent } from './composition/components/booki
 
 import { BookingQuoteComponent } from './quote/booking.quote.component';
 import { BookingContractComponent } from './contract/booking.contract.component';
+import { BookingFundingInvoiceComponent } from './funding/booking.funding.invoice.component';
 
 @NgModule({
   imports: [
@@ -31,7 +32,7 @@ import { BookingContractComponent } from './contract/booking.contract.component'
     BookingRoutingModule
   ],
   declarations: [
-    BookingComponent, BookingEditComponent, 
+    BookingComponent, BookingEditComponent, BookingUpdateDialogConfirm, BookingDeletionDialogConfirm,
     BookingEditBookingsComponent, 
     BookingEditBookingsGroupComponent, 
     BookingEditBookingsGroupAccomodationComponent, BookingEditBookingsGroupAccomodationLineComponent,
@@ -39,7 +40,8 @@ import { BookingContractComponent } from './contract/booking.contract.component'
     BookingCompositionComponent, BookingCompositionDialogConfirm,
     BookingCompositionLinesComponent,
     BookingQuoteComponent, 
-    BookingContractComponent
+    BookingContractComponent,
+    BookingFundingInvoiceComponent
   ],
   providers: [
     { provide: DateAdapter, useClass: CustomDateAdapter, deps: [MAT_DATE_LOCALE, Platform] }

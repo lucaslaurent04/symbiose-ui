@@ -1,12 +1,12 @@
-import { Component, OnInit, AfterViewInit, ChangeDetectorRef, ElementRef, QueryList, ViewChild, ViewChildren, NgZone  } from '@angular/core';
-import { AuthService, ContextService } from 'sb-shared-lib';
+import { Component, OnInit, AfterViewInit, Inject, ElementRef, QueryList, ViewChild, ViewChildren, NgZone  } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
+import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+
 import { BookingApiService } from 'src/app/in/bookings/booking.api.service';
-
-import { Router, ActivatedRoute } from '@angular/router';
-
+import { AuthService, ContextService } from 'sb-shared-lib';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
-import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+
 
 import { Observable, BehaviorSubject, ReplaySubject } from 'rxjs';
 import { find, map, startWith, debounceTime, switchMap } from 'rxjs/operators';
@@ -167,6 +167,22 @@ export class BookingEditComponent implements OnInit, AfterViewInit  {
     console.log('BookingEditComponent: received change', booking, this.booking);
     try {
 
+      /*
+      const dialogRef = this.dialog.open(BookingUpdateDialogConfirm, {
+        width: '50vw',
+        data: {booking: this.booking}
+      });
+
+      try {
+        await new Promise( async(resolve, reject) => {
+          dialogRef.afterClosed().subscribe( async (result) => (result)?resolve(true):reject());    
+        });
+      }
+      catch(error) {
+        return;
+      }
+      */
+
       // handle requests for updating single fields
       if(booking.hasOwnProperty('refresh')) {
         // some changes have been done that might impact current object
@@ -317,3 +333,48 @@ export class BookingEditComponent implements OnInit, AfterViewInit  {
 
 
 }
+
+
+@Component({
+  selector: 'booking-update-confirm-dialog',
+  template: `
+  <h1 mat-dialog-title>Modifier la réservation</h1>
+
+  <div mat-dialog-content>
+    <p><b>Confirmez-vous la modification ?</b></p>
+  </div>
+
+  <div mat-dialog-actions>
+    <button mat-button [mat-dialog-close]="false">Annuler</button>
+    <button mat-button [mat-dialog-close]="true" cdkFocusInitial>Confirmer</button>
+  </div>
+  `
+})
+export class BookingUpdateDialogConfirm {
+  constructor(
+    public dialogRef: MatDialogRef<BookingUpdateDialogConfirm>,
+    @Inject(MAT_DIALOG_DATA) public data: any
+  ) {}
+}
+
+@Component({
+  selector: 'booking-deletion-confirm-dialog',
+  template: `
+  <h1 mat-dialog-title>Suppression</h1>
+
+  <div mat-dialog-content>
+    <p><b>Confirmez-vous la suppression ?</b></p>
+  </div>
+
+  <div mat-dialog-actions>
+    <button mat-button [mat-dialog-close]="false">Annuler</button>
+    <button mat-button [mat-dialog-close]="true" cdkFocusInitial>Confirmer</button>
+  </div>
+  `
+})
+export class BookingDeletionDialogConfirm {
+  constructor(
+    public dialogRef: MatDialogRef<BookingDeletionDialogConfirm>,
+    @Inject(MAT_DIALOG_DATA) public data: any
+  ) {}
+}  

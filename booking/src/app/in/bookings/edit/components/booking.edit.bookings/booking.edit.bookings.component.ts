@@ -9,6 +9,8 @@ import {MatSnackBar} from '@angular/material/snack-bar';
 import { find, map, mergeMap, startWith, debounceTime } from 'rxjs/operators';
 
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
+import { MatDialog } from '@angular/material/dialog';
+import { BookingDeletionDialogConfirm } from '../../booking.edit.component';
 
 /*
 This is a SmartComponent.
@@ -73,6 +75,7 @@ export class BookingEditBookingsComponent implements OnInit  {
   constructor(
               private api: BookingApiService,
               private auth: AuthService,
+              private dialog: MatDialog,
               private zone: NgZone,
               private snack: MatSnackBar
               ) {
@@ -237,7 +240,7 @@ export class BookingEditBookingsComponent implements OnInit  {
         rate_class_id = this.customer.rate_class_id;
       }
       let sojourn_type = (this.center.discount_list_category_id == 2)?'GG':'GA';
-      const group = await this.api.create("lodging\\sale\\booking\\BookingLineGroup", {
+      const group:any = await this.api.create("lodging\\sale\\booking\\BookingLineGroup", {
         name: "Séjour " + this.center.name,
         order: this.groups.length + 1,
         booking_id: this.booking.id,
@@ -264,6 +267,21 @@ export class BookingEditBookingsComponent implements OnInit  {
   }
 
   private async groupRemove(group:any) {
+
+    const dialogRef = this.dialog.open(BookingDeletionDialogConfirm, {
+      width: '33vw',
+      data: {booking: this.booking}
+    });
+
+    try {
+      await new Promise( async(resolve, reject) => {
+        dialogRef.afterClosed().subscribe( async (result) => (result)?resolve(true):reject());    
+      });
+    }
+    catch(error) {
+      return;
+    }
+
     try {
       const response = await this.api.remove("lodging\\sale\\booking\\BookingLineGroup", [group.id], true);
       let index = this.groups.findIndex( (element) => element.id == group.id);
