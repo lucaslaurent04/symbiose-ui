@@ -205,10 +205,13 @@ export class BookingFundingInvoiceComponent implements OnInit, AfterContentInit 
     this.payer = event;
   }
 
-  public async onSend() {
+  public async onSubmit() {
+    let partner_id = this.customer.id;
     let partner_name = this.customer.name;
+
     if(this.hasPayerControl.value) {
-      partner_name = this.payer.name;
+      partner_id = this.payer.id;
+      partner_name = this.payer.name;      
     }
     
     const dialog = this.dialog.open(SbDialogConfirmDialog, {
@@ -227,16 +230,24 @@ export class BookingFundingInvoiceComponent implements OnInit, AfterContentInit 
         dialog.afterClosed().subscribe( async (result) => (result)?resolve(true):reject() );    
       });
 
-      alert('ok');
       this.loading = true;
       this.is_converted = true;
+
+      try {
+        await this.api.fetch('/?do=lodging_funding_convert', {
+          id: this.funding.id,
+          partner_id: partner_id
+        });  
+      }
+      catch(error) {
+        // something went wrong while saving
+      }
+      this.loading = false;
     }
     catch(error) {
-      // user selected 'no'
+      // user discarded the dialog (selected 'no')
       return;
     }
-
-
 
     /*
       Validate values (otherwise mark fields as invalid)

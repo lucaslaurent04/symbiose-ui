@@ -2,7 +2,7 @@
   <div [class.hidden]="!loading" class="loader"><mat-spinner></mat-spinner></div>
 
   <div class="header">
-    <div>Réservation <small>[{{booking.name}} - {{booking.id}}]</small> <span> › </span> Financement <small>[{{funding.id}}]</small> <span> › </span> Conversion en facture</div>
+    <div class="header-inner">Réservation <small>[{{booking.name}} - {{booking.id}}]</small> <span> › </span> Financement <small>[{{funding.id}}]</small> <span> › </span> Conversion en facture</div>
   </div>
 
   <div class="body">
@@ -12,8 +12,8 @@
 
       <div class="actions-view">
 
-        <button *ngIf="funding.type == 'installment'" mat-flat-button color="accent" (click)="onSend()" [disabled]="is_converted">Convertir en facture</button>
-        <button *ngIf="funding.type == 'invoice'" mat-flat-button (click)="onSend()" disabled="disabled">Convertir en facture</button>
+        <button *ngIf="funding.type == 'installment'" mat-flat-button color="accent" (click)="onSubmit()" [disabled]="is_converted">Convertir en facture</button>
+        <button *ngIf="funding.type == 'invoice'" mat-flat-button disabled="disabled">Convertir en facture</button>
 
       </div>
     </div>
