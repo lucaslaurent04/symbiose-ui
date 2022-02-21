@@ -23,7 +23,7 @@ import { MAT_SNACK_BAR_DEFAULT_OPTIONS } from '@angular/material/snack-bar';
 import { SettingsComponent } from './in/settings/settings.component';
 import { WidgetToggleComponent } from './in/settings/sections/widget-toggle/widget-toggle.component';
 import { WidgetSelectComponent } from './in/settings/sections/widget-select/widget-select.component';
-import { WidgetFormComponent } from './in/settings/sections/widget-form/widget-form.component';
+import { WidgetInputComponent } from './in/settings/sections/widget-input/widget-input.component';
 
 
 
@@ -36,7 +36,7 @@ registerLocaleData(localeFr);
     SettingsComponent,
     WidgetToggleComponent,
     WidgetSelectComponent,
-    WidgetFormComponent,
+    WidgetInputComponent
   ],
   imports: [
     AppRoutingModule,

@@ -92,6 +92,7 @@
                         [placeholder]="'Commencez à taper le nom'"
                         [hint]="'Organisation à qui envoyer la facture'"
                         [noResult]="'rien trouvé'"
+                        [disabled]="funding.type == 'invoice'"
                         (itemSelected)="selectPayer($event)">Payeur</sb-m2o-select>
 
           </ng-container>

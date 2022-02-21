@@ -13,7 +13,7 @@
 
                 <div class="wrapper">
                     <div *ngFor="let setting of sectionsMap[section.code]" style="width: 100%;">
-                        <app-widget-form   [setting]="setting" *ngIf="setting.form_control == 'string'"></app-widget-form>
+                        <app-widget-input  [setting]="setting" *ngIf="setting.form_control == 'input'"></app-widget-input>
                         <app-widget-toggle [setting]="setting" *ngIf="setting.form_control == 'toggle'"></app-widget-toggle>
                         <app-widget-select [setting]="setting" *ngIf="setting.form_control == 'select'" [choices]="setting.setting_choices_ids"></app-widget-select>
                     </div>
