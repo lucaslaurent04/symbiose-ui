@@ -18,7 +18,7 @@ export class ApiService {
   }
 
   /**
-   *  Sends a direct GET request to the backend without using API URL
+   *  Sends a direct GET request to the backend without using ReST API URL
    */
   public fetch(route:string, body:any = {}) {
     return new Promise<any>( async (resolve, reject) => {
@@ -34,7 +34,7 @@ export class ApiService {
   }
 
   /**
-   *  Sends a direct POST request to the backend without using API URL
+   *  Sends a direct POST request to the backend without using ReST API URL
    */
   public call(route:string, body:any = {}) {
     return new Promise<any>( async (resolve, reject) => {

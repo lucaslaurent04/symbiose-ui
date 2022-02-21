@@ -39,9 +39,14 @@ export class ContextService {
 
     this.observable = new ReplaySubject<any>(1);
 
-    // listen to context changes    
+    // listen to context changes
     this.eq.addSubscriber(['open', 'close'], (context:any) => {
       this.observable.next({context: context});
+    });
+
+    // listen to route change requests
+    this.eq.addSubscriber(['navigate'], (descriptor:any) => {
+      this.change(descriptor);
     });
 
     // listen to route changes and keep track of current route

@@ -5,11 +5,6 @@
     overflow: hidden;
     box-sizing: border-box;
 
-    ::ng-deep quill-editor .ql-container {
-        height: 300px !important;
-        font-size: 15px;
-    }
-
     mat-form-field {
         width: 100%;
     }
@@ -17,7 +12,7 @@
     .hidden {
         display: none !important;
     }
-    
+
     .container {
         position: relative;
         height: 100%;
@@ -66,29 +61,27 @@
                     padding-bottom: 8px;
                 }
             }
-            
+
         }
-    
+
         .body {
             height: calc(100vh - 123px);
             width: 100%;
             overflow-y: scroll;
             padding: 12px;
-            
+
             .body-actions {
                 display: flex;
                 margin-left: 12px;
                 max-height: 56px;
                 padding-top: 10px;
-            
+
                 .actions-std {
                     flex: 0 1 50%;
                 }
 
                 .actions-view {
-                    margin-left: auto;
-                    min-width: 300px;
-                    text-align: right;
+                    margin-left:auto;
                 }
 
                 button {
@@ -98,44 +91,60 @@
             }
 
             .row {
-                display: flex;                
+                display: flex;
+                width: 100%;
             }
 
             .column {
-                flex: 1;
-                display: flex;                
+                flex: 0 0 50% ;
+                display: flex;
 
                 .cell {
-                    flex: 0 1 40%;
-                    line-height: 65px;
+                    flex: 1 0 50%;
+                    line-height: 69px;
+                    max-height: 69px;
                     max-width: 250px;
                     overflow: hidden;
                     text-overflow: ellipsis;
                     white-space: nowrap;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    padding-left: 10px;
                 }
 
                 .cell.title {
                     flex: 0 1 30%;
                 }
+
+                .cell.full {
+                    flex: 1;
+                    max-width: 100%
+                }
+
+
+            }
+            .column.full {
+                flex: 0 0 100% ;
             }
         }
-    
+
         .booking-body::-webkit-scrollbar {
             width: 6px;
             overflow-y: scroll;
             background: transparent;
-        
+
         }
-        
+
         .booking-body::-webkit-scrollbar-thumb {
             background: var(--mdc-theme-primary, #6200ee);
             border-radius: 10px;
-        }        
+        }
     }
 
     .container.hidden {
         display: none;
-    }  
-    
-    
+    }
+
+
 }

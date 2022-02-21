@@ -13,17 +13,19 @@ export class WidgetToggleComponent implements OnInit {
 
   constructor(private service: SettingService) { }
 
-
   @Input() setting: any;
+
   public settingValue: any;
   public previousValue: any;
   public focusState: any;
   public control = new FormControl();
+
   ngOnInit(): void {
 
     if (this.setting.setting_values_ids[0].value == 0) {
       this.settingValue = false;
-    } else {
+    } 
+    else {
       this.settingValue = true;
     }
 
@@ -41,7 +43,7 @@ export class WidgetToggleComponent implements OnInit {
 
   public async valueChange(event: MatSlideToggleChange) {
     console.log('change');
-    this.service.toQueue(this.setting.id, { newValue: this.settingValue, oldValue: this.previousValue }).subscribe((action) => {
+    this.service.toQueue(this.setting.setting_values_ids[0].id, { newValue: this.settingValue, oldValue: this.previousValue }).subscribe((action) => {
       if (action == 'undo') {
         this.control.setValue(this.previousValue);
       }

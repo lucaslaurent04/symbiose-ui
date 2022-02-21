@@ -6,6 +6,7 @@ import { BookingEditComponent } from './edit/booking.edit.component';
 import { BookingCompositionComponent } from './composition/booking.composition.component';
 import { BookingQuoteComponent } from './quote/booking.quote.component';
 import { BookingContractComponent } from './contract/booking.contract.component';
+import { BookingFundingInvoiceComponent } from './funding/booking.funding.invoice.component';
 
 const routes: Routes = [
     {
@@ -37,8 +38,8 @@ const routes: Routes = [
         component: BookingQuoteComponent
     },
     {
-        path: 'funding/invoice/:id/:funding_id',
-        component: BookingQuoteComponent
+        path: 'funding/:id/:funding_id',
+        component: BookingFundingInvoiceComponent
     }
 ];
 

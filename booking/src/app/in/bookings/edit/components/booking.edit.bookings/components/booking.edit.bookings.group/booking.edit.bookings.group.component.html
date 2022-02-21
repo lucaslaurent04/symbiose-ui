@@ -10,7 +10,7 @@
   <div *ngIf="folded" style="height: 35px; padding: 8px 125px 0 35px;">
     <div style="display: flex;">
         <div style="flex: 0 1 40%; white-space: nowrap; overflow: hidden; margin-right: 20px;">{{vm.name.display_name}}</div>
-        <div style="flex: 0 1 20%; white-space: nowrap; overflow: hidden; display: flex;">
+        <div style="flex: 0 1 30%; white-space: nowrap; overflow: hidden; display: flex;">
           <ng-container *ngIf="vm.daterange.nights_count > 0">
             {{vm.daterange.start.formControl.value | date: 'dd/MM/YY'}}<i class="material-icons">arrow_right_alt</i>{{vm.daterange.end.formControl.value | date: 'dd/MM/YY'}}
             &nbsp;
@@ -20,7 +20,7 @@
             {{vm.daterange.start.formControl.value | date: 'dd/MM/YY'}}
           </ng-container>
         </div>
-        <div style="flex: 0 1 10%; white-space: nowrap; overflow: hidden;">{{vm.participants_count.value}} pers.</div>
+        <div style="flex: 0 1 15%; white-space: nowrap; overflow: hidden;">{{vm.participants_count.value}} pers.</div>
         <div style="margin-left: auto; white-space: nowrap; overflow: hidden;">{{vm.price.value | number : '1.2-2'}} €</div>
     </div>
   </div>

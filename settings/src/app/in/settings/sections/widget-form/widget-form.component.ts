@@ -76,7 +76,9 @@ export class WidgetFormComponent implements OnInit {
 
     if (newValue != oldValue) {
       this.settingValue = newValue;
-      this.save.toQueue(this.setting.id, { newValue: newValue, oldValue: oldValue }).subscribe( (action) => {
+      this.showSubmitButton = false;
+      this.showResetButton = false;  
+      this.save.toQueue(this.setting.setting_values_ids[0].id, { newValue: newValue, oldValue: oldValue }).subscribe( (action) => {
         if (action == 'undo') {
           this.formControl.setValue(oldValue);
           this.settingValue = oldValue;

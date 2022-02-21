@@ -38,7 +38,7 @@ export class SettingService {
             
         // if didn't do anything, sends the new value back
             if(this.queue.length > 0) {
-                this.api.update('core\\SettingValue', [this.queue[0].id], { value: this.queue[0].fields.newValue }, true);
+                this.api.update('core\\setting\\SettingValue', [this.queue[0].id], { value: this.queue[0].fields.newValue }, true);
                 subject.next(fieldsSetting.newValue);
             }
             this.queue.shift();

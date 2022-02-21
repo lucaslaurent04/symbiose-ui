@@ -9,6 +9,9 @@ import { AppSideMenuComponent } from './components/sidemenu/sidemenu.component';
 import { LoaderComponent } from './components/loader/loader.component';
 import { DateSelectionComponent } from './components/date-selection/date-selection.component';
 
+import { SbMany2OneSelectComponent } from './components/sb-m2o-select/sb-m2o-select.component';
+import { SbDialogConfirmDialog, SbDialogConfirmModel } from './components/sb-dialog-confirm/sb-dialog-confirm.dialog';
+
 import { VarDirective } from './directives/var.directive';
 import { ClickOutDirective } from './directives/clickOut.directive';
 
@@ -72,6 +75,7 @@ const angularModules = [
 const sharedComponents = [
   SharedLibComponent, LoaderComponent, HeaderComponent, FooterComponent, AppSideBarComponent, AppSideMenuComponent,
   DateSelectionComponent,
+  SbMany2OneSelectComponent, SbDialogConfirmDialog,
   MenuListItemComponent,
   VarDirective, ClickOutDirective
 ];
