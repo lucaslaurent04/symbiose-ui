@@ -24,6 +24,10 @@ import { SettingsComponent } from './in/settings/settings.component';
 import { WidgetToggleComponent } from './in/settings/sections/widget-toggle/widget-toggle.component';
 import { WidgetSelectComponent } from './in/settings/sections/widget-select/widget-select.component';
 import { WidgetFormComponent } from './in/settings/sections/widget-form/widget-form.component';
+import { PermissionsComponent } from './in/settings/permissions/permissions.component';
+import { PermissionRightsComponent } from './in/settings/permissions/component/permission-rights/permission-rights.component';
+import { PermissionClassNameComponent } from './in/settings/permissions/component/permission-class-name/permission-class-name.component';
+
 
 
 
@@ -37,6 +41,9 @@ registerLocaleData(localeFr);
     WidgetToggleComponent,
     WidgetSelectComponent,
     WidgetFormComponent,
+    PermissionsComponent,
+    PermissionRightsComponent,
+    PermissionClassNameComponent
   ],
   imports: [
     AppRoutingModule,
