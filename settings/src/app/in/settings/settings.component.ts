@@ -59,7 +59,7 @@ export class SettingsComponent implements OnInit {
       // reset the array
       this.sections = [];
       this.sectionsMap = {};
-
+      
       // group elements by section
       data.forEach(element => {
         if(!this.sectionsMap.hasOwnProperty(element.section_id.code)) {
@@ -72,5 +72,6 @@ export class SettingsComponent implements OnInit {
     catch(error) {
       console.log('something went wrong', error);
     }
+    
   }
 }

@@ -4,6 +4,7 @@ import { AppComponent } from './in/app.component';
 
 import { SettingsComponent } from './in/settings/settings.component';
 
+import { PermissionsComponent } from './in/settings/permissions/permissions.component';
 
 const routes: Routes = [
   /* routes specific to current app */
@@ -18,9 +19,13 @@ const routes: Routes = [
     component: AppComponent
   },
   {
+    path: 'settings/permissions/edit/:id',
+    component: PermissionsComponent
+  },
+  {
     path: 'settings/:package',
     component: SettingsComponent
-  },
+  }
 ];
 
 @NgModule({
