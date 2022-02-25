@@ -24,11 +24,17 @@ export class ContextService {
 
   private observable: ReplaySubject<any>;
 
-  // current route
-  private current_route: string = '';
+  private descriptor: any = {
+    route: '',
+    context: {}
+  };
 
   public getObservable() {
     return this.observable;
+  }
+
+  public getDescriptor() {
+    return this.descriptor;
   }
 
   constructor(
@@ -41,7 +47,8 @@ export class ContextService {
 
     // listen to context changes
     this.eq.addSubscriber(['open', 'close'], (context:any) => {
-      this.observable.next({context: context});
+      this.descriptor.context = {...context};
+      this.observable.next(this.descriptor);
     });
 
     // listen to route change requests
@@ -53,7 +60,7 @@ export class ContextService {
     this.router.events.subscribe( (event: any) => {
       if (event instanceof NavigationEnd) {
         console.log('ContextService : route change', event);
-        this.current_route = event.url;
+        this.descriptor.route = event.url;
       }
     });
 
@@ -72,13 +79,15 @@ export class ContextService {
 
       // make sure no eq context is left open
       this.eq.closeAll();
-
+      this.descriptor.route = descriptor.route;
+      this.descriptor.context = {};
       this.router.navigate([descriptor.route]);
     }
 
     // switch context, if requested
     if(descriptor.hasOwnProperty('context')) {
       console.log("ContextService: received context change request", descriptor);
+      this.descriptor.context = {...descriptor.context};
       // request eq.openContext()
       if(!descriptor.context_only) {
         this.eq.open(descriptor.context);

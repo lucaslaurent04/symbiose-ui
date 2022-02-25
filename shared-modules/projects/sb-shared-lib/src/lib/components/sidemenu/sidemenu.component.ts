@@ -8,6 +8,7 @@ import { EnvService} from '../../services/env.service';
 
 import * as screenfull from 'screenfull';
 import { HttpErrorResponse } from '@angular/common/http';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-sidemenu',
@@ -63,7 +64,8 @@ export class AppSideMenuComponent implements OnInit {
     private api:ApiService,
     private auth:AuthService,
     private zone:NgZone,
-    private env:EnvService
+    private env:EnvService,
+    private translate:TranslateService
   ) {}
 
   ngOnInit(): void {
@@ -337,16 +339,26 @@ export class AppSideMenuComponent implements OnInit {
       }
       catch(response: any) {
         console.log(response);
-        if(response) {
-          let msg = "";
+        if(response && response.status != 404) {
+
           if(response.hasOwnProperty('status')) {
+            this.object_checks_result.title = "Erreur(s) détectée(s)";
             if(response.status == 409) {
               this.object_checks_result.title = "Conflit(s) détecté(s)";
             }
           }
 
           if(response.hasOwnProperty('error')) {
-            this.object_checks_result.content = response.error;
+            if(response.error.hasOwnProperty('errors')) {
+              console
+              for(let key of Object.keys(response.error.errors)) {
+                let msg_id = response.error.errors[key];
+                this.object_checks_result.content.push({type: 'message', message: this.translate.instant(msg_id)});
+              }
+            }
+            else {
+              this.object_checks_result.content = response.error;
+            }            
           }
         }
       }

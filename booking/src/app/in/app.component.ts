@@ -1,55 +1,24 @@
-import { Component, OnInit, AfterViewInit, ElementRef, QueryList, ViewChild, ViewChildren, NgZone  } from '@angular/core';
-import { AuthService, ApiService, ContextService } from 'sb-shared-lib';
-import { Router } from '@angular/router';
-
-import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-
+import { Component, OnInit, NgZone  } from '@angular/core';
+import { ContextService } from 'sb-shared-lib';
 
 @Component({
   selector: 'app',
   templateUrl: 'app.component.html',
   styleUrls: ['app.component.scss']
 })
-export class AppComponent implements OnInit, AfterViewInit  {
+export class AppComponent implements OnInit  {
 
 
   public ready: boolean = false;
   public context_open: boolean = false;
 
   constructor(
-    private auth: AuthService,
-    private api: ApiService,
-    private router: Router,
-    private dialog: MatDialog,
     private context: ContextService,
     private zone: NgZone
   ) {}
 
 
-  public ngAfterViewInit() {
-
-    $('#sb-container').on('_close', (event, data) => {
-      this.zone.run( () => {
-        console.log("sb-container closed");
-        this.context_open = false;
-      });
-    });
-
-    $('#sb-container').on('_open', (event, data) => {
-      this.zone.run( () => {
-        console.log("sb-container opened");
-        this.context_open = true;
-      });
-    });
-
-    setTimeout( () => {
-      this.ready = true;
-    }, 500);
-
-  }
-
-  public ngOnInit() {
-  }
+  public ngOnInit() {}
 
 
   public createCustomer() {
@@ -96,6 +65,7 @@ export class AppComponent implements OnInit, AfterViewInit  {
   public createBooking() {
 
     let descriptor = {
+      route: '/bookings',
       context: {
         entity:     'lodging\\sale\\booking\\Booking',
         type:       'form',
@@ -130,8 +100,8 @@ export class AppComponent implements OnInit, AfterViewInit  {
 
 
   public searchBooking() {
-
     let descriptor = {
+      route: '/bookings',
       context: {
         entity:     'lodging\\sale\\booking\\Booking',
         type:       'list',

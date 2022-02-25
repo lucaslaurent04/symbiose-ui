@@ -43,6 +43,15 @@ class Center {
   ) {}
 }
 
+class CenterOffice {
+  constructor(
+    public id: number = 0,
+    public name: string = '',
+    public email: string = '',
+    public code: number = 0,
+  ) {}
+}
+
 class Organisation {
   constructor(
     public id: number = 0,
@@ -106,6 +115,7 @@ export class BookingQuoteComponent implements OnInit, AfterContentInit {
 
   public organisation: any = new Organisation();
   public center: any = new Center();
+  public office: any = new CenterOffice();    
   public booking: any = new Booking();
   public customer: any = new Customer();
   public contacts: any[] = [];
@@ -113,6 +123,7 @@ export class BookingQuoteComponent implements OnInit, AfterContentInit {
 
   public languages: any[] = [];
   public lang: string = '';
+
   private lang_id: number = 0;
 
   public vm: vmModel;
@@ -192,18 +203,13 @@ export class BookingQuoteComponent implements OnInit, AfterContentInit {
 
     // fetch the booking ID from the route
     this.route.params.subscribe( async (params) => {
-      if(params && params.hasOwnProperty('id')) {
+      if(params) {
         try {
-          this.booking_id = <number> parseInt(params['id']);
-          const result = await this.loadBooking();
 
-          let booking:any = new Booking();
-          for(let field of Object.getOwnPropertyNames(booking) ) {
-            if(result.hasOwnProperty(field)) {
-              booking[field] = result[field];
-            }
+          if(params.hasOwnProperty('id')){
+            this.booking_id = <number> parseInt(params['id']);
+            await this.loadBooking();  
           }
-          this.booking = <Booking> booking;
 
           // relay change to context (to display sidemenu panes according to current object)
           this.context.change({
@@ -220,92 +226,6 @@ export class BookingQuoteComponent implements OnInit, AfterContentInit {
         catch(error) {
           console.warn(error);
         }
-
-        if(this.booking.customer_id) {
-          try {
-
-            const result = await this.loadCustomer();
-
-            let customer:any = new Customer();
-            for(let field of Object.getOwnPropertyNames(customer) ) {
-              if(result.hasOwnProperty(field)) {
-                customer[field] = result[field];
-              }
-            }
-            this.customer = <Customer> customer;
-            this.refreshRecipientAddresses();
-            if(this.customer.lang_id != this.lang_id) {
-              this.refresh(this.customer.lang_id);
-            }
-          }
-          catch(error) {
-            console.warn(error);
-          }
-        }
-
-
-        if(this.booking.contacts_ids && this.booking.contacts_ids.length) {
-          try {
-            const result = await this.loadContacts();
-
-            if(result && result.length) {
-              // reset current list
-              this.contacts = [];
-              for(let item of result) {
-                let contact:any = new Contact();
-                for(let field of Object.getOwnPropertyNames(contact) ) {
-                  if(contact.hasOwnProperty(field)) {
-                    contact[field] = item[field];
-                  }
-                }
-                this.contacts.push(contact);
-              }
-            }
-            this.refreshRecipientAddresses();
-          }
-          catch(error) {
-            console.warn(error);
-          }
-        }
-        if(this.booking.center_id) {
-          try {
-
-            const result = await this.loadCenter();
-
-            let center:any = new Center();
-            for(let field of Object.getOwnPropertyNames(center) ) {
-              if(result.hasOwnProperty(field)) {
-                center[field] = result[field];
-              }
-            }
-            this.center = <Center> center;
-            this.refreshSenderAddresses();
-            // load templates
-            this.fetchTemplates();
-          }
-          catch(error) {
-            console.warn(error);
-          }
-        }
-
-        if(this.center.organisation_id) {
-          try {
-            const result = await this.loadOrganisation();
-
-            let organisation:any = new Organisation();
-            for(let field of Object.getOwnPropertyNames(organisation) ) {
-              if(result.hasOwnProperty(field)) {
-                organisation[field] = result[field];
-              }
-            }
-            this.organisation = <Organisation> organisation;
-            this.refreshSenderAddresses();
-          }
-          catch(error) {
-            console.warn(error);
-          }
-        }
-
       }
     });
 
@@ -320,7 +240,12 @@ export class BookingQuoteComponent implements OnInit, AfterContentInit {
   private async fetchTemplates() {
     console.log('re-fetch templates');
     try {
-      const templates = await this.api.collect("communication\\Template", [ ['category_id', '=', this.center.template_category_id], ['type', '=', 'quote'], ['code', '=', 'mail']], ['parts_ids', 'attachments_ids'], 'id', 'asc', 0, 1, this.lang);
+      const templates = await this.api.collect("communication\\Template", [ 
+          ['category_id', '=', this.center.template_category_id], 
+          ['type', '=', 'quote'], 
+          ['code', '=', 'mail']
+        ], 
+        ['parts_ids', 'attachments_ids'], 'id', 'asc', 0, 1, this.lang);
 
       if(templates && templates.length) {
         let template = templates[0];
@@ -344,7 +269,7 @@ export class BookingQuoteComponent implements OnInit, AfterContentInit {
 
         // reset attachments list
         this.vm.attachments.items.splice(0, this.vm.attachments.items.length);
-        const attachments = await this.api.collect("communication\\TemplateAttachment", [['id', 'in', template['attachments_ids']], ['lang_id', '=', this.lang_id]], ['name', 'document_id.name'], 'id', 'asc', 0, 20, this.lang);
+        const attachments = await this.api.collect("communication\\TemplateAttachment", [['id', 'in', template['attachments_ids']], ['lang_id', '=', this.lang_id]], ['name', 'document_id.name', 'document_id.hash'], 'id', 'asc', 0, 20, this.lang);
         for(let attachment of attachments) {
           this.vm.attachments.items.push(attachment)
         }
@@ -372,41 +297,113 @@ export class BookingQuoteComponent implements OnInit, AfterContentInit {
   private async loadBooking() {
     const result:Array<any> = <Array<any>> await this.api.read("lodging\\sale\\booking\\Booking", [this.booking_id], Object.getOwnPropertyNames(new Booking()));
     if(result && result.length) {
-      return result[0];
+      const item:any = result[0];
+      let booking:any = new Booking();
+      for(let field of Object.getOwnPropertyNames(booking) ) {
+        if(item.hasOwnProperty(field)) {
+          booking[field] = item[field];
+        }
+      }
+      this.booking = <Booking> booking;
+      if(this.booking.customer_id) {
+        await this.loadCustomer();      
+      }
+      if(this.booking.contacts_ids && this.booking.contacts_ids.length) {
+        await this.loadContacts();
+        this.refreshRecipientAddresses();
+      }
+      if(this.booking.center_id) {
+        await this.loadCenter();
+        this.refreshSenderAddresses();
+        // load templates
+        this.fetchTemplates();
+      }
     }
-    return {};
   }
 
   private async loadCustomer() {
     const result = <Array<any>> await this.api.read("sale\\customer\\Customer", [this.booking.customer_id], Object.getOwnPropertyNames(new Customer()));
     if(result && result.length) {
-      return result[0];
+      const item:any = result[0];
+      let customer:any = new Customer();
+      for(let field of Object.getOwnPropertyNames(customer) ) {
+        if(item.hasOwnProperty(field)) {
+          customer[field] = item[field];
+        }
+      }
+      this.customer = <Customer> customer;
+      this.refreshRecipientAddresses();
+      if(this.customer.lang_id != this.lang_id) {
+        this.refresh(this.customer.lang_id);
+      }
     }
-    return {};
   }
 
   private async loadContacts() {
     const result = <Array<any>> await this.api.read("sale\\booking\\Contact", this.booking.contacts_ids, Object.getOwnPropertyNames(new Contact()));
     if(result && result.length) {
-      return result;
+      if(result && result.length) {
+        // reset current list
+        this.contacts = [];
+        for(let item of result) {
+          let contact:any = new Contact();
+          for(let field of Object.getOwnPropertyNames(contact) ) {
+            if(contact.hasOwnProperty(field)) {
+              contact[field] = item[field];
+            }
+          }
+          this.contacts.push(contact);
+        }
+      }
     }
-    return [];
   }
 
   private async loadCenter() {
     const result = <Array<any>> await this.api.read("lodging\\identity\\Center", [this.booking.center_id], Object.getOwnPropertyNames(new Center()));
     if(result && result.length) {
-      return result[0];
+      const item:any = result[0];
+      let center:any = new Center();
+      for(let field of Object.getOwnPropertyNames(center) ) {
+        if(item.hasOwnProperty(field)) {
+          center[field] = item[field];
+        }
+      }
+      this.center = <Center> center;
+      if(this.center.organisation_id) {
+        await this.loadOrganisation();
+      }
+      if(this.center.use_office_details && this.center.center_office_id) {
+        await this.loadCenterOffice();
+      }
     }
-    return {};
+  }
+
+  private async loadCenterOffice() {
+    const result = <Array<any>> await this.api.read("lodging\\identity\\CenterOffice", [this.center.center_office_id], Object.getOwnPropertyNames(new CenterOffice()));
+    if(result && result.length) {
+      const item:any = result[0];
+      let office:any = new CenterOffice();
+      for(let field of Object.getOwnPropertyNames(office) ) {
+        if(item.hasOwnProperty(field)) {
+          office[field] = item[field];
+        }
+      }
+      this.office = <CenterOffice> office;
+    }
   }
 
   private async loadOrganisation() {
     const result = <Array<any>> await this.api.read("identity\\Identity", [this.center.organisation_id], Object.getOwnPropertyNames(new Organisation()));
     if(result && result.length) {
-      return result[0];
+      let item = result[0];
+      let organisation:any = new Organisation();
+      for(let field of Object.getOwnPropertyNames(organisation) ) {
+        if(result.hasOwnProperty(field)) {
+          organisation[field] = item[field];
+        }
+      }
+      this.organisation = <Organisation> organisation;
     }
-    return {};
   }
 
   public onchangeLanguage($event:any) {
@@ -416,25 +413,40 @@ export class BookingQuoteComponent implements OnInit, AfterContentInit {
 
   public refreshSenderAddresses() {
 
-    // address of current user
-    if(this.user) {
-      if(!this.vm.sender.addresses.includes(this.user.login)) {
-        this.vm.sender.addresses.push(this.user.login);
+    // reset array
+    this.vm.sender.addresses = [];
+    this.vm.sender.formControl.reset();
+
+    // 1) email of Center's Office, if any
+    if(this.center.use_office_details && this.office && this.office.email.length) {
+      if(!this.vm.sender.addresses.includes(this.office.email)) {
+        this.vm.sender.addresses.push(this.office.email);
       }
     }
 
-    // address related to the center of the booking
+    // 2) email of the organisation
+    if(this.organisation.email && this.organisation.email.length) {
+      if(!this.vm.sender.addresses.includes(this.organisation.email)) {
+        this.vm.sender.addresses.push(this.organisation.email);
+      }
+    }
+
+    // 3) email of the center
     if(this.center.email && this.center.email.length) {
       if(!this.vm.sender.addresses.includes(this.center.email)) {
         this.vm.sender.addresses.push(this.center.email);
       }
     }
 
-    // address related to the organisation of the center of the booking
-    if(this.organisation.email && this.organisation.email.length) {
-      if(!this.vm.sender.addresses.includes(this.organisation.email)) {
-        this.vm.sender.addresses.push(this.organisation.email);
+    // 4) email of current user
+    if(this.user) {
+      if(!this.vm.sender.addresses.includes(this.user.login)) {
+        this.vm.sender.addresses.push(this.user.login);
       }
+    }
+
+    if(this.vm.sender.addresses.length == 1) {
+      this.vm.sender.formControl.setValue(this.vm.sender.addresses[0]);
     }
 
   }
@@ -442,6 +454,10 @@ export class BookingQuoteComponent implements OnInit, AfterContentInit {
   private async refreshRecipientAddresses() {
 
     console.log('refreshRecipientAddresses', this.customer, this.contacts);
+
+    // reset array
+    this.vm.recipient.addresses = [];
+    this.vm.recipient.formControl.reset();
 
     // customer address
     if(this.customer && this.customer.email && this.customer.email.length) {
@@ -463,6 +479,10 @@ export class BookingQuoteComponent implements OnInit, AfterContentInit {
     if(!this.vm.recipient.addresses.length) {
       // for testing
       this.vm.recipient.addresses.push(this.user.login);
+    }
+
+    if(this.vm.recipient.addresses.length == 1) {
+      this.vm.recipient.formControl.setValue(this.vm.recipient.addresses[0]);
     }
 
   }
@@ -516,7 +536,7 @@ export class BookingQuoteComponent implements OnInit, AfterContentInit {
   }
 
   public async onSend() {
-
+console.log('received onsend');
     /*
       Validate values (otherwise mark fields as invalid)
     */
@@ -524,27 +544,34 @@ export class BookingQuoteComponent implements OnInit, AfterContentInit {
 
     let is_error = false;
 
-    if(this.vm.sender.formControl.invalid || this.vm.sender.value.length == 0) {
+    if(this.vm.sender.formControl.invalid || this.vm.sender.formControl.value.length == 0) {
+      console.log('sender');
       this.vm.sender.formControl.markAsTouched();
       is_error = true;
     }
 
-    if(this.vm.recipient.formControl.invalid || this.vm.recipient.value.length == 0) {
+    if(this.vm.recipient.formControl.invalid || this.vm.recipient.formControl.value.length == 0) {
+      console.log('recipient', this.vm.recipient.value);
       this.vm.recipient.formControl.markAsTouched();
       is_error = true;
     }
 
-    if(this.vm.title.formControl.invalid || this.vm.title.value.length == 0) {
+    if(this.vm.title.formControl.invalid || this.vm.title.formControl.value.length == 0) {
       this.vm.title.formControl.markAsTouched();
+      console.log('title');
       is_error = true;
     }
 
-    if(this.vm.message.formControl.invalid || this.vm.message.value.length == 0) {
+    if(this.vm.message.formControl.invalid || this.vm.message.formControl.value.length == 0) {
+      console.log('message');
       this.vm.message.formControl.markAsTouched();
       is_error = true;
     }
 
-    if(is_error) return;
+    if(is_error) {
+      console.log('error present, not sending')
+      return;
+    }
 
     try {
       this.loading = true;

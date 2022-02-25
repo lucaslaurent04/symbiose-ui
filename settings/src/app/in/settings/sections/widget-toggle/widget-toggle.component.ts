@@ -16,6 +16,8 @@ export class WidgetToggleComponent implements OnInit {
   @Input() setting: any;
 
   public settingValue: any;
+  public settingName: any;
+
   public previousValue: any;
   public focusState: any;
   public control = new FormControl();
@@ -28,6 +30,7 @@ export class WidgetToggleComponent implements OnInit {
     else {
       this.settingValue = true;
     }
+    this.settingName = this.setting.code;
 
     this.control.valueChanges.pipe(
       startWith(this.settingValue),

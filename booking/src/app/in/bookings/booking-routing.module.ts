@@ -5,6 +5,7 @@ import { BookingComponent } from './booking.component';
 import { BookingEditComponent } from './edit/booking.edit.component';
 import { BookingCompositionComponent } from './composition/booking.composition.component';
 import { BookingQuoteComponent } from './quote/booking.quote.component';
+import { BookingInvoiceComponent } from './invoice/booking.invoice.component';
 import { BookingContractComponent } from './contract/booking.contract.component';
 import { BookingFundingInvoiceComponent } from './funding/booking.funding.invoice.component';
 
@@ -40,6 +41,10 @@ const routes: Routes = [
     {
         path: 'funding/:id/:funding_id',
         component: BookingFundingInvoiceComponent
+    },
+    {
+        path: 'invoice/:id/:invoice_id',
+        component: BookingInvoiceComponent
     }
 ];
 

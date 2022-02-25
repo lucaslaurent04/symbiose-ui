@@ -43,10 +43,16 @@
                 mat-expansion-panel-header {
                     mat-panel-title {
                         text-transform: capitalize;
-                        flex: 1;
+                        flex: 0 0 18%;
                     }
                     mat-panel-description {
                         flex: 1 1 50%;
+                    }
+                    .sectionName {
+                        margin-left: auto;
+                        margin-right: 40px;
+                        font-family: SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+                        font-size: 0.9em;            
                     }
                 }
 

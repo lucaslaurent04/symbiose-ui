@@ -113,6 +113,15 @@ export class AuthService {
 
   }
 
+  /**
+   * Assert a user is member of a given group
+   */
+  public async hasGroup(group: string | number) {
+    // get list of groups current user is assigned to
+    // check if given group is part of the array
+  }
+
+
   public async signOut() {
     // update local user object and notify subscribers
     this.user = new UserClass();
@@ -160,7 +169,7 @@ export class AuthService {
    * @returns void
    * @throws HttpErrorResponse  HTTP error that occured during user login
    */
-   public async passRecover(email: string) {
+  public async passRecover(email: string) {
     const environment:any = await this.env.getEnv();
     return this.http.get<any>(environment.backend_url+'/?do=user_pass-recover', {
         params: {

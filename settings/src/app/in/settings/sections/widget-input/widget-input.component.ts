@@ -11,6 +11,7 @@ export class WidgetInputComponent implements OnInit {
   @Input() setting: any;
 
   public settingValue: any;
+  public settingName: any;
 
   public formControl = new FormControl();
 
@@ -23,6 +24,7 @@ export class WidgetInputComponent implements OnInit {
 
   ngOnInit(): void {
     this.settingValue = this.setting.setting_values_ids[0].value;
+    this.settingName = this.setting.code;
     // preset the value of formControl
     this.formControl.setValue(this.settingValue);
   }

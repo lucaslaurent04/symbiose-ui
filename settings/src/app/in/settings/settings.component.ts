@@ -18,7 +18,7 @@ export class SettingsComponent implements OnInit {
   ) { }
 
   public current_route:string
-  private package: string = 'core';
+  public package: string = 'core';
 
   // data sorted by sections
   public sections: Array<any> = new Array();
@@ -51,7 +51,7 @@ export class SettingsComponent implements OnInit {
       const data: any[] = await this.api.collect(
         'core\\setting\\Setting', 
         ['package', '=', this.package], 
-        ['package', 'section_id.name', 'section_id.code', 'section_id.description', 'description', 'setting_values_ids.value', 'type', 'setting_choices_ids.value', 'title', 'help', 'form_control'], 
+        ['package', 'section_id.name', 'section_id.code', 'section_id.description', 'description', 'setting_values_ids.value', 'code', 'type', 'setting_choices_ids.value', 'title', 'help', 'form_control'], 
         'id', 'asc', 0, 100,
         environment.locale
       );

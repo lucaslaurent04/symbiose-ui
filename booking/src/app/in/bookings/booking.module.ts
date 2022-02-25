@@ -23,6 +23,7 @@ import { BookingCompositionComponent, BookingCompositionDialogConfirm } from './
 import { BookingCompositionLinesComponent } from './composition/components/booking.composition.lines/booking.composition.lines.component';
 
 import { BookingQuoteComponent } from './quote/booking.quote.component';
+import { BookingInvoiceComponent } from './invoice/booking.invoice.component';
 import { BookingContractComponent } from './contract/booking.contract.component';
 import { BookingFundingInvoiceComponent } from './funding/booking.funding.invoice.component';
 
@@ -40,6 +41,7 @@ import { BookingFundingInvoiceComponent } from './funding/booking.funding.invoic
     BookingCompositionComponent, BookingCompositionDialogConfirm,
     BookingCompositionLinesComponent,
     BookingQuoteComponent, 
+    BookingInvoiceComponent,
     BookingContractComponent,
     BookingFundingInvoiceComponent
   ],

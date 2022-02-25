@@ -13,13 +13,19 @@ export class WidgetSelectComponent implements OnInit {
   constructor(public service: SettingService) { }
   @Input() choices: any[];
   @Input() setting: any;
+
   public settingValue: any;
+  public settingName: any;
+  
   public control = new FormControl();
   public focusState: any;
   public previousValue: any;
+
   ngOnInit(): void {
 
     this.settingValue = this.setting.setting_values_ids[0].value;
+    this.settingName = this.setting.code;
+
     this.control.valueChanges.pipe(
       startWith(this.settingValue),
       pairwise()
@@ -32,6 +38,7 @@ export class WidgetSelectComponent implements OnInit {
     this.control.setValue(this.settingValue);
 
   }
+
   public onChange(eventValue: any) {
     //use the service to add the elements
     this.service.toQueue(this.setting.setting_values_ids[0].id, { newValue: this.settingValue, oldValue: this.previousValue }).subscribe((action) => {
