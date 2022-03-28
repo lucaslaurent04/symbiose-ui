@@ -17,6 +17,8 @@ import { TranslateService } from '@ngx-translate/core';
 })
 export class AppSideMenuComponent implements OnInit {
   @ViewChild('helpfullscreen') helpFullScreen: ElementRef;
+  @Output() updated = new EventEmitter();
+  // @Input() refresh: Observable<Boolean>;
 
   private environment: any = null;
 
@@ -82,7 +84,7 @@ export class AppSideMenuComponent implements OnInit {
 
     this.context.getObservable()
     .pipe(
-      // prevent slowing down main screen display by delaying the requests
+      // delay requests to prevent slowing down main screen display
       debounceTime(500)
     )
     .subscribe( async (descriptor: any) => {
@@ -110,10 +112,28 @@ export class AppSideMenuComponent implements OnInit {
           if(parts.length) view_name = <string>parts.shift();
         }
 
-        // domain is expected to be single ID filter (ex. ['id', '=', 3])
-        let object_id = (descriptor.context.domain)?descriptor.context.domain[2]:0;
-        let object_class = descriptor.context.entity;
 
+        let object_id:number = 0;
+        let object_class:string = descriptor.context.entity;
+
+        if(object_id == 0 && descriptor.context.hasOwnProperty('domain')) {
+          // domain is expected to be single ID filter (ex. ['id', '=', 3])
+          let candidate = parseInt(descriptor.context.domain[2]);
+          console.log(candidate);
+          if(!Number.isNaN(candidate)) {
+            object_id = candidate;
+          }
+        }
+
+        if(object_id == 0 && descriptor.hasOwnProperty('route')) {
+          // route is expected to hold the ID of the object as last part
+          const parts = descriptor.route.split('/');
+          let candidate = parseInt(parts[parts.length-1]);
+          console.log(candidate);
+          if(!Number.isNaN(candidate)) {
+            object_id = candidate;            
+          }
+        }
 
         if(descriptor.context.hasOwnProperty('target_entity')) {
           object_class = descriptor.context.target_entity;
@@ -209,6 +229,7 @@ export class AppSideMenuComponent implements OnInit {
           }
 
 
+          let has_route:boolean = false;
           // build routes, if any
           for(let route of view_routes) {
             if(route.hasOwnProperty('visible')) {
@@ -250,7 +271,13 @@ export class AppSideMenuComponent implements OnInit {
             }
 
             this.object_routes_items.push(route);
+            has_route = true;
           }
+
+          // notify parent that there are new routes
+          if(has_route) {
+            this.updated.emit();
+          }          
 
 
           // 'checks' : read checks specific to object (verifications)

@@ -2,6 +2,8 @@ import { Injectable } from '@angular/core';
 import { catchError, map } from "rxjs/operators";
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { EnvService} from './env.service';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { TranslateService } from '@ngx-translate/core';
 /*
 */
 
@@ -14,7 +16,7 @@ export class ApiService {
   private cache: any = {};
   private cache_validity: number = 1000; // cache validity in milliseconds
 
-  constructor(private http: HttpClient, private env:EnvService) {
+  constructor(private http: HttpClient, private env:EnvService, private translate:TranslateService, private snack: MatSnackBar) {
   }
 
   /**
@@ -81,20 +83,22 @@ export class ApiService {
    */
   public read(entity:string, ids:any[], fields:any[],  order:string='id', sort:string='asc', lang:string = '') {
 
-    let hash = btoa(entity+ids.toString()+fields.toString()+order+sort);
+    let hash = btoa(entity + ids.toString() + fields.toString() + order + sort + lang);
     let now = Date.now();
 
     if(this.cache.hasOwnProperty(hash)) {
       let entry = this.cache[hash];
       if( (entry.timestamp + this.cache_validity) > now) {
-        return new Promise((resolve, reject) => resolve(entry.response) );
+        return entry.promise;
       }
       else {
+        console.log('cache: invalidating ' + hash);
         delete this.cache[hash];
       }
     }
 
-    return new Promise(async (resolve, reject) => {
+
+    let promise = new Promise(async (resolve, reject) => {
       const environment:any = await this.env.getEnv();
       this.http.get<any>(environment.backend_url+'/?get=model_read', {params: {
           entity: entity,
@@ -106,18 +110,20 @@ export class ApiService {
         }
       }).subscribe(
         data => {
-          if(!this.cache.hasOwnProperty(hash)) {
-            this.cache[hash] = {
-              timestamp: Date.now(),
-              response: data
-            };
-          }
           resolve(data);
         },
         error => reject(error)
       );
     });
 
+    if(!this.cache.hasOwnProperty(hash)) {
+      this.cache[hash] = {
+        timestamp: Date.now(),
+        promise: promise
+      };
+    }
+
+    return promise;
   }
 
   /**
@@ -337,5 +343,34 @@ export class ApiService {
     }).toPromise();
     return data;
   }
+
+
+
+  public errorFeedback(response: any) {
+    // default to unknown error    
+    let error:string = 'UNKNOWN';
+
+    if(response && response.hasOwnProperty('error') && response['error'].hasOwnProperty('errors')) {
+      let errors = response['error']['errors'];
+
+      if(errors.hasOwnProperty('INVALID_STATUS')) {
+        error = 'INVALID_STATUS';
+      }
+      else if(errors.hasOwnProperty('INVALID_PARAM')) {
+        error = 'INVALID_PARAM';
+        if(errors['INVALID_PARAM'] == 'maximum_size_exceeded') {
+          error = 'MAXIMUM_SIZE_EXCEEDED';
+        }        
+      }
+      else if(errors.hasOwnProperty('NOT_ALLOWED')) {
+        error = 'NOT_ALLOWED';
+      }
+      else if(errors.hasOwnProperty('CONFLICT_OBJECT')) {
+        error = 'CONFLICT_OBJECT';
+      }
+    }
+
+    this.snack.open(this.translate.instant('SB_ERROR_'+error), this.translate.instant('SB_ERROR_ERROR'));
+  }  
 
 }

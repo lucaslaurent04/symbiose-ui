@@ -30,7 +30,8 @@
         </div>
 
         <div class="app-asidemenu" [class.show]="show_side_menu">
-            <app-sidemenu></app-sidemenu>
+            <app-sidemenu (updated)="showSideMenu()"
+            ></app-sidemenu>
         </div>
 
     </div>

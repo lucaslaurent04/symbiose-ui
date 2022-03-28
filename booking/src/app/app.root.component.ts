@@ -22,7 +22,7 @@ export class AppRootComponent implements OnInit {
   public show_side_menu: boolean = false;
   public show_side_bar: boolean = true;
 
-  public topMenuItems = [{name: 'Dashboard'}, {name: 'Users'}, {name: 'Settings'}];
+  public topMenuItems:any[] = [];
   public navMenuItems: any = [];
 
   public translationsMenuLeft: any = {};
@@ -131,6 +131,10 @@ export class AppRootComponent implements OnInit {
     this.context.change(descriptor);
   }
 
+
+  public showSideMenu() {
+    this.show_side_menu = true;
+  }
 
   public toggleSideMenu() {
     this.show_side_menu = !this.show_side_menu;

@@ -1,8 +1,8 @@
-import { Component, Inject, OnInit, OnChanges, NgZone, Output, Input, EventEmitter, SimpleChanges } from '@angular/core';
+import { Component, Inject, OnInit, OnChanges, NgZone, Output, Input, EventEmitter, SimpleChanges, ViewChild } from '@angular/core';
 import { AuthService, ApiService, ContextService } from 'sb-shared-lib';
 
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
+import { MatAutocomplete, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 
 import { FormBuilder, FormGroup, FormControl, Validators } from '@angular/forms';
 
@@ -52,7 +52,8 @@ export class BookingEditBookingsGroupAccomodationLineComponent implements OnInit
   public rental_unit:any;
 
   
-
+  @ViewChild(MatAutocomplete) rentalUnitAutocomplete: MatAutocomplete;
+  
   private ready = false;
 
   public vm: vmModel;
@@ -210,6 +211,11 @@ export class BookingEditBookingsGroupAccomodationLineComponent implements OnInit
 
       let data:any[] = await this.api.collect("lodging\\realestate\\RentalUnit", domain, ["id", "name", "capacity"], 'name', 'asc', 0, 25);
       filtered = data;
+
+      if(filtered.length == 1) {
+        // single result : wait for list update and auto select 
+        setTimeout( () => this.rentalUnitAutocomplete.options.first.select(), 100);
+      }
     }
     catch(response) {
       console.log(response);

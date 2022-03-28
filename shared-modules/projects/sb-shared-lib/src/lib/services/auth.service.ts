@@ -52,6 +52,7 @@ export class AuthService {
     return this._user;
   }
 
+  
   constructor(private http: HttpClient, private env:EnvService) {
     this.observable = new ReplaySubject<any>(1);
     this.last_auth_time = -1;
@@ -117,8 +118,29 @@ export class AuthService {
    * Assert a user is member of a given group
    */
   public async hasGroup(group: string | number) {
+    let result = false;
+    if(typeof group == 'string') {
+      group = group.replace('*', '');
+    }
     // get list of groups current user is assigned to
     // check if given group is part of the array
+    if(this.user.groups_ids) {
+      for(let group_id in this.user.groups_ids) {
+        if(typeof group == 'number') {
+          if(this.user.groups_ids[group_id].id == group) {
+            result = true;
+            break;
+          }
+        }
+        else {
+          if(this.user.groups_ids[group_id].name.indexOf(group) === 0) {
+            result = true;
+            break;
+          }
+        }
+      }
+    }
+    return result;
   }
 
 

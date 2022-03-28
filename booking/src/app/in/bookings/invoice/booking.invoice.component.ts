@@ -207,12 +207,12 @@ export class BookingInvoiceComponent implements OnInit, AfterContentInit {
       if(params) {
         try {
           if(params.hasOwnProperty('id')) {
-            this.booking_id = <number> parseInt(params['id']);
+            this.booking_id = <number> parseInt(params['id'], 10);
             await this.loadBooking();  
           }
 
           if(params.hasOwnProperty('invoice_id')) {
-            this.invoice_id = <number> parseInt(params['invoice_id']);
+            this.invoice_id = <number> parseInt(params['invoice_id'], 10);
           }
 
           // relay change to context (to display sidemenu panes according to current object)
@@ -420,21 +420,21 @@ export class BookingInvoiceComponent implements OnInit, AfterContentInit {
     this.vm.sender.formControl.reset();
     
     // 1) email of Center's Office, if any
-    if(this.center.use_office_details && this.office && this.office.email.length) {
+    if(this.center.use_office_details && this.office && this.office.email && this.office.email.length) {
       if(!this.vm.sender.addresses.includes(this.office.email)) {
         this.vm.sender.addresses.push(this.office.email);
       }
     }
 
     // 2) email of the organisation
-    if(this.organisation.email && this.organisation.email.length) {
+    if(this.organisation.email && this.organisation.email && this.organisation.email.length) {
       if(!this.vm.sender.addresses.includes(this.organisation.email)) {
         this.vm.sender.addresses.push(this.organisation.email);
       }
     }
 
     // 3) email of the center
-    if(this.center.email && this.center.email.length) {
+    if(this.center.email && this.center.email && this.center.email.length) {
       if(!this.vm.sender.addresses.includes(this.center.email)) {
         this.vm.sender.addresses.push(this.center.email);
       }
@@ -461,7 +461,7 @@ export class BookingInvoiceComponent implements OnInit, AfterContentInit {
     this.vm.recipient.formControl.reset();
 
     // customer address
-    if(this.customer && this.customer.email && this.customer.email.length) {
+    if(this.customer && this.customer.email && this.customer.email && this.customer.email.length) {
       if(!this.vm.recipient.addresses.includes(this.customer.email)) {
         this.vm.recipient.addresses.push(this.customer.email);
       }

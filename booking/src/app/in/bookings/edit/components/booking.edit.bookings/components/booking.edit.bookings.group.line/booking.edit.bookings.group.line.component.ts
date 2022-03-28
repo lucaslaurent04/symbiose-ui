@@ -33,6 +33,11 @@ interface vmModel {
     formControl:    FormControl,
     change:         () => void
   },
+  qty_vars: {
+    values:         any,
+    change:         (index:number,event:any) => void,
+    reset:          () => void
+  },
   free_qty: {
     value:          number
   },
@@ -131,6 +136,11 @@ export class BookingEditBookingsGroupLineComponent implements OnInit  {
         formControl:    new FormControl('', Validators.required),
         change:         () => this.qtyChange()
       },
+      qty_vars: {
+        values:         {},
+        change:         (index:number, event:any) => this.qtyVarsChange(index, event),
+        reset:          () => this.qtyVarsReset()
+      },
       free_qty: {
         value:          0.0
       },
@@ -195,19 +205,23 @@ export class BookingEditBookingsGroupLineComponent implements OnInit  {
     this.vm.vat.formControl.valueChanges.subscribe( (value:number)  => {
       this.vm.vat.value = value;
     });
-    
+
+  }
+
+  public daysCounter() {
+    return new Array(this.groupInput.nb_nights);
   }
 
   /**
    * Assign values from parent and load sub-objects required by the view.
-   * 
-   * @param line 
+   *
+   * @param line
    */
   private async load(line:any) {
     this.zone.run( () => {
       this.ready = false;
-    });    
-    
+    });
+
     this.zone.run( async () => {
       try {
         console.log("BookingEditBookingsGroupLineComponent: received changes from parent", line.id, line);
@@ -218,12 +232,12 @@ export class BookingEditBookingsGroupLineComponent implements OnInit  {
         }
 
         if(line.product_id) {
-          let data:any = await this.api.read("lodging\\sale\\catalog\\Product", [line.product_id], ["id", "name", "sku"]);
+          let data:any = await this.api.read("lodging\\sale\\catalog\\Product", [line.product_id], ["id", "name", "sku", "product_model_id.has_duration", "product_model_id.duration"]);
           if(data && data.length) {
             let product = data[0];
             this.product = product;
             this.vm.product.name = product.name;
-          }  
+          }
         }
 
         if(line.hasOwnProperty('price_id')) {
@@ -231,7 +245,7 @@ export class BookingEditBookingsGroupLineComponent implements OnInit  {
           if(data && data.length) {
             let price = data[0];
             this.price = price;
-            // #memo : price is a computed field set server-side, according to price adapters            
+            // #memo : price is a computed field set server-side, according to price adapters
             this.vm.unit_price.value = price.price;
           }
           else {
@@ -258,6 +272,28 @@ export class BookingEditBookingsGroupLineComponent implements OnInit  {
         if(line.hasOwnProperty('qty')) {
           this.vm.qty.value = line.qty;
           this.vm.qty.formControl.setValue(line.qty);
+        }
+
+
+
+        if(line.hasOwnProperty('qty_vars')) {
+          let factor = this.groupInput.nb_nights
+          if(this.product.hasOwnProperty('product_model_id')) {
+            if(this.product.product_model_id.hasOwnProperty('has_duration') && this.product.product_model_id.has_duration) {
+              factor = this.product.product_model_id.duration;
+            }
+          }
+          let values = new Array(factor);
+
+          values.fill(0);
+          if(line.qty_vars) {
+            values = JSON.parse(line.qty_vars);
+          }
+          let i = 0;
+          for(let val of values) {
+            this.vm.qty_vars.values[i] = val;
+            ++i;
+          }
         }
 
         if(line.manual_discounts_ids) {
@@ -307,7 +343,7 @@ export class BookingEditBookingsGroupLineComponent implements OnInit  {
 
           this.vm.free_qty.value = free_qty;
         }
-        
+
 
       }
       catch(response) {console.warn(response);}
@@ -318,13 +354,13 @@ export class BookingEditBookingsGroupLineComponent implements OnInit  {
 
   /**
    * Handle update events received from BookingLine children.
-   * 
+   *
    */
   private async updateFromDiscount(discount: any) {
     console.log("BookingEditBookingsGroupLineComponent: received changes from child", discount);
 
     console.log(this.discounts);
-    
+
     try {
 
       let has_change = false;
@@ -343,7 +379,7 @@ export class BookingEditBookingsGroupLineComponent implements OnInit  {
 
       if(has_change) {
         this.lineOutput.next({id: this.line.id, price_adapters_ids: true});
-      }      
+      }
 
     }
     catch(error) {
@@ -399,6 +435,23 @@ export class BookingEditBookingsGroupLineComponent implements OnInit  {
     this.lineOutput.next({id: this.line.id, qty: this.vm.qty.value, refresh: {self: ['price']}});
   }
 
+  private qtyVarsChange(index:number, $event:any) {
+    let value:number = parseInt($event.srcElement.value, 10);
+
+    this.vm.qty_vars.values[index] = (value-this.groupInput.nb_pers);
+    // update line
+    let qty_vars = JSON.stringify(Object.values(this.vm.qty_vars.values));
+    this.lineOutput.next({id: this.line.id, qty_vars: qty_vars, refresh: {self: ['price', 'qty']}});
+  }
+
+  private qtyVarsReset() {
+
+    let values = new Array(this.groupInput.nb_nights);
+    values.fill(0);
+    let qty_vars = JSON.stringify(Object.values(values));
+    this.lineOutput.next({id: this.line.id, qty_vars: qty_vars, refresh: {self: ['price', 'qty']}});
+  }
+
   private unitPriceChange() {
     // relay change to parent component
     this.lineOutput.next({id: this.line.id, unit_price: this.vm.unit_price.value, refresh: {self: ['price']}});
@@ -411,7 +464,7 @@ export class BookingEditBookingsGroupLineComponent implements OnInit  {
 
   /**
    * Limit products to the ones available for currently selected center (groups of the product matches the product groups of the center)
-   */      
+   */
   private async filterProducts(name: string) {
 
     let filtered:any[] = [];
@@ -427,9 +480,9 @@ export class BookingEditBookingsGroupLineComponent implements OnInit  {
       }
 
       let data:any[] = await this.api.collect(
-        "lodging\\sale\\catalog\\Product", 
-        domain, 
-        ["id", "name", "sku"], 
+        "lodging\\sale\\catalog\\Product",
+        domain,
+        ["id", "name", "sku"],
         'name', 'asc', 0, 25
       );
       filtered = data;
@@ -438,18 +491,18 @@ export class BookingEditBookingsGroupLineComponent implements OnInit  {
       console.log(response);
     }
     return filtered;
-  }  
+  }
 
 
   private async loadAutoDiscounts(ids:Array<any>, fields:any) {
     let data:any[] = <Array<any>> await this.api.read("lodging\\sale\\booking\\BookingPriceAdapter", ids, fields);
     return data;
-  }  
+  }
 
   private async loadManualDiscounts(ids:Array<any>, fields:any) {
     let data:any[] = <Array<any>> await this.api.read("lodging\\sale\\booking\\BookingPriceAdapter", ids, fields);
     return data;
-  }  
+  }
 
 
   private async discountAdd() {

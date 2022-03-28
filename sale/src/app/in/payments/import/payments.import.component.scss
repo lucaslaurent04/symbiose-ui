@@ -35,6 +35,20 @@
                 }
         
             }
+
+            .body-result {
+
+                margin: 20px 20px 0 20px;
+                .statements-list {
+
+                    .statement-item {
+                        display: flex;
+    
+                    }
+                }
+    
+            }
+
         }
     
         .booking-body::-webkit-scrollbar {
@@ -48,6 +62,8 @@
             background: var(--mdc-theme-primary, #6200ee);
             border-radius: 10px;
         }        
+
+        
     }
 
     .container.hidden {

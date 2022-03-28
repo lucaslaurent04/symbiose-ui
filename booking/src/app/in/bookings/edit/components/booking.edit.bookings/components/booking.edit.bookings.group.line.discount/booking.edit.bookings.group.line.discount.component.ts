@@ -81,6 +81,9 @@ export class BookingEditBookingsGroupLineDiscountComponent implements OnInit  {
      */
 
     this.vm.value.formControl.valueChanges.subscribe( (value:number)  => {
+      if(value > 1.0) {
+        value = value / 100;
+      }
       this.vm.value.value = value;
     });
 

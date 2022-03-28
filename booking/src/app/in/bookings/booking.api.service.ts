@@ -1,4 +1,6 @@
 import { Injectable } from '@angular/core';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { TranslateService } from '@ngx-translate/core';
 import { ApiService } from 'sb-shared-lib';
 
 @Injectable({
@@ -10,7 +12,7 @@ export class BookingApiService {
   // booking object for conditionning API calls  
   private booking: any;
 
-  constructor(private api: ApiService) {}
+  constructor(private api: ApiService, private translate:TranslateService, private snack: MatSnackBar) {}
 
   public setBooking(booking:any) {
     this.booking = booking;
@@ -147,5 +149,32 @@ export class BookingApiService {
     return this.api.delete(route);
   }
 
+
+  public errorFeedback(response: any) {
+    
+    let error:string = 'UNKNOWN';
+
+    if(response && response.hasOwnProperty('error') && response['error'].hasOwnProperty('errors')) {
+      let errors = response['error']['errors'];
+
+      if(errors.hasOwnProperty('INVALID_STATUS')) {
+        error = 'BOOKING_INVALID_STATUS';
+      }
+      else if(errors.hasOwnProperty('INVALID_PARAM')) {
+        error = 'INVALID_PARAM';
+        if(errors['INVALID_PARAM'] == 'maximum_size_exceeded') {
+          error = 'MAXIMUM_SIZE_EXCEEDED';
+        }        
+      }
+      else if(errors.hasOwnProperty('NOT_ALLOWED')) {
+        error = 'NOT_ALLOWED';
+      }
+      else if(errors.hasOwnProperty('CONFLICT_OBJECT')) {
+        error = 'BOOKING_CONFLICT_OBJECT';
+      }
+    }
+
+    this.snack.open(this.translate.instant('SB_ERROR_'+error), this.translate.instant('SB_ERROR_ERROR'));
+  }
 
 }

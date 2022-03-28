@@ -1,0 +1,25 @@
+<div class="container">
+
+  <div [class.hidden]="!loading" class="loader"><mat-spinner></mat-spinner></div>
+
+  <div class="header">
+    <div class="header-inner"></div>
+  
+  </div>
+
+  <div class="body">
+
+    <div class="body-actions" style="display: flex;">
+      <div class="actions-std"></div>
+      <div class="actions-view">
+
+        <a target="_blank" [attr.href]="">
+          <button mat-stroked-button>Voir le devis</button>
+        </a>
+
+        <button mat-flat-button color="accent" [disabled]="is_sent">Envoyer</button>
+      </div>      
+    </div>
+
+  </div>
+</div>

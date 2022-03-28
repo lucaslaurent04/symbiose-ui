@@ -56,7 +56,7 @@ registerLocaleData(localeFr);
   providers: [
     // add HTTP interceptor to inject AUTH header to any outgoing request
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptorService, multi: true },
-    { provide: MAT_SNACK_BAR_DEFAULT_OPTIONS, useValue: { duration: 4000 } },    
+    { provide: MAT_SNACK_BAR_DEFAULT_OPTIONS, useValue: { duration: 4000, horizontalPosition: 'start' } },    
     { provide: MAT_DATE_LOCALE, useValue: 'fr-BE' },
     { provide: LOCALE_ID, useValue: 'fr-BE' },
     { provide: DateAdapter, useClass: CustomDateAdapter, deps: [MAT_DATE_LOCALE, Platform] }

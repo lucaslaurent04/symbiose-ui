@@ -1,6 +1,6 @@
 
 <!-- template vars -->
-<div #vProduct="var" [var]="{identification: {folded: true}, discounts: {folded: true}, adapters: {folded: true}, unit_price: {folded: true}, vat_rate: {folded: true}}"></div>
+<div #vProduct="var" [var]="{identification: {folded: true}, discounts: {folded: true}, variations: {folded: true}, adapters: {folded: true}, unit_price: {folded: true}, vat_rate: {folded: true}}"></div>
 
 
 <!-- identification-->
@@ -110,7 +110,7 @@
         <span [hidden]="!vProduct.vat_rate.folded || groupInput.is_locked" (click)="vProduct.vat_rate.folded = false">{{vm.vat.value | percent}}</span>        
         <mat-form-field [hidden]="vProduct.vat_rate.folded">
           <mat-label>Taux TVA</mat-label>
-          <input  #unitPriceInput                   
+          <input  #vatRateInput                   
                   type="number" 
                   matInput 
                   (blur)="vm.vat.change(); vProduct.vat_rate.folded = true"
@@ -130,7 +130,42 @@
 
 
 
-    <!-- 2) auto-discounts / price adapters -->
+    <!-- 2) quantity variations -->
+    <div class="row row-first" *ngIf="!vProduct.identification.folded && !groupInput.is_locked && line.qty_accounting_method == 'person' && (line.is_meal || line.is_accomodation)">
+      <div class="part cell" [class.hidden]="!ready">
+        <div class="part-toggle">
+          <button mat-icon-button *ngIf="!vProduct.variations.folded" (click)="vProduct.variations.folded = !vProduct.variations.folded">
+            <mat-icon style="font-size: 15px;">keyboard_arrow_up</mat-icon>
+          </button>
+          <button mat-icon-button *ngIf="vProduct.variations.folded" (click)="vProduct.variations.folded = !vProduct.variations.folded">
+            <mat-icon style="font-size: 15px;">keyboard_arrow_right</mat-icon>
+          </button>
+        </div>
+        <div class="part-container">
+          <div class="row row-title row-thin">
+          <span>Variations des quantités <button *ngIf="!vProduct.variations.folded" mat-mini-fab color="primary" style="transform: scale(0.66);" (click)="vm.qty_vars.reset(); vProduct.variations.folded = true"> <mat-icon>remove</mat-icon></button></span>
+          </div>
+          <!-- auto discounts details -->
+          <div class="row row-thin" *ngIf="!vProduct.variations.folded">
+            <div style="width: 100%;">              
+              <div *ngFor="let delta of vm.qty_vars.values | keyvalue; let index = index;" style="display: flex; align-items: center; height: 38px;">
+                <span style="flex: 0 1 25%;"><span style="text-decoration: underline"> Jour {{index+1}} </span> </span>
+                <span style="width: 65px;">
+                  <mat-form-field>
+                    <input matInput
+                            type="number"
+                            [value]="groupInput.nb_pers + vm.qty_vars.values[index]"
+                            (blur)="vm.qty_vars.change(index, $event)">
+                  </mat-form-field>
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3) auto-discounts / price adapters -->
     <div class="row row-first" *ngIf="!vProduct.identification.folded && !groupInput.is_locked">
       <div class="part cell" [class.hidden]="!ready">
         <div class="part-toggle">
@@ -161,7 +196,7 @@
       </div>
     </div>
 
-    <!-- 3) manual discounts -->
+    <!-- 4) manual discounts -->
     <div class="row row-first" *ngIf="!vProduct.identification.folded && !groupInput.is_locked">
       <div class="part cell" [class.hidden]="!ready">
         <div class="part-toggle">
@@ -174,7 +209,7 @@
         </div>
         <div class="part-container">
           <div class="row row-title row-thin">
-          <span>Réductions <button mat-mini-fab color="primary" style="transform: scale(0.65);" (click)="vm.discounts.add(); vProduct.discounts.folded = false"> <mat-icon>add</mat-icon></button></span>
+          <span>Réductions <button mat-mini-fab color="primary" style="transform: scale(0.66);" (click)="vm.discounts.add(); vProduct.discounts.folded = false"> <mat-icon>add</mat-icon></button></span>
           </div>
           <!-- manual discounts details -->
           <div class="row row-thin" *ngIf="!vProduct.discounts.folded">

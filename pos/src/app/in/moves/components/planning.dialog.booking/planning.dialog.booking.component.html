@@ -1,0 +1,39 @@
+<h2 mat-dialog-title>Reservation <small>[{{booking.booking_ref}}]</small> <button mat-icon-button (click)="onShowBooking(booking.id)"><mat-icon>open_in_new</mat-icon></button></h2>
+
+
+<div mat-dialog-content>
+  <div class="row">
+    <div class="row-cell row-title">Du</div>
+    <div class="row-cell">{{booking.date_from | date : 'fullDate'}} {{booking.schedule_from}}</div>
+  </div>
+
+  <div class="row">
+    <div class="row-cell row-title">Au</div>
+    <div class="row-cell">{{booking.date_to | date : 'fullDate'}} {{booking.schedule_to}}</div>
+  </div>
+
+
+  <div class="row">
+    <div class="row-cell row-title">Client</div>
+    <div class="row-cell">
+      <div style="display:flex">{{booking.booking_customer_name}} <button mat-icon-button (click)="onShowCustomer(booking.booking_customer_id)"><mat-icon>open_in_new</mat-icon></button></div>
+    </div>
+  </div>
+
+  <div class="row">
+    <div class="row-cell row-title">Contacts</div>
+    <div class="row-cell" style="margin-top: 5px">
+      <div class="item-contact" *ngFor="let contact of contacts">
+        <div class="contact-cell" style="flex: 0 1 30%">{{contact.name}} <b>({{ (contact.type == 'booking')?'résa':(contact.type == 'sojourn')?'séjour':(contact.type == 'invoice')?'facture':(contact.type == 'contract')?'contrat':''}})</b></div>
+        <div class="contact-cell" style="flex: 0 1 40%"><a href="mailto:{{contact.partner_identity_id.email}}">{{contact.partner_identity_id.email}}</a></div>
+        <div class="contact-cell" style="flex: 0 1 30%"><a href="tel:{{contact.partner_identity_id.phone}}">{{contact.partner_identity_id.phone}}</a></div>
+        <div style="margin-top: -7px; width: 30px;"><button mat-icon-button (click)="onShowContact(contact.id)"><mat-icon>open_in_new</mat-icon></button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<div mat-dialog-actions>    
+  <button mat-raised-button color="primary" (click)="onClose()">Ok</button>
+</div>

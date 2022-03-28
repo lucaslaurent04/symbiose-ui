@@ -121,7 +121,12 @@ export class DocumentsImportComponent implements OnInit, AfterContentInit {
           let errors = response['error']['errors'];
 
           if(errors.hasOwnProperty('INVALID_PARAM')) {
-            error = 'invalid_param';
+            if(errors['INVALID_PARAM'] == 'maximum_size_exceeded') {
+              error = 'maximum_size_exceeded';
+            }
+            else {
+              error = 'invalid_param';
+            }
           }
           else if(errors.hasOwnProperty('NOT_ALLOWED')) {
             error = 'not_allowed';
@@ -131,6 +136,9 @@ export class DocumentsImportComponent implements OnInit, AfterContentInit {
           case 'not_allowed':
             this.snack.open("Vous n'avez pas les autorisations pour cette opération.", "Erreur");
             break;
+          case 'maximum_size_exceeded':
+            this.snack.open("Taille supérieure au maximum autorisé.", "Erreur");
+            break;  
           case 'unknnown':
           case 'invalid_param':
           default:

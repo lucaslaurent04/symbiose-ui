@@ -1,5 +1,6 @@
 import { Component, Inject, OnInit, OnChanges, NgZone, Output, Input, EventEmitter, SimpleChanges } from '@angular/core';
 import { AuthService, ApiService, ContextService } from 'sb-shared-lib';
+import { BookingApiService } from 'src/app/in/bookings/booking.api.service';
 import { Router, ActivatedRoute } from '@angular/router';
 
 import { FormBuilder, FormGroup, FormControl, Validators } from '@angular/forms';
@@ -110,7 +111,7 @@ export class BookingEditBookingsGroupComponent implements OnInit  {
   private model_fields = {
     BookingLine: [
       "id", "name", "product_id", "order", "qty", "price_id", "vat_rate", "unit_price", "price", 
-      "booking_id", "booking_line_group_id",
+      "booking_id", "booking_line_group_id", "qty_vars",
       "price_adapters_ids", "auto_discounts_ids", "manual_discounts_ids",
       "qty_accounting_method", "is_accomodation", "is_meal"
     ],
@@ -139,7 +140,7 @@ export class BookingEditBookingsGroupComponent implements OnInit  {
   public vm: vmModel;
 
   constructor(
-              private api: ApiService,
+              private api: BookingApiService,
               private auth: AuthService,
               private dialog: MatDialog,
               private zone: NgZone,
@@ -269,6 +270,8 @@ export class BookingEditBookingsGroupComponent implements OnInit  {
     });
 
   }
+
+  
 
 
   public toggleFold() {
@@ -494,6 +497,13 @@ export class BookingEditBookingsGroupComponent implements OnInit  {
         refresh_requests['self'] = ['price'];
       }
 
+      if(line.hasOwnProperty('qty_vars')) {
+        await this.updateQtyVars(line);
+        has_change = true;
+        refresh_requests['booking_id'] = ['price'];
+        refresh_requests['self'] = ['price'];
+      }
+
 
       // handle explicit requests for updating single fields (reload partial object)
       if(line.hasOwnProperty('refresh')) {
@@ -544,9 +554,8 @@ export class BookingEditBookingsGroupComponent implements OnInit  {
       }
 
     }
-    catch(error) {
-      console.warn('some changes could not be stored', error);
-      this.snack.open("Erreur - certains changements n'ont pas pu être enregistrés.");
+    catch(response:any) {
+      this.api.errorFeedback(response);
     }
   }
 
@@ -801,5 +810,8 @@ $products = sale\catalog\Product::search(['family_id', 'in', $families_ids])
     await this.api.update("lodging\\sale\\booking\\BookingLine", [line.id], <any>{"rental_unit_id": line.rental_unit_id});
   }
   
+  private async updateQtyVars(line:any) {
+    await this.api.update("lodging\\sale\\booking\\BookingLine", [line.id], <any>{"qty_vars": line.qty_vars});
+  }
 
 }

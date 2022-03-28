@@ -55,8 +55,8 @@ export class BookingEditBookingsComponent implements OnInit  {
 
   private model_fields = {
     BookingLineGroup: ["id", "booking_id", "name", "order", "has_pack", "pack_id", "price",
-                      "is_locked", "date_from", "date_to",
-                      "sojourn_type", "nb_pers", "rate_class_id",
+                      "is_locked", "is_autosale", "is_extra", "date_from", "date_to",
+                      "sojourn_type", "nb_pers", "nb_nights", "rate_class_id",
                       "booking_lines_ids", "accomodations_ids"]
   };
 
@@ -110,43 +110,6 @@ export class BookingEditBookingsComponent implements OnInit  {
     // listen to changes relayed by children component on the _bookingInput observable
     this._groupInput.subscribe(params => this.updateFromGroup(params));
 
-  }
-
-  private errorFeedback(response: any) {
-    console.log('BookingEditBookingsComponent::errorFeedback', response);
-    let error:string = 'unknonw';
-    if(response && response.hasOwnProperty('error') && response['error'].hasOwnProperty('errors')) {
-      let errors = response['error']['errors'];
-
-      if(errors.hasOwnProperty('INVALID_STATUS')) {
-        error = 'invalid_status';
-      }
-      else if(errors.hasOwnProperty('INVALID_PARAM')) {
-        error = 'invalid_param';
-      }
-      else if(errors.hasOwnProperty('NOT_ALLOWED')) {
-        error = 'not_allowed';
-      }
-      else if(errors.hasOwnProperty('CONFLICT_OBJECT')) {
-        error = 'conflict_object';
-      }
-    }
-
-    switch(error) {
-      case 'not_allowed':
-        this.snack.open("Vous n'avez pas les autorisations pour cette opération.", "Erreur");
-        break;
-      case 'conflict_object':
-        this.snack.open("Cette réservation a été modifiée entretemps par un autre utilisateur.", "Erreur");
-        break;
-      case 'invalid_status':
-        this.snack.open("La réservation n'est pas modifiable. Repassez en devis pour la modifier.", "Erreur");
-        break;
-      case 'unknonw':
-      case 'invalid_param':
-      default:
-        this.snack.open("Erreur inconnue - certains changements n'ont pas pu être enregistrés.", "Erreur");
-    }    
   }
 
   /**
@@ -262,12 +225,16 @@ export class BookingEditBookingsComponent implements OnInit  {
       //this.bookingOutput.next({booking_lines_groups_ids: groups_ids});
     }
     catch(response: any) {
-      this.errorFeedback(response);
+      this.api.errorFeedback(response);
     }
   }
 
   private async groupRemove(group:any) {
 
+    if(group.is_autosale) {
+      this.api.errorFeedback({error: {errors: {NOT_ALLOWED: 'cannot delete autosale groups'}}});
+      return;
+    }
     const dialogRef = this.dialog.open(BookingDeletionDialogConfirm, {
       width: '33vw',
       data: {booking: this.booking}
@@ -289,7 +256,7 @@ export class BookingEditBookingsComponent implements OnInit  {
       this._groupOutput.splice(index, 1);
     }
     catch(response) {
-      this.errorFeedback(response);
+      this.api.errorFeedback(response);
     }
   }
 
@@ -424,7 +391,7 @@ export class BookingEditBookingsComponent implements OnInit  {
 
     }
     catch(response:any) {
-      this.errorFeedback(response);
+      this.api.errorFeedback(response);
     }
   };
 

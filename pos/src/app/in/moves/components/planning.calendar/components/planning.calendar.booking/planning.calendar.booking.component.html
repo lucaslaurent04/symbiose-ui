@@ -1,0 +1,20 @@
+<div class="reservedBox" [class.is-weekend]="is_weekend">
+
+  <div class="reservedBoxBg" [class.invert]="booking">
+    {{ day | date: 'd' }}
+  </div>
+
+  <div *ngIf="booking" style="height: 100%; position: relative;" (click)="onShowBooking(booking)" > 
+
+    <div *ngIf="is_first" class="booking-details" [style.background-color]="color">  
+      <div style="display: flex;">
+        <div style="flex: 0 1 20%;">{{booking.booking_ref}}</div><div style="margin-left: auto">{{booking.booking_status}}</div>
+      </div>
+      <div style="display: flex;">
+        <div style="flex: 0 1 20%;">{{booking.booking_customer_name}}</div><div style="margin-left: auto">{{booking.booking_payment_status}}</div>
+      </div>
+    </div>    
+
+  </div>
+  <div *ngIf="is_today" class="is-today"></div>
+</div>
