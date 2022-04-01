@@ -2,6 +2,10 @@ app-menu-list-item.hidden {
     display: none;
 }
 
+a {
+    cursor: pointer;
+}
+
 .container {
     display: flex;
     flex-direction: column;

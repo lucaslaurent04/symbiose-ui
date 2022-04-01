@@ -23,11 +23,11 @@ class Order {
 
 
 @Component({
-  selector: 'orders-order',
-  templateUrl: './orders.order.component.html',
-  styleUrls: ['./orders.order.component.scss']
+  selector: 'session-order',
+  templateUrl: './order.component.html',
+  styleUrls: ['./order.component.scss']
 })
-export class OrdersOrderComponent implements OnInit, AfterContentInit {
+export class SessionOrderComponent implements OnInit, AfterContentInit {
 
   public showSbContainer: boolean = false;
 

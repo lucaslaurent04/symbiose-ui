@@ -213,11 +213,15 @@ export class ApiService {
     });
   }
 
-  /*
+
+  /* 
+    HTTP methods for API requests.
+
     All methods using API return a Promise object.
     They can ben invoked either by chaing .then() and .catch() methods, or with await prefix (assuming parent function is declared as async).
   */
 
+    
   /**
    * Send a GET request to the API.
    *

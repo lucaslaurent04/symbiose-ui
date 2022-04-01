@@ -5,21 +5,21 @@ import { CustomDateAdapter } from '../../customDateAdapter';
 
 
 import { SharedLibModule, AuthInterceptorService } from 'sb-shared-lib';
+import { SessionRoutingModule } from './session-routing.module';
 
-import { MovesRoutingModule } from './moves-routing.module';
+import { SessionComponent } from './session.component';
 
-import { MovesComponent } from './moves.component';
 
 @NgModule({
   imports: [
     SharedLibModule,
-    MovesRoutingModule
+    SessionRoutingModule
   ],
   declarations: [
-    MovesComponent    
+    SessionComponent
   ],
   providers: [
     { provide: DateAdapter, useClass: CustomDateAdapter, deps: [MAT_DATE_LOCALE, Platform] }
   ]
 })
-export class AppInMovesModule { }
+export class AppInSessionModule { }

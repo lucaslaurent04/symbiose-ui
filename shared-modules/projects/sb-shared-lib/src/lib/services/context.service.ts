@@ -90,7 +90,13 @@ export class ContextService {
       this.descriptor.context = {...descriptor.context};
       // request eq.openContext()
       if(!descriptor.context_only) {
-        this.eq.open(descriptor.context);
+
+        if(descriptor.context.hasOwnProperty('display_mode') && descriptor.context.display_mode == 'popup') {
+          this.eq.popup(descriptor.context);
+        }
+        else {
+          this.eq.open(descriptor.context);
+        }      
       }      
       this.observable.next({context: descriptor.context});
     }
