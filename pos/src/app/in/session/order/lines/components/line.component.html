@@ -1,0 +1,32 @@
+<div>{{instance.id}}</div>
+<div>{{instance.name}}</div>
+<div>
+    <mat-form-field >
+        <mat-label>Unit Prixe</mat-label>
+        <input  
+                type="number" 
+                matInput 
+                (blur)="onchangeUnitPrice()"
+                [formControl]="unit_price">
+    </mat-form-field>    
+</div>
+<div>{{instance.vat_rate}}</div>
+
+<div>
+    <mat-form-field >
+        <mat-label>Qty</mat-label>
+        <input  
+                type="number" 
+                matInput 
+                (blur)="onchangeQty()"
+                [formControl]="qty">
+    </mat-form-field>
+</div>
+
+<div>{{instance.discount}}</div>
+<div>{{instance.free_qty}}</div>
+<div>{{instance.total}}</div>
+<div>{{instance.price}}</div>
+<div>
+    <button mat-mini-fab color="accent" (click)="onclickDelete()"><mat-icon>delete</mat-icon></button>
+</div>

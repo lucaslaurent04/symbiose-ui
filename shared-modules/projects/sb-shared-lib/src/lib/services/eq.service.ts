@@ -21,6 +21,10 @@ export class EqualUIService {
     this.eq.open(context);
   }
 
+  public popup(context: any) {
+    this.eq.popup(context);
+  }
+
   public closeAll() {
     this.eq.closeAll();
   }
@@ -29,4 +33,19 @@ export class EqualUIService {
     this.eq.addSubscriber(events, callback);
   }
 
+  /**
+   * Provide ApiService to allow sharing the Views and Translations cache.
+   * @returns The instance of eQ ApiService.
+   */
+  public getApiService() {
+    return this.eq.getApiService();
+  }
+
+  /**
+   * Provide TranslationService to allow resolving view items transaltions.
+   * @returns The instance of eQ TranslationService.
+   */
+   public getTranslationService() {
+    return this.eq.getTranslationService();
+  }
 }

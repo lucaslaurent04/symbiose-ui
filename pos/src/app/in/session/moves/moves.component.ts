@@ -2,16 +2,14 @@ import { Component, ChangeDetectorRef, OnInit, AfterViewInit, NgZone } from '@an
 
 import { Subscription } from 'rxjs';
 
-import { BookingDayClass } from 'src/app/model/booking.class';
-import { ChangeReservationArg } from 'src/app/model/changereservationarg';
 import { ApiService, AuthService } from 'sb-shared-lib';
 
 @Component({
-  selector: 'moves',
+  selector: 'session-moves',
   templateUrl: './moves.component.html',
   styleUrls: ['./moves.component.scss']
 })
-export class MovesComponent implements OnInit, AfterViewInit {
+export class SessionMovesComponent implements OnInit, AfterViewInit {
 
 
   public showSbContainer: boolean = false;

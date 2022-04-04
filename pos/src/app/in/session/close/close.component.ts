@@ -3,11 +3,11 @@ import { ContextService } from 'sb-shared-lib';
 
 
 @Component({
-  selector: 'orders',
-  templateUrl: 'orders.component.html',
-  styleUrls: ['orders.component.scss']
+  selector: 'session-close',
+  templateUrl: 'close.component.html',
+  styleUrls: ['close.component.scss']
 })
-export class OrdersComponent implements OnInit, AfterViewInit {
+export class SessionCloseComponent implements OnInit, AfterViewInit {
 
   public ready: boolean = false;
 
@@ -18,11 +18,11 @@ export class OrdersComponent implements OnInit, AfterViewInit {
 
   public ngAfterViewInit() {
 
-
   }
 
   public ngOnInit() {
     console.log('OrdersComponent init');
+    this.ready = true;
   }
 
 }

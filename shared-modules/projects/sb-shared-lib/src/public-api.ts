@@ -2,6 +2,7 @@
  * Public API Surface of sb-shared-lib
  */
 
+export * from './lib/classes/tree-component.class';
 export * from './lib/services/http.interceptor.service';
 export * from './lib/services/api.service';
 export * from './lib/services/env.service';

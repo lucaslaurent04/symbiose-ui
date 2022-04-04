@@ -7,12 +7,12 @@ import { AppComponent } from './in/app.component';
 const routes: Routes = [
   /* routes specific to current app */
   {
-    path: 'orders',
-    loadChildren: () => import(`./in/orders/orders.module`).then(m => m.AppInOrdersModule) 
+    path: 'sessions',
+    loadChildren: () => import(`./in/sessions/sessions.module`).then(m => m.AppInSessionsModule) 
   },
   {
-    path: 'moves',
-    loadChildren: () => import(`./in/moves/moves.module`).then(m => m.AppInMovesModule) 
+    path: 'session/:session_id',
+    loadChildren: () => import(`./in/session/session.module`).then(m => m.AppInSessionModule) 
   },
   {
     /*
