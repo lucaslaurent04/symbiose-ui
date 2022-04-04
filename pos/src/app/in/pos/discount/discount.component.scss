@@ -1,0 +1,19 @@
+.listHeader{
+    display: flex;
+    justify-content: space-around;
+    padding: 0.5rem;
+}
+.mat-selection-list{
+    .mat-list-option{
+        margin-bottom: 0.45rem; 
+        height: max-content;
+        .optionDetails{
+            display: flex; 
+            justify-content: space-between;
+            .lineName, .lineUnit{
+                font-weight: bold;
+            }
+        }
+        
+    }
+}

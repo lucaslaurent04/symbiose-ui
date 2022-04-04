@@ -1,0 +1,76 @@
+<section class="pos">
+    <div class="pos-lines">
+        <!-- Afficher l'écran selon la condition -->
+        <app-paiement [paymentAmount]="discountValue" *ngIf="posLineDisplay == 'payment'" (posLineDisplay)="getPosLineDisplay($event)" (paymentSelection)="getPaymentSelection($event)" (paymentValue)="getPaymentValue($event)"></app-paiement>
+        <app-info *ngIf="posLineDisplay == 'info'" (posLineDisplay)="getPosLineDisplay($event)"></app-info>
+        <app-discount [item]="discountValue" (discountValue)="getDiscountValue($event)" (posLineDisplay)="getPosLineDisplay($event)" *ngIf="posLineDisplay == 'discount'"></app-discount>
+        <mat-selection-list *ngIf="posLineDisplay == 'main'"  #productsList [multiple] = "false" (click)="onSelectedProductChange(productsList.selectedOptions.selected)">
+            <mat-list-option *ngFor="let product of products"  [value]="product">
+                <p class="productName">{{product.name}}</p> 
+                <p>{{product.quantity}}<span *ngIf="!product.quantity.includes('.')">.00</span> unités à {{product.price}}<span *ngIf="!product.price.includes('.')">.00€</span> / Unités</p>
+                <!-- Paragraphe pour discount qui a été déplacé dans autre composant --> 
+                <!-- <p *ngIf="discountTest != ''" style="margin: 0;">Avec {{discountTest}}% de remise</p> -->
+                <hr>
+            </mat-list-option>
+        </mat-selection-list>
+        <div class="total" *ngIf="posLineDisplay == 'main'">
+            <span class="totalNumber"> Total : {{total}} </span> 
+            <span> Taxes : {{taxes}} </span>   
+        </div>
+    </div>
+    <div class="pos-pad">
+        <div class="client">
+            <span>Client: xxx</span> <button mat-fab color="primary"><mat-icon>add</mat-icon></button>
+        </div>
+        <div class="pos-lowerPart">
+            <div class="details-paiement">
+                 
+                <mat-button-toggle-group [(ngModel)]="invoice" class="paiement">
+                    <mat-button-toggle style="width: 100%; background-color: lightblue;" [class.selected]="invoice == true" (click)="onInvoice()" mat-raised-button [value]="invoice"> <p><span>Facture</span></p> </mat-button-toggle>
+                </mat-button-toggle-group>
+                
+                <button mat-raised-button class="paiement" (click)="getPosLineDisplay('payment')">
+                    <mat-icon>play_circle_filled</mat-icon>
+                    <p>Paiement</p>
+                </button> 
+            </div>
+            <div style="display: flex;">
+                <app-pad (newNumberPassed)="checkNumberPassed($event)"></app-pad>
+                <app-type-toggle (newItemEvent)="checkActionType($event)" (newOnBackspace)="onBackSpace($event)"></app-type-toggle>
+            </div>
+        </div>  
+    </div>
+</section>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- To keep it in mind
+    <div class="client-resa">
+            <div style="margin: 0.4rem; width: 100%;">
+                Client : <span> lorem ipsum </span> <button (click)="changeClient()">ok</button>
+            </div>
+            <div style="display: grid;
+            grid-template-columns: repeat(2, 1fr); width: 50%; margin: 0.4rem;">
+            <span >Réservation : <mat-checkbox (change)="onResa = !onResa" ></mat-checkbox></span> <span *ngIf="onResa"> Resa Name </span>
+            </div>
+        </div> -->

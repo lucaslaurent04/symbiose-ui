@@ -1,0 +1,16 @@
+<section class="pad">
+    <div class="pad-numbers">
+        <button mat-raised-button value="1" (click)="onPassNumber(1)">1</button>
+        <button mat-raised-button value="2" (click)="onPassNumber(2)">2</button>
+        <button mat-raised-button value="3" (click)="onPassNumber(3)">3</button>
+        <button mat-raised-button value="4" (click)="onPassNumber(4)">4</button>
+        <button mat-raised-button value="5" (click)="onPassNumber(5)">5</button>
+        <button mat-raised-button value="6" (click)="onPassNumber(6)">6</button>
+        <button mat-raised-button value="7" (click)="onPassNumber(7)">7</button>
+        <button mat-raised-button value="8" (click)="onPassNumber(8)">8</button>
+        <button mat-raised-button value="9" (click)="onPassNumber(9)">9</button>
+        <button mat-raised-button value="+/-" (mouseup)="onMouseUp()" (mousedown)="onMouseDown()">{{this.operator}}</button>
+        <button mat-raised-button value="0" (click)="onPassNumber(0)">0</button>
+        <button mat-raised-button value="," (click)="onPassNumber(',')">,</button>
+    </div>
+</section>

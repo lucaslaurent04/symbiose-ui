@@ -1,0 +1,11 @@
+<div>
+    <mat-button-toggle-group [(ngModel)]="addedNumber"class="mat-button-toggle-group;">
+        <!-- <mat-button-toggle mat-raised-button value="10" style="display: flex; align-items:center;">+10</mat-button-toggle>
+        <mat-button-toggle mat-raised-button value="20" style="display: flex; align-items:center;">+20</mat-button-toggle>
+        <mat-button-toggle mat-raised-button value="50" style="display: flex; align-items:center;">+50</mat-button-toggle> -->
+        <button class="btn" (click)="onSelectionChange(10)" mat-raised-button>+10</button>
+        <button class="btn" (click)="onSelectionChange(20)" mat-raised-button>+20</button>
+        <button class="btn" (click)="onSelectionChange(50)" mat-raised-button>+50</button>
+        <button class="backspace" (click)="onBackSpace()" mat-raised-button><mat-icon>backspace</mat-icon></button>
+    </mat-button-toggle-group>
+</div>

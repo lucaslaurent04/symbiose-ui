@@ -1,0 +1,41 @@
+div{
+    height: 100%;
+    .mat-button-toggle-group{
+        display: grid;
+        grid-template-columns: repeat(1, 70px);
+        grid-template-rows: repeat(4, 70px);
+        // border: none;
+        height: max-content;
+        @media only screen and (max-width: 1500px) {
+            grid-template-columns: repeat(1, 55px);
+            grid-template-rows: repeat(4, 55px);
+        }
+        @media only screen and (max-width: 1350px) {
+            grid-template-columns: repeat(1, 50px);
+            grid-template-rows: repeat(4, 40px);
+        }
+        .mat-button-toggle{
+            font-size: 1.2rem;
+            display: flex; 
+            align-items:center;
+            min-width: 0;
+            padding: 0;
+            @media only screen and (max-width: 1350px) {
+                font-size: 1rem;   
+            }
+        }
+        button{
+            font-size: 1.2rem;
+            min-width: 0;
+            @media only screen and (max-width: 1350px) {
+                font-size: 1rem;
+            }
+        }
+        .selected{
+            background-color: rgb(143, 226, 143)   
+        }
+        .backspace{
+            background-color: lightgray;
+        }
+    }
+}

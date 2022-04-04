@@ -1,0 +1,18 @@
+<div class="listHeader">
+    <button mat-mini-fab (click)="onButton('main')"><mat-icon>arrow_back_ios</mat-icon></button>
+    <p style="font-weight: bolder;">Price details</p> 
+    <button mat-mini-fab (click)="onButton('info')"><mat-icon>info</mat-icon></button>
+</div>
+<hr>
+<mat-selection-list style="overflow: auto;" #lines [multiple] = "false" (click)="onSelectedElement(lines.selectedOptions.selected)">
+    <mat-list-option>
+        
+    </mat-list-option>
+    <mat-list-option *ngFor="let line of liners; index as i" [value]="i" >
+        <div class="optionDetails">
+            <p class="lineName">{{line.name}}</p> 
+            <p> <span>{{line.value}} </span> <span *ngIf="line.value == ''">0 </span> <span class="lineUnit">{{line.unit}}</span></p>
+        </div>
+        <hr>
+    </mat-list-option>
+</mat-selection-list>

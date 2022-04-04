@@ -1,0 +1,24 @@
+<mat-selection-list style="overflow: auto;" #lines [multiple] = "false" (click)="onSelectedElement(lines.selectedOptions.selected)">
+    <mat-list-option>
+        <div class="listHeader">
+            <button mat-mini-fab (click)="onButton('discount')"><mat-icon>arrow_back_ios</mat-icon></button>
+            <p>Price details</p> 
+        </div>
+        <hr>
+    </mat-list-option>
+    <mat-list-option  style="background-color: #3f51b5; color: white;">
+        <div>
+            <p><span>SKU</span></p> 
+            <p>  <span>€</span></p>
+        </div>
+        <hr>
+    </mat-list-option>
+    <mat-list-option  style="background-color: #3f51b5; color: white;">
+        <div>
+            <p><span>Catalog Price</span></p> 
+            <p>  <span>€</span></p>
+        </div>
+        <hr>
+    </mat-list-option>
+</mat-selection-list>
+
