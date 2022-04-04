@@ -1,0 +1,63 @@
+<h2>Payment {{instance.id}}</h2>
+
+<div class="row">
+    <div><h3>Details</h3></div>
+    <div>Dû: {{instance.total_due}}</div>
+    <div>Reçu: {{instance.total_paid}}</div>
+    <div>
+        <button mat-mini-fab color="accent" (click)="onclickDelete()"><mat-icon>delete</mat-icon></button>
+    </div>
+</div>
+<div>
+    
+    <div style="display: flex"><h3>Encaissements</h3> <button mat-mini-fab color="accent" (click)="onclickCreateNewPart()"><mat-icon>add</mat-icon> </button></div>
+    <ng-container *ngFor="let part of instance.order_payment_parts_ids">
+        
+        <session-order-payments-payment-part
+            [model]="part"
+            (updated)="onupdatePart(part.id)"
+            (deleted)="ondeletePart(part.id)"
+        ></session-order-payments-payment-part>
+
+    </ng-container>
+</div>
+<div class="row">
+
+    <mat-accordion>
+    <mat-expansion-panel >
+        <mat-expansion-panel-header>
+        <mat-panel-title>
+            Lignes
+        </mat-panel-title>
+        <mat-panel-description>
+            lignes de commande assignées au paiement
+        </mat-panel-description>
+        </mat-expansion-panel-header>
+
+        <div>
+            <div class="line-header">
+                <div>id</div>
+                <div>name</div>
+                <div>unit_price</div>
+                <div>vat_rate</div>
+                <div>qty</div>
+                <div>discount</div>
+                <div>free_qty</div>
+                <div>total</div>
+                <div>price</div>
+                <div>ACTIONS</div>
+            </div>
+            <ng-container *ngFor="let line of instance.order_lines_ids">
+            
+                <session-order-payments-order-line
+                    [model]="line"
+                    (deleted)="ondeleteLine(line.id)"
+                ></session-order-payments-order-line>
+
+            </ng-container>
+        </div>
+
+    </mat-expansion-panel>
+    </mat-accordion>
+
+</div>

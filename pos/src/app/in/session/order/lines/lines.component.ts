@@ -1,14 +1,13 @@
 import { Component, OnInit, AfterViewInit, ChangeDetectorRef, ViewChildren, QueryList } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-
 import { ApiService, ContextService, TreeComponent, RootTreeComponent } from 'sb-shared-lib';
 import { CashdeskSession } from './../../session.model';
 import { Order, OrderLine } from './lines.model';
-import { SessionOrderLinesLineComponent } from './components/line.component';
+import { SessionOrderLinesOrderLineComponent } from './components/line/order-line.component';
 
 // declaration of the interface for the map associating relational Model fields with their components
 interface OrderComponentsMap {
-    order_lines_ids: QueryList<SessionOrderLinesLineComponent>
+    order_lines_ids: QueryList<SessionOrderLinesOrderLineComponent>
 };
 
 @Component({
@@ -18,7 +17,7 @@ interface OrderComponentsMap {
 })
 export class SessionOrderLinesComponent extends TreeComponent<Order, OrderComponentsMap> implements RootTreeComponent, OnInit, AfterViewInit {
 
-    @ViewChildren(SessionOrderLinesLineComponent) SessionOrderLinesLineComponents: QueryList<SessionOrderLinesLineComponent>; 
+    @ViewChildren(SessionOrderLinesOrderLineComponent) SessionOrderLinesOrderLineComponents: QueryList<SessionOrderLinesOrderLineComponent>; 
 
     public ready: boolean = false;
 
@@ -36,7 +35,7 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
     public ngAfterViewInit() {
         // init local componentsMap
         let map:OrderComponentsMap = {
-            order_lines_ids: this.SessionOrderLinesLineComponents
+            order_lines_ids: this.SessionOrderLinesOrderLineComponents
         };
         this.componentsMap = map;
     }
@@ -115,7 +114,7 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
     }
 
     public async onclickCreateNewLine() {
-        await this.api.create(OrderLine.entity, {order_id: this.instance.id});
+        await this.api.create( (new OrderLine()).entity, {order_id: this.instance.id});
         this.load(this.instance.id);
     }
 

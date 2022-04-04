@@ -1,0 +1,28 @@
+:host {
+      
+    width: 100%;
+    margin-left: 20px;
+    .row {
+        display: flex;
+        width: 100%;
+
+        div {
+            flex: 1 1 10%;
+        }
+
+        mat-accordion {
+            width: 100%;
+
+            .line-header {
+                display: flex; 
+                margin-left: 20px;
+                div {
+                    flex: 1 1 10%;
+                    text-align: left;
+                    font-weight: 500;
+                }
+            }
+        }
+
+    }
+}

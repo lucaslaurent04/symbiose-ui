@@ -9,10 +9,14 @@ import { SharedLibModule, AuthInterceptorService } from 'sb-shared-lib';
 import { SessionOrderRoutingModule } from './order-routing.module';
 
 import { SessionOrderComponent } from './order.component';
-import { SessionOrderLinesComponent } from './lines/lines.component';
-import { SessionOrderPaymentsComponent } from './payments/payments.component';
 
-import { SessionOrderLinesLineComponent } from './lines/components/line.component';
+import { SessionOrderLinesComponent } from './lines/lines.component';
+import { SessionOrderLinesOrderLineComponent } from './lines/components/line/order-line.component';
+
+import { SessionOrderPaymentsComponent } from './payments/payments.component';
+import { SessionOrderPaymentsOrderPaymentComponent } from './payments/components/payment/order-payment.component';
+import { SessionOrderPaymentsOrderLineComponent } from './payments/components/payment/line/order-line.component';
+import { SessionOrderPaymentsPaymentPartComponent } from './payments/components/payment/part/payment-part.component';
 
 
 @NgModule({
@@ -24,7 +28,10 @@ import { SessionOrderLinesLineComponent } from './lines/components/line.componen
     SessionOrderComponent,
     SessionOrderLinesComponent,
     SessionOrderPaymentsComponent,
-    SessionOrderLinesLineComponent
+    SessionOrderPaymentsOrderPaymentComponent,
+    SessionOrderLinesOrderLineComponent,
+    SessionOrderPaymentsOrderLineComponent,
+    SessionOrderPaymentsPaymentPartComponent
   ],
   providers: [
     { provide: DateAdapter, useClass: CustomDateAdapter, deps: [MAT_DATE_LOCALE, Platform] }

@@ -2,7 +2,9 @@ export class Order {
     // index signature
     [key: string]: any;
     // model entity
-    public static entity:string = 'lodging\\sale\\pos\\Order';
+    // public static entity:string = 'lodging\\sale\\pos\\Order';
+    public get entity():string { return 'lodging\\sale\\pos\\Order'};
+    
     // constructor with public properties
     constructor(
         public id: number = 0,
@@ -21,7 +23,7 @@ export class OrderLine {
     // index signature
     [key: string]: any;
     // model entity
-    public static entity:string = 'sale\\pos\\OrderLine';
+    public get entity():string { return 'sale\\pos\\OrderLine'};
     // constructor with public properties
     constructor(
         public id: number = 0,

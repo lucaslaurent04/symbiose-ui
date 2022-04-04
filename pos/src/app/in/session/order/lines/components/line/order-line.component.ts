@@ -3,7 +3,7 @@ import { FormControl } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { ApiService, ContextService, TreeComponent } from 'sb-shared-lib';
-import { Order, OrderLine } from './../lines.model';
+import { Order, OrderLine } from '../../lines.model';
 
 
 // declaration of the interface for the map associating relational Model fields with their components
@@ -11,11 +11,11 @@ interface OrderLineComponentsMap {
 };
 
 @Component({
-    selector: 'session-order-lines-line',
-    templateUrl: 'line.component.html',
-    styleUrls: ['line.component.scss']
+    selector: 'session-order-lines-order-line',
+    templateUrl: 'order-line.component.html',
+    styleUrls: ['order-line.component.scss']
 })
-export class SessionOrderLinesLineComponent extends TreeComponent<OrderLine, OrderLineComponentsMap> implements OnInit, AfterViewInit  {
+export class SessionOrderLinesOrderLineComponent extends TreeComponent<OrderLine, OrderLineComponentsMap> implements OnInit, AfterViewInit  {
     // servel-model relayed by parent
     @Input() set model(values: any) { this.update(values) }
     @Output() updated = new EventEmitter();
@@ -64,17 +64,17 @@ export class SessionOrderLinesLineComponent extends TreeComponent<OrderLine, Ord
     }
 
     public async onclickDelete() {
-        await this.api.update(Order.entity, [this.instance.order_id], {order_lines_ids: [-this.instance.id]});
+        await this.api.update((new Order()).entity, [this.instance.order_id], {order_lines_ids: [-this.instance.id]});
         this.deleted.emit();
     }
 
     public async onchangeQty() {
-        await this.api.update(OrderLine.entity, [this.instance.id], {qty: this.instance.qty});        
+        await this.api.update(this.instance.entity, [this.instance.id], {qty: this.instance.qty});        
         this.updated.emit();
     }
 
     public async onchangeUnitPrice() {
-        await this.api.update(OrderLine.entity, [this.instance.id], {unit_price: this.instance.unit_price});        
+        await this.api.update(this.instance.entity, [this.instance.id], {unit_price: this.instance.unit_price});        
         this.updated.emit();
     }
 

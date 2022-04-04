@@ -1,0 +1,30 @@
+<div>{{instance.id}}</div>
+<div>
+    <mat-form-field >
+        <mat-label>Amount</mat-label>
+        <input
+                type="number"
+                matInput
+                (blur)="onchangeAmount()"
+                [formControl]="amount">
+    </mat-form-field>
+</div>
+
+<div>
+    <mat-form-field>
+        <mat-label>Method</mat-label>
+        <mat-select (selectionChange)="onchangePaymentMethod()" [formControl]="payment_method">
+            <mat-option value="voucher">Chèque cadeau/promo</mat-option>
+            <mat-option value="cash">Espèces</mat-option>
+            <mat-option value="bank_card">Carte bancaire</mat-option>
+            <mat-option value="booking">Réservation</mat-option>
+        </mat-select>
+    </mat-form-field>
+
+</div>
+
+<div>booking: {{instance.booking_id}}</div>
+<div>voucher_ref: {{instance.voucher_ref}}</div>
+<div>
+    <button mat-mini-fab color="accent" (click)="onclickDelete()"><mat-icon>delete</mat-icon></button>
+</div>

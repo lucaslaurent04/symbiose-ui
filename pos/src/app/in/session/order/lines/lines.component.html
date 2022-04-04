@@ -8,6 +8,7 @@
             <div class="actions-view"></div></div>
             
         <div class="view">
+            <h2>Order {{instance.id}}</h2>            
             <div *ngIf="session.status != 'pending'">Cette sesion n'est plus active.</div>
             <div *ngIf="session.status == 'pending'">
 
@@ -17,11 +18,11 @@
                 <div>{{instance.total |  currency}}</div>
                 <ng-container *ngFor="let line of instance.order_lines_ids">
                     
-                    <session-order-lines-line
+                    <session-order-lines-order-line
                         [model]="line"
                         (updated)="onupdateLine(line.id)"
                         (deleted)="ondeleteLine(line.id)"
-                    ></session-order-lines-line>
+                    ></session-order-lines-order-line>
 
                 </ng-container>
             </div>
