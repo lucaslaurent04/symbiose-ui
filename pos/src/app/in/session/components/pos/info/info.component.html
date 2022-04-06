@@ -1,0 +1,23 @@
+<div class="listHeader">
+    <button class="headerButton" mat-mini-fab color="primary" (click)="onButton('main')"><mat-icon>arrow_back_ios</mat-icon></button>
+    <p style="font-weight: bolder;">Price details</p> 
+    <button class="headerButton" mat-mini-fab color="primary" (click)="onButton('info')"><mat-icon>info</mat-icon></button>
+</div>
+<hr>
+<mat-selection-list style="overflow: auto;" #lines [multiple] = "false" (click)="onSelectedElement(lines.selectedOptions.selected)">
+    <mat-list-option  style="background-color: #3f51b5; color: white;" disabled="true">
+        <div>
+            <p><span>SKU</span></p> 
+            <p> <span>€</span></p>
+        </div>
+        <hr>
+    </mat-list-option>
+    <mat-list-option  style="background-color: #3f51b5; color: white;" disabled="true">
+        <div>
+            <p><span>Catalog Price</span></p> 
+            <p>{{item.unit_price}}  <span>€</span></p>
+        </div>
+        <hr>
+    </mat-list-option>
+</mat-selection-list>
+

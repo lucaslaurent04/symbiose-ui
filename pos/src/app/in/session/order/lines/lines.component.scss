@@ -41,10 +41,10 @@
     
         .body {
             height: calc(100vh - 123px);
-            width: 100%;
             overflow-y: scroll;
             padding: 12px;
-            
+            border-right: 1px solid lightgray;
+            max-width: 430px;
             .actions {
                 display: flex;
 
@@ -72,8 +72,28 @@
             }
 
             .view {
-                margin-top: 30px;
-                
+                margin-top: 25px;
+                height: 45vh;
+                overflow: auto;
+                .selected{
+                    background-color: #3f51b5 !important;
+                    color: #3f51b5;
+                }
+                .total{
+                    display: flex;
+                    flex-direction: column;
+                    border-top: black 1px solid;
+                    float: right;
+                    width: 25%;
+                    @media only screen and (max-width: 1500px) {
+                        width: 100%;
+                    }
+                    .totalNumber{
+                        font-weight: bold; 
+                        font-size: 1.25rem; 
+                        overflow: auto;
+                    }
+                }  
                 .orders-container {
                     .order-row {
                         padding: 0 12px;

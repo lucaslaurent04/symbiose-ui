@@ -1,11 +1,13 @@
-import { Component, Inject, OnInit, Output } from '@angular/core';
+import { Component, EventEmitter, Inject, Input, OnInit, Output, SimpleChanges } from '@angular/core';
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { th } from 'date-fns/locale';
+import { data } from 'jquery';
+
 
 
 
 @Component({
-  selector: 'app-pos',
+  selector: 'pos-pad',
   templateUrl: './pos.component.html',
   styleUrls: ['./pos.component.scss']
 })
@@ -17,20 +19,24 @@ export class PosComponent implements OnInit {
   public selectedProduct = 0;
   public invoice = false;
   public actionType : any = "quantity";
-  public index : number;
+  // public index : number;
   public quantityTest = "";
   public priceTest = "";
   public discountTest = "";
   public numberPassed = 0;
-  // public numberPassedIndex = -1;
+  public numberPassedIndex = -1;
   public total = 0;
   public taxes = 0;
   public myTimeout : any;
-  public posLineDisplay : string = "main";
-  public discountValue : any = "";
+  // public posLineDisplay : string = "main";
+  // public discountValue : any = "";
   public operator : string = '+';
   public paymentValue : string;
- 
+  
+  @Output() onGetInvoice = new EventEmitter();
+  @Output() onDisplayDetails = new EventEmitter();
+  @Output() onDigitTyped = new EventEmitter();
+  @Output() onTypeMode = new EventEmitter();
 
   ngOnInit(): void {
     this.total = 0;
@@ -40,9 +46,8 @@ export class PosComponent implements OnInit {
   }
 
   onInvoice(){
-    console.log(typeof this.invoice, 'aaaaaaa')
     this.invoice = !this.invoice;
-    console.log(this.invoice, 'bbbbbb')
+    this.onGetInvoice.emit(this.invoice);
   }
 
   changeClient() {
@@ -50,11 +55,12 @@ export class PosComponent implements OnInit {
   }
 
   getPosLineDisplay(value: string){
-    this.posLineDisplay = value;
+    // this.discountValue = "0";
+    // this.posLineDisplay = value;
   }
 
   getDiscountValue(value: any){
-    this.discountValue = value;
+    // this.discountValue = value;
   }
 
   getPaymentSelection(value : string){
@@ -63,7 +69,7 @@ export class PosComponent implements OnInit {
   
   getPaymentValue(value : any){
     //en fait pour paiement, renommer les variables
-    this.discountValue = value;
+    // this.discountValue = value;
   }
 
   onDisplayProductInfo() {
@@ -78,7 +84,7 @@ export class PosComponent implements OnInit {
 
   onSelectedProductChange(element: any) {
     this.selectedProduct = element[0].value;
-    this.index = this.products.findIndex((elem:any) => elem.id == element[0].value.id);
+    // this.index = this.products.findIndex((elem:any) => elem.id == element[0].value.id);
     // Products infos
     const dialogRef = this.dialog.open(PosOpening, {
       data: this.selectedProduct
@@ -87,145 +93,116 @@ export class PosComponent implements OnInit {
     )
   }
 
-  onBackSpace(element: any) {
-    this.checkNumberPassed(element);
+  onBackSpace(event: any) {
+    this.checkNumberPassed(event);
   }
 
   checkActionType(event: any) {
-    this.actionType = event;
-    this.quantityTest = "";
-    this.priceTest = "";
+    this.onTypeMode.emit(event);
+    // this.actionType = event;
+    // this.quantityTest = "";
+    // this.priceTest = "";
   }
 
   checkNumberPassed(event: any) {
-    // first check what component is displayed
-    if(this.posLineDisplay == "discount" || this.posLineDisplay =="payment"){
+    this.onDigitTyped.emit(event);
+    // this.price = this.price.toString();
+    // this.quantity = this.quantity.toString();
+    // this.discountValue = this.discountValue.toString();
+    // // first check what component is displayed
+    // if(this.posLineDisplay == "discount" || this.posLineDisplay =="payment"){
+    //   if(event== 'backspace'){
+    //     let test = this.discountValue.slice(0, -1);
+    //     this.discountValue = test;
+    //     this.emitDiscountValue.emit([this.discountValue, this.index]);
+    //   }else if (((this.discountValue.includes('.') && this.discountValue.indexOf('.')>3)  || (!this.discountValue.includes('.') && this.discountValue.length>1)) && this.posLineDisplay !="payment"){
+    //    this.discountValue = "100"; 
+    //    this.emitDiscountValue.emit([this.discountValue, this.index]);
+    //   }
+    //    else if(event!= 'backspace' && event!= ',' && event!= '+/-') {
+    //     this.discountValue += event;
+    //     this.emitDiscountValue.emit([this.discountValue, this.index]);
+    //   }else if(event == ','){
+    //     if (!this.discountValue.includes('.')) {
+    //       this.discountValue += ".";
+    //       this.emitDiscountValue.emit([this.discountValue, this.index]);
+    //     } 
+    //   }
+    // }else{
+
+    //   if(event == '+' || event == "-" && this.index != undefined){
+    //     if(this.operator =='-' && !this.products[this.index][this.actionType].includes('-')){
+    //       this.products[this.index][this.actionType] = '-' + this.products[this.index][this.actionType];
+    //     }else if (this.index != undefined){
+    //       console.log(this.index)
+    //       let test = this.products[this.index][this.actionType].replace('-', '+');
+    //       this.products[this.index][this.actionType] = test
+    //     }
+    //     return;
+    //   }
+    //   else if(event != 'backspace' && event != '%'){
+    //     this.numberPassed = event;
+    //   }else if (event == "%"){
+    //     this.posLineDisplay = "discount";
+    //     this.onDisplayDetails.emit(this.posLineDisplay);
+    //     this.emitDiscountValue.emit(this.discountValue);
+    //     console.log(this.discountValue);
+    //     return;
+    //   }
+  
+    //   console.log(this.discountValue)
+     
+    //   clearTimeout(this.myTimeout);
+    //   this.myTimeout = setTimeout(() => {
+    //     this.quantityTest = "";
+    //     this.priceTest = "";
+    //     this.discountTest = "";
+    //   }, 2000);
+  
+  
+
       
-      if(event== 'backspace'){
-        let test = this.discountValue.slice(0, -1);
-        this.discountValue = test;
-      }else if (this.discountValue.indexOf('.').length>1 && this.posLineDisplay !="payment"){
-        this.discountValue = "100";
-        // this.discountValue.indexOf('.')>3
-      }
-       else if(event!= 'backspace' && event!= ',' && event!= '+/-') {
-        this.discountValue += event;
-      }else if(event == ','){
-        if (!this.discountValue.includes('.')) {
-          this.discountValue += ".";
-        } 
-      }
-    }else{
-
-      if(event == '+' || event == "-" && this.index != undefined){
-        if(this.operator =='-' && !this.products[this.index][this.actionType].includes('-')){
-          // this.quantityTest = '-' + this.products[this.index][this.actionType];
-          this.products[this.index][this.actionType] = '-' + this.products[this.index][this.actionType];
-        }else if (this.index != undefined){
-          console.log(this.index)
-          let test = this.products[this.index][this.actionType].replace('-', '+');
-          this.products[this.index][this.actionType] = test
-        }
-        return;
-      }
-      // else if(event == 'swap'){
-      //   if(this.operator =='+'){
-      //     this.operator = '-'
-      //   }else{
-      //     this.operator = '+';
-      //   }
-      // }
-      else if(event != 'backspace' && event != '%'){
-        this.numberPassed = event;
-        // this.numberPassedIndex++;
-      }else if (event == "%"){
-        this.posLineDisplay = "discount";
-        return;
-      }
-  
+    //   if (typeof this.numberPassed == "number") {
+    //     if (this.actionType == "quantity") {
+    //       if (event != 'backspace') {
+    //         this.quantityTest += this.numberPassed.toString();
+    //         this.quantity = this.quantityTest;
+    //       } else {
+    //           if(this.quantity !=""){
+    //             this.quantityTest = this.quantityTest.slice(0, -1);
+    //             // this.products[this.index].quantity = this.quantityTest;
+    //             this.quantity = this.quantityTest;
+    //           }else{
+    //             this.products.splice(this.index, 1);
+    //           } 
+    //       }
+    //     } else if (this.actionType == "price") {
+    //       if (event != 'backspace') {
+    //         this.priceTest += this.numberPassed.toString()
+    //         this.price = this.priceTest;
+    //       } else {
+    //         if (this.price !=""){
+    //         this.priceTest = this.priceTest.slice(0, -1);
+    //         this.price = this.priceTest;
+    //         }else{
+    //           this.products.splice(this.index, 1);
+    //         }
+    //       }
+    //     } 
+    //   } 
+    //   else if (this.numberPassed == ",") {
+    //     if (this.actionType == "quantity" && !this.quantityTest.includes('.')) {
+    //       this.quantityTest += ".";
+    //       this.quantity = this.quantityTest;
+    //     } else if (this.actionType == "price" && !this.quantityTest.includes('.')) {
+    //       this.priceTest += ".";
+    //       this.price = this.priceTest;
+    //     } 
+    //   }
+    //   this.emitPrice.emit(this.price);
+    //   this.emitQuantity.emit(this.quantity);
       
-      // reset the element when time has passed if you type
-      clearTimeout(this.myTimeout);
-      this.myTimeout = setTimeout(() => {
-        // Use of other variable to give values in two steps
-        this.quantityTest = "";
-        this.priceTest = "";
-        this.discountTest = "";
-      }, 2000);
-  
-  
-
-      // !! Je fais déjà un check pour number quel intérêt pour backspace et %, t'es retard ?
-      if (typeof this.numberPassed == "number") {
-        if (this.actionType == "quantity") {
-          if (event != 'backspace') {
-            this.quantityTest += this.numberPassed.toString();
-            this.products[this.index].quantity = this.quantityTest;
-          } else {
-              if(this.products[this.index].quantity !=""){
-                this.quantityTest = this.quantityTest.slice(0, -1);
-                this.products[this.index].quantity = this.quantityTest;
-              }else{
-                this.products.splice(this.index, 1);
-              } 
-          }
-        } else if (this.actionType == "price") {
-          if (event != 'backspace') {
-            this.priceTest += this.numberPassed.toString()
-            this.products[this.index].price = this.priceTest;
-          } else {
-            if (this.products[this.index].price !=""){
-            this.priceTest = this.priceTest.slice(0, -1);
-            this.products[this.index].price = this.priceTest;
-            }else{
-              this.products.splice(this.index, 1);
-            }
-          }
-        } 
-        // Ex discount condition
-
-        // else if (this.actionType == "discount") {
-        //   if (this.discountTest.length > 1) {
-        //     this.discountTest = "100";
-        //     this.products[this.index].discount = this.discountTest;
-        //   } else if (event != 'backspace' && event != '%') {
-        //     this.discountTest += this.numberPassed.toString();
-        //     this.products[this.index].discount = this.discountTest;
-    
-        //   } else {
-        //     if(this.products[this.index].discount !=""){
-        //     this.discountTest = this.discountTest.slice(0, -1);
-        //     this.products[this.index].discount = this.discountTest;
-        //     }else{
-        //       this.products.splice(this.index, 1);
-        //     }
-        //   }
-        // }
-      } 
-      // Checks for commas and adapts reaction
-      else if (this.numberPassed == ",") {
-        if (this.actionType == "quantity" && !this.quantityTest.includes('.')) {
-          this.quantityTest += ".";
-          this.products[this.index].quantity = this.quantityTest;
-        } else if (this.actionType == "price" && !this.quantityTest.includes('.')) {
-          this.priceTest += ".";
-          this.products[this.index].price = this.priceTest;
-        } 
-        // else if (this.actionType == "discount") {
-        //   this.discountTest += ".";
-        //   this.products[this.index].discount = this.discountTest;
-        // }
-      }
-
-      //calcule du total
-      this.total = 0;
-      this.products.forEach((element: any) => {
-        this.total += Number(element.price) * Number(element.quantity);
-      })
-    }
-
-
-    
+    // }    
   }
 }
 
@@ -308,10 +285,6 @@ export class ProductInfo {
 
 
 
-
-
-
-
 // Ouverture de caisse
 
 
@@ -330,7 +303,8 @@ export class ProductInfo {
       </div>
       <div>
         <!-- <app-pad style="width: 50%;" *ngIf = "displayTablet"></app-pad> -->
-        <textarea style="background-color: white; border: 2px solid lightgreen; margin: 0.2rem; padding: 0.2rem; width:100%;" name="" id="" cols="30" rows="10" placeholder="Espèces"></textarea>
+        <textarea style="background-color: white; border: 2px solid lightgreen; margin: 0.2rem; padding: 0.2rem; width:100%;" name="" id="" cols="30" rows="10" placeholder="Espèces">
+        <ul> <li></li> </ul></textarea>
       </div>
     </div> 
     <div mat-dialog-actions style="display: flex; justify-content: flex-end; background-color:lightgray; width: 100%">
@@ -347,6 +321,7 @@ export class PosOpening {
   ) { }
   public deleteConfirmation = false;
   public displayTablet = false;
+  public coins : any = [{value :""}, { value : ""}];
   ngOnInit(): void {
     console.log(this.data);
   }
@@ -355,6 +330,12 @@ export class PosOpening {
     const dialogRef = this.dialog.open(PosClosingCoins, {
     });
     dialogRef.afterClosed().subscribe(
+      data =>{
+        console.log(data)
+        this.coins = data.data.filter((element:any)=>{
+          element.number != "";
+        });
+      }
     )
   }
 
@@ -407,7 +388,9 @@ export class PosOpening {
           <!-- <app-pad ></app-pad>
           <app-pad-arbitrary-numbers></app-pad-arbitrary-numbers> -->
         </div>
-        <textarea style="width: 100%;" name="" id="" cols="30" rows="10" placeholder="Notes"></textarea>
+        <textarea style="width: 100%;" name="" id="" cols="30" rows="10" placeholder="Notes">
+          
+        </textarea>
       </div>
       <div style="display: flex; margin-top: 0.4rem ">
          <mat-checkbox class="example-margin"></mat-checkbox>
@@ -437,6 +420,9 @@ export class PosClosing {
     const dialogRef = this.dialog.open(PosClosingCoins, {
     });
     dialogRef.afterClosed().subscribe(
+      data =>{
+        return data;
+      }
     )
   }
   onDisplayTablet() {
@@ -580,6 +566,8 @@ export class PosClosingCoins {
 
   public closeDialog() {
     this.dialogDelete.close({
+      data: this.coins,
+      total: this.total
     })
   }
 

@@ -23,6 +23,27 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
     @ViewChildren(SessionOrderPaymentsOrderPaymentComponent) SessionOrderPaymentsOrderPaymentComponents: QueryList<SessionOrderPaymentsOrderPaymentComponent>; 
 
 
+    public products : any =  [{ id: 1, price: "5", name: "Esteban", quantity: "1.00", discount: "" }, { id: 2, price: "7.5", name: "Graccus", quantity: "1.00", discount: "" }];
+    public selectedProduct = 0;
+    public invoice = false;
+    public actionType : any = "quantity";
+    public index : number;
+    public quantityTest = "";
+    public priceTest = "";
+    public discountTest = "";
+    public numberPassed = 0;
+    // public numberPassedIndex = -1;
+    public total = 0;
+    public taxes = 0;
+    public myTimeout : any;
+    public posLineDisplay : string = "main";
+    public discountValue : any = "";
+    public operator : string = '+';
+    public paymentValue : string;
+
+
+
+
     public ready: boolean = false;
 
     public session: CashdeskSession = new CashdeskSession();
@@ -122,5 +143,145 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
     }
 
 
+
+    onBackSpace(element: any) {
+        this.checkNumberPassed(element);
+      }
+    
+      checkActionType(event: any) {
+        this.actionType = event;
+        this.quantityTest = "";
+        this.priceTest = "";
+      }
+    
+      checkNumberPassed(event: any) {
+        // first check what component is displayed
+        if(this.posLineDisplay == "discount" || this.posLineDisplay =="payment"){
+          if(event== 'backspace'){
+            this.discountValue = this.discountValue.toString();
+            let test = this.discountValue.slice(0, -1);
+            this.discountValue = test;
+          }else if (((this.discountValue.includes('.') && this.discountValue.indexOf('.')>3)  || (!this.discountValue.includes('.') && this.discountValue.length>1)) && this.posLineDisplay !="payment"){
+           this.discountValue = "100"; 
+          }
+           else if(event!= 'backspace' && event!= ',' && event!= '+/-') {
+            this.discountValue += event;
+          }else if(event == ','){
+            if (!this.discountValue.includes('.')) {
+              this.discountValue += ".";
+            } 
+          }
+        }else{
+    
+          if(event == '+' || event == "-" && this.index != undefined){
+            if(this.operator =='-' && !this.products[this.index][this.actionType].includes('-')){
+              // this.quantityTest = '-' + this.products[this.index][this.actionType];
+              this.products[this.index][this.actionType] = '-' + this.products[this.index][this.actionType];
+            }else if (this.index != undefined){
+              console.log(this.index)
+              let test = this.products[this.index][this.actionType].replace('-', '+');
+              this.products[this.index][this.actionType] = test
+            }
+            return;
+          }
+          // else if(event == 'swap'){
+          //   if(this.operator =='+'){
+          //     this.operator = '-'
+          //   }else{
+          //     this.operator = '+';
+          //   }
+          // }
+          else if(event != 'backspace' && event != '%'){
+            this.numberPassed = event;
+            // this.numberPassedIndex++;
+          }else if (event == "%"){
+            this.posLineDisplay = "discount";
+            return;
+          }
+      
+          
+          // reset the element when time has passed if you type
+          clearTimeout(this.myTimeout);
+          this.myTimeout = setTimeout(() => {
+            // Use of other variable to give values in two steps
+            this.quantityTest = "";
+            this.priceTest = "";
+            this.discountTest = "";
+          }, 2000);
+      
+      
+    
+          // !! Je fais déjà un check pour number quel intérêt pour backspace et %, t'es retard ?
+          if (typeof this.numberPassed == "number") {
+            if (this.actionType == "quantity") {
+              if (event != 'backspace') {
+                this.quantityTest += this.numberPassed.toString();
+                this.products[this.index].quantity = this.quantityTest;
+              } else {
+                  if(this.products[this.index].quantity !=""){
+                    this.quantityTest = this.quantityTest.slice(0, -1);
+                    this.products[this.index].quantity = this.quantityTest;
+                  }else{
+                    this.products.splice(this.index, 1);
+                  } 
+              }
+            } else if (this.actionType == "price") {
+              if (event != 'backspace') {
+                this.priceTest += this.numberPassed.toString()
+                this.products[this.index].price = this.priceTest;
+              } else {
+                if (this.products[this.index].price !=""){
+                this.priceTest = this.priceTest.slice(0, -1);
+                this.products[this.index].price = this.priceTest;
+                }else{
+                  this.products.splice(this.index, 1);
+                }
+              }
+            } 
+            // Ex discount condition
+    
+            // else if (this.actionType == "discount") {
+            //   if (this.discountTest.length > 1) {
+            //     this.discountTest = "100";
+            //     this.products[this.index].discount = this.discountTest;
+            //   } else if (event != 'backspace' && event != '%') {
+            //     this.discountTest += this.numberPassed.toString();
+            //     this.products[this.index].discount = this.discountTest;
+        
+            //   } else {
+            //     if(this.products[this.index].discount !=""){
+            //     this.discountTest = this.discountTest.slice(0, -1);
+            //     this.products[this.index].discount = this.discountTest;
+            //     }else{
+            //       this.products.splice(this.index, 1);
+            //     }
+            //   }
+            // }
+          } 
+          // Checks for commas and adapts reaction
+          else if (this.numberPassed == ",") {
+            if (this.actionType == "quantity" && !this.quantityTest.includes('.')) {
+              this.quantityTest += ".";
+              this.products[this.index].quantity = this.quantityTest;
+            } else if (this.actionType == "price" && !this.quantityTest.includes('.')) {
+              this.priceTest += ".";
+              this.products[this.index].price = this.priceTest;
+            } 
+            // else if (this.actionType == "discount") {
+            //   this.discountTest += ".";
+            //   this.products[this.index].discount = this.discountTest;
+            // }
+          }
+    
+          //calcule du total
+          this.total = 0;
+          this.products.forEach((element: any) => {
+            this.total += Number(element.price) * Number(element.quantity);
+          })
+        }
+    
+    
+        
+      }
 
 }

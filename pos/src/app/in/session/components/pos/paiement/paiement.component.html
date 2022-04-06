@@ -1,19 +1,18 @@
 <section>
-
     <!-- <div class="header">
         <span>
             Paiement
         </span>
     </div> -->
     <div class="listHeader">
-        <button  mat-mini-fab (click)="onButton('main')"><mat-icon style="vertical-align: center;">arrow_back_ios</mat-icon></button>
+        <button class="headerButton" color="primary"  mat-mini-fab (click)="onButton('main')"><mat-icon style="vertical-align: center;">arrow_back_ios</mat-icon></button>
         <p style="font-weight: bolder;">Price details</p> 
         <!-- <button mat-mini-fab (click)="onButton('info')"><mat-icon>info</mat-icon></button> -->
     </div>
     <hr>
 
     <div class="panels">
-        <div>
+        <div class="totals">
             <div class="total">
                 Total : <span>{{rendu}} €</span>
             </div>
@@ -23,7 +22,7 @@
             <div *ngFor="let payment of payments; index as i">
                 <mat-accordion>
                     <mat-expansion-panel (opened)="panelOpenState = true" (closed)="panelOpenState = false"
-                        [expanded]="true" [disabled]="payment.status == 'confirmed'" style="max-width: 430px;">
+                        [expanded]="true" [disabled]="payment.status == 'confirmed'" style="max-width: 100%;">
                         <mat-expansion-panel-header>
                             <mat-panel-title style="font-size: 1.25rem; display: flex; align-items: center;">
                                 <span>
@@ -31,9 +30,10 @@
                                 </span>
                                 <button style="margin: 0.2rem; box-shadow: none;" mat-mini-fab color="warn"  (click)="onCancel(i)"><mat-icon>cancel</mat-icon></button>   
                             </mat-panel-title>
-                            <mat-panel-description>
-                            </mat-panel-description>
                         </mat-expansion-panel-header>
+                        <div class="orderLines">
+                            <p>I'm a line bruv</p>
+                        </div>
                         <div class="paymentMethod">
                             <div>
                                 <mat-button-toggle-group [(ngModel)]="myToggle" (change)="onSelectionChange(myToggle)" class="mat-button-toggle-group;" style="display: flex; flex-direction: column;">

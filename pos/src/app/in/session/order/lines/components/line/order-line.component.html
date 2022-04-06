@@ -1,4 +1,14 @@
-<div>{{instance.id}}</div>
+<p class="lineName">{{instance.name}}</p> 
+
+<div class="orderLine" style="display: flex;">
+    <p><b>{{instance.qty}}<span *ngIf="!instance.qty.toString().includes('.')">.00</span></b> unités @ <b>{{instance.unit_price}}<span *ngIf="!instance.unit_price
+        .toString().includes('.')">.00€</span></b></p>
+    <button mat-mini-fab color="accent" (click)="onclickDelete()"><mat-icon>delete</mat-icon></button>
+</div>
+
+<hr>
+
+<!-- <div>{{instance.id}}</div>
 <div>{{instance.name}}</div>
 <div>
     <mat-form-field >
@@ -11,6 +21,7 @@
     </mat-form-field>    
 </div>
 <div>{{instance.vat_rate}}</div>
+
 
 <div>
     <mat-form-field >
@@ -26,7 +37,5 @@
 <div>{{instance.discount}}</div>
 <div>{{instance.free_qty}}</div>
 <div>{{instance.total}}</div>
-<div>{{instance.price}}</div>
-<div>
-    <button mat-mini-fab color="accent" (click)="onclickDelete()"><mat-icon>delete</mat-icon></button>
-</div>
+<div>{{instance.price}}</div> -->
+

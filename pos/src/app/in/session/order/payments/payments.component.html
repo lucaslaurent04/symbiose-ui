@@ -9,9 +9,10 @@
             
         <div class="view">
             <div style="display: flex"><h2>Order {{instance.id}}</h2> <button mat-mini-fab color="accent" (click)="onclickCreateNewPayment()"><mat-icon>add</mat-icon> </button></div>
-            <div *ngIf="session.status != 'pending'">Cette sesion n'est plus active.</div>
+            <div *ngIf="session.status != 'pending'">Cette session n'est plus active.</div>
             <div *ngIf="session.status == 'pending'">
 
+                
                 <div>{{instance.id}}</div>
                 <div>{{instance.created |  date}}</div>
                 <div>{{instance.price |  currency}}</div>

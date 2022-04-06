@@ -17,12 +17,22 @@ import { SessionOrderPaymentsComponent } from './payments/payments.component';
 import { SessionOrderPaymentsOrderPaymentComponent } from './payments/components/payment/order-payment.component';
 import { SessionOrderPaymentsOrderLineComponent } from './payments/components/payment/line/order-line.component';
 import { SessionOrderPaymentsPaymentPartComponent } from './payments/components/payment/part/payment-part.component';
+import { PosClosing, PosClosingCoins, PosComponent, PosOpening, ProductInfo } from '../components/pos/pos.component';
+import { AppInSessionModule } from '../session.module';
+import { PadComponent } from '../components/pos/pad/pad.component';
+import { TypeToggleComponent } from '../components/pos/pad/type-toggle/type-toggle.component';
+import { PadArbitraryNumbersComponent } from '../components/pos/pad/pad-arbitrary-numbers/pad-arbitrary-numbers.component';
+import { PaiementComponent } from '../components/pos/paiement/paiement.component';
+import { DiscountComponent } from '../components/pos/discount/discount.component';
+import { InfoComponent } from '../components/pos/info/info.component';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
 
 
 @NgModule({
   imports: [
     SharedLibModule,
-    SessionOrderRoutingModule
+    SessionOrderRoutingModule,
+    MatButtonToggleModule
   ],
   declarations: [
     SessionOrderComponent,
@@ -31,7 +41,18 @@ import { SessionOrderPaymentsPaymentPartComponent } from './payments/components/
     SessionOrderPaymentsOrderPaymentComponent,
     SessionOrderLinesOrderLineComponent,
     SessionOrderPaymentsOrderLineComponent,
-    SessionOrderPaymentsPaymentPartComponent
+    SessionOrderPaymentsPaymentPartComponent,
+    PosComponent,
+    PadComponent,
+    TypeToggleComponent,
+    PosOpening,
+    ProductInfo,
+    PosClosing,
+    PadArbitraryNumbersComponent,
+    PaiementComponent,
+    PosClosingCoins,
+    DiscountComponent,
+    InfoComponent
   ],
   providers: [
     { provide: DateAdapter, useClass: CustomDateAdapter, deps: [MAT_DATE_LOCALE, Platform] }
