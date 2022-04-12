@@ -23,12 +23,13 @@ import localeFr from '@angular/common/locales/fr';
 import { MAT_SNACK_BAR_DEFAULT_OPTIONS } from '@angular/material/snack-bar';
 
 
+
 registerLocaleData(localeFr);
 
 @NgModule({
   declarations: [
     AppRootComponent,
-    AppComponent
+    AppComponent,
   ],
   imports: [
     AppRoutingModule,

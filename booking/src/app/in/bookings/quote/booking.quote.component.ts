@@ -246,12 +246,12 @@ export class BookingQuoteComponent implements OnInit, AfterContentInit {
           ['code', '=', 'mail']
         ], 
         ['parts_ids', 'attachments_ids'], 'id', 'asc', 0, 1, this.lang);
-
+        console.log(templates);
       if(templates && templates.length) {
         let template = templates[0];
   
         const parts = await this.api.collect("communication\\TemplatePart", ['id', 'in', template['parts_ids']], ['name', 'value'], 'id', 'asc', 0, 10, this.lang);
-  
+        
         for(let part of parts) {
           if(part.name == 'subject') {
             // strip html nodes
@@ -262,6 +262,7 @@ export class BookingQuoteComponent implements OnInit, AfterContentInit {
             }
           }
           else if(part.name == 'body') {
+            
             this.vm.message.formControl.setValue(part.value);
             this.vm.message.value = part.value;
           }

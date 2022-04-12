@@ -3,6 +3,7 @@ import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 
 import { AppComponent } from './in/app.component';
+import { PosComponent } from './in/pos/pos.component';
 
 const routes: Routes = [
   /* routes specific to current app */
@@ -12,7 +13,8 @@ const routes: Routes = [
   },
   {
     path: 'planning',
-    loadChildren: () => import(`./in/planning/planning.module`).then(m => m.AppInPlanningModule) 
+    component: PosComponent
+    // loadChildren: () => import(`./in/planning/planning.module`).then(m => m.AppInPlanningModule) 
   },
   {
     /*
