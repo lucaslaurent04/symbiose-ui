@@ -8,24 +8,36 @@
             <div class="actions-view"></div></div>
             
         <div class="view">
-            <div style="display: flex"><h2>Order {{instance.id}}</h2> <button mat-mini-fab color="accent" (click)="onclickCreateNewPayment()"><mat-icon>add</mat-icon> </button></div>
+            <div class="order" style="display: flex"><h2>Order {{instance.id}}</h2> <button mat-mini-fab color="accent" (click)="onclickCreateNewPayment()"><mat-icon>add</mat-icon> </button></div>
             <div *ngIf="session.status != 'pending'">Cette session n'est plus active.</div>
-            <div *ngIf="session.status == 'pending'">
-
+            <div *ngIf="session.status == 'pending'" style="border-right: 1px solid lightgray;">
+               
                 
-                <div>{{instance.id}}</div>
+                <!-- <div>{{instance.id}}</div>
                 <div>{{instance.created |  date}}</div>
                 <div>{{instance.price |  currency}}</div>
-                <div>{{instance.total |  currency}}</div>
-                <ng-container *ngFor="let payment of instance.order_payments_ids">
+                <div>{{instance.total |  currency}}</div> -->
+                <div style="min-height: 35vh; overflow: auto;">
+                    <ng-container *ngFor="let payment of instance.order_payments_ids; index as i" >
                     
-                    <session-order-payments-order-payment
-                        [model]="payment"
-                        (updated)="onupdatePayment(payment.id)"
-                        (deleted)="ondeletePayment(payment.id)"
-                    ></session-order-payments-order-payment>
-
-                </ng-container>
+                        <session-order-payments-order-payment
+                            (click)="onClickLine(i)"
+                            [model]="payment"
+                            (updated)="onupdatePayment(payment.id)"
+                            (deleted)="ondeletePayment(payment.id)"
+                            (selectedPaymentPart)="selectedPaymentPart = $event"
+                            (selectedOrderLine)="selectedOrderLine = $event"
+                        ></session-order-payments-order-payment>
+    
+                    </ng-container>
+                </div>
+                
+                <div class="pad">
+                    <!-- style="position:fixed; bottom: 1.25rem;" -->
+                    <app-pos-arbitrary-numbers (onDisplayDetails)="onDisplayDetails($event)" 
+                    (onDigitTyped)="onDigitTyped($event)" 
+                    (onTypeMode)="typeMode = $event"></app-pos-arbitrary-numbers>
+                </div>
             </div>
         </div>
     </div>    

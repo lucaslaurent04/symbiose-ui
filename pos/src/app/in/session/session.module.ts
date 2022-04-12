@@ -13,6 +13,7 @@ import {MatButtonToggleModule} from '@angular/material/button-toggle';
 
 
 
+
 @NgModule({
   imports: [
     SharedLibModule,
@@ -21,6 +22,7 @@ import {MatButtonToggleModule} from '@angular/material/button-toggle';
   ],
   declarations: [
     SessionComponent,
+    
   ],
   providers: [
     { provide: DateAdapter, useClass: CustomDateAdapter, deps: [MAT_DATE_LOCALE, Platform] }

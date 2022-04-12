@@ -24,6 +24,8 @@ export class SessionOrderPaymentsOrderPaymentComponent extends TreeComponent<Ord
     @Input() set model(values: any) { this.update(values) }
     @Output() updated = new EventEmitter();
     @Output() deleted = new EventEmitter();
+    @Output() selectedPaymentPart = new EventEmitter();
+    @Output() selectedOrderLine = new EventEmitter();
 
     @ViewChildren(SessionOrderPaymentsPaymentPartComponent) SessionOrderPaymentsPaymentPartComponents: QueryList<SessionOrderPaymentsPaymentPartComponent>; 
     @ViewChildren(SessionOrderPaymentsOrderLineComponent) SessionOrderPaymentsOrderLineComponents: QueryList<SessionOrderPaymentsOrderLineComponent>; 
@@ -35,7 +37,9 @@ export class SessionOrderPaymentsOrderPaymentComponent extends TreeComponent<Ord
     public qty:FormControl = new FormControl();
     public unit_price:FormControl = new FormControl();
 
-
+    public display = "";
+    public index : number;
+    
 
     constructor(
         private router: Router,
@@ -99,5 +103,25 @@ export class SessionOrderPaymentsOrderPaymentComponent extends TreeComponent<Ord
     public async onclickCreateNewPart() {
         await this.api.create((new OrderPaymentPart()).entity, {order_payment_id: this.instance.id});
         this.updated.emit();
+    }
+
+    public onDisplayProducts() {
+        if(this.display != "products"){
+            this.display = "products";
+        }else{
+            this.display = "";
+        } 
+        
+        console.log(this.SessionOrderPaymentsOrderLineComponents.toArray())
+        
+    }
+
+    public onSelectedOrderLine(index : number){   
+        this.index = index;
+        this.selectedOrderLine.emit(index);
+    }
+
+    public onSelectedPaymentPart(index : number){
+        this.selectedPaymentPart.emit(index);
     }
 }

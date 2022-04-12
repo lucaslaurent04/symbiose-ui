@@ -24,7 +24,9 @@ export class SessionOrderPaymentsPaymentPartComponent extends TreeComponent<Orde
 
 
     public ready: boolean = false;
-
+    
+    public focused : string;
+    public myToggle : string;
 
     public amount:FormControl = new FormControl();
     public payment_method:FormControl = new FormControl();

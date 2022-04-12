@@ -32,8 +32,9 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
     public price: any = "";
     public quantity: any = "";
     public discountValue :any ="";
-
+    public discountField : any;
     public instanceElement : any;
+    public operator : string;
 
     public posLineDisplay: string = "main";
 
@@ -58,6 +59,8 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
         };
         this.componentsMap = map;
     }
+
+   
 
     public ngOnInit() {
         console.log('SessionOrderLinesComponent init');
@@ -122,7 +125,6 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
 
 
     public async onupdateLine(line_id:any) {
-        console.log('onupdateLine');
         // a line has been updated: reload tree
         await this.load(this.instance.id);
     }
@@ -142,41 +144,45 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
         this.price = this.componentsMap.order_lines_ids._results[this.index].instance.unit_price;
         this.quantity = this.componentsMap.order_lines_ids._results[this.index].instance.qty;
         this.discountValue = this.componentsMap.order_lines_ids._results[this.index].instance.free_qty;
+        this.instanceElement = {...this.instance.order_lines_ids[this.index]};
     }
 
     public onDigitTyped(event:any){
 
-
+        console.log(this.discountField, this.discountValue, "discounnnnnnntss")
         // first check what component is displayed
-        if(this.posLineDisplay == "discount"){
+        if(this.posLineDisplay == "discount" && event != "%"){
             this.discountValue = this.discountValue.toString();
-          if(event== 'backspace'){
-            let test = this.discountValue.slice(0, -1);
-            this.discountValue = test;
-          }else if (((this.discountValue.includes('.') && this.discountValue.indexOf('.')>3)  || (!this.discountValue.includes('.') && this.discountValue.length>1))){
-           this.discountValue = "100"; 
-          }
-           else if(event!= 'backspace' && event!= ',' && event!= '+/-') {
-            this.discountValue += event;
-          }else if(event == ','){
-            if (!this.discountValue.includes('.')) {
-              this.discountValue += ".";
-
-            } 
-          }
+            if((event == '+' || event == "-") && this.index != undefined && this.posLineDisplay == "discount"){
+                // if(this.discountValue.includes('-') && event =="-"){
+                //     let test = this.discountValue.replace('-', '');
+                //     this.discountValue = test;
+                //     }else if (!this.discountValue.includes('-') && event =="-"){
+                //     this.discountValue = '-' + this.discountValue;
+                //     }else if(this.discountValue.includes('-') && event =="+"){
+                //     let test = this.discountValue.replace('-', '');
+                //     this.discountValue = test;
+                //     }
+                    
+            }
+            else if(event== 'backspace'){
+                let test = this.discountValue.slice(0, -1);
+                this.discountValue = test;
+                console.log(this.discountValue)
+            }else if (((this.discountValue.includes('.') && this.discountValue.indexOf('.')>3)  || (!this.discountValue.includes('.') && this.discountValue.length>1 && (this.discountField == 'free_qty' || this.discountField =='discount')))){
+            this.discountValue = "100"; 
+            }
+            else if(event!= 'backspace' && event!= ',' && event!= '+/-') {
+                this.discountValue += event;
+            }
+        //   else if(event == ','){
+        //     if (!this.discountValue.includes('.')) {
+        //       this.discountValue += ".";
+        //     } 
+        //   }
         }else{
-    
-          if(event == '+' || event == "-" && this.index != undefined){
-            // if(this.operator =='-' && !this.products[this.index][this.actionType].includes('-')){
-            //   this.products[this.index][this.actionType] = '-' + this.products[this.index][this.actionType];
-            // }else if (this.index != undefined){
-            //   console.log(this.index)
-            //   let test = this.products[this.index][this.actionType].replace('-', '+');
-            //   this.products[this.index][this.actionType] = test
-            // }
-            // return;
-          }
-          else if(event != 'backspace' && event != '%'){
+          
+          if(event != 'backspace' && event != '%'){
             // this.numberPassed = event;
           }else if (event == "%"){
             this.posLineDisplay = "discount";
@@ -184,10 +190,8 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
             // this.instance.order_lines_ids[this.index].free_qty = parseFloat(value[0]);
             this.instanceElement = {...this.instance.order_lines_ids[this.index]};
             // console.log("recieved discountvalue",value);
-            return;
           }
-      
-         
+        }
         //   clearTimeout(this.myTimeout);
         //   this.myTimeout = setTimeout(() => {
            
@@ -195,69 +199,110 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
       
       
     
-          console.log(this.typeMode)
-        
-            // Adding comma's if necessary
+          if(this.posLineDisplay == "main"){
+            this.quantity = this.quantity.toString();
             if(event == ","){
                 if (this.typeMode == "quantity" && !this.quantity.includes('.')) {
                     this.quantity += ".";
-                    this.componentsMap.order_lines_ids._results[this.index].instance.qty= this.quantity;
+                    // this.componentsMap.order_lines_ids._results[this.index].instance.qty= this.quantity;
                   } else if (this.typeMode == "price" && !this.price.includes('.')) {
                     this.price += ".";
-                    this.componentsMap.order_lines_ids._results[this.index].instance.unit_price = this.price;
+                    // this.componentsMap.order_lines_ids._results[this.index].instance.unit_price = this.price;
                   } 
             } else if (this.typeMode == "quantity") {
-                this.quantity = this.quantity.toString();
-              if (event != 'backspace') {
+                
+              if ((event == '+' || event == "-") && this.index != undefined ) {
+                if(this.quantity.includes('-') && event =="-"){
+                    let test = this.quantity.replace('-', '');
+                    this.quantity = test;
+                  }else if (!this.quantity.includes('-') && event =="-"){
+                    this.quantity = '-' + this.quantity;
+                  }else if(this.quantity.includes('-') && event =="+"){
+                    let test = this.quantity.replace('-', '');
+                    this.quantity = test;
+                  }
+                  console.log(this.quantity, "quantityyyyyyyy")
+              }else if(event != 'backspace') {
                 this.quantity += event;
                 this.componentsMap.order_lines_ids._results[this.index].instance.qty = this.quantity;
-              } else {
-                  if(this.quantity !=""){
+            } else {
+                  if(this.quantity !="0"){
                     this.quantity = this.quantity.slice(0, -1);
-                    this.componentsMap.order_lines_ids._results[this.index].instance.qty = this.quantity;
+                    if(this.quantity.length == 0)this.quantity = 0;
+                    // this.componentsMap.order_lines_ids._results[this.index].instance.qty = this.quantity;
                   }else{
-                    this.componentsMap.order_lines_ids._results.splice(this.index, 1);
-                    this.load(this.instance.id);
+                    this.componentsMap.order_lines_ids.toArray()[this.index].onclickDelete();
+                    // this.componentsMap.order_lines_ids._results.splice(this.index, 1);
+                    // this.load(this.instance.id);
                   } 
               }
             } else if (this.typeMode == "price") {
                 this.price = this.price.toString();
-              if (event != 'backspace') {
+              if (event == '+' || event == "-" && this.index != undefined ) {
+                if(this.price.includes('-') && event =="-"){
+                    let test = this.price.replace('-', '');
+                    this.price = test;
+                  }else if (!this.price.includes('-') && event =="-"){
+                    this.price = '-' + this.price;
+                  }else if(this.price.includes('-') && event =="+"){
+                    let test = this.price.replace('-', '');
+                    this.price = test;
+                  }
+                // this.componentsMap.order_lines_ids._results[this.index].instance.unit_price = this.price;
+              }else if(event != 'backspace'){
                 this.price += event;
-                this.componentsMap.order_lines_ids._results[this.index].instance.unit_price = this.price;
-              } else {
-                if (this.price !=""){
+            } else {
+                if (this.price !="0"){
                 this.price = this.price.slice(0, -1);
-                this.componentsMap.order_lines_ids._results[this.index].instance.unit_price = this.price;
+                if(this.price.length == 0)this.price = 0;
+                // this.componentsMap.order_lines_ids._results[this.index].instance.unit_price = this.price;
                 }else{
-                    console.log(this.componentsMap.order_lines_ids._results)
-                this.componentsMap.order_lines_ids._results.splice(this.index, 1);
-                this.load(this.instance.id);
-                console.log(this.componentsMap.order_lines_ids._results)
-                // let children = this.componentsMap.order_lines_ids.toArray();        
-                // let child = children[this.index];
-                // child.onclickDelete();
+                this.componentsMap.order_lines_ids.toArray()[this.index].onclickDelete();
                 }
               }
             } 
-          
-            // child.update({qty: this.quantity, unit_price: this.price}); 
-            
-            // if(this.debounce){
-            //     clearTimeout(this.debounce);
-            // }
-            // this.debounce = setTimeout( async () => {
-            //     await child.onchangeQty();
-            //     await this.onupdateLine(child.id);
-            // },500);
-            
+          }
         
+            // Adding comma's if necessary
             
-        
-
-
-
-
+            let children = this.componentsMap.order_lines_ids.toArray();        
+            let child = children[this.index];
+            
+            if(this.posLineDisplay =="main"){
+                child.update({qty: parseFloat(this.quantity), unit_price: parseFloat(this.price)}); 
+            }
+            
+            if(this.posLineDisplay == "discount"){
+                if(this.discountField == "discount"){
+                    child.update({discount: parseFloat(this.discountValue)}); 
+                }else if(this.discountField == "free_qty"){
+                    child.update({free_qty: parseFloat(this.discountValue)}); 
+                }else if(this.discountField == "vat_rate"){
+                    child.update({vat_rate: parseFloat(this.discountValue)}); 
+                }else if (this.discountField == "unit_price"){
+                    child.update({unit_price: parseFloat(this.discountValue)})
+                }else if (this.discountField == "qty"){
+                    console.log(this.discountValue, this.quantity)
+                    child.update({qty: parseFloat(this.discountValue)})
+                }
+                this.instanceElement = {...child.instance};
+            }
+            
+            if(this.debounce){
+                clearTimeout(this.debounce);
+            }
+            this.debounce = setTimeout( async () => {
+                await child.onchangeQty();
+                await child.onchangeUnitPrice();
+                if(this.discountField == "discount"){
+                    await child.onchangeDiscount(); 
+                }else if(this.discountField == "free_qty"){
+                    await child.onchangeFreeQuantity();
+                }
+                // Quand je passe au prix, ça déconne 
+                await this.onupdateLine(child.id);
+            },500);
+            
         // console.log("recieved quantity",value);
         // console.log(this.componentsMap);
         // let children = this.componentsMap.order_lines_ids.toArray();        
@@ -273,7 +318,7 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
         //     await this.onupdateLine(child.id);
         // },500);
 
-    }
+    
 }
 
     
@@ -289,6 +334,8 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
 
     }
     public getDiscountValue(event:any){
-        console.log('ok')
+        console.log('eventtt', event)
+        this.discountField = event;
+        this.discountValue = "";
     }
 }

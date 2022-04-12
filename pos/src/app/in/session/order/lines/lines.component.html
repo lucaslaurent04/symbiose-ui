@@ -20,7 +20,7 @@
                     <app-discount [item]="instanceElement" (discountValue)="getDiscountValue($event)" (posLineDisplay)="onDisplayDetails($event)" *ngIf="posLineDisplay == 'discount'"></app-discount>
                     <ng-container  *ngFor="let line of instance.order_lines_ids; index as i">
                         
-                        <session-order-lines-order-line *ngIf="posLineDisplay =='main'"
+                        <session-order-lines-order-line [class.hidden]="posLineDisplay !='main'"
                             [model]="line"
                             (updated)="onupdateLine(line.id)"
                             (deleted)="ondeleteLine(line.id)"

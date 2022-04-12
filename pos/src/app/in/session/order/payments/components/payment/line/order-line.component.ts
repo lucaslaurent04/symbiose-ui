@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 
 import { ApiService, ContextService, TreeComponent } from 'sb-shared-lib';
 import { OrderPayment, OrderLine } from '../../../payments.model';
+import {ThemePalette} from '@angular/material/core';
 
 
 // declaration of the interface for the map associating relational Model fields with their components
@@ -22,7 +23,8 @@ export class SessionOrderPaymentsOrderLineComponent extends TreeComponent<OrderL
     @Output() deleted = new EventEmitter();
 
 
-    public ready: boolean = false;
+    // public ready: boolean = false;
+    public checked : boolean = true;
 
 
     constructor(
@@ -42,6 +44,8 @@ export class SessionOrderPaymentsOrderLineComponent extends TreeComponent<OrderL
 
     public ngOnInit() {
     }
+
+   
 
     public update(values:any) {
         console.log('line item update', values);

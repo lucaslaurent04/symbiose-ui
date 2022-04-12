@@ -1,30 +1,64 @@
-<div>{{instance.id}}</div>
-<div>
-    <mat-form-field >
-        <mat-label>Amount</mat-label>
-        <input
-                type="number"
-                matInput
-                (blur)="onchangeAmount()"
-                [formControl]="amount">
-    </mat-form-field>
-</div>
+<section>
+    <div >
+        <mat-label style="text-align: center; width: 100%;">Method</mat-label>
+        <mat-button-toggle-group  (selectionChange)="onchangePaymentMethod()" [formControl]="payment_method" style="display: flex; flex-direction: column;">
+            <mat-button-toggle mat-raised-button value="cash" [class.selected]="payment_method.value == 'cash'">
+                Espèces
+            </mat-button-toggle>
+            <mat-button-toggle mat-raised-button value="bank" [class.selected]="payment_method.value == 'bank'">
+                Banque
+            </mat-button-toggle>
+            <mat-button-toggle mat-raised-button value="reservation" [class.selected]="payment_method.value == 'reservation'">
+                Reservation
+            </mat-button-toggle>
+            <mat-button-toggle mat-raised-button value="voucher" [class.selected]="payment_method.value == 'voucher'">
+                Voucher
+            </mat-button-toggle>
+        </mat-button-toggle-group>
+      
+    </div>
+    <div>
+        <div>
+            <mat-form-field >
+                <mat-label>Amount</mat-label>
+                <input
+                        (focus)="focused = 'amount'"
+                        type="number"
+                        matInput
+                        (blur)="onchangeAmount()"
+                        [formControl]="amount">
+            </mat-form-field>
+        </div>
+        
+        
+        <div>
+            <div *ngIf="payment_method.value=='reservation'">
+                <mat-form-field>
+                    <mat-label>Booking</mat-label>
+                    <input
+                            (focus)="focused = 'booking_id'"
+                            type="number"
+                            matInput
+                            (blur)="onchangeBookingId()"
+                            >
+                </mat-form-field>
+            </div>
+            <div *ngIf="payment_method.value=='voucher_ref'">
+                <mat-form-field >
+                    <mat-label>Voucher</mat-label>
+                    <input
+                            (focus)="focused = 'voucher'"
+                            type="number"
+                            matInput
+                            (blur)="onchangeVoucherRef()"
+                            >
+                </mat-form-field>
+        
+            </div>
+        </div>
+    </div>
+    <div style="max-width: max-content;">
+        <button mat-mini-fab color="accent" (click)="onclickDelete()"><mat-icon>delete</mat-icon></button>
+    </div>
+</section>
 
-<div>
-    <mat-form-field>
-        <mat-label>Method</mat-label>
-        <mat-select (selectionChange)="onchangePaymentMethod()" [formControl]="payment_method">
-            <mat-option value="voucher">Chèque cadeau/promo</mat-option>
-            <mat-option value="cash">Espèces</mat-option>
-            <mat-option value="bank_card">Carte bancaire</mat-option>
-            <mat-option value="booking">Réservation</mat-option>
-        </mat-select>
-    </mat-form-field>
-
-</div>
-
-<div>booking: {{instance.booking_id}}</div>
-<div>voucher_ref: {{instance.voucher_ref}}</div>
-<div>
-    <button mat-mini-fab color="accent" (click)="onclickDelete()"><mat-icon>delete</mat-icon></button>
-</div>

@@ -43,7 +43,6 @@ export class SessionOrderLinesOrderLineComponent extends TreeComponent<OrderLine
     ngOnChanges(changes: SimpleChanges): void {
         //Called before any other lifecycle hook. Use it to inject dependencies, but avoid any serious work here.
         //Add '${implements OnChanges}' to the class.
-        console.log('ok')
         
     }
 
@@ -59,7 +58,6 @@ export class SessionOrderLinesOrderLineComponent extends TreeComponent<OrderLine
     }
 
     public update(values:any) {
-        console.log('line item update', values);
         super.update(values);
         // update widgets and sub-components, if necessary
     }
@@ -79,4 +77,13 @@ export class SessionOrderLinesOrderLineComponent extends TreeComponent<OrderLine
         this.updated.emit();
     }
 
+    public async onchangeDiscount() {
+        await this.api.update(this.instance.entity, [this.instance.id], {discount: this.instance.discount});        
+        this.updated.emit();
+    }
+
+    public async onchangeFreeQuantity() {
+        await this.api.update(this.instance.entity, [this.instance.id], {free_qty: this.instance.free_qty});        
+        this.updated.emit();
+    }
 }

@@ -22,13 +22,16 @@ import localeFr from '@angular/common/locales/fr';
 
 import { MAT_SNACK_BAR_DEFAULT_OPTIONS } from '@angular/material/snack-bar';
 
+import {MatButtonToggleModule} from '@angular/material/button-toggle';
+
+
 
 registerLocaleData(localeFr);
 
 @NgModule({
   declarations: [
     AppRootComponent,
-    AppComponent
+    AppComponent,
   ],
   imports: [
     AppRoutingModule,
@@ -36,7 +39,9 @@ registerLocaleData(localeFr);
     BrowserAnimationsModule,
     SharedLibModule,
     PlatformModule,
-    NgxMaterialTimepickerModule.setLocale('fr-BE')
+    NgxMaterialTimepickerModule.setLocale('fr-BE'),
+    MatButtonToggleModule,
+    
   ],
   providers: [
     // add HTTP interceptor to inject AUTH header to any outgoing request

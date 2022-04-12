@@ -26,12 +26,14 @@ import { PaiementComponent } from '../components/pos/paiement/paiement.component
 import { DiscountComponent } from '../components/pos/discount/discount.component';
 import { InfoComponent } from '../components/pos/info/info.component';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { PosArbitraryNumbersComponent } from '../components/pos-arbitrary-numbers/pos-arbitrary-numbers.component';
 
 
 @NgModule({
   imports: [
     SharedLibModule,
     SessionOrderRoutingModule,
+    MatButtonToggleModule,
     MatButtonToggleModule
   ],
   declarations: [
@@ -52,7 +54,9 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
     PaiementComponent,
     PosClosingCoins,
     DiscountComponent,
-    InfoComponent
+    InfoComponent,
+    PosArbitraryNumbersComponent,
+    
   ],
   providers: [
     { provide: DateAdapter, useClass: CustomDateAdapter, deps: [MAT_DATE_LOCALE, Platform] }

@@ -1,0 +1,22 @@
+<div class="pos-pad">
+    <div class="client">
+        <span>Client: xxx</span> <button mat-mini-fab color="primary" style="box-shadow: none;"><mat-icon>add</mat-icon></button>
+    </div>
+    <div class="pos-lowerPart">
+        <div class="details-paiement">
+             
+            <mat-button-toggle-group [(ngModel)]="invoice" class="paiement">
+                <mat-button-toggle style="width: 100%; height: 100%; background-color: lightblue; display: flex; align-items: center;" [class.selected]="invoice == true" (click)="onInvoice()" mat-raised-button [value]="invoice"> <p style="height: 100%;"><span>Facture</span></p> </mat-button-toggle>
+            </mat-button-toggle-group>
+            
+            <button mat-raised-button class="paiement" (click)="getPosLineDisplay('payment')">
+                <mat-icon>play_circle_filled</mat-icon>
+                <p>Paiement</p>
+            </button> 
+        </div>
+        <div style="display: flex;">
+            <app-pad (newNumberPassed)="checkNumberPassed($event)"></app-pad>
+            <app-pad-arbitrary-numbers (OnaddedNumber)="checkNumberPassed($event)" (OnBackspace)="onBackSpace($event)"></app-pad-arbitrary-numbers>
+        </div>
+    </div>  
+</div>

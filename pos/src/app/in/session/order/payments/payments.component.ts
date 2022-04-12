@@ -4,6 +4,7 @@ import { ApiService, ContextService, TreeComponent, RootTreeComponent } from 'sb
 import { CashdeskSession } from './../../session.model';
 import { Order, OrderPayment, OrderPaymentPart} from './payments.model';
 import { SessionOrderPaymentsOrderPaymentComponent } from './components/payment/order-payment.component';
+import { BookingLineClass } from 'src/app/model';
 
 
 // declaration of the interface for the map associating relational Model fields with their components
@@ -23,26 +24,14 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
     @ViewChildren(SessionOrderPaymentsOrderPaymentComponent) SessionOrderPaymentsOrderPaymentComponents: QueryList<SessionOrderPaymentsOrderPaymentComponent>; 
 
 
-    public products : any =  [{ id: 1, price: "5", name: "Esteban", quantity: "1.00", discount: "" }, { id: 2, price: "7.5", name: "Graccus", quantity: "1.00", discount: "" }];
-    public selectedProduct = 0;
-    public invoice = false;
-    public actionType : any = "quantity";
+    
+    public posLineDisplay :any;
+    public typeMode : any;
+    public amount : any;
+    public digits : any;
     public index : number;
-    public quantityTest = "";
-    public priceTest = "";
-    public discountTest = "";
-    public numberPassed = 0;
-    // public numberPassedIndex = -1;
-    public total = 0;
-    public taxes = 0;
-    public myTimeout : any;
-    public posLineDisplay : string = "main";
-    public discountValue : any = "";
-    public operator : string = '+';
-    public paymentValue : string;
-
-
-
+    public selectedPaymentPart : number;
+    public selectedOrderLine : number;
 
     public ready: boolean = false;
 
@@ -143,145 +132,69 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
     }
 
 
-
-    onBackSpace(element: any) {
-        this.checkNumberPassed(element);
-      }
+    public onClickLine(index:number){
+      this.index = index;
+      // this.price = this.componentsMap.order_lines_ids._results[this.index].instance.unit_price;
+      // this.quantity = this.componentsMap.order_lines_ids._results[this.index].instance.qty;
+      // this.discountValue = this.componentsMap.order_lines_ids._results[this.index].instance.free_qty;
+      // this.instanceElement = {...this.instance.order_lines_ids[this.index]};
+    }
     
-      checkActionType(event: any) {
-        this.actionType = event;
-        this.quantityTest = "";
-        this.priceTest = "";
-      }
-    
-      checkNumberPassed(event: any) {
-        // first check what component is displayed
-        if(this.posLineDisplay == "discount" || this.posLineDisplay =="payment"){
-          if(event== 'backspace'){
-            this.discountValue = this.discountValue.toString();
-            let test = this.discountValue.slice(0, -1);
-            this.discountValue = test;
-          }else if (((this.discountValue.includes('.') && this.discountValue.indexOf('.')>3)  || (!this.discountValue.includes('.') && this.discountValue.length>1)) && this.posLineDisplay !="payment"){
-           this.discountValue = "100"; 
-          }
-           else if(event!= 'backspace' && event!= ',' && event!= '+/-') {
-            this.discountValue += event;
-          }else if(event == ','){
-            if (!this.discountValue.includes('.')) {
-              this.discountValue += ".";
-            } 
-          }
-        }else{
-    
-          if(event == '+' || event == "-" && this.index != undefined){
-            if(this.operator =='-' && !this.products[this.index][this.actionType].includes('-')){
-              // this.quantityTest = '-' + this.products[this.index][this.actionType];
-              this.products[this.index][this.actionType] = '-' + this.products[this.index][this.actionType];
-            }else if (this.index != undefined){
-              console.log(this.index)
-              let test = this.products[this.index][this.actionType].replace('-', '+');
-              this.products[this.index][this.actionType] = test
-            }
-            return;
-          }
-          // else if(event == 'swap'){
-          //   if(this.operator =='+'){
-          //     this.operator = '-'
-          //   }else{
-          //     this.operator = '+';
-          //   }
-          // }
-          else if(event != 'backspace' && event != '%'){
-            this.numberPassed = event;
-            // this.numberPassedIndex++;
-          }else if (event == "%"){
-            this.posLineDisplay = "discount";
-            return;
-          }
+    public async onDigitTyped(value:any){
+      let children = this.componentsMap.order_payments_ids.toArray();        
+      let child = children[this.index];
       
-          
-          // reset the element when time has passed if you type
-          clearTimeout(this.myTimeout);
-          this.myTimeout = setTimeout(() => {
-            // Use of other variable to give values in two steps
-            this.quantityTest = "";
-            this.priceTest = "";
-            this.discountTest = "";
-          }, 2000);
+      if(child.display == "products"){   
       
-      
-    
-          // !! Je fais déjà un check pour number quel intérêt pour backspace et %, t'es retard ?
-          if (typeof this.numberPassed == "number") {
-            if (this.actionType == "quantity") {
-              if (event != 'backspace') {
-                this.quantityTest += this.numberPassed.toString();
-                this.products[this.index].quantity = this.quantityTest;
-              } else {
-                  if(this.products[this.index].quantity !=""){
-                    this.quantityTest = this.quantityTest.slice(0, -1);
-                    this.products[this.index].quantity = this.quantityTest;
-                  }else{
-                    this.products.splice(this.index, 1);
-                  } 
-              }
-            } else if (this.actionType == "price") {
-              if (event != 'backspace') {
-                this.priceTest += this.numberPassed.toString()
-                this.products[this.index].price = this.priceTest;
-              } else {
-                if (this.products[this.index].price !=""){
-                this.priceTest = this.priceTest.slice(0, -1);
-                this.products[this.index].price = this.priceTest;
-                }else{
-                  this.products.splice(this.index, 1);
-                }
-              }
-            } 
-            // Ex discount condition
-    
-            // else if (this.actionType == "discount") {
-            //   if (this.discountTest.length > 1) {
-            //     this.discountTest = "100";
-            //     this.products[this.index].discount = this.discountTest;
-            //   } else if (event != 'backspace' && event != '%') {
-            //     this.discountTest += this.numberPassed.toString();
-            //     this.products[this.index].discount = this.discountTest;
+      }else{
+        child = child?.SessionOrderPaymentsPaymentPartComponents.toArray()[this.selectedPaymentPart];
         
-            //   } else {
-            //     if(this.products[this.index].discount !=""){
-            //     this.discountTest = this.discountTest.slice(0, -1);
-            //     this.products[this.index].discount = this.discountTest;
-            //     }else{
-            //       this.products.splice(this.index, 1);
-            //     }
-            //   }
-            // }
-          } 
-          // Checks for commas and adapts reaction
-          else if (this.numberPassed == ",") {
-            if (this.actionType == "quantity" && !this.quantityTest.includes('.')) {
-              this.quantityTest += ".";
-              this.products[this.index].quantity = this.quantityTest;
-            } else if (this.actionType == "price" && !this.quantityTest.includes('.')) {
-              this.priceTest += ".";
-              this.products[this.index].price = this.priceTest;
-            } 
-            // else if (this.actionType == "discount") {
-            //   this.discountTest += ".";
-            //   this.products[this.index].discount = this.discountTest;
-            // }
-          }
-    
-          //calcule du total
-          this.total = 0;
-          this.products.forEach((element: any) => {
-            this.total += Number(element.price) * Number(element.quantity);
-          })
+        let amount = child.instance.amount;
+        let booking_id = child.instance.booking_id;
+        let voucher_ref = child.instance.voucher_ref;
+        let payment_method = child.payment_method.value;
+        
+        console.log(child);
+        this.digits = child.instance[child.focused]
+        console.log(this.digits)
+        value = value.toString(); 
+        this.digits = this.digits.toString(); 
+        if ( value == "50" || value =="10" || value == "20") {
+          value = parseInt(value);
+          this.digits = parseFloat(this.digits);
+          this.digits += value;
+        }else if (value == 'backspace') {
+          let test = this.digits.slice(0, -1);
+          this.digits = test;
+        }else if(value != 'backspace' && value != ',' && value != '+/-'){
+          this.digits += value;
+        } 
+        
+        if(child.focused == "amount"){
+            child.update({amount: this.digits});
+            await child.onchangeAmount();
+        }else if(child.focused == "booking_id"){
+            // child.update({booking_id: this.digits});
+            // await child.onchangeBookingId();
+        }else if(child.focused == "voucher_ref"){
+            child.update({voucher_ref : this.digits})
+            await child.onchangeVoucherRef();
         }
-    
-    
-        
       }
+     
+  }
+
+    
+
+    public onDisplayDetails(value:any){
+        this.posLineDisplay = value;
+    }
+
+    public onTypeMode(value:any){
+
+    }
+    public getDiscountValue(event:any){
+
+    }
 
 }

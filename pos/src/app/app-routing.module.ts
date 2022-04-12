@@ -4,6 +4,7 @@ import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 
 import { AppComponent } from './in/app.component';
 
+
 const routes: Routes = [
   /* routes specific to current app */
   {
@@ -23,7 +24,7 @@ const routes: Routes = [
      */
     path: '',
     component: AppComponent
-  }  
+  }, 
 ];
 
 @NgModule({

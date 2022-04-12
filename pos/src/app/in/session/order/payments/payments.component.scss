@@ -1,6 +1,6 @@
 :host {
 
-    width: 100%;
+    max-width: 430px;
     height: 100%;
     overflow: hidden;
     box-sizing: border-box;
@@ -22,7 +22,27 @@
     }
     .container{
         .body{
-            
+            border-right: 1px solid lightgray;
+            .view{
+                
+                .order{
+                    background-color: #3f51b5;
+                    color: white;
+                    display: flex;
+                    justify-content: center;
+                    padding: 0.25rem;
+                    h2{
+                        color: white;
+                    }
+                    .mat-mini-fab{
+                        box-shadow: none;
+                        margin-left: 0.25rem;
+                        &::ng-deep .mat-button-wrapper{
+                            padding: 0;
+                        }
+                    }
+                }
+            }
         }
     }
     

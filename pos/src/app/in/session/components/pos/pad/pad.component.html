@@ -9,7 +9,7 @@
         <button mat-raised-button value="7" (click)="onPassNumber(7)">7</button>
         <button mat-raised-button value="8" (click)="onPassNumber(8)">8</button>
         <button mat-raised-button value="9" (click)="onPassNumber(9)">9</button>
-        <button mat-raised-button value="+/-" (mouseup)="onMouseUp()" (mousedown)="onMouseDown()">{{this.operator}}</button>
+        <button mat-raised-button value="+/-" (dblclick)="onDoubleClick()" (click)="onPassNumber(this.operator)">{{this.operator}}</button>
         <button mat-raised-button value="0" (click)="onPassNumber(0)">0</button>
         <button mat-raised-button value="," (click)="onPassNumber(',')">,</button>
     </div>

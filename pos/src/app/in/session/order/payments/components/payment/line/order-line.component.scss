@@ -1,9 +1,10 @@
 :host {
-    display: flex;
-      
+    display: flex; 
     width: 100%;
-    margin-left: 20px;
-    div {
-        flex: 1 1 10%;
+    margin: 20px;
+    .orderLine{
+        div{
+            margin: 0.2rem;
+        }
     }
 }

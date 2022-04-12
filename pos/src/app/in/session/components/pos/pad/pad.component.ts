@@ -25,23 +25,13 @@ export class PadComponent implements OnInit {
     this.newNumberPassed.emit(value);
   }
 
-  onMouseUp(){
-    this.mouseUp = +new Date();
-  }
-  onMouseDown(){
-    this.mouseDown = +new Date();
-    let diff = this.mouseUp - this.mouseDown;
-    console.log(diff, 'before')
-    if(diff < -1000){ 
-      // console.log(diff, 'aaaaa')
-      // if(this.operator =='+'){
-      //   this.operator = '-'
-      // }else{
-      //   this.operator = '+';
-      // }  
-      // this.onPassNumber(this.operator)
-    }else{
-      this.onPassNumber(this.operator)
-    }
+  
+
+  onDoubleClick(){  
+      if(this.operator =='+'){
+        this.operator = '-'
+      }else{
+        this.operator = '+';
+      }  
   }
 }

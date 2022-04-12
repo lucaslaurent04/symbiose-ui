@@ -1,8 +1,14 @@
 :host {
     display: flex;
-    margin-left: 20px;
     width: 100%;
-    div {
-        flex: 1 1 10%;
+    section{
+        display: flex;
+        div {
+            margin: 0.25rem;
+        }
+        .selected{
+            background-color: lightgreen;
+        }
     }
+    
 }
