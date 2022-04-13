@@ -3,29 +3,43 @@
 <div class="container" *ngIf="ready">
     <div class="header">Session › {{session.name}} <small>{{session.id}}</small> › Commandes en cours</div>
     <div class="body">
-        <div class="actions">
-            <div class="actions-std"><button mat-flat-button color="accent" (click)="onclickCreateNewLine()">Nouvelle ligne</button></div>
-            <div class="actions-view"></div></div>
-            
-        <div class="view">
-            <h2>Order {{instance.id}}</h2>            
-            <div *ngIf="session.status != 'pending'">Cette sesion n'est plus active.</div>
-            <div *ngIf="session.status == 'pending'">
-
-                <div>{{instance.id}}</div>
-                <div>{{instance.created |  date}}</div>
-                <div>{{instance.price |  currency}}</div>
-                <div>{{instance.total |  currency}}</div>
-                <ng-container *ngFor="let line of instance.order_lines_ids">
-                    
-                    <session-order-lines-order-line
-                        [model]="line"
-                        (updated)="onupdateLine(line.id)"
-                        (deleted)="ondeleteLine(line.id)"
-                    ></session-order-lines-order-line>
-
-                </ng-container>
+            <!-- <div class="actions" *ngIf="posLineDisplay == 'main'"> -->
+                <!-- <div class="actions-std"><button mat-flat-button color="accent" (click)="onclickCreateNewLine()">Nouvelle ligne</button></div>
+                <div class="actions-view"></div></div> -->
+                
+            <div class="view">
+                <h2>Order {{instance.id}}</h2>            
+                <div *ngIf="session.status != 'pending'">Cette session n'est plus active.</div>
+                <div *ngIf="session.status == 'pending'">
+    
+                    <!-- <div>{{instance.id}}</div>
+                    <div>{{instance.created |  date}}</div>
+                    <div>{{instance.price |  currency}}</div>
+                    <div>{{instance.total |  currency}}</div> -->
+                    <app-info [item]="instanceElement" *ngIf="posLineDisplay == 'info'" (posLineDisplay)="onDisplayDetails($event)"></app-info>
+                    <app-discount [item]="instanceElement" (discountValue)="getDiscountValue($event)" (posLineDisplay)="onDisplayDetails($event)" *ngIf="posLineDisplay == 'discount'"></app-discount>
+                    <ng-container  *ngFor="let line of instance.order_lines_ids; index as i">
+                        
+                        <session-order-lines-order-line *ngIf="posLineDisplay =='main'"
+                            [model]="line"
+                            (updated)="onupdateLine(line.id)"
+                            (deleted)="ondeleteLine(line.id)"
+                            (click)="onClickLine(i)"
+                            [class.selected]="index == i"
+                        ></session-order-lines-order-line>
+                    </ng-container>
+                    <div class="total">
+                        <span class="totalNumber"> Total : {{instance.total}} </span> 
+                        <span> Taxes : {{instance.vat_rate}} </span>   
+                    </div>
+                </div>
             </div>
+        
+        <div class="pad">           
+        <pos-pad   (onDisplayDetails)="onDisplayDetails($event)" 
+        (onDigitTyped)="onDigitTyped($event)" 
+        (onInvoice)="onGetInvoice($event)" 
+        (onTypeMode)="typeMode = $event"></pos-pad> 
         </div>
     </div>    
 </div>

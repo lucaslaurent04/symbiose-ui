@@ -9,14 +9,18 @@ import { SessionRoutingModule } from './session-routing.module';
 
 import { SessionComponent } from './session.component';
 
+import {MatButtonToggleModule} from '@angular/material/button-toggle';
+
+
 
 @NgModule({
   imports: [
     SharedLibModule,
-    SessionRoutingModule
+    SessionRoutingModule,
+    MatButtonToggleModule
   ],
   declarations: [
-    SessionComponent
+    SessionComponent,
   ],
   providers: [
     { provide: DateAdapter, useClass: CustomDateAdapter, deps: [MAT_DATE_LOCALE, Platform] }

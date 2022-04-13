@@ -9,7 +9,7 @@ export class PaiementComponent implements OnInit {
 
   constructor() { }
   panelOpenState = true;
-  payments: any = [{ total: "0", voucher: "", cash: "", bank: "", reservation: "", status: "", number: "" }];
+  payments: any = [{ total: "0", voucher: "", cash: "", bank: "", reservation: "", status: "", number: "0" }];
   paymentsIncrement = 1;
   actionType: any;
   index: number;
@@ -26,25 +26,25 @@ export class PaiementComponent implements OnInit {
   }
 
   addPayment(input : any) {
-    this.payments.push({ total: "0", voucher: "", cash: "", bank: "", reservation: "", number : "" });
+    this.payments.push({ total: "0", voucher: "", cash: "", bank: "", reservation: "", number : "0" });
     this.index = input+1;
     this.paymentValue.emit(this.payments[this.index].total);
     this.onGetTotal();
   }
   
 
-  onCheckNumberPassed(value: any) {
-    if (value == "," && !this.payments[this.index][this.field].includes('.')) {
-      this.payments[this.index][this.field] += ".";
-    }else if (value != 'backspace' && value != ',' && value != '+/-') {
-      this.payments[this.index][this.field] += value;
-      this.onGetTotal();
-    }else if (value == 'backspace') {
-      let test = this.payments[this.index][this.field].slice(0, -1);
-      this.payments[this.index][this.field] = test;
-      this.onGetTotal();
-    }
-  }
+  // onCheckNumberPassed(value: any) {
+  //   if (value == "," && !this.payments[this.index][this.field].includes('.')) {
+  //     this.payments[this.index][this.field] += ".";
+  //   }else if (value != 'backspace' && value != ',' && value != '+/-') {
+  //     this.payments[this.index][this.field] += value;
+  //     this.onGetTotal();
+  //   }else if (value == 'backspace') {
+  //     let test = this.payments[this.index][this.field].slice(0, -1);
+  //     this.payments[this.index][this.field] = test;
+  //     this.onGetTotal();
+  //   }
+  // }
 
   onSelectionChange(toggle : string){
     this.paymentSelection.emit(toggle);
@@ -56,7 +56,6 @@ export class PaiementComponent implements OnInit {
 
   onGetTotal() {
     this.total = 0;
-    console.log(this.payments);
     this.payments.forEach((element:any, i:number) => {
       if(this.payments[i].total != undefined && this.payments[i].total != ""){
         this.total += parseFloat(this.payments[i].total)
@@ -86,6 +85,7 @@ export class PaiementComponent implements OnInit {
     this.index = input;
     this.paymentAmount = this.payments[this.index].number;
     this.field = 'number';
+    this.paymentValue.emit(this.paymentAmount);
   }
 
   onCancel(i:any){

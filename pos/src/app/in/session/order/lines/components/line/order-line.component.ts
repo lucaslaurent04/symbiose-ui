@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, Input, Output, EventEmitter, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, AfterViewInit, Input, Output, EventEmitter, ChangeDetectorRef, SimpleChanges } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -40,6 +40,12 @@ export class SessionOrderLinesOrderLineComponent extends TreeComponent<OrderLine
         super( new OrderLine() ) 
     }
 
+    ngOnChanges(changes: SimpleChanges): void {
+        //Called before any other lifecycle hook. Use it to inject dependencies, but avoid any serious work here.
+        //Add '${implements OnChanges}' to the class.
+        console.log('ok')
+        
+    }
 
     public ngAfterViewInit() {}
 
@@ -55,12 +61,7 @@ export class SessionOrderLinesOrderLineComponent extends TreeComponent<OrderLine
     public update(values:any) {
         console.log('line item update', values);
         super.update(values);
-
         // update widgets and sub-components, if necessary
-        this.qty.setValue(this.instance.qty);
-        this.unit_price.setValue(this.instance.unit_price);
-
-        // this.cd.detectChanges();
     }
 
     public async onclickDelete() {
