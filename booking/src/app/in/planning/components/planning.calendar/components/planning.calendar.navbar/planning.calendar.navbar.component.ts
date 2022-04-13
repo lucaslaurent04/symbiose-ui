@@ -1,9 +1,14 @@
 import { Component, Input, Output, EventEmitter, OnInit, NgZone } from '@angular/core';
+import { Observable }  from 'rxjs';
+import { find, map, mergeMap, startWith, debounceTime } from 'rxjs/operators';
+
+import {CalendarParamService} from '../../../../_services/calendar.param.service';
 
 import { HeaderDays } from 'src/app/model/headerdays';
-import { SelectReservationArg } from 'src/app/model/selectreservationarg';
 import { ChangeReservationArg } from 'src/app/model/changereservationarg';
 import { ApiService, AuthService } from 'sb-shared-lib';
+import { FormControl, FormGroup } from '@angular/forms';
+
 
 @Component({
   selector: 'planning-calendar-navbar',
@@ -11,176 +16,132 @@ import { ApiService, AuthService } from 'sb-shared-lib';
   styleUrls: ['./planning.calendar.navbar.component.scss']
 })
 export class PlanningCalendarNavbarComponent implements OnInit {
-  @Input() day: number;
-  @Input() month: number;
-  @Input() year: number;
-  @Output() changedays = new EventEmitter<ChangeReservationArg>();
+    @Input() day: number;
+    @Input() month: number;
+    @Input() year: number;
+    @Output() changedays = new EventEmitter<ChangeReservationArg>();
 
-  currymd: Date;
-  datpicker: Date;
-  cbrooms: any[];
+    dateFrom: Date;
+    dateTo: Date;
+
+    centers: any[] = [];
+    selected_centers_ids: any[] = [];    
+
+
+    vm: any = {
+        duration:   '31',
+        date_range: new FormGroup({
+            date_from: new FormControl(),
+            date_to: new FormControl()
+        })
+    };
   
-  type: string;
-  capacity = '0';
-  center_id: number = 0;
 
-  hd: HeaderDays;
+    constructor(
+        private api: ApiService, 
+        private auth: AuthService, 
+        private params: CalendarParamService,
+        private zone: NgZone) { 
+    }
 
-  view_range: number = 15;
+    ngAfterViewChecked() {
 
-  centers: any[] = [];
+    }
+    
+    ngOnInit() {
+
+        /*
+            Setup events listeners
+        */
+
+        this.vm.date_range.get("date_to").valueChanges
+        .subscribe( (value:Date) => {
+            if(value) {
+                this.dateFrom = this.vm.date_range.get("date_from").value;
+                this.dateTo = this.vm.date_range.get("date_to").value;
+
+                this.params.sync({
+                    'date_from':  this.dateFrom,
+                    'date_to':  this.dateTo
+                });
+            }
+        });
+
+        this.params.getObservable()
+        .subscribe( async () => {
+            // update local vars according to service new values
+            this.dateFrom = new Date(this.params.date_from.getTime())
+            this.dateTo = new Date(this.params.date_to.getTime())
+            
+            this.vm.duration = this.params.duration.toString();
+            this.vm.date_range.get("date_from").setValue(this.dateFrom);
+            this.vm.date_range.get("date_to").setValue(this.dateTo);
+        });
+
+
+        // by default set the first center of current user
+        this.auth.getObservable()
+        .subscribe( async (user:any) => {
+            if(user.hasOwnProperty('centers_ids') && user.centers_ids.length) {
+                try {
+                    const centers = await this.api.collect('lodging\\identity\\Center', 
+                        ['id', 'in', user.centers_ids], 
+                        ['id', 'name', 'code'],
+                        'name','asc',0,50
+                    );
+                    if(centers.length) {
+                        this.selected_centers_ids = centers.map( (e:any) => e.id );                        
+                        this.params.centers_ids = this.selected_centers_ids;
+                        this.centers = centers;
+                    }
+                }
+                catch(err) {
+                    console.warn(err) ;
+                }            
+            }
+
+        });
+
+    }
+
+    public onDurationChange(event: any) {
+        console.log('onDurationChange');
+
+        // update local values
+        let duration = parseInt(event.value, 10);
+        this.dateTo = new Date(this.dateFrom.getTime());
+        this.dateTo.setDate(this.dateTo.getDate() + duration);
+
+        this.vm.date_range.get("date_to").setValue(this.dateTo);
+    }
   
+    public onToday() {
+        this.dateFrom = new Date();
 
-  constructor(private api: ApiService, private auth: AuthService, private zone: NgZone) { 
-
-  }
-
-  ngOnInit() {
-    this.type = 'month';
-    const capacity = +this.capacity;
-    this.currymd = new Date(this.year, this.month - 1, 1);
-    this.datpicker = new Date(this.currymd);
-    this.hd = this.createHeaderDays();
-    const args = new ChangeReservationArg(this.type, 'init', capacity, this.hd);
-    this.changedays.emit(args);
-
-    // by default set the first center of current user
-    this.auth.getObservable().subscribe( async (user:any) => {
-      if(user.hasOwnProperty('centers_ids') && user.centers_ids.length) {
-        try {
-          const centers = await this.api.collect('lodging\\identity\\Center', 
-            ['id', 'in', user.centers_ids], 
-            ['id', 'name', 'code'],
-            'name','asc',0,50
-          );
-          if(centers.length) {
-            this.zone.run( () => {
-              this.centers = centers;
-              this.center_id = centers[0].id;
-              this.changeDays(this.type, 'refresh');
-            })
-          }
-        }
-        catch(err) {
-         console.warn(err) ;
-        }
-        
-      }
-  
-    });
-
-  }
-
-  public onCapacityChange(data: any) {
-    this.capacity = data.value;
-    this.changeDays(this.type, 'refresh');
-  }
-
-  public onCenterChange(data: any) {
-    this.center_id = data.value;
-    this.changeDays(this.type, 'refresh');
-  }
-
-  public onViewChange() {
-    this.changeDays(this.type, 'refresh');
-  }
-  
-  public onToday() {
-    this.type = 'month';
-    let date = new Date();
-    date.setDate(1);
-    this.currymd = new Date(date);
-    this.changeDays(this.type, 'refresh');
-  }
-
-  onPrev() {
-    this.currymd = ( (d: Date): Date => {
-      let x = new Date(d);
-      x.setDate(1);
-      x.setMonth(x.getMonth()-1);
-      return x;
-    })(this.currymd);
-
-    this.changeDays(this.type, 'prev');
-  }
-
-  onNext() {
-    this.currymd = ( (d: Date): Date => {
-      let x = new Date(d);
-      x.setDate(1);
-      x.setMonth(x.getMonth()+1);
-      return x;
-    })(this.currymd);
-
-    this.changeDays(this.type, 'next');
-  }
-
-  onPickerChange(e:any) {
-    console.log(e);
-    this.type = 'month';
-    const date = new Date(e.value);
-    date.setDate(1);
-    this.currymd = new Date(date);
-    this.changeDays(this.type, 'refresh');
-  }
-
-
-  private changeDays(type: string, operation: string) {
-    console.log('relaying changes');
-    this.datpicker = new Date(this.currymd);
-    this.hd = this.createHeaderDays();
-    const args = new ChangeReservationArg(type, operation, +this.capacity, this.hd, this.hd.date_from, this.hd.date_to, this.center_id);
-    this.changedays.emit(args);
-  }
-
-  private createHeaderDays(): HeaderDays {
-    const h = new HeaderDays();
-    let currdate = new Date(this.currymd);
-    const dd = currdate.getDate();
-
-    let $days_in_month = ( (d: Date):number => {
-      let x = new Date(d.getFullYear(), d.getMonth() + 1, 0);
-      return x.getDate();
-    })(currdate);
-
-    // change the max days displayed here        
-    let days = (dd === 1) ? $days_in_month : 31;
-    // days = Math.min(this.view_range, days);
-
-    for (let i = 0; i < days; i++) {
-      if (i > 0) {
-        currdate = ( (d: Date):Date => {
-          let x = new Date(d);
-          x.setDate(x.getDate() + 1);
-          return x;
-        })(currdate);
-      }
-      h.headDaysAll.push(currdate);
+        this.dateTo = new Date(this.dateFrom.getTime());
+        this.dateTo.setDate(this.dateTo.getDate() + this.params.duration);
+        this.vm.date_range.get("date_to").setValue(this.dateTo);
     }
-    h.date_from = h.headDaysAll[0];
-    h.date_to = h.headDaysAll[h.headDaysAll.length - 1];
-    const firstmonth = h.headDaysAll[0].getMonth();
-    for (const dayhead of h.headDaysAll) {
-      if (dayhead.getMonth() === firstmonth) {
-        h.headDays1.push(dayhead);
-      } else {
-        h.headDays2.push(dayhead);
-      }
+
+    public onPrev() {
+        this.dateFrom.setDate(this.dateFrom.getDate() - this.params.duration);
+
+        this.dateTo = new Date(this.dateFrom.getTime());
+        this.dateTo.setDate(this.dateTo.getDate() + this.params.duration);
+        this.vm.date_range.get("date_to").setValue(this.dateTo);
     }
-    if (h.headDays1.length > 0) {
-      h.months.push({
-        date: h.headDays1[0],
-        days: h.headDays1.length
-      });
+
+    public onNext() {
+        this.dateFrom.setDate(this.dateFrom.getDate() + this.params.duration);
+
+        this.dateTo = new Date(this.dateFrom.getTime());
+        this.dateTo.setDate(this.dateTo.getDate() + this.params.duration);
+        this.vm.date_range.get("date_to").setValue(this.dateTo);        
     }
-    if (h.headDays2.length > 0) {
-      h.months.push({
-          date: h.headDays2[0],
-          days: h.headDays2.length
-        }
-      );
+
+    public onchangeSelectedCenters() {
+        this.params.centers_ids = this.selected_centers_ids;
     }
-    return h;
-  }
+    
 
 }

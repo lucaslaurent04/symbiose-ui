@@ -11,6 +11,13 @@
     .panelFilters {
         flex: 1 0 33%;
         display: flex;
+
+        div {
+            margin-left: 20px;
+            mat-form-field {
+                width: 100%;
+            }
+        }
     }
 
     .panelStatus {

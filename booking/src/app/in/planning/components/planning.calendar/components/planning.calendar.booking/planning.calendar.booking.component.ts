@@ -1,8 +1,10 @@
 import { Component, Input, Output, ElementRef, EventEmitter, OnInit, OnChanges, SimpleChanges, ViewChild, AfterViewInit } from '@angular/core';
 import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
 import { ContextService } from 'sb-shared-lib';
-import { BookingDayClass } from 'src/app/model/booking.class';
 import { PlanningDialogBookingComponent } from '../../../planning.dialog.booking/planning.dialog.booking.component';
+
+
+const today = new Date();
 
 @Component({
   selector: 'planning-calendar-booking',
@@ -10,83 +12,129 @@ import { PlanningDialogBookingComponent } from '../../../planning.dialog.booking
   styleUrls: ['./planning.calendar.booking.component.css']
 })
 export class PlanningCalendarBookingComponent implements OnInit, OnChanges  {
-  @Input()  color: string;
-  @Input()  day: Date;
-  @Input()  booking: BookingDayClass | null;
-  @Input()  width: number;
+    @Input()  color: string;
+    @Input()  day: Date;
+    @Input()  consumptions: any[];
+    @Input()  sojourns: any[];
+    @Input()  width: number;
 
-  public is_weekend = false;
-  public is_today = false;
-  public is_first = false;
+    public is_weekend = false;
+    public is_today = false;
 
-  constructor(
-    private elementRef: ElementRef,
-    private dialog: MatDialog,
-    private context: ContextService
-  ) {}
+    constructor(
+        private elementRef: ElementRef,
+        private dialog: MatDialog,
+        private context: ContextService
+    ) {}
 
-  ngOnInit() { }
+    ngOnInit() { }
 
-  ngOnChanges(changes: SimpleChanges) {
-    if (changes.booking) {
-      this.datasourceChanged();
-    }
-  }
-
-  private datasourceChanged() {
-    this.is_first = false;
-
-    this.is_today = ((date:Date) => {
-      const today = new Date();
-      return date.getDate() == today.getDate() && date.getMonth() == today.getMonth() && date.getFullYear() == today.getFullYear()
-    })(this.day);
-
-    this.is_weekend = ((date:Date) => (date.getDay() == 0 || date.getDay() == 6) )(this.day);
-
-    if(this.booking) {
-
-      let parts = this.booking.schedule_from.split(':');
-      let time_from = parseInt(parts[0]);
-      let offset  = (time_from/24)*this.width;
-
-      parts = this.booking.schedule_to.split(':');
-      let time_to = parseInt(parts[0]);
-      let nb_hours = (24-time_from) + ( (this.booking.nb_nights-1) * 24) + time_to;
-
-      let width = (this.width/24) * nb_hours;
-      // use only the first consumption from the collection
-      this.is_first = (this.booking.date_from.getDate() == this.day.getDate() && this.booking.date_from.getMonth() == this.day.getMonth());
-
-      // on a besoin de l'offset par rapport au jour courant
-      // et du nombre total d'heures
-      this.elementRef.nativeElement.style.setProperty('--width', width+'px');
-      this.elementRef.nativeElement.style.setProperty('--offset', offset+'px');
-    }
-  }
-
-
-  public onShowBooking(booking: any) {    
-    const dialog = this.dialog.open(PlanningDialogBookingComponent, {
-      data: booking,
-      width: '800px',
-      height : '450px'
-    });
-    dialog.afterClosed().subscribe(data => {
-      if(data && data.hasOwnProperty('open')) {
-        switch(data.open) {
-          case 'booking':
-            this.onOpenBooking(data.id)
-            break;
-          case 'customer':
-            this.onOpenCustomer(data.id)
-            break;
-          case 'contact':
-            this.onOpenContact(data.id)
-            break;      
+    ngOnChanges(changes: SimpleChanges) {
+        if (changes.consumptions || changes.sojourns || changes.width) {
+            this.datasourceChanged();
         }
-      }
-    });
+    }
+
+    /**
+     * convert a string formated time to a unix timestamp
+     */
+    private getTime(time:string) {
+        let parts = time.split(':');
+        return parseInt(parts[0])*3600 + parseInt(parts[1])*60 + parseInt(parts[2]);
+    }
+
+    private datasourceChanged() {
+        if(this.consumptions.length) {
+            console.log('datasourceChanged', this.consumptions);
+        }
+
+        this.is_today = (this.day.getDate() == today.getDate() && this.day.getMonth() == today.getMonth() && this.day.getFullYear() == today.getFullYear());
+        this.is_weekend = (this.day.getDay() == 0 || this.day.getDay() == 6);
+
+        let processed_consumptions: any = {};
+
+        const unit = this.width/(24*3600);
+
+
+        if(this.sojourns && this.sojourns.length) {
+            console.log('{{{{{{', this.day, this.sojourns)
+            // #memo - there should be only one sojourn for a given rental unit on a given day 
+            for(let sojourn of this.sojourns) {
+                if(!sojourn.hasOwnProperty('consumptions') || sojourn.consumptions.length <= 1) {
+                    continue;
+                }
+                for(let consumption of sojourn.consumptions) {
+                    processed_consumptions[consumption.id] = true;
+                }
+                let count = sojourn.consumptions.length;
+                let first = sojourn.consumptions[0];
+                let last = sojourn.consumptions[count-1];
+
+                let time_from = this.getTime(first.schedule_from);
+                let time_to = this.getTime(last.schedule_to);
+
+                let offset:number  = unit * time_from;
+                let width = unit * (((24*3600)-time_from) + (24*3600*(count-2)) + (time_to));
+                
+                this.elementRef.nativeElement.style.setProperty('--width', width+'px');
+                this.elementRef.nativeElement.style.setProperty('--offset', offset+'px');
+            }
+        }
+
+        if(this.consumptions && this.consumptions.length) {
+            for(let consumption of this.consumptions) {
+                if(processed_consumptions.hasOwnProperty(consumption.id)) {
+                    continue;
+                }
+                console.log('####', consumption.id, consumption.date);
+
+                let date = new Date(consumption.date);
+                // offset since the start of the current day
+                let offset:number = 0;
+                let width:string = '100%';
+                if(consumption.schedule_from != '00:00:00' || consumption.schedule_to != '24:00:00') {
+                    let time_from = this.getTime(consumption.schedule_from);
+                    let time_to = this.getTime(consumption.schedule_to);
+
+                    offset  = unit * time_from;
+                    width = Math.abs(unit * (time_to-time_from)).toString() + 'px';
+                }
+                // use only the first consumption from the collection
+                /*
+                    "date": "2022-03-25T00:00:00+01:00",
+                    "schedule_from": "14:00:00",
+                    "schedule_to": "24:00:00",
+                */
+
+                this.elementRef.nativeElement.style.setProperty('--width', width);
+                this.elementRef.nativeElement.style.setProperty('--offset', offset+'px');
+            }
+        }
   }
+
+
+    public onShowBooking(booking: any) {
+        const dialog = this.dialog.open(PlanningDialogBookingComponent, {
+            data: booking,
+            width: '800px',
+            height : '450px'
+        });
+        dialog.afterClosed().subscribe(data => {
+            if(data && data.hasOwnProperty('open')) {
+                switch(data.open) {
+                    case 'booking':
+                    this.onOpenBooking(data.id)
+                    break;
+                    case 'customer':
+                    this.onOpenCustomer(data.id)
+                    break;
+                    case 'contact':
+                    this.onOpenContact(data.id)
+                    break;
+                }
+            }
+        });
+    }
 
 
 
@@ -132,7 +180,7 @@ export class PlanningCalendarBookingComponent implements OnInit, OnChanges  {
         target:     '#sb-planning-container'
       }
     };
-    this.context.change(descriptor);    
+    this.context.change(descriptor);
   }
 
 }

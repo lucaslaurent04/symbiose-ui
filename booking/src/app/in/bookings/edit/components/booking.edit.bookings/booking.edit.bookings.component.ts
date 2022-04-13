@@ -1,6 +1,6 @@
 import { Component, Inject, OnInit, OnChanges, NgZone, Output, Input, EventEmitter, SimpleChanges } from '@angular/core';
 import { AuthService, ContextService } from 'sb-shared-lib';
-import { BookingApiService } from 'src/app/in/bookings/booking.api.service';
+import { BookingApiService } from 'src/app/in/bookings/_services/booking.api.service';
 
 import { Observable, ReplaySubject, BehaviorSubject, async } from 'rxjs';
 

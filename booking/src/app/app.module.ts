@@ -9,6 +9,7 @@ import { PlatformModule } from '@angular/cdk/platform';
 
 import { SharedLibModule, AuthInterceptorService } from 'sb-shared-lib';
 import { NgxMaterialTimepickerModule } from 'ngx-material-timepicker';
+import { FullscreenOverlayContainer, OverlayContainer } from '@angular/cdk/overlay';
 
 import { AppRootComponent } from './app.root.component';
 import { AppComponent } from './in/app.component';
@@ -43,7 +44,8 @@ registerLocaleData(localeFr);
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptorService, multi: true },
     { provide: MAT_SNACK_BAR_DEFAULT_OPTIONS, useValue: { duration: 4000, horizontalPosition: 'start' } },
     { provide: MAT_DATE_LOCALE, useValue: 'fr-BE' },
-    { provide: LOCALE_ID, useValue: 'fr-BE' }
+    { provide: LOCALE_ID, useValue: 'fr-BE' },
+    { provide: OverlayContainer, useClass: FullscreenOverlayContainer }
     /* remeber to provide CustomDateAdapter in modules with children components using dates */
   ],
   bootstrap: [AppRootComponent]

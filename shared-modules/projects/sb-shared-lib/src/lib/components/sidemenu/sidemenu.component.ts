@@ -8,12 +8,8 @@ import { EnvService } from '../../services/env.service';
 import { EqualUIService } from '../../services/eq.service';
 
 import * as screenfull from 'screenfull';
-import {
-  HttpErrorResponse
-} from '@angular/common/http';
-import {
-  TranslateService
-} from '@ngx-translate/core';
+import { HttpErrorResponse } from '@angular/common/http';
+import { TranslateService } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-sidemenu',

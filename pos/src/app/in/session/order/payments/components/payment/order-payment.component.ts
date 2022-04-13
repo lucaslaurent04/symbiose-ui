@@ -57,6 +57,10 @@ export class SessionOrderPaymentsOrderPaymentComponent extends TreeComponent<Ord
         this.componentsMap = map;
     }
 
+public onclickOk() {
+    console.log(this.componentsMap.order_lines_ids);
+       console.log(this.SessionOrderPaymentsOrderLineComponents.toArray());
+}
     public ngOnInit() {
         // init componentsMap
         this.componentsMap = {

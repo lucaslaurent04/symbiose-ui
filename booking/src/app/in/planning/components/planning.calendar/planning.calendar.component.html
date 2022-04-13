@@ -1,51 +1,49 @@
 
 
 <div>
-  <planning-calendar-navbar 
-                            [day]="day"
-                            [month]="month"
-                            [year]="year"
-                            (changedays)="onFiltersChange($event)">
-  </planning-calendar-navbar>
+    <planning-calendar-navbar
+        [day]="day"
+        [month]="month"
+        [year]="year">
+    </planning-calendar-navbar>
 </div>
 
 <div class="container">
-    <table class="tabreservation"> 
-      <!-- header -->
-      <thead #table_width>
-      <tr class="head" >
-        <td class="cell-room" rowspan="2" style="min-width: 100px;">ref.</td>
-        <td class="cell-room" rowspan="2">stat.</td>
-        <td class="head-months" *ngFor="let month of headerdays.months" [attr.colspan]="month.days" [style.width]="(100/headerdays.months.length)+'%'"> 
-          {{ month.date | date : 'MMMM y' }}
-        </td>
-      </tr>
-      <tr class="head">
-        <th class="head-days" *ngFor="let dd of headerdays.headDays1"> 
-          <span style="font-weight: 400">{{ dd | date: 'EEE'}}</span><br />
-          {{ dd | date: 'd'}}
-        </th>
-        <th class="head-days" *ngFor="let dd of headerdays.headDays2"> 
-          {{ dd | date: 'EEE'}}<br />
-          {{ dd | date : 'd'}}
-        </th>
-      </tr>
-    </thead>
-    <tbody>
-      <!-- body -->
-      <tr class="rows" *ngFor="let rental_unit of rental_units; let index = index;">
-        <td class="cell-room">{{ rental_unit.name }}</td>
-        <td class="cell-room" ><!--status--></td>
+    <table #calTable class="cal-table">
+        <!-- header -->
+        <thead>
+            <tr class="head" >
+                <td #calTableRefColumn class="ref-column cell-room" rowspan="2">ref.</td>
+                <td class="stat-column cell-room" rowspan="2">stat.</td>
+                <td class="head-months" *ngFor="let month of headers.months" [attr.colspan]="month.days.length" >
+                    {{ month.date | date : 'MMMM y' }}
+                </td>
+            </tr>
+            <tr class="head">
+                <th #calTableHeadCells class="head-days" *ngFor="let dd of headers.days" [class.small]="cells_width <= 26" [class.hidden]="cells_width < 10">
+                    <div *ngIf="cells_width > 26" class="week-day">{{ dd | date: 'EEE'}}</div>
+                    <div *ngIf="cells_width <= 26" class="week-day">{{ dd | date: 'EEEEE'}}</div>
+                    <div class="month-day">{{ dd | date: 'd'}}</div>
+                </th>
+            </tr>
+        </thead>
+        <tbody>
+            <!-- body -->
+            <tr class="rows" *ngFor="let rental_unit of rental_units; let index = index;">
+                <td class="cell-room">{{ rental_unit.name }}<span class="cell-hint">{{ rental_unit.name }}</span></td>
+                <td class="cell-room" ><!--status--></td>
 
-        <td *ngFor="let day of headerdays.headDaysAll" class="cell-days">
-          <planning-calendar-booking 
-            [width]="cell_width"
-            [color]="colors[index % colors.length]"
-            [day]="day" 
-            [booking]="getBooking(rental_unit, day)">
-          </planning-calendar-booking>
-        </td>
-      </tr>
-    </tbody>
+                <td *ngFor="let day of headers.days" class="cell-days">
+                    <planning-calendar-booking
+                        [width]="cells_width"
+                        [color]="colors[index % colors.length]"
+                        [day]="day"
+                        [consumptions]="getConsumptions(rental_unit, day)"
+                        [sojourns]="getSojourns(rental_unit, day)"
+                        >
+                    </planning-calendar-booking>
+                </td>
+            </tr>
+        </tbody>
     </table>
 </div>

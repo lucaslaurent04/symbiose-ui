@@ -44,6 +44,10 @@
 
 }
 
+.booking-details.sojourn {
+    z-index: 2;
+}
+
 .is-today {
     position: absolute;
     background: orangered;

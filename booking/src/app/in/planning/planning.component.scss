@@ -20,9 +20,14 @@
         }
     
         .planning-body {
+            background-color: white;
             height: calc(100vh - 123px);
             width: 100%;
             overflow: hidden;
+        }
+
+        .planning-body.fullscreen {
+            height: 100vh;
         }
      
     }
