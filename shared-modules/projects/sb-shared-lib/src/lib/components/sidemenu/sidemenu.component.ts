@@ -326,41 +326,41 @@ export class AppSideMenuComponent implements OnInit {
 
   }
 
-  onHelpFullScreen() {
-    console.log('onHelpFullScreen');
-    if (screenfull.isEnabled) {
-      screenfull.toggle(this.helpFullScreen.nativeElement);
-    } else {
-      console.log('screenfull not enabled');
+    onHelpFullScreen() {
+        console.log('onHelpFullScreen');
+        if (screenfull.isEnabled) {
+            screenfull.toggle(this.helpFullScreen.nativeElement);
+        } else {
+            console.log('screenfull not enabled');
+        }
+        }
+
+        public async onDisconnect() {
+        try {
+            await this.auth.signOut();
+            window.location.href = '/auth';
+        } catch (err) {
+            console.warn('unable to request signout');
+        }
     }
-  }
 
-  public async onDisconnect() {
-    try {
-      await this.auth.signOut();
-      window.location.href = '/auth';
-    } catch (err) {
-      console.warn('unable to request signout');
+    public onUserSettings() {
+        // this.router.navigate(['']);
+        let descriptor = {
+            context: {
+            entity: 'lodging\\identity\\User',
+            type: 'form',
+            name: 'default',
+            domain: ['id', '=', this.user.id],
+            mode: 'edit',
+            purpose: 'view',
+            display_mode: 'popup'
+            }
+        };
+
+        // this.router.navigate(['/']);
+        this.context.change(descriptor);
     }
-  }
-
-  public onUserSettings() {
-    // this.router.navigate(['']);
-    let descriptor = {
-      context: {
-        entity: 'lodging\\identity\\User',
-        type: 'form',
-        name: 'default',
-        domain: ['id', '=', this.user.id],
-        mode: 'edit',
-        purpose: 'view',
-        display_mode: 'popup'
-      }
-    };
-
-    this.router.navigate(['/']);
-    this.context.change(descriptor);
-  }
 
   public async onObjectCheck(item: any) {
     if (item.hasOwnProperty('controller')) {

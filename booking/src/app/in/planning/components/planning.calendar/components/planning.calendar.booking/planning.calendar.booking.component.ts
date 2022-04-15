@@ -1,36 +1,34 @@
-import { Component, Input, Output, ElementRef, EventEmitter, OnInit, OnChanges, SimpleChanges, ViewChild, AfterViewInit } from '@angular/core';
-import { MatDialog, MatDialogConfig } from '@angular/material/dialog';
-import { ContextService } from 'sb-shared-lib';
-import { PlanningDialogBookingComponent } from '../../../planning.dialog.booking/planning.dialog.booking.component';
-
+import { Component, Input, Output, ElementRef, EventEmitter, OnInit, OnChanges, SimpleChanges, ViewChild, AfterViewInit, ChangeDetectorRef } from '@angular/core';
 
 const today = new Date();
+const millisecondsPerDay:number = 24 * 60 * 60 * 1000;
 
 @Component({
   selector: 'planning-calendar-booking',
   templateUrl: './planning.calendar.booking.component.html',
-  styleUrls: ['./planning.calendar.booking.component.css']
+  styleUrls: ['./planning.calendar.booking.component.scss']
 })
 export class PlanningCalendarBookingComponent implements OnInit, OnChanges  {
     @Input()  color: string;
     @Input()  day: Date;
-    @Input()  consumptions: any[];
+    @Input()  consumption: any;
     @Input()  sojourns: any[];
     @Input()  width: number;
+    @Output() hover = new EventEmitter<any>();
+    @Output() selected = new EventEmitter<any>();    
 
+    public has_consumption = false;
     public is_weekend = false;
     public is_today = false;
 
     constructor(
-        private elementRef: ElementRef,
-        private dialog: MatDialog,
-        private context: ContextService
+        private elementRef: ElementRef
     ) {}
 
     ngOnInit() { }
 
     ngOnChanges(changes: SimpleChanges) {
-        if (changes.consumptions || changes.sojourns || changes.width) {
+        if (changes.consumption || changes.width) {
             this.datasourceChanged();
         }
     }
@@ -44,143 +42,56 @@ export class PlanningCalendarBookingComponent implements OnInit, OnChanges  {
     }
 
     private datasourceChanged() {
-        if(this.consumptions.length) {
-            console.log('datasourceChanged', this.consumptions);
-        }
+
+        const unit = this.width/(24*3600);
 
         this.is_today = (this.day.getDate() == today.getDate() && this.day.getMonth() == today.getMonth() && this.day.getFullYear() == today.getFullYear());
         this.is_weekend = (this.day.getDay() == 0 || this.day.getDay() == 6);
 
-        let processed_consumptions: any = {};
-
-        const unit = this.width/(24*3600);
-
-
-        if(this.sojourns && this.sojourns.length) {
-            console.log('{{{{{{', this.day, this.sojourns)
-            // #memo - there should be only one sojourn for a given rental unit on a given day 
-            for(let sojourn of this.sojourns) {
-                if(!sojourn.hasOwnProperty('consumptions') || sojourn.consumptions.length <= 1) {
-                    continue;
-                }
-                for(let consumption of sojourn.consumptions) {
-                    processed_consumptions[consumption.id] = true;
-                }
-                let count = sojourn.consumptions.length;
-                let first = sojourn.consumptions[0];
-                let last = sojourn.consumptions[count-1];
-
-                let time_from = this.getTime(first.schedule_from);
-                let time_to = this.getTime(last.schedule_to);
-
-                let offset:number  = unit * time_from;
-                let width = unit * (((24*3600)-time_from) + (24*3600*(count-2)) + (time_to));
-                
-                this.elementRef.nativeElement.style.setProperty('--width', width+'px');
-                this.elementRef.nativeElement.style.setProperty('--offset', offset+'px');
-            }
+        if(!this.consumption || !Object.keys(this.consumption).length) {
+            this.has_consumption = false;
+            return;    
         }
 
-        if(this.consumptions && this.consumptions.length) {
-            for(let consumption of this.consumptions) {
-                if(processed_consumptions.hasOwnProperty(consumption.id)) {
-                    continue;
-                }
-                console.log('####', consumption.id, consumption.date);
+        this.has_consumption = true;
 
-                let date = new Date(consumption.date);
-                // offset since the start of the current day
-                let offset:number = 0;
-                let width:string = '100%';
-                if(consumption.schedule_from != '00:00:00' || consumption.schedule_to != '24:00:00') {
-                    let time_from = this.getTime(consumption.schedule_from);
-                    let time_to = this.getTime(consumption.schedule_to);
+        let date = new Date(this.consumption.date);
+        // offset since the start of the current day
+        let offset:number = 0;
+        let width:string = '100%';
 
-                    offset  = unit * time_from;
-                    width = Math.abs(unit * (time_to-time_from)).toString() + 'px';
-                }
-                // use only the first consumption from the collection
-                /*
-                    "date": "2022-03-25T00:00:00+01:00",
-                    "schedule_from": "14:00:00",
-                    "schedule_to": "24:00:00",
-                */
+        if( this.consumption.date_from != this.consumption.date_to || this.consumption.schedule_from != '00:00:00' || this.consumption.schedule_to != '24:00:00') {
 
-                this.elementRef.nativeElement.style.setProperty('--width', width);
-                this.elementRef.nativeElement.style.setProperty('--offset', offset+'px');
-            }
+            let time_from = this.getTime(this.consumption.schedule_from);
+            let time_to = this.getTime(this.consumption.schedule_to);
+
+            let date_from = new Date(this.consumption.date_from.substring(0, 10));
+            let date_to = new Date(this.consumption.date_to.substring(0, 10));
+            
+            let days = Math.abs(date_to.getTime() - date_from.getTime()) / millisecondsPerDay;
+
+            offset  = unit * time_from;
+            width = Math.abs(unit * (((24*3600)-time_from) + (24*3600*(days-1)) + (time_to))).toString() + 'px';
+
         }
+
+        this.elementRef.nativeElement.style.setProperty('--width', width);
+        this.elementRef.nativeElement.style.setProperty('--offset', offset+'px');
+
+
   }
 
 
     public onShowBooking(booking: any) {
-        const dialog = this.dialog.open(PlanningDialogBookingComponent, {
-            data: booking,
-            width: '800px',
-            height : '450px'
-        });
-        dialog.afterClosed().subscribe(data => {
-            if(data && data.hasOwnProperty('open')) {
-                switch(data.open) {
-                    case 'booking':
-                    this.onOpenBooking(data.id)
-                    break;
-                    case 'customer':
-                    this.onOpenCustomer(data.id)
-                    break;
-                    case 'contact':
-                    this.onOpenContact(data.id)
-                    break;
-                }
-            }
-        });
+       this.selected.emit(booking);
     }
 
+    public onEnterConsumption(consumption:any) {
+        this.hover.emit(consumption);
+    }
 
-
-  public onOpenBooking(booking_id: number) {
-    let descriptor = {
-      context: {
-        entity:     'lodging\\sale\\booking\\Booking',
-        type:       'form',
-        name:       'default',
-        domain:     [ 'id', '=', booking_id ],
-        mode:       'view',
-        purpose:    'view',
-        target:     '#sb-planning-container'
-      }
-    };
-    this.context.change(descriptor);
-  }
-
-  public onOpenCustomer(customer_id: number) {
-    let descriptor = {
-      context: {
-        entity:     'sale\\customer\\Customer',
-        type:       'form',
-        name:       'default',
-        domain:     [ 'id', '=', customer_id ],
-        mode:       'view',
-        purpose:    'view',
-        target:     '#sb-planning-container'
-      }
-    };
-    this.context.change(descriptor);
-  }
-
-  public onOpenContact(contact_id: number) {
-    let descriptor = {
-      context: {
-        entity:     'sale\\booking\\Contact',
-        type:       'form',
-        name:       'default',
-        domain:     [ 'id', '=', contact_id ],
-        mode:       'view',
-        purpose:    'view',
-        target:     '#sb-planning-container'
-      }
-    };
-    this.context.change(descriptor);
-  }
+    public onLeaveConsumption(consumption:any) {
+        this.hover.emit();
+    }
 
 }

@@ -11,6 +11,7 @@
         width: 100%;
 
         .planning-header {
+            display: flex;
             width: 100%;
             padding-left: 12px;
             height: 48px;
@@ -24,6 +25,14 @@
             height: calc(100vh - 123px);
             width: 100%;
             overflow: hidden;
+
+            .calendar-wrapper {
+                height: 100%;
+                &.hidden {
+                    display: none;
+                }
+            }
+            
         }
 
         .planning-body.fullscreen {
@@ -32,7 +41,7 @@
      
     }
 
-    .container.hidden {
+    .hidden {
         display: none;
     }
 

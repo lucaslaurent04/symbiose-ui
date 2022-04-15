@@ -2132,9 +2132,9 @@ var EventsListener = /*#__PURE__*/function () {
         }
       }
     }
-    /** 
+    /**
      * Asynchronous initialisation of the eQ instance.
-     * 
+     *
      */
 
   }, {
@@ -2458,7 +2458,7 @@ var EventsListener = /*#__PURE__*/function () {
     key: "popup",
     value: function () {
       var _popup = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3(config) {
-        var x_offset, y_offset, popup_id, $popup, $inner, frame;
+        var x_offset, y_offset, popup_id, $popup, $inner, original_target, frame;
         return _regenerator.default.wrap(function _callee3$(_context4) {
           while (1) {
             switch (_context4.prev = _context4.next) {
@@ -2474,17 +2474,23 @@ var EventsListener = /*#__PURE__*/function () {
                 $popup.css('top', y_offset + 'px');
                 $popup.css('z-index', 9000 + popup_id);
                 $popup.find('.sb-popup').append($inner);
+                original_target = config.target ? config.target : '';
                 config.target = $inner;
                 frame = new _equalLib.Frame(this, config.target);
                 config.display_mode = 'popup';
-                _context4.next = 14;
+                _context4.next = 15;
                 return frame._openContext(config);
 
-              case 14:
-                (0, _jqueryLib.$)('body').append($popup);
+              case 15:
+                if (original_target.length) {
+                  (0, _jqueryLib.$)(original_target).append($popup);
+                } else {
+                  (0, _jqueryLib.$)('body').append($popup);
+                }
+
                 this.popups.push(frame);
 
-              case 16:
+              case 17:
               case "end":
                 return _context4.stop();
             }
@@ -2515,7 +2521,7 @@ var EventsListener = /*#__PURE__*/function () {
     value: function getEnv() {
       return this.env;
     }
-    /** 
+    /**
      * Return global instance of the API service, for using by external tools.
      */
 
@@ -8191,7 +8197,8 @@ var View = /*#__PURE__*/function () {
                           object_id = res.selection.pop(); // reset domain (drop state=draft condition)
 
                           tmpDomain = new _equalLib.Domain(["id", "=", object_id]);
-                          _this4.domain = tmpDomain.toArray(); // this.onchangeView(true);
+                          _this4.domain = tmpDomain.toArray(); // #memo - we don't want to refresh the view (would lose the current tab)
+                          // this.onchangeView(true);
                           // feedback the user (since we're not closing the context)
 
                           $snack = _materialLib.UIHelper.createSnackbar('Modifications enregistrées', '', '', 4000);

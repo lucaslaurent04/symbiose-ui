@@ -1,4 +1,4 @@
-import { Component, ChangeDetectorRef, Input, Output, EventEmitter, ViewChild, OnInit, AfterViewInit, ViewChildren, QueryList, ElementRef, AfterViewChecked } from '@angular/core';
+import { Component, ChangeDetectorRef, Input, Output, EventEmitter, ViewChild, OnInit, AfterViewInit, ViewChildren, QueryList, ElementRef, AfterViewChecked, HostBinding } from '@angular/core';
 
 import { ChangeReservationArg } from 'src/app/model/changereservationarg';
 import { RentalUnitClass } from 'src/app/model/rental.unit.class';
@@ -15,7 +15,7 @@ class ConsumptionClass {
     public id:number = 0,
     public booking_id = 0,
     public booking_line_id = 0,
-    public booking_line_group_id = 0,    
+    public booking_line_group_id = 0,
     public is_accomodation: Boolean = false,
     public rental_unit_id = 0,
     public date: Date = new Date(),
@@ -30,19 +30,15 @@ class ConsumptionClass {
   styleUrls: ['./planning.calendar.component.scss']
 })
 export class PlanningCalendarComponent implements OnInit, AfterViewInit, AfterViewChecked {
-    @Input() year: number;
-    @Input() month: number;
-    @Input() day: number;
-
     @Output() filters = new EventEmitter<ChangeReservationArg>();
-
-
+    @Output() showBooking = new EventEmitter();
+    
     // attach DOM element to compute the cells width
     @ViewChild('calTable') calTable: any;
     @ViewChild('calTableRefColumn') calTableRefColumn: any;
 
     @ViewChildren("calTableHeadCells") calTableHeadCells: QueryList<ElementRef>;
-    
+
     public headers: any;
 
     public headerdays: HeaderDays;
@@ -52,24 +48,28 @@ export class PlanningCalendarComponent implements OnInit, AfterViewInit, AfterVi
     public colors: any[] = [
         '#ff9633', '#0fc4a7','#0288d1','#9575cd','#C80651'
     ];
-  
+
 
     public consumptions: any = [];
     public rental_units: any = [];
+    public holidays: any = [];
 
+    public hovered_consumption: any;
+    public hovered_rental_unit: any;
+
+    // duration history as hint for refreshing cell width
     private previous_duration: number;
-    private consumptions_map: any = {};
-    private sojourns_map: any = {};    
 
     constructor(
-        private params: CalendarParamService, 
-        private api: ApiService, 
+        private params: CalendarParamService,
+        private api: ApiService,
         private cd: ChangeDetectorRef) {
             this.headers = {};
+            this.rental_units = [];
             this.previous_duration = 0;
     }
 
-    ngOnInit() { 
+    async ngOnInit() {
         this.params.getObservable().subscribe( () => {
             console.log('PlanningCalendarComponent cal params change', this.params);
             this.onFiltersChange();
@@ -79,7 +79,7 @@ export class PlanningCalendarComponent implements OnInit, AfterViewInit, AfterVi
     ngAfterViewInit() {
     }
 
-    
+
     /**
      * After refreshing the view with new content, adapt header and relay new cell_width, if changed
      */
@@ -109,145 +109,108 @@ export class PlanningCalendarComponent implements OnInit, AfterViewInit, AfterVi
         this.cd.detectChanges();
     }
 
-    public getConsumptions(rentalUnit:RentalUnitClass, day: Date):any {
-        let filtered = [];
+    public getConsumption(rentalUnit:RentalUnitClass, day: Date):any {
+        let result = {};
 
         let date_index:string = day.toISOString().substring(0, 10);
 
-        if(this.consumptions_map.hasOwnProperty(rentalUnit.id) && this.consumptions_map[rentalUnit.id].hasOwnProperty(date_index)) {
-            filtered = this.consumptions_map[rentalUnit.id][date_index];
+        if(this.consumptions.hasOwnProperty(rentalUnit.id) && this.consumptions[rentalUnit.id].hasOwnProperty(date_index)) {
+            result = this.consumptions[rentalUnit.id][date_index];
         }
 
-        return filtered;
+        return result;
     }
 
-    public getSojourns(rentalUnit:RentalUnitClass, day: Date):any {
-        let filtered = [];
-
+    public getHoliday(day: Date): string[] {
+        let result = [];
         let date_index:string = day.toISOString().substring(0, 10);
-
-        if(this.sojourns_map.hasOwnProperty(rentalUnit.id) && this.sojourns_map[rentalUnit.id].hasOwnProperty(date_index)) {
-            filtered = this.sojourns_map[rentalUnit.id][date_index];
+        if(this.holidays.hasOwnProperty(date_index) && this.holidays[date_index].length) {
+            result = this.holidays[date_index];
         }
-
-        return filtered;
+        return result;
     }
-
-    private async load() {
-    
-        this.rental_units = [];
-
-        if(this.params.centers_ids.length) {
-
-            const rental_units = await this.api.collect(
-                "lodging\\realestate\\RentalUnit", 
-                ["center_id", "in",  this.params.centers_ids], 
-                Object.getOwnPropertyNames(new RentalUnitClass()),
-                'id', 'asc', 0, 100
-            );
-
-            if(rental_units && rental_units.length) {
-                this.rental_units = rental_units;
-                let rental_units_ids = rental_units.map( (a:any) => a.id );
-
-                this.consumptions = await this.api.collect(
-                    "sale\\booking\\Consumption", 
-                    [
-                        ['date', '>=', this.params.date_from],
-                        ['date', '<=', this.params.date_to],
-                        ['rental_unit_id', 'in',  rental_units_ids]
-                    ], 
-                    [
-                    'booking_id.customer_id.name', 'booking_id.status', 'booking_id.name', 'booking_id.contacts_ids', 'booking_id.payment_status',
-                    'rental_unit_id.id', 'rental_unit_id.children_ids', 
-                    ...Object.getOwnPropertyNames(new ConsumptionClass())
-                    ], 
-                    'date', 'asc', 0, 500
-                );
-            }
-        }
-    }
-
-
 
     private async onFiltersChange() {
 
         this.createHeaderDays();
-        
+
+        if(this.params.centers_ids.length <= 0) {
+            return;
+        }
+
         try {
 
-            await this.load();
-            this.consumptions_map = {};
-            this.sojourns_map = {};
-
-            let tmp_consumptions_map:any = {};
-            let tmp_sojourns_map:any = {};
-            
-            // group consumptions by rental_unit and date
-            for(let consumption of this.consumptions) {
-                let date_index = consumption.date.substring(0, 10);
-
-                // handle only one consumption by booking_line and by date
-                // #todo - do this on server side
-                if(tmp_consumptions_map.hasOwnProperty(consumption.booking_line_id)) {
-                    if(tmp_consumptions_map[consumption.booking_line_id].hasOwnProperty(date_index)) {
-                        continue;
-                    }                    
+            let holidays:any = await this.api.collect(
+                "calendar\\Holiday",
+                [
+                    [ [ "date_from", ">=",  this.params.date_from], [ "date_to", "<=",  this.params.date_to ] ],
+                    [ [ "date_from", ">=",  this.params.date_from], [ "date_from", "<=",  this.params.date_to ] ],
+                    [ [ "date_to", ">=",  this.params.date_from], [ "date_to", "<=",  this.params.date_to ] ],
+                ],
+                ['name', 'date_from', 'date_to', 'type'],
+                'id', 'asc', 0, 100
+            );
+            if(holidays) {
+                for(let holiday of holidays) {
+                    holiday['date_from_int']  = parseInt(holiday.date_from.substring(0, 10).replace(/-/gi, ''), 10);
+                    holiday['date_to_int'] = parseInt(holiday.date_to.substring(0, 10).replace(/-/gi, ''), 10);
                 }
-                else {
-                    tmp_consumptions_map[consumption.booking_line_id] = {};
-                }                
-                tmp_consumptions_map[consumption.booking_line_id][date_index] = true;
-
-
-                if(!this.consumptions_map.hasOwnProperty(consumption.rental_unit_id.id)) {
-                    this.consumptions_map[consumption.rental_unit_id.id] = {};
+                this.holidays = {};
+                let d = new Date();
+                for (let d = new Date(this.params.date_from.getTime()); d <= this.params.date_to; d.setDate(d.getDate() + 1)) {
+                    let date_index = d.toISOString().substring(0, 10);
+                    let date_int  = parseInt(date_index.replace(/-/gi, ''), 10);
+                    this.holidays[date_index] = holidays
+                        .filter( (h:any) => (date_int >= h['date_from_int'] && date_int <= h['date_to_int']) )
+                        .map( (h:any) => h.type );
                 }
-
-                if(!this.consumptions_map[consumption.rental_unit_id.id].hasOwnProperty(date_index)) {
-                    this.consumptions_map[consumption.rental_unit_id.id][date_index] = [];
-                }
-                this.consumptions_map[consumption.rental_unit_id.id][date_index].push(consumption);
-
-
-                if(!tmp_sojourns_map.hasOwnProperty(consumption.rental_unit_id.id)) {
-                    tmp_sojourns_map[consumption.rental_unit_id.id] = {};
-                }
-
-                if(!tmp_sojourns_map[consumption.rental_unit_id.id].hasOwnProperty(consumption.booking_line_group_id)) {
-                    tmp_sojourns_map[consumption.rental_unit_id.id][consumption.booking_line_group_id] = {
-                        consumptions: []
-                    };
-                    this.sojourns_map[consumption.rental_unit_id.id] = {};
-                    this.sojourns_map[consumption.rental_unit_id.id][date_index] = [];
-                    // add only first booking_line_group
-                    this.sojourns_map[consumption.rental_unit_id.id][date_index].push(tmp_sojourns_map[consumption.rental_unit_id.id][consumption.booking_line_group_id]);
-                }
-
-                tmp_sojourns_map[consumption.rental_unit_id.id][consumption.booking_line_group_id].consumptions.push(consumption);
-                
-                
             }
+        }
+        catch(response) {
+            console.warn('unable to fetch holidays');
+        }
 
-            this.cd.detectChanges();
+        try {
+            const rental_units = await this.api.collect(
+                "lodging\\realestate\\RentalUnit",
+                ["center_id", "in",  this.params.centers_ids],
+                Object.getOwnPropertyNames(new RentalUnitClass()),
+                'id', 'asc', 0, 100
+            );
+            if(rental_units) {
+                this.rental_units = rental_units;
+            }
         }
-        catch(error) {
-            console.warn(error);
+        catch(response) {
+            console.warn('unable to fetch rental units');
         }
+
+        try {
+            this.consumptions = await this.api.fetch('/?get=lodging_booking_consumptions', {
+                date_from: this.params.date_from.toISOString(),
+                date_to: this.params.date_to.toISOString(),
+                centers_ids: JSON.stringify(this.params.centers_ids)
+            });
+        }
+        catch(response) {
+            console.warn('unable to fetch rental units');
+        }
+
+        this.cd.detectChanges();
 
     }
 
 
     /**
      * Recompute content of the header.
-     * 
-     * Convert to folloiwuing structure : 
-     * 
+     *
+     * Convert to folloiwuing structure :
+     *
      * headers.months:
      *    months[]
      *        {
      *            month:
-     *            days: 
+     *            days:
      *        }
      *
      * headers.days: date[]
@@ -260,7 +223,7 @@ export class PlanningCalendarComponent implements OnInit, AfterViewInit, AfterVi
         }
 
         this.previous_duration = this.params.duration;
-        
+
         // reset headers
         this.headers = {
             months: [],
@@ -271,7 +234,7 @@ export class PlanningCalendarComponent implements OnInit, AfterViewInit, AfterVi
         // pass-1 assign dates
         for (let i = 0; i < this.params.duration; i++) {
             let currdate = new Date(this.params.date_from.getTime());
-            currdate.setDate(currdate.getDate() + i);            
+            currdate.setDate(currdate.getDate() + i);
             this.headers.days.push(currdate);
             let month_index = currdate.getFullYear()*100+currdate.getMonth();
             if(!months.hasOwnProperty(month_index)) {
@@ -294,4 +257,19 @@ export class PlanningCalendarComponent implements OnInit, AfterViewInit, AfterVi
 
     }
 
+
+    public onhoverBooking(event:any) {
+
+        console.log("hover changed", event)
+        // relay hovered consumption to navbar
+        this.hovered_consumption = event;
+        if(event) {
+            this.hovered_rental_unit = this.rental_units.find( (o:any) => o.id == event.rental_unit_id.id );
+        }
+
+    }
+
+    public onSelectedBooking(event: any) {
+        this.showBooking.emit(event);
+    }
 }

@@ -1,11 +1,13 @@
-import { Component, ChangeDetectorRef, OnInit, AfterViewInit, NgZone, ViewChild, ElementRef, HostListener } from '@angular/core';
+import { Component, Renderer2, ChangeDetectorRef, OnInit, AfterViewInit, NgZone, ViewChild, ElementRef, HostListener } from '@angular/core';
 
 import { Subscription } from 'rxjs';
 
 import { BookingDayClass } from 'src/app/model/booking.class';
 import { ChangeReservationArg } from 'src/app/model/changereservationarg';
-import { ApiService, AuthService } from 'sb-shared-lib';
-import {CalendarParamService} from './_services/calendar.param.service';
+import { ApiService, AuthService, ContextService } from 'sb-shared-lib';
+import { CalendarParamService } from './_services/calendar.param.service';
+import { PlanningCalendarComponent } from './components/planning.calendar/planning.calendar.component';
+
 import * as screenfull from 'screenfull';
 
 interface DateRange {
@@ -45,10 +47,7 @@ export class PlanningComponent implements OnInit, AfterViewInit {
         this.fullscreen = !this.fullscreen;
     }
     @ViewChild('planningBody') planningBody: ElementRef;
-    year: number;
-    month: number;
-    day: number;
-    sub: Subscription;
+    @ViewChild('planningCalendar') planningCalendar: ElementRef;
 
     centers_ids: number[];
 
@@ -58,16 +57,13 @@ export class PlanningComponent implements OnInit, AfterViewInit {
     public showSbContainer: boolean = false;
 
     constructor(
-        private api: ApiService, 
+        private api: ApiService,
         private auth:AuthService,
+        private context: ContextService,
         private params: CalendarParamService,
         private cd: ChangeDetectorRef,
         private zone: NgZone
     ) {
-        const d     = new Date();
-        this.year   = d.getFullYear();
-        this.month  = d.getMonth() + 1;
-        this.day    = d.getDate();
 
         this.centers_ids = [];
     }
@@ -83,14 +79,19 @@ export class PlanningComponent implements OnInit, AfterViewInit {
         // _open and _close event are relayed by eqListener on the DOM node given as target when a context is requested
         // #sb-booking-container is defined in booking.edit.component.html
         $('#sb-planning-container').on('_close', (event, data) => {
-            this.zone.run( () => {
-                this.showSbContainer = false;
-            });
+            // restart angular lifecycles
+            this.cd.reattach();
+            this.planningCalendar.nativeElement.classList.remove('hidden');
+            this.showSbContainer = false;
         });
         $('#sb-planning-container').on('_open', (event, data) => {
-            this.zone.run( () => {
+            // prevent angular lifecycles while a context is open
+            this.zone.run( () => {                
                 this.showSbContainer = true;
+                this.planningCalendar.nativeElement.classList.add('hidden');
+                setTimeout( () => this.cd.detach() );
             });
+            
         });
     }
 
@@ -98,10 +99,27 @@ export class PlanningComponent implements OnInit, AfterViewInit {
         console.log('onHelpFullScreen');
         if (screenfull.isEnabled) {
             screenfull.toggle(this.planningBody.nativeElement);
-        } 
+        }
         else {
             console.log('screenfull not enabled');
         }
+    }
+
+    public onShowBooking(booking: any) {
+        let descriptor = {
+            context: {
+                entity: 'lodging\\sale\\booking\\Booking',
+                type: 'form',
+                name: 'default',
+                domain: ['id', '=', booking.booking_id.id],
+                mode: 'view',
+                purpose: 'view',
+                // display_mode: 'popup',
+                target: '#sb-planning-container'
+            }
+        };
+
+        this.context.change(descriptor);
     }
 
 }

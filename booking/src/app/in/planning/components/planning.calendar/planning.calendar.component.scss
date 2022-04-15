@@ -1,11 +1,15 @@
 :host {
 
+    &.hidden {
+        display: none;
+    }
+
     height: 100%;
 
     .container {
         overflow-y: scroll;
         overflow-x: hidden;
-        height: calc(100% - 77px);
+        height: calc(100% - 90px);
         padding: 0 15px 15px 15px;
     }
 
@@ -39,9 +43,9 @@
         width: 100%;
         min-width: 100%;
         max-width: 100%;
-        border: solid 1px #e0e0e0;
-
-        margin-top: 20px;
+        border-left: solid 1px #e0e0e0;
+        border-right: solid 1px #e0e0e0;
+        border-bottom: solid 1px #e0e0e0;
 
         tbody {
             position: relative;
@@ -61,6 +65,12 @@
 
         tr.head {
             color: rgba(0,0,0,.54) !important;
+
+            .head-months {
+                overflow: hidden;
+                white-space: nowrap;
+                padding: 0 10px;
+            }
 
             .head-days, .head-months {
                 height: 46px;
@@ -104,6 +114,26 @@
                 }
             }
 
+            .head-days.public_holiday::before {
+                content: '';
+                width: 100%;
+                position: absolute;
+                left: 0;
+                bottom: 0;
+                height: 2px;
+                background-color: var(--mdc-theme-secondary);
+            }
+
+            .head-days.school_vacation::after {
+                content: '';
+                width: 100%;
+                position: absolute;
+                left: 0;
+                bottom: 2px;
+                height: 2px;
+                background-color: var(--mdc-theme-primary);
+            }
+
             th {
                 position: sticky;
                 top: 0;
@@ -112,9 +142,14 @@
                 box-shadow: 0 3px 5px 0 rgb(0 0 0 / 10%) !important;
             }
 
+            th.head-days {
+                top: 45px;
+            }
+
             th, td {
                 text-align: center;
                 border-right: solid 1px #e0e0e0;
+                border-top: solid 1px #e0e0e0;
             }
 
             td:last-child {
@@ -153,6 +188,7 @@
         overflow: hidden;
         white-space: nowrap;
         text-overflow: ellipsis;
+
         cursor: default;
         user-select: none;
 
@@ -175,6 +211,7 @@
 
     tr td.cell-room:first-child {
         text-align: left;
+        padding-left: 5px !important;
     }
 
     tr td.cell-room:hover {
@@ -184,12 +221,13 @@
     }
 
     tr.rows {
-        height: 45px;
+        height: 35px;
     }
 
-  tr.rows:hover {
-    background-color: #e0e0e0;
-  }
+    tr.rows:hover {
+        background-color: #e0e0e0;
+    }
+
 
   tr.rows td {
     padding: 0;
