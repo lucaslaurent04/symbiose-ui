@@ -1,50 +1,8 @@
-<<<<<<< HEAD
 <section>
     <div class="header">
         <!-- <h2>Payment {{instance.id}}</h2> -->
         <span style="font-size: 1.15rem; font-weight: bold;">Dû: {{instance.total_due}}</span>    
         <span style="color: darkgreen; font-size: 1.15rem; font-weight: bold;">Reçu: {{instance.total_paid}}</span> 
-=======
-<h2>Payment {{instance.id}}</h2>
-
-<div class="row">
-    <div><h3>Details</h3></div>
-    <div>Dû: {{instance.total_due}}</div>
-    <div>Reçu: {{instance.total_paid}}</div>
-    <div>
-        <button mat-mini-fab color="accent" (click)="onclickDelete()"><mat-icon>delete</mat-icon></button>
-    </div>
-
-    
-    <button mat-mini-fab color="accent" (click)="onclickOk()"><mat-icon>add</mat-icon> </button>
-</div>
-<div>
-    
-    <div style="display: flex"><h3>Encaissements</h3> <button mat-mini-fab color="accent" (click)="onclickCreateNewPart()"><mat-icon>add</mat-icon> </button></div>
-    <ng-container *ngFor="let part of instance.order_payment_parts_ids">
-        
-        <session-order-payments-payment-part
-            [model]="part"
-            (updated)="onupdatePart(part.id)"
-            (deleted)="ondeletePart(part.id)"
-        ></session-order-payments-payment-part>
-
-    </ng-container>
-</div>
-<div class="row">
-
-    <mat-accordion>
-    <mat-expansion-panel >
-        <mat-expansion-panel-header>
-        <mat-panel-title>
-            Lignes
-        </mat-panel-title>
-        <mat-panel-description>
-            lignes de commande assignées au paiement
-        </mat-panel-description>
-        </mat-expansion-panel-header>
-
->>>>>>> 7b64164ddbb2cdf43cbe92bfe247c7d8c8cd6bf9
         <div>
             <button (click)="onDisplayProducts()" mat-mini-fab color="accent"><mat-icon>info</mat-icon></button>
             <button mat-mini-fab color="accent" (click)="onclickDelete()"><mat-icon>delete</mat-icon></button>
@@ -94,14 +52,5 @@
 
             </ng-container>
         </div>
-<<<<<<< HEAD
     </div>
 </section>
-=======
-
-
-    </mat-expansion-panel>
-    </mat-accordion>
-
-</div>
->>>>>>> 7b64164ddbb2cdf43cbe92bfe247c7d8c8cd6bf9
