@@ -7,36 +7,36 @@ import { Router } from '@angular/router';
   styleUrls: ['./header.component.scss']
 })
 export class HeaderComponent implements OnInit {
-  @Output() toggleMenu = new EventEmitter();
-  @Output() toggleBar = new EventEmitter();
-  @Input() section: string;
-  @Input() items: any[];
-  @Input() i18n: any;
-  @Output() select = new EventEmitter<any>();
+    @Output() toggleMenu = new EventEmitter();
+    @Output() toggleBar = new EventEmitter();
+    @Input() section: string;
+    @Input() items: any[];
+    @Input() i18n: any;
+    @Output() select = new EventEmitter<any>();
 
-  constructor(private router: Router) { }
+    date: Date = new Date();
+    constructor(private router: Router) { }
 
-  ngOnInit(): void {
-  }
-
-  public toggleSideMenu() {
-    this.toggleMenu.emit();
-  }
-
-  public toggleSideBar() {
-    this.toggleBar.emit();
-  }
-
-
-  public onSelectItem(item:any) {
-    console.log('onclick', item);
-
-    this.select.emit(item);
-    /*
-    if(item && item.route) {
-      this.router.navigate([item.route]);
+    ngOnInit(): void {
     }
-    */
-    
-  }  
+
+    public toggleSideMenu() {
+        this.toggleMenu.emit();
+    }
+
+    public toggleSideBar() {
+        this.toggleBar.emit();
+    }
+
+
+    public onSelectItem(item:any) {
+        console.log('onclick', item);
+
+        this.select.emit(item);
+        /*
+        if(item && item.route) {
+            this.router.navigate([item.route]);
+        }
+        */
+    }
 }

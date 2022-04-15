@@ -11,6 +11,7 @@
         width: 100%;
 
         .planning-header {
+            display: flex;
             width: 100%;
             padding-left: 12px;
             height: 48px;
@@ -20,14 +21,27 @@
         }
     
         .planning-body {
+            background-color: white;
             height: calc(100vh - 123px);
             width: 100%;
             overflow: hidden;
+
+            .calendar-wrapper {
+                height: 100%;
+                &.hidden {
+                    display: none;
+                }
+            }
+            
+        }
+
+        .planning-body.fullscreen {
+            height: 100vh;
         }
      
     }
 
-    .container.hidden {
+    .hidden {
         display: none;
     }
 

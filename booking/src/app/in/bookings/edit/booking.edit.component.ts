@@ -2,7 +2,7 @@ import { Component, OnInit, AfterViewInit, Inject, ElementRef, QueryList, ViewCh
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 
-import { BookingApiService } from 'src/app/in/bookings/booking.api.service';
+import { BookingApiService } from 'src/app/in/bookings/_services/booking.api.service';
 import { AuthService, ContextService } from 'sb-shared-lib';
 import { MatSnackBar } from '@angular/material/snack-bar';
 

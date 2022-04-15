@@ -1,16 +1,17 @@
-<div class="container" [class.hidden]="showSbContainer">
-  <div class="planning-header">Calendrier</div>
-  <div class="planning-body">
-    <planning-calendar 
-      [day]="day" 
-      [month]="month" 
-      [year]="year"
-      [rental_units]="rental_units"
-      [bookings]="bookings"
-      (filters)="onFiltersChange($event)">
-    </planning-calendar>
-  </div>
+<div class="container">
+    <div class="planning-header">Calendrier
+        <button mat-icon-button  (click)="onFullScreen()" style="margin-left: auto; transform: scale(0.8);">
+            <mat-icon>open_in_full</mat-icon>
+        </button>
+    </div>
+    <div class="planning-body" #planningBody [class.fullscreen]="fullscreen" >
+        <div #planningCalendar class="calendar-wrapper" [class.hidden]="showSbContainer">
+            <planning-calendar (showBooking)="onShowBooking($event)"></planning-calendar>
+        </div>
+
+        <!-- sb container must be in the fullscreen element -->
+        <div id="sb-planning-container" class="sb-container"></div>
+
+    </div>
 
 </div>
-
-<div id="sb-planning-container" class="sb-container"></div>
