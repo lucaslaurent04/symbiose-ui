@@ -11,8 +11,8 @@
                 <div class="order">
                     <h2>Order {{instance.id}}</h2> 
                     <div class="total">
-                    <span class="totalNumber"> Total : {{instance.total}} </span> 
-                    <span class="taxes"> Taxes : {{instance.vat_rate}} </span>   
+                    <span class="totalNumber"> Total : {{instance.price}} </span> 
+                    <span class="taxes"> Taxes : {{instance.price - instance.total}} </span>   
                     </div>
                 </div>          
                 <div *ngIf="session.status != 'pending'">Cette session n'est plus active.</div>

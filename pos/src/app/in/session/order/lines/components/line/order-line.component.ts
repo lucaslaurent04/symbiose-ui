@@ -70,6 +70,7 @@ export class SessionOrderLinesOrderLineComponent extends TreeComponent<OrderLine
 
     public async onclickDelete() {
         await this.api.update((new Order()).entity, [this.instance.order_id], {order_lines_ids: [-this.instance.id]});
+        await this.api.remove(this.instance.entity, [this.instance.id]);
         this.deleted.emit();
     }
 

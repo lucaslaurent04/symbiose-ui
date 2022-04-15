@@ -160,7 +160,12 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
         let payment_method = child.payment_method.value;
         
         this.focus = child.focused;
-        this.digits = child.instance[child.focused];
+            if(this.digits?.toString()?.includes('.') && this.digits[this.digits.length-1] == "."){
+            this.digits = child.instance[child.focused] + ".";
+        }else{
+            this.digits = child.instance[child.focused]
+        }
+        
         
 
         value = value.toString(); 
@@ -173,7 +178,7 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
             console.log(value, "kommmmaaaaa")
             if (!this.digits.includes('.')) {
                 this.digits += "."; 
-                console.log(this.digits, "vegetaaa") 
+                
             } 
         }else if (value == 'backspace') {
           let test = this.digits.slice(0, -1);
@@ -182,7 +187,7 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
           this.digits += value;
         } 
         this.change = this.digits;
-        console.log(payment_method, "payment_methoooood")
+        console.log(this.digits, "vegetaaa") 
         child.update({payment_method: payment_method});
         if(child.focused == "amount"){
             child.update({amount: parseFloat(this.digits)});
