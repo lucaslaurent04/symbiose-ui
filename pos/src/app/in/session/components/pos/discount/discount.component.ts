@@ -39,7 +39,7 @@ export class DiscountComponent implements OnInit {
     {
       name: "Discount",
       unit : "%",
-      value : this.item.discount,
+      value : (parseFloat(this.item.discount)*100).toFixed(0),
       field : 'discount',
       colour : "",
       disabled : false
@@ -63,7 +63,7 @@ export class DiscountComponent implements OnInit {
     {
       name: "Tax",
       unit : "%",
-      value : this.item.vat_rate,
+      value : (parseFloat(this.item.vat_rate)*100).toFixed(0),
       field: "vat_rate",
       colour : "#3f51b5",
       disabled : false
