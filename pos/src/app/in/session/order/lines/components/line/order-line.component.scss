@@ -1,19 +1,22 @@
 :host {
-    margin-left: 20px;
     width: 100%;
     .lineName{
         font-weight: bolder;
     }
     .orderLine{
         display: flex;
-        justify-content: space-evenly;
+        justify-content: space-around;
         align-items: center;
-        max-height: max-content;
+    }
+    .selectedLine{
+        background-color: #E0E0E0;
+        color: black;
+        // border: 1px solid white;
     }
     div {
         flex: 1 1 10%;
         height: 4rem;
-        line-height: 4rem;
+        line-height: 4rem; 
         text-align: center;
     }
     p{

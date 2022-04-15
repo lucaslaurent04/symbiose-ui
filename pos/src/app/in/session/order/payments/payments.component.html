@@ -1,44 +1,50 @@
 <div class="overlay-container" *ngIf="!ready"><mat-spinner></mat-spinner></div>
 
-<div class="container" *ngIf="ready">
-    <div class="header">Session › {{session.name}} <small>{{session.id}}</small> › Commandes en cours</div>
-    <div class="body">
-        <div class="actions">
-            <div class="actions-std"></div>
-            <div class="actions-view"></div></div>
+<div style="display: flex;">
+    <div class="container" *ngIf="ready">
+        <div class="header">Session › {{session.name}} <small>{{session.id}}</small> › Commandes en cours</div>
+        
+            <div class="body">
+                <!-- <div class="actions">
+                    <div class="actions-std"></div>
+                    <div class="actions-view"></div>
+                </div> -->
+                <div class="view">
+                    <div class="order"> <div style="display: flex; justify-content: center; align-items: center;"><h2>Order {{instance.id}}</h2> <button mat-mini-fab color="accent" (click)="onclickCreateNewPayment()"><mat-icon>add</mat-icon></button></div><p><b> TOTAL: {{instance.total}}</b></p></div>
+                    <div *ngIf="session.status != 'pending'">Cette session n'est plus active.</div>
+                    <div *ngIf="session.status == 'pending'">
+                        <div style="min-height: 35vh; overflow: auto; max-height: 50vh; overflow: auto;">
+                            <ng-container *ngFor="let payment of instance.order_payments_ids; index as i" >
+                            
+                                <session-order-payments-order-payment
+                                    (click)="onClickLine(i)"
+                                    [model]="payment"
+                                    (updated)="onupdatePayment(payment.id)"
+                                    (deleted)="ondeletePayment(payment.id)"
+                                    (selectedPaymentPart)="selectedPaymentPart = $event"
+                                    (selectedOrderLine)="selectedOrderLine = $event"
+                                ></session-order-payments-order-payment>
             
-        <div class="view">
-            <div class="order" style="display: flex"><h2>Order {{instance.id}}</h2> <button mat-mini-fab color="accent" (click)="onclickCreateNewPayment()"><mat-icon>add</mat-icon> </button></div>
-            <div *ngIf="session.status != 'pending'">Cette session n'est plus active.</div>
-            <div *ngIf="session.status == 'pending'" style="border-right: 1px solid lightgray;">
-               
-                
-                <!-- <div>{{instance.id}}</div>
-                <div>{{instance.created |  date}}</div>
-                <div>{{instance.price |  currency}}</div>
-                <div>{{instance.total |  currency}}</div> -->
-                <div style="min-height: 35vh; overflow: auto;">
-                    <ng-container *ngFor="let payment of instance.order_payments_ids; index as i" >
-                    
-                        <session-order-payments-order-payment
-                            (click)="onClickLine(i)"
-                            [model]="payment"
-                            (updated)="onupdatePayment(payment.id)"
-                            (deleted)="ondeletePayment(payment.id)"
-                            (selectedPaymentPart)="selectedPaymentPart = $event"
-                            (selectedOrderLine)="selectedOrderLine = $event"
-                        ></session-order-payments-order-payment>
-    
-                    </ng-container>
+                            </ng-container>
+                        </div>
+                    </div>
                 </div>
-                
                 <div class="pad">
-                    <!-- style="position:fixed; bottom: 1.25rem;" -->
                     <app-pos-arbitrary-numbers (onDisplayDetails)="onDisplayDetails($event)" 
                     (onDigitTyped)="onDigitTyped($event)" 
                     (onTypeMode)="typeMode = $event"></app-pos-arbitrary-numbers>
-                </div>
-            </div>
+                </div>   
         </div>
-    </div>    
+    </div>
+    <div class="ticket">
+        <app-ticket [changeDetector]="change" [item]="currentOrder" ></app-ticket>
+        <div style="background-color: white; padding: 2.5rem; border-radius: 0.25rem;">
+            <h2 style="margin-bottom: 4rem;">How would you like to receive your receipt ?</h2>
+            <button (click)="onPrint()" mat-raised-button [color]="'primary'" style="width: 100%; padding: 0.25rem; display: flex; align-items: center; justify-content: center; margin-top: 12px; margin-bottom: 12px; font-size: 1.2rem;"><mat-icon>print</mat-icon> <span>Print Receipt</span></button>
+            <mat-form-field appearance="fill" style="width: 100%; padding: 0;">
+                <mat-label>Email</mat-label>
+                <input matInput type="text" placeholder="Ex. 12" style=" height: 100%;">
+            </mat-form-field>
+        </div>
+    </div>
 </div>

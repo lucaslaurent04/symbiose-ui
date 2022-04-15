@@ -1,7 +1,8 @@
 :host {
     display: flex; 
     width: 100%;
-    margin: 20px;
+    padding: 5px;
+    background-color: aliceblue;
     .orderLine{
         div{
             margin: 0.2rem;

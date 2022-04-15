@@ -27,6 +27,8 @@ import { DiscountComponent } from '../components/pos/discount/discount.component
 import { InfoComponent } from '../components/pos/info/info.component';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { PosArbitraryNumbersComponent } from '../components/pos-arbitrary-numbers/pos-arbitrary-numbers.component';
+import { ProductsComponent } from './lines/components/products/products.component';
+import { TicketComponent } from './payments/components/ticket/ticket.component';
 
 
 @NgModule({
@@ -56,6 +58,8 @@ import { PosArbitraryNumbersComponent } from '../components/pos-arbitrary-number
     DiscountComponent,
     InfoComponent,
     PosArbitraryNumbersComponent,
+    ProductsComponent,
+    TicketComponent,
     
   ],
   providers: [

@@ -65,7 +65,6 @@ export class SessionOrderPaymentsOrderPaymentComponent extends TreeComponent<Ord
         // init componentsMap
         this.componentsMap = {
         };
-
         this.qty.valueChanges.subscribe( (value:number)  => this.instance.qty = value );
         this.unit_price.valueChanges.subscribe( (value:number)  => this.instance.unit_price = value );
     }
@@ -97,7 +96,9 @@ export class SessionOrderPaymentsOrderPaymentComponent extends TreeComponent<Ord
     }
 
     public async ondeleteLine(line_id:number) {
-        this.updated.emit();
+        await this.api.update(this.instance.entity, [this.instance.id], {order_lines_ids: [-line_id]});
+        this.instance.order_lines_ids.splice(this.instance.order_lines_ids.findIndex((e:any)=>e.id == line_id),1);
+        // this.updated.emit();
     }
 
     public async onclickCreateNewPart() {
@@ -112,7 +113,8 @@ export class SessionOrderPaymentsOrderPaymentComponent extends TreeComponent<Ord
             this.display = "";
         } 
         
-        console.log(this.SessionOrderPaymentsOrderLineComponents.toArray())
+        console.log(this.componentsMap.order_lines_ids)
+        console.log(this.componentsMap.order_lines_ids.toArray())
         
     }
 

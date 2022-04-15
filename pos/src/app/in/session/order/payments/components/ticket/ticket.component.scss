@@ -1,0 +1,36 @@
+.ticket{
+    border: 1px solid lightgray;
+    width: 105mm;
+    padding: 3rem;
+    background-color: white;
+    border-radius: 0.2rem;
+    font-size: 1.1rem;
+    overflow: auto;
+    .dotts{
+        float: right; 
+        font-weight: lighter; 
+        margin: 0.2rem;
+    }
+    .centerItems{
+        font-weight: lighter; 
+        text-align: center; 
+        width: 100%; 
+        margin-top: 0;
+    }
+    h2{
+        text-align: center;
+        text-decoration: underline;
+    }
+    ul{
+        padding: 0;
+        li{
+            list-style-type: none;
+            display: flex;
+            justify-content: space-between;
+        }
+    }
+    .subTotal{
+        display: flex;
+        justify-content: space-between;
+    }
+}

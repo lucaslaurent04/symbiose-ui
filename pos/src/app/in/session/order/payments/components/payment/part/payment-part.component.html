@@ -1,14 +1,14 @@
 <section>
     <div >
-        <mat-label style="text-align: center; width: 100%;">Method</mat-label>
-        <mat-button-toggle-group  (selectionChange)="onchangePaymentMethod()" [formControl]="payment_method" style="display: flex; flex-direction: column;">
+        <mat-label style="text-align: center; width: 100%; margin-left: 1.5rem;">Method</mat-label>
+        <mat-button-toggle-group  (change)="onchangePaymentMethod()" [formControl]="payment_method" style="display: flex; flex-direction: column;">
             <mat-button-toggle mat-raised-button value="cash" [class.selected]="payment_method.value == 'cash'">
                 Espèces
             </mat-button-toggle>
-            <mat-button-toggle mat-raised-button value="bank" [class.selected]="payment_method.value == 'bank'">
+            <mat-button-toggle mat-raised-button value="bank_card" [class.selected]="payment_method.value == 'bank_card'">
                 Banque
             </mat-button-toggle>
-            <mat-button-toggle mat-raised-button value="reservation" [class.selected]="payment_method.value == 'reservation'">
+            <mat-button-toggle mat-raised-button value="booking" [class.selected]="payment_method.value == 'booking'">
                 Reservation
             </mat-button-toggle>
             <mat-button-toggle mat-raised-button value="voucher" [class.selected]="payment_method.value == 'voucher'">
@@ -32,7 +32,7 @@
         
         
         <div>
-            <div *ngIf="payment_method.value=='reservation'">
+            <div *ngIf="payment_method.value=='booking'">
                 <mat-form-field>
                     <mat-label>Booking</mat-label>
                     <input
@@ -40,17 +40,19 @@
                             type="number"
                             matInput
                             (blur)="onchangeBookingId()"
+                            [formControl]="booking_id"
                             >
                 </mat-form-field>
             </div>
-            <div *ngIf="payment_method.value=='voucher_ref'">
+            <div *ngIf="payment_method.value=='voucher'">
                 <mat-form-field >
                     <mat-label>Voucher</mat-label>
                     <input
-                            (focus)="focused = 'voucher'"
+                            (focus)="focused = 'voucher_ref'"
                             type="number"
                             matInput
                             (blur)="onchangeVoucherRef()"
+                            [formControl]="voucher_ref"
                             >
                 </mat-form-field>
         

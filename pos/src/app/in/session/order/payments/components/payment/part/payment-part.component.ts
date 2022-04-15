@@ -29,6 +29,8 @@ export class SessionOrderPaymentsPaymentPartComponent extends TreeComponent<Orde
     public myToggle : string;
 
     public amount:FormControl = new FormControl();
+    public voucher_ref:FormControl = new FormControl();
+    public booking_id:FormControl = new FormControl();
     public payment_method:FormControl = new FormControl();
 
 
@@ -51,16 +53,18 @@ export class SessionOrderPaymentsPaymentPartComponent extends TreeComponent<Orde
     public ngOnInit() {
         this.amount.valueChanges.subscribe( (value:number)  => this.instance.amount = value );
         this.payment_method.valueChanges.subscribe( (value:number)  => this.instance.payment_method = value );
+        this.voucher_ref.valueChanges.subscribe( (value:number)  => this.instance.voucher_ref = value );
+        this.booking_id.valueChanges.subscribe( (value:number)  => this.instance.booking_id = value );
     }
 
     public update(values:any) {
-        console.log('line item update', values);
         super.update(values);
 
         // update widgets and sub-components, if necessary
         this.amount.setValue(this.instance.amount);
         this.payment_method.setValue(this.instance.payment_method);
-
+        this.voucher_ref.setValue(this.instance.voucher_ref)
+        this.booking_id.setValue(this.instance.booking_id)
         // this.cd.detectChanges();
     }
 
@@ -80,12 +84,12 @@ export class SessionOrderPaymentsPaymentPartComponent extends TreeComponent<Orde
     }
 
     public async onchangeBookingId() {
-        await this.api.update(this.instance.entity, [this.instance.id], {unit_price: this.instance.unit_price});
+        await this.api.update(this.instance.entity, [this.instance.id], {booking_id: this.instance.booking_id});
         // no change in the tree - no reload needed
     }
 
     public async onchangeVoucherRef() {
-        await this.api.update(this.instance.entity, [this.instance.id], {unit_price: this.instance.unit_price});
+        await this.api.update(this.instance.entity, [this.instance.id], {voucher_ref: this.instance.voucher_ref});
         // no change in the tree - no reload needed
     }
 

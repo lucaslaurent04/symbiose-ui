@@ -18,6 +18,7 @@ interface OrderLineComponentsMap {
 export class SessionOrderLinesOrderLineComponent extends TreeComponent<OrderLine, OrderLineComponentsMap> implements OnInit, AfterViewInit  {
     // servel-model relayed by parent
     @Input() set model(values: any) { this.update(values) }
+    @Input() selected :any;
     @Output() updated = new EventEmitter();
     @Output() deleted = new EventEmitter();
 
@@ -28,6 +29,7 @@ export class SessionOrderLinesOrderLineComponent extends TreeComponent<OrderLine
     public qty:FormControl = new FormControl();
     public unit_price:FormControl = new FormControl();
 
+    public selectedLine: any;
 
 
     constructor(
@@ -42,8 +44,12 @@ export class SessionOrderLinesOrderLineComponent extends TreeComponent<OrderLine
 
     ngOnChanges(changes: SimpleChanges): void {
         //Called before any other lifecycle hook. Use it to inject dependencies, but avoid any serious work here.
-        //Add '${implements OnChanges}' to the class.
-        
+        //Add '${implements OnChanges}' to the class. 
+        if(this.instance.id == this.selected){
+            this.selectedLine = true;
+        } else{
+            this.selectedLine = false;
+        }
     }
 
     public ngAfterViewInit() {}
@@ -52,12 +58,12 @@ export class SessionOrderLinesOrderLineComponent extends TreeComponent<OrderLine
         // init componentsMap
         this.componentsMap = {
         };
-
         this.qty.valueChanges.subscribe( (value:number)  => this.instance.qty = value );
         this.unit_price.valueChanges.subscribe( (value:number)  => this.instance.unit_price = value );
     }
 
     public update(values:any) {
+        console.log(values)
         super.update(values);
         // update widgets and sub-components, if necessary
     }
@@ -77,13 +83,26 @@ export class SessionOrderLinesOrderLineComponent extends TreeComponent<OrderLine
         this.updated.emit();
     }
 
-    public async onchangeDiscount() {
-        await this.api.update(this.instance.entity, [this.instance.id], {discount: this.instance.discount});        
+    public async onChangeOrderLine(){
+        await this.api.update(this.instance.entity, [this.instance.id], {qty: this.instance.qty, unit_price: this.instance.unit_price, discount: this.instance.discount, free_qty: this.instance.free_qty, vat_rate: this.instance.vat_rate});        
         this.updated.emit();
     }
 
-    public async onchangeFreeQuantity() {
-        await this.api.update(this.instance.entity, [this.instance.id], {free_qty: this.instance.free_qty});        
-        this.updated.emit();
-    }
+    // public async onchangeDiscount() {
+        
+    //     await this.api.update(this.instance.entity, [this.instance.id], {discount: this.instance.discount});        
+    //     this.updated.emit();
+    // }
+
+    // public async onchangeFreeQuantity() {
+        
+    //     await this.api.update(this.instance.entity, [this.instance.id], {free_qty: this.instance.free_qty});        
+    //     this.updated.emit();
+    // }
+
+    // public async onchangeVatRate() {
+      
+    //     await this.api.update(this.instance.entity, [this.instance.id], {vat_rate: this.instance.vat_rate});        
+    //     this.updated.emit();
+    // }
 }

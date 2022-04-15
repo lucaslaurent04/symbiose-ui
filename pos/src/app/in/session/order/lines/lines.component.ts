@@ -4,7 +4,7 @@ import { ApiService, ContextService, TreeComponent, RootTreeComponent } from 'sb
 import { CashdeskSession } from './../../session.model';
 import { Order, OrderLine } from './lines.model';
 import { SessionOrderLinesOrderLineComponent } from './components/line/order-line.component';
-import { THIS_EXPR } from '@angular/compiler/src/output/output_ast';
+
 
 // declaration of the interface for the map associating relational Model fields with their components
 interface OrderComponentsMap {
@@ -145,32 +145,37 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
         this.quantity = this.componentsMap.order_lines_ids._results[this.index].instance.qty;
         this.discountValue = this.componentsMap.order_lines_ids._results[this.index].instance.free_qty;
         this.instanceElement = {...this.instance.order_lines_ids[this.index]};
+        this.selectedLine = this.componentsMap.order_lines_ids._results[this.index].instance.id;
     }
 
     public onDigitTyped(event:any){
 
-        console.log(this.discountField, this.discountValue, "discounnnnnnntss")
         // first check what component is displayed
         if(this.posLineDisplay == "discount" && event != "%"){
             this.discountValue = this.discountValue.toString();
             if((event == '+' || event == "-") && this.index != undefined && this.posLineDisplay == "discount"){
-                // if(this.discountValue.includes('-') && event =="-"){
-                //     let test = this.discountValue.replace('-', '');
-                //     this.discountValue = test;
-                //     }else if (!this.discountValue.includes('-') && event =="-"){
-                //     this.discountValue = '-' + this.discountValue;
-                //     }else if(this.discountValue.includes('-') && event =="+"){
-                //     let test = this.discountValue.replace('-', '');
-                //     this.discountValue = test;
-                //     }
+            
+                if(this.discountValue.includes('-') && event =="-"){
+                    let test = this.discountValue.replace('-', '');
+                    this.discountValue = test;
+                }else if (!this.discountValue.includes('-') && event =="-"){
+                    this.discountValue = '-' + this.discountValue;
+                }else if(this.discountValue.includes('-') && event =="+"){
+                    let test = this.discountValue.replace('-', '');
+                    this.discountValue = test;
+                }
                     
+            }
+            else if(event == "," && this.discountField == "unit_price"){
+                if (!this.discountValue.includes('.')) {
+                    this.discountValue += ".";
+                  } 
             }
             else if(event== 'backspace'){
                 let test = this.discountValue.slice(0, -1);
                 this.discountValue = test;
-                console.log(this.discountValue)
-            }else if (((this.discountValue.includes('.') && this.discountValue.indexOf('.')>3)  || (!this.discountValue.includes('.') && this.discountValue.length>1 && (this.discountField == 'free_qty' || this.discountField =='discount')))){
-            this.discountValue = "100"; 
+            }else if (((this.discountValue.includes('.') && this.discountValue.indexOf('.')>3)  || (!this.discountValue.includes('.') && this.discountValue.length>1 &&(this.discountField == 'free_qty' || this.discountField =='discount' || this.discountField == 'vat_rate')))){
+                this.discountValue = "100"; 
             }
             else if(event!= 'backspace' && event!= ',' && event!= '+/-') {
                 this.discountValue += event;
@@ -192,6 +197,7 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
             // console.log("recieved discountvalue",value);
           }
         }
+
         //   clearTimeout(this.myTimeout);
         //   this.myTimeout = setTimeout(() => {
            
@@ -201,18 +207,19 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
     
           if(this.posLineDisplay == "main"){
             this.quantity = this.quantity.toString();
+            this.price = this.price.toString();
             if(event == ","){
-                if (this.typeMode == "quantity" && !this.quantity.includes('.')) {
-                    this.quantity += ".";
-                    // this.componentsMap.order_lines_ids._results[this.index].instance.qty= this.quantity;
-                  } else if (this.typeMode == "price" && !this.price.includes('.')) {
+                // if (this.typeMode == "quantity" && !this.quantity.includes('.')) {
+                //     this.quantity += ".";
+                    
+                // } 
+                if (this.typeMode == "price" && !this.price.includes('.')) {
                     this.price += ".";
                     // this.componentsMap.order_lines_ids._results[this.index].instance.unit_price = this.price;
                   } 
-            } else if (this.typeMode == "quantity") {
-                
+            } else if (this.typeMode == "quantity") { 
               if ((event == '+' || event == "-") && this.index != undefined ) {
-                if(this.quantity.includes('-') && event =="-"){
+                  if(this.quantity.includes('-') && event =="-"){
                     let test = this.quantity.replace('-', '');
                     this.quantity = test;
                   }else if (!this.quantity.includes('-') && event =="-"){
@@ -221,11 +228,10 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
                     let test = this.quantity.replace('-', '');
                     this.quantity = test;
                   }
-                  console.log(this.quantity, "quantityyyyyyyy")
-              }else if(event != 'backspace') {
+                }else if(event != 'backspace') {
                 this.quantity += event;
                 this.componentsMap.order_lines_ids._results[this.index].instance.qty = this.quantity;
-            } else {
+                } else {
                   if(this.quantity !="0"){
                     this.quantity = this.quantity.slice(0, -1);
                     if(this.quantity.length == 0)this.quantity = 0;
@@ -237,9 +243,9 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
                   } 
               }
             } else if (this.typeMode == "price") {
-                this.price = this.price.toString();
+                
               if (event == '+' || event == "-" && this.index != undefined ) {
-                if(this.price.includes('-') && event =="-"){
+                  if(this.price.includes('-') && event =="-"){
                     let test = this.price.replace('-', '');
                     this.price = test;
                   }else if (!this.price.includes('-') && event =="-"){
@@ -247,7 +253,7 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
                   }else if(this.price.includes('-') && event =="+"){
                     let test = this.price.replace('-', '');
                     this.price = test;
-                  }
+                }
                 // this.componentsMap.order_lines_ids._results[this.index].instance.unit_price = this.price;
               }else if(event != 'backspace'){
                 this.price += event;
@@ -267,22 +273,26 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
             
             let children = this.componentsMap.order_lines_ids.toArray();        
             let child = children[this.index];
-            
+            console.log(this.discountValue)
             if(this.posLineDisplay =="main"){
                 child.update({qty: parseFloat(this.quantity), unit_price: parseFloat(this.price)}); 
             }
             
             if(this.posLineDisplay == "discount"){
+                if(this.discountValue == "" || this.discountValue == ","){
+                    this.discountValue = 0;
+                }
+
                 if(this.discountField == "discount"){
-                    child.update({discount: parseFloat(this.discountValue)}); 
+                    console.log(this.discountField, "discouuuunt")
+                    child.update({discount: parseFloat(this.discountValue)/100}); 
                 }else if(this.discountField == "free_qty"){
                     child.update({free_qty: parseFloat(this.discountValue)}); 
                 }else if(this.discountField == "vat_rate"){
-                    child.update({vat_rate: parseFloat(this.discountValue)}); 
+                    child.update({vat_rate: parseFloat(this.discountValue)/100}); 
                 }else if (this.discountField == "unit_price"){
                     child.update({unit_price: parseFloat(this.discountValue)})
                 }else if (this.discountField == "qty"){
-                    console.log(this.discountValue, this.quantity)
                     child.update({qty: parseFloat(this.discountValue)})
                 }
                 this.instanceElement = {...child.instance};
@@ -292,35 +302,15 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
                 clearTimeout(this.debounce);
             }
             this.debounce = setTimeout( async () => {
-                await child.onchangeQty();
-                await child.onchangeUnitPrice();
-                if(this.discountField == "discount"){
-                    await child.onchangeDiscount(); 
-                }else if(this.discountField == "free_qty"){
-                    await child.onchangeFreeQuantity();
-                }
-                // Quand je passe au prix, ça déconne 
+                await child.onChangeOrderLine();
+                
                 await this.onupdateLine(child.id);
-            },500);
-            
-        // console.log("recieved quantity",value);
-        // console.log(this.componentsMap);
-        // let children = this.componentsMap.order_lines_ids.toArray();        
-        // let child = children[this.index];
-        
-        // child.update({qty: value}); 
-        
-        // if(this.debounce){
-        //     clearTimeout(this.debounce);
-        // }
-        // this.debounce = setTimeout( async () => {
-        //     await child.onchangeQty();
-        //     await this.onupdateLine(child.id);
-        // },500);
-
-    
+            },500); 
 }
 
+    public async onSelectedTab(event:any){
+        await this.load(this.instance.id);
+    }
     
     public onGetInvoice(value:any){
         this.invoice = value;

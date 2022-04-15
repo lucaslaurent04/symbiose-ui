@@ -57,4 +57,7 @@ export class SessionOrderPaymentsOrderLineComponent extends TreeComponent<OrderL
         this.deleted.emit();
     }
 
+    public onUncheck(){
+        this.deleted.emit();
+    }
 }

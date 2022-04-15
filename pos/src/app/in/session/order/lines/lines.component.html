@@ -2,13 +2,19 @@
 
 <div class="container" *ngIf="ready">
     <div class="header">Session › {{session.name}} <small>{{session.id}}</small> › Commandes en cours</div>
-    <div class="body">
+    <div style="display: flex;">
+        <div class="body">
             <!-- <div class="actions" *ngIf="posLineDisplay == 'main'"> -->
                 <!-- <div class="actions-std"><button mat-flat-button color="accent" (click)="onclickCreateNewLine()">Nouvelle ligne</button></div>
                 <div class="actions-view"></div></div> -->
-                
             <div class="view">
-                <h2>Order {{instance.id}}</h2>            
+                <div class="order">
+                    <h2>Order {{instance.id}}</h2> 
+                    <div class="total">
+                    <span class="totalNumber"> Total : {{instance.total}} </span> 
+                    <span class="taxes"> Taxes : {{instance.vat_rate}} </span>   
+                    </div>
+                </div>          
                 <div *ngIf="session.status != 'pending'">Cette session n'est plus active.</div>
                 <div *ngIf="session.status == 'pending'">
     
@@ -25,13 +31,12 @@
                             (updated)="onupdateLine(line.id)"
                             (deleted)="ondeleteLine(line.id)"
                             (click)="onClickLine(i)"
-                            [class.selected]="index == i"
+                            
+                            [selected]="selectedLine"
                         ></session-order-lines-order-line>
+                        <!-- [class.selected]="index == i" -->
                     </ng-container>
-                    <div class="total">
-                        <span class="totalNumber"> Total : {{instance.total}} </span> 
-                        <span> Taxes : {{instance.vat_rate}} </span>   
-                    </div>
+                    
                 </div>
             </div>
         
@@ -41,5 +46,10 @@
         (onInvoice)="onGetInvoice($event)" 
         (onTypeMode)="typeMode = $event"></pos-pad> 
         </div>
-    </div>    
+    </div> 
+    <div style="width: 100%; height: 100vh;">
+        <app-products (selectedtTab)="onSelectedTab($event)"></app-products>
+    </div>
+    </div>
+       
 </div>
