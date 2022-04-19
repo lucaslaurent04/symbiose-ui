@@ -6,7 +6,7 @@ import { BookingDayClass } from 'src/app/model/booking.class';
 import { ChangeReservationArg } from 'src/app/model/changereservationarg';
 import { ApiService, AuthService, ContextService } from 'sb-shared-lib';
 import { CalendarParamService } from './_services/calendar.param.service';
-import { PlanningCalendarComponent } from './components/planning.calendar/planning.calendar.component';
+import { PlanningCalendarComponent } from './_components/planning.calendar/planning.calendar.component';
 
 import * as screenfull from 'screenfull';
 
@@ -42,10 +42,7 @@ class ConsumptionClass {
     templateUrl: './planning.component.html',
     styleUrls: ['./planning.component.scss']
 })
-export class PlanningComponent implements OnInit, AfterViewInit {
-    @HostListener("document:fullscreenchange", []) onchangeFullScreen() {
-        this.fullscreen = !this.fullscreen;
-    }
+export class PlanningComponent implements OnInit, AfterViewInit {    
     @ViewChild('planningBody') planningBody: ElementRef;
     @ViewChild('planningCalendar') planningCalendar: ElementRef;
 
@@ -53,8 +50,6 @@ export class PlanningComponent implements OnInit, AfterViewInit {
 
     date_range: DateRange = <DateRange>{};
     fullscreen: boolean = false;
-
-    public showSbContainer: boolean = false;
 
     constructor(
         private api: ApiService,
@@ -69,36 +64,26 @@ export class PlanningComponent implements OnInit, AfterViewInit {
     }
 
     ngOnInit() {
-
+        if (screenfull.isEnabled) {
+            screenfull.on('change', () => {
+                this.fullscreen = screenfull.isFullscreen;
+            });
+        }
     }
 
     /**
    * Set up callbacks when component DOM is ready.
    */
     public ngAfterViewInit() {
-        // _open and _close event are relayed by eqListener on the DOM node given as target when a context is requested
-        // #sb-booking-container is defined in booking.edit.component.html
-        $('#sb-planning-container').on('_close', (event, data) => {
-            // restart angular lifecycles
-            this.cd.reattach();
-            this.planningCalendar.nativeElement.classList.remove('hidden');
-            this.showSbContainer = false;
-        });
-        $('#sb-planning-container').on('_open', (event, data) => {
-            // prevent angular lifecycles while a context is open
-            this.zone.run( () => {                
-                this.showSbContainer = true;
-                this.planningCalendar.nativeElement.classList.add('hidden');
-                setTimeout( () => this.cd.detach() );
-            });
-            
-        });
+
     }
 
-    onFullScreen() {
+    public async onFullScreen() {
         console.log('onHelpFullScreen');
         if (screenfull.isEnabled) {
-            screenfull.toggle(this.planningBody.nativeElement);
+            this.cd.detach();
+            await screenfull.request(this.planningBody.nativeElement);
+            this.cd.reattach();
         }
         else {
             console.log('screenfull not enabled');
@@ -106,7 +91,7 @@ export class PlanningComponent implements OnInit, AfterViewInit {
     }
 
     public onShowBooking(booking: any) {
-        let descriptor = {
+        let descriptor:any = {
             context: {
                 entity: 'lodging\\sale\\booking\\Booking',
                 type: 'form',
@@ -114,11 +99,20 @@ export class PlanningComponent implements OnInit, AfterViewInit {
                 domain: ['id', '=', booking.booking_id.id],
                 mode: 'view',
                 purpose: 'view',
-                // display_mode: 'popup',
-                target: '#sb-planning-container'
+                display_mode: 'popup',
+                context_silent: true, // do not update sidebar
+                callback: (data:any) => {
+                    // restart angular lifecycles
+                    this.cd.reattach();
+                }
             }
         };
 
+        if(this.fullscreen) {
+            descriptor.context['dom_container'] = '.planning-body';
+        }
+        // prevent angular lifecycles while a context is open
+        this.cd.detach();
         this.context.change(descriptor);
     }
 

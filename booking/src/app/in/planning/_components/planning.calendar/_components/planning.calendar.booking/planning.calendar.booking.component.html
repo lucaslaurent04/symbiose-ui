@@ -1,0 +1,15 @@
+<div class="reservedBox">
+
+    <div class="booking-details" [style.background-color]="color" (click)="onShowBooking(consumption)" (mouseenter) ="onEnterConsumption(consumption)"  (mouseleave) ="onLeaveConsumption(consumption)">
+
+        <div style="display: flex;">
+            <div style="flex: 0 1 20%;">{{consumption.booking_id.name}}</div><div style="margin-left: auto">{{consumption.booking_id.status}}</div>
+        </div>
+
+        <div style="display: flex;">
+            <div style="flex: 0 1 20%;">{{consumption.booking_id.customer_id.name}}</div><div style="margin-left: auto">{{consumption.booking_id.payment_status}}</div>
+        </div>
+
+    </div>
+
+</div>

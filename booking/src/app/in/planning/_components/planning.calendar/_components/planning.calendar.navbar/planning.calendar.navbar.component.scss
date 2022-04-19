@@ -1,0 +1,154 @@
+
+:host {
+
+    position: relative;
+    user-select: none;
+    display: flex;
+    height: 95px;
+    padding: 0 15px;
+
+
+    .panelFilters {
+        flex: 0 1 33%;
+        display: flex;
+
+        .centers-selector {
+            width: 80%;
+
+            mat-form-field {
+                width: 100%;
+            }
+        }
+    }
+
+    .panelStatus {
+        display: flex;
+        line-height: 65px;
+        flex: 1 0 33%;
+        text-align: center;
+
+        .date-display {
+            line-height: 70px;
+            font-size: 20px;
+            font-weight: 400;
+
+        }
+
+        .date-selector {
+            mat-form-field {
+                position: absolute; 
+                visibility: hidden; 
+                margin-left: -260px;
+            }
+            .mat-datepicker-popup {
+                position: relative;
+                top: 110px
+            }         
+        }
+
+        .date-counter {
+            line-height: 70px; 
+            font-size: 14px; 
+            font-weight: 400;
+        }
+
+        .date-range-selector {
+            margin-left: 30px;
+            width: 100px;
+            mat-form-field {
+                width: 100%;
+            }
+        }
+        
+    }
+
+    .panelNavigation {
+        line-height: 65px;
+        flex: 1 0 33%;
+        text-align: right;
+    }
+
+    .panelSearch {
+        line-height: 65px;
+        display: inline-block;
+    }
+
+    .panelDatePicker {
+        display: inline-block;
+    }
+
+    .mat-datepicker-popup {
+        position: relative;
+        top: 110px
+    } 
+
+    .containerStatusbar {
+        height: 20px;
+    }
+
+    .panelStatusbar {
+        display: inline-block;
+    }
+
+    .overlay {
+        position: absolute;
+        display: flex;
+        align-items: center;
+        flex-direction: row;
+        width: calc(100% - 35px);
+        height: 30px;
+        left: 15px;
+        bottom: 7px;
+        
+        border-radius: 5px;
+
+        .rental-unit-details {
+            display: flex;
+            height: 100%;
+            flex: 1 1 25%;
+
+            span {
+                min-width: 20%;
+                border-bottom: solid 1px var(--mdc-theme-secondary);
+                text-align: left;
+                font-weight: 500;
+            }
+        }
+
+        .consumption-details{
+            display: flex;
+            height: 100%;
+            flex: 1 0 50%;
+            width: 100%;
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;            
+            text-align: center;
+
+            span {
+                text-align: center;
+                border-bottom: solid 1px var(--mdc-theme-secondary);
+                font-weight: 500;
+            }            
+
+        }
+
+        .date-details {
+            height: 100%;
+            display: flex;
+            margin-left: auto;
+
+            flex: 1 1 25%;
+
+            span {
+                min-width: 15%;
+                border-bottom: solid 1px var(--mdc-theme-secondary);
+                margin-left: auto;
+                text-align: right;
+                font-weight: 500;
+            }
+
+        }
+    }
+
+}

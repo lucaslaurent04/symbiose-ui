@@ -5,13 +5,9 @@
         </button>
     </div>
     <div class="planning-body" #planningBody [class.fullscreen]="fullscreen" >
-        <div #planningCalendar class="calendar-wrapper" [class.hidden]="showSbContainer">
+        <div #planningCalendar class="calendar-wrapper">
             <planning-calendar (showBooking)="onShowBooking($event)"></planning-calendar>
         </div>
-
-        <!-- sb container must be in the fullscreen element -->
-        <div id="sb-planning-container" class="sb-container"></div>
-
     </div>
 
 </div>
