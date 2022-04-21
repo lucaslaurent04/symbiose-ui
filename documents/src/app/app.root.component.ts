@@ -57,12 +57,6 @@ export class AppRootComponent implements OnInit {
     this.topMenuItems = top_menu.items;
     this.translationsMenuTop = top_menu.translation;
 
-    this.context.getObservable().subscribe( (context:any) => {
-      console.log('AppRootComponent: received context update', context);
-      window.context = context;
-      $('#eq-context').trigger('click');
-    });
-
   }
 
   public onToggleItem(item:any) {

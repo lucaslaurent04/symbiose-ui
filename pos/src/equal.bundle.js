@@ -2132,6 +2132,168 @@ var EventsListener = /*#__PURE__*/function () {
         }
       }
     }
+  }, {
+    key: "_openContext",
+    value: function () {
+      var _openContext2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(config) {
+        var reset,
+            environment,
+            _iterator3,
+            _step3,
+            callback,
+            _args = arguments;
+
+        return _regenerator.default.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                reset = _args.length > 1 && _args[1] !== undefined ? _args[1] : false;
+
+                if (!config) {
+                  config = window.context;
+                }
+
+                _context.next = 4;
+                return _equalServices.EnvService.getEnv();
+
+              case 4:
+                environment = _context.sent;
+                // extend default params with received config
+                config = _objectSpread(_objectSpread({}, {
+                  entity: '',
+                  type: 'list',
+                  name: 'default',
+                  domain: [],
+                  mode: 'view',
+                  // view, edit
+                  purpose: 'view',
+                  // view, select, add
+                  lang: environment.lang,
+                  locale: environment.locale,
+                  callback: null,
+                  target: '#sb-container'
+                }), config);
+                console.log('eQ: received _openContext', config);
+
+                if (!this.frames.hasOwnProperty(config.target)) {
+                  this.frames[config.target] = new _equalLib.Frame(this, config.target);
+                } else if (reset) {
+                  this.frames[config.target].closeAll();
+                }
+
+                _context.next = 10;
+                return this.frames[config.target]._openContext(config);
+
+              case 10:
+                // run callback of subscribers
+                if (this.subscribers.hasOwnProperty('open') && this.subscribers['open'].length) {
+                  _iterator3 = _createForOfIteratorHelper(this.subscribers['open']);
+
+                  try {
+                    for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
+                      callback = _step3.value;
+
+                      if ({}.toString.call(callback) === '[object Function]') {
+                        callback(config);
+                      }
+                    }
+                  } catch (err) {
+                    _iterator3.e(err);
+                  } finally {
+                    _iterator3.f();
+                  }
+                }
+
+              case 11:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function _openContext(_x) {
+        return _openContext2.apply(this, arguments);
+      }
+
+      return _openContext;
+    }()
+    /**
+     * Close context non-silently with relayed data
+     * @param params
+     */
+
+  }, {
+    key: "_closeContext",
+    value: function () {
+      var _closeContext2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2(params) {
+        var frame, _iterator4, _step4, callback, _context2;
+
+        return _regenerator.default.wrap(function _callee2$(_context3) {
+          while (1) {
+            switch (_context3.prev = _context3.next) {
+              case 0:
+                params = _objectSpread(_objectSpread({}, {
+                  target: '#sb-container',
+                  data: {},
+                  silent: false
+                }), params);
+
+                if (this.frames.hasOwnProperty(params.target)) {
+                  frame = this.frames[params.target];
+
+                  frame._closeContext(params.data, params.silent); // run callback of subscribers
+
+
+                  if (this.subscribers.hasOwnProperty('close') && this.subscribers['close'].length) {
+                    _iterator4 = _createForOfIteratorHelper(this.subscribers['close']);
+
+                    try {
+                      for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
+                        callback = _step4.value;
+
+                        if ({}.toString.call(callback) === '[object Function]') {
+                          _context2 = frame.getContext();
+
+                          if (Object.keys(_context2).length) {
+                            // retrieve raw values of Context object
+                            callback({
+                              entity: _context2.getEntity(),
+                              type: _context2.getType(),
+                              name: _context2.getName(),
+                              domain: _context2.getDomain(),
+                              mode: _context2.getMode(),
+                              purpose: _context2.getPurpose(),
+                              lang: _context2.getLang()
+                            });
+                          } else {
+                            // run callback with empty context
+                            callback({});
+                          }
+                        }
+                      }
+                    } catch (err) {
+                      _iterator4.e(err);
+                    } finally {
+                      _iterator4.f();
+                    }
+                  }
+                }
+
+              case 2:
+              case "end":
+                return _context3.stop();
+            }
+          }
+        }, _callee2, this);
+      }));
+
+      function _closeContext(_x2) {
+        return _closeContext2.apply(this, arguments);
+      }
+
+      return _closeContext;
+    }()
     /**
      * Asynchronous initialisation of the eQ instance.
      *
@@ -2140,25 +2302,25 @@ var EventsListener = /*#__PURE__*/function () {
   }, {
     key: "init",
     value: function () {
-      var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
+      var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
         var _this = this;
 
         var settings, key, environment, queryString, urlParams;
-        return _regenerator.default.wrap(function _callee2$(_context3) {
+        return _regenerator.default.wrap(function _callee4$(_context5) {
           while (1) {
-            switch (_context3.prev = _context3.next) {
+            switch (_context5.prev = _context5.next) {
               case 0:
-                _context3.prev = 0;
-                _context3.next = 3;
+                _context5.prev = 0;
+                _context5.next = 3;
                 return _equalServices.EnvService.getEnv();
 
               case 3:
-                this.env = _context3.sent;
-                _context3.next = 6;
+                this.env = _context5.sent;
+                _context5.next = 6;
                 return _equalServices.ApiService.getUser();
 
               case 6:
-                this.user = _context3.sent;
+                this.user = _context5.sent;
 
                 if (this.user.hasOwnProperty('language')) {
                   _equalServices.EnvService.setEnv('locale', this.user.language);
@@ -2167,30 +2329,30 @@ var EventsListener = /*#__PURE__*/function () {
                 } // attempt to retrieve app config
 
 
-                _context3.next = 10;
+                _context5.next = 10;
                 return _equalServices.ApiService.getSettings();
 
               case 10:
-                settings = _context3.sent;
+                settings = _context5.sent;
 
                 for (key in settings) {
                   _equalServices.EnvService.setEnv(key, settings[key]);
                 }
 
-                _context3.next = 17;
+                _context5.next = 17;
                 break;
 
               case 14:
-                _context3.prev = 14;
-                _context3.t0 = _context3["catch"](0);
+                _context5.prev = 14;
+                _context5.t0 = _context5["catch"](0);
                 console.warn('unable to retrieve user info, fallback to guest');
 
               case 17:
-                _context3.next = 19;
+                _context5.next = 19;
                 return _equalServices.EnvService.getEnv();
 
               case 19:
-                environment = _context3.sent;
+                environment = _context5.sent;
 
                 // init locale
                 _moment.default.locale(environment.locale); // overload environment lang if set in URL
@@ -2209,84 +2371,27 @@ var EventsListener = /*#__PURE__*/function () {
 
 
                 this.$sbEvents.on('_openContext', /*#__PURE__*/function () {
-                  var _ref = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(event, config) {
+                  var _ref = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3(event, config) {
                     var reset,
-                        environment,
-                        _iterator3,
-                        _step3,
-                        callback,
-                        _args = arguments;
-
-                    return _regenerator.default.wrap(function _callee$(_context) {
+                        _args3 = arguments;
+                    return _regenerator.default.wrap(function _callee3$(_context4) {
                       while (1) {
-                        switch (_context.prev = _context.next) {
+                        switch (_context4.prev = _context4.next) {
                           case 0:
-                            reset = _args.length > 2 && _args[2] !== undefined ? _args[2] : false;
+                            reset = _args3.length > 2 && _args3[2] !== undefined ? _args3[2] : false;
+                            console.log('eQ: received _openContext', event, config, reset);
 
-                            if (!config) {
-                              config = window.context;
-                            }
+                            _this._openContext(config, reset);
 
-                            _context.next = 4;
-                            return _equalServices.EnvService.getEnv();
-
-                          case 4:
-                            environment = _context.sent;
-                            // extend default params with received config
-                            config = _objectSpread(_objectSpread({}, {
-                              entity: '',
-                              type: 'list',
-                              name: 'default',
-                              domain: [],
-                              mode: 'view',
-                              // view, edit
-                              purpose: 'view',
-                              // view, select, add
-                              lang: environment.lang,
-                              locale: environment.locale,
-                              callback: null,
-                              target: '#sb-container'
-                            }), config);
-                            console.log('eQ: received _openContext', config);
-
-                            if (!_this.frames.hasOwnProperty(config.target)) {
-                              _this.frames[config.target] = new _equalLib.Frame(_this, config.target);
-                            } else if (reset) {
-                              _this.frames[config.target].closeAll();
-                            }
-
-                            _context.next = 10;
-                            return _this.frames[config.target]._openContext(config);
-
-                          case 10:
-                            // run callback of subscribers
-                            if (_this.subscribers.hasOwnProperty('open') && _this.subscribers['open'].length) {
-                              _iterator3 = _createForOfIteratorHelper(_this.subscribers['open']);
-
-                              try {
-                                for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
-                                  callback = _step3.value;
-
-                                  if ({}.toString.call(callback) === '[object Function]') {
-                                    callback(config);
-                                  }
-                                }
-                              } catch (err) {
-                                _iterator3.e(err);
-                              } finally {
-                                _iterator3.f();
-                              }
-                            }
-
-                          case 11:
+                          case 3:
                           case "end":
-                            return _context.stop();
+                            return _context4.stop();
                         }
                       }
-                    }, _callee);
+                    }, _callee3);
                   }));
 
-                  return function (_x, _x2) {
+                  return function (_x3, _x4) {
                     return _ref.apply(this, arguments);
                   };
                 }());
@@ -2298,54 +2403,8 @@ var EventsListener = /*#__PURE__*/function () {
 
                 this.$sbEvents.on('_closeContext', function (event) {
                   var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-                  // close context non-silently with relayed data
-                  params = _objectSpread(_objectSpread({}, {
-                    target: '#sb-container',
-                    data: {},
-                    silent: false
-                  }), params);
 
-                  if (_this.frames.hasOwnProperty(params.target)) {
-                    var frame = _this.frames[params.target];
-
-                    frame._closeContext(params.data, params.silent); // run callback of subscribers
-
-
-                    if (_this.subscribers.hasOwnProperty('close') && _this.subscribers['close'].length) {
-                      var _iterator4 = _createForOfIteratorHelper(_this.subscribers['close']),
-                          _step4;
-
-                      try {
-                        for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
-                          var callback = _step4.value;
-
-                          if ({}.toString.call(callback) === '[object Function]') {
-                            var _context2 = frame.getContext();
-
-                            if (Object.keys(_context2).length) {
-                              // retrieve raw values of Context object
-                              callback({
-                                entity: _context2.getEntity(),
-                                type: _context2.getType(),
-                                name: _context2.getName(),
-                                domain: _context2.getDomain(),
-                                mode: _context2.getMode(),
-                                purpose: _context2.getPurpose(),
-                                lang: _context2.getLang()
-                              });
-                            } else {
-                              // run callback with empty context
-                              callback({});
-                            }
-                          }
-                        }
-                      } catch (err) {
-                        _iterator4.e(err);
-                      } finally {
-                        _iterator4.f();
-                      }
-                    }
-                  }
+                  _this._closeContext(params);
                 });
                 this.$sbEvents.on('_closeAll', function (event) {
                   var params = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
@@ -2373,10 +2432,10 @@ var EventsListener = /*#__PURE__*/function () {
 
               case 27:
               case "end":
-                return _context3.stop();
+                return _context5.stop();
             }
           }
-        }, _callee2, this, [[0, 14]]);
+        }, _callee4, this, [[0, 14]]);
       }));
 
       function init() {
@@ -2403,51 +2462,71 @@ var EventsListener = /*#__PURE__*/function () {
 
   }, {
     key: "open",
-    value: function open(context) {
-      var _this2 = this;
+    value: function () {
+      var _open = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5(context) {
+        var _this2 = this;
 
-      console.log("eQ::open", context);
+        return _regenerator.default.wrap(function _callee5$(_context6) {
+          while (1) {
+            switch (_context6.prev = _context6.next) {
+              case 0:
+                console.log("eQ::open", context);
 
-      _equalServices.EnvService.getEnv().then(function (environment) {
-        // extend default params with received config
-        var target_context = _objectSpread(_objectSpread({}, {
-          entity: '',
-          type: 'list',
-          name: 'default',
-          domain: [],
-          mode: 'view',
-          // view, edit
-          purpose: 'view',
-          // view, select, add
-          lang: environment.lang,
-          callback: null,
-          target: '#sb-container',
-          reset: false
-        }), context); // this.$sbEvents.trigger('click', [context, context.hasOwnProperty('reset') && context.reset]);
+                _equalServices.EnvService.getEnv().then(function (environment) {
+                  // extend default params with received config
+                  var target_context = _objectSpread(_objectSpread({}, {
+                    entity: '',
+                    type: 'list',
+                    name: 'default',
+                    domain: [],
+                    mode: 'view',
+                    // view, edit
+                    purpose: 'view',
+                    // view, select, add
+                    lang: environment.lang,
+                    callback: null,
+                    target: '#sb-container',
+                    reset: false
+                  }), context); // this.$sbEvents.trigger('click', [context, context.hasOwnProperty('reset') && context.reset]);
 
 
-        if (context.hasOwnProperty('view')) {
-          var parts = context.view.split('.');
-          var view_type = 'list',
-              view_name = 'default';
-          if (parts.length) view_type = parts.shift();
-          if (parts.length) view_name = parts.shift();
+                  if (context.hasOwnProperty('view')) {
+                    var parts = context.view.split('.');
+                    var view_type = 'list',
+                        view_name = 'default';
+                    if (parts.length) view_type = parts.shift();
+                    if (parts.length) view_name = parts.shift();
 
-          if (!context.hasOwnProperty('type')) {
-            target_context.type = view_type;
+                    if (!context.hasOwnProperty('type')) {
+                      target_context.type = view_type;
+                    }
+
+                    if (!context.hasOwnProperty('name')) {
+                      target_context.name = view_name;
+                    }
+                  } // make context available to the outside
+
+
+                  window.context = target_context; // ContextService uses 'window' global object to store the arguments (context parameters)
+                  // this.$sbEvents.trigger('_openContext', [target_context, target_context.reset]);
+
+                  _this2._openContext(target_context, target_context.reset);
+                });
+
+              case 2:
+              case "end":
+                return _context6.stop();
+            }
           }
+        }, _callee5);
+      }));
 
-          if (!context.hasOwnProperty('name')) {
-            target_context.name = view_name;
-          }
-        } // make context available to the outside
+      function open(_x5) {
+        return _open.apply(this, arguments);
+      }
 
-
-        window.context = target_context; // ContextService uses 'window' global object to store the arguments (context parameters)
-
-        _this2.$sbEvents.trigger('_openContext', [target_context, target_context.reset]);
-      });
-    }
+      return open;
+    }()
     /**
      * Open the requested context inside a new popup (no target container required).
      *
@@ -2457,48 +2536,56 @@ var EventsListener = /*#__PURE__*/function () {
   }, {
     key: "popup",
     value: function () {
-      var _popup = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3(config) {
-        var x_offset, y_offset, popup_id, $popup, $inner, original_target, frame;
-        return _regenerator.default.wrap(function _callee3$(_context4) {
+      var _popup = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6(config) {
+        var domContainerSelector,
+            $domContainer,
+            $wrapper,
+            popup_id,
+            $popup,
+            $inner,
+            frame,
+            _args6 = arguments;
+        return _regenerator.default.wrap(function _callee6$(_context7) {
           while (1) {
-            switch (_context4.prev = _context4.next) {
+            switch (_context7.prev = _context7.next) {
               case 0:
-                x_offset = window.pageXOffset;
-                y_offset = window.pageYOffset;
-                popup_id = this.popups.length + 1;
-                $popup = (0, _jqueryLib.$)('<div class="sb-popup-wrapper" id="eq-popup-' + popup_id + '"><div class="sb-popup"></div></div>');
-                $inner = (0, _jqueryLib.$)('<div class="sb-popup-inner"></div>').on('_close', function () {
-                  $popup.remove();
-                });
-                $popup.css('left', x_offset + 'px');
-                $popup.css('top', y_offset + 'px');
-                $popup.css('z-index', 9000 + popup_id);
-                $popup.find('.sb-popup').append($inner);
-                original_target = config.target ? config.target : '';
-                config.target = $inner;
-                frame = new _equalLib.Frame(this, config.target);
-                config.display_mode = 'popup';
-                _context4.next = 15;
-                return frame._openContext(config);
+                domContainerSelector = _args6.length > 1 && _args6[1] !== undefined ? _args6[1] : 'body';
+                $domContainer = (0, _jqueryLib.$)(domContainerSelector);
+                $wrapper = $domContainer.find('.sb-popup-wrapper');
 
-              case 15:
-                if (original_target.length) {
-                  (0, _jqueryLib.$)(original_target).append($popup);
-                } else {
-                  (0, _jqueryLib.$)('body').append($popup);
+                if (!$wrapper.length) {
+                  // origin not found, create container
+                  $wrapper = (0, _jqueryLib.$)('<div class="sb-popup-wrapper"></div>');
+                  $wrapper.css('left', window.pageXOffset + 'px');
+                  $wrapper.css('top', window.pageYOffset + 'px');
+                  $domContainer.append($wrapper);
                 }
 
+                popup_id = this.popups.length + 1;
+                $popup = (0, _jqueryLib.$)('<div id="sb-popup-' + popup_id + '" class="sb-popup"></div>');
+                $wrapper.append($popup);
+                $popup.css('z-index', 9000 + popup_id);
+                $inner = (0, _jqueryLib.$)('<div class="sb-popup-inner" id="sb-popup-inner-' + popup_id + '"></div>').on('_close', function () {
+                  $popup.remove();
+                });
+                $popup.append($inner);
+                frame = new _equalLib.Frame(this, '#sb-popup-inner-' + popup_id);
+                config.display_mode = 'popup';
+                _context7.next = 14;
+                return frame._openContext(config);
+
+              case 14:
                 this.popups.push(frame);
 
-              case 17:
+              case 15:
               case "end":
-                return _context4.stop();
+                return _context7.stop();
             }
           }
-        }, _callee3, this);
+        }, _callee6, this);
       }));
 
-      function popup(_x3) {
+      function popup(_x6) {
         return _popup.apply(this, arguments);
       }
 
@@ -2507,7 +2594,11 @@ var EventsListener = /*#__PURE__*/function () {
   }, {
     key: "popup_close",
     value: function popup_close(params) {
-      var frame = this.popups.pop();
+      var frame = this.popups.pop(); // if there are no popup left, remove wrapper
+
+      if (!this.popups.length) {
+        (0, _jqueryLib.$)('body').find('.sb-popup-wrapper').remove();
+      }
 
       frame._closeContext(params.data);
     }
@@ -3148,10 +3239,11 @@ var Frame = /*#__PURE__*/function () {
                   }).appendTo($elem);
                 }
 
-                (0, _jqueryLib.$)('<span>' + current_purpose_string + '</span>').appendTo($elem); // if(this.stack.length > 1) {
-                // for integration, we need to let user close any context
+                (0, _jqueryLib.$)('<span>' + current_purpose_string + '</span>').appendTo($elem);
 
-                if (true) {
+                if (this.stack.length > 1 || this.display_mode == 'popup') {
+                  // #memo - check this: for integration, we need to let user close any context
+                  // if(true) {
                   _materialLib.UIHelper.createButton('context-close', '', 'mini-fab', 'close').css({
                     'transform': 'scale(0.5)',
                     'margin-top': '3px',
@@ -3357,7 +3449,7 @@ var Frame = /*#__PURE__*/function () {
       return this.eq.getUser();
     }
     /**
-     * This method can be called by any child or sub-child (view, layout, widgets)
+     * This method can be called by any child or sub-child (view, layout, widgets) (bottom-up).
      *
      * @param config
      */
@@ -3438,7 +3530,7 @@ var Frame = /*#__PURE__*/function () {
       return closeContext;
     }()
     /**
-     * Instanciate a new context and push it on the contexts stack.
+     * Instanciate a new context and push it on the contexts stack (top-down).
      *
      * This method is meant to be called by the eventListener only (eQ object).
      *
@@ -3449,9 +3541,8 @@ var Frame = /*#__PURE__*/function () {
     key: "_openContext",
     value: function () {
       var _openContext3 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee9(config) {
-        var _this3 = this;
+        var defaults, object, context, _iterator4, _step4, ctx;
 
-        var defaults, object, context;
         return _regenerator.default.wrap(function _callee9$(_context10) {
           while (1) {
             switch (_context10.prev = _context10.next) {
@@ -3505,44 +3596,53 @@ var Frame = /*#__PURE__*/function () {
                 config.domain = [['id', '=', object.id], ['state', '=', 'draft']];
 
               case 15:
-                context = new _equalLib.Context(this, config.entity, config.type, config.name, config.domain, config.mode, config.purpose, config.lang, config.callback, config); // stack current context
+                context = new _equalLib.Context(this, config.entity, config.type, config.name, config.domain, config.mode, config.purpose, config.lang, config.callback, config); // stack current (previous) context
 
                 this.stack.push(this.context);
                 this.context = context;
-                this.context.isReady().then(function () {
-                  var _iterator4 = _createForOfIteratorHelper(_this3.stack),
-                      _step4;
+                _context10.prev = 18;
+                _context10.next = 21;
+                return this.context.isReady();
 
-                  try {
-                    for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
-                      var ctx = _step4.value;
+              case 21:
+                console.log('context ready');
+                _iterator4 = _createForOfIteratorHelper(this.stack);
 
-                      if (ctx && typeof ctx.getContainer === 'function') {
-                        // conainers are hidden and not detached in order to maintain the listeners
-                        ctx.getContainer().hide();
-                      }
+                try {
+                  for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
+                    ctx = _step4.value;
+
+                    if (ctx && typeof ctx.getContainer === 'function') {
+                      // containers are hidden and not detached in order to maintain the listeners
+                      ctx.getContainer().hide();
                     }
-                  } catch (err) {
-                    _iterator4.e(err);
-                  } finally {
-                    _iterator4.f();
                   }
+                } catch (err) {
+                  _iterator4.e(err);
+                } finally {
+                  _iterator4.f();
+                }
 
-                  (0, _jqueryLib.$)(_this3.domContainerSelector).append(_this3.context.getContainer()); // relay event to the outside
+                (0, _jqueryLib.$)(this.domContainerSelector).append(this.context.getContainer()); // relay event to the outside
 
-                  (0, _jqueryLib.$)(_this3.domContainerSelector).show().trigger('_open', [{
-                    context: config
-                  }]);
+                (0, _jqueryLib.$)(this.domContainerSelector).show().trigger('_open', [{
+                  context: config
+                }]);
+                this.updateHeader();
+                _context10.next = 32;
+                break;
 
-                  _this3.updateHeader();
-                });
+              case 29:
+                _context10.prev = 29;
+                _context10.t0 = _context10["catch"](18);
+                console.warn('unexpected error', _context10.t0);
 
-              case 19:
+              case 32:
               case "end":
                 return _context10.stop();
             }
           }
-        }, _callee9, this);
+        }, _callee9, this, [[18, 29]]);
       }));
 
       function _openContext(_x4) {
@@ -3639,6 +3739,11 @@ var Frame = /*#__PURE__*/function () {
 
       return _closeContext;
     }()
+  }, {
+    key: "getDomContainer",
+    value: function getDomContainer() {
+      return (0, _jqueryLib.$)(this.domContainerSelector);
+    }
   }]);
   return Frame;
 }();
@@ -4514,7 +4619,7 @@ var Layout = /*#__PURE__*/function () {
 
               if (!item.hasOwnProperty('visible') || item.visible == true) {
                 if (descriptor.hasOwnProperty(item.value)) {
-                  var type = descriptor[item.value].type;
+                  var type = descriptor[item.value]['operation'];
                   var result = 0.0;
 
                   var _iterator9 = _createForOfIteratorHelper(objects),
@@ -4550,20 +4655,33 @@ var Layout = /*#__PURE__*/function () {
                   }
 
                   var value = result;
+                  var prefix = '';
+                  var suffix = '';
 
                   if (descriptor[item.value].hasOwnProperty('usage')) {
                     var usage = descriptor[item.value]['usage'];
 
                     if (usage.indexOf('amount/percent') >= 0) {
-                      value = (value * 100).toFixed(0) + '%';
+                      suffix = '%';
+                      value = (value * 100).toFixed(0);
                     } else if (usage.indexOf('amount/money') >= 0) {
                       value = _equalServices.EnvService.formatCurrency(value);
+                    } else if (usage.indexOf('numeric/integer') >= 0) {
+                      value = value.toFixed(0);
                     }
                   } else {
                     value = _equalServices.EnvService.formatNumber(value);
                   }
 
-                  this.$layout.find('[data-id="' + 'operation-' + operation + '-' + item.value + '"]').val(value);
+                  if (descriptor[item.value].hasOwnProperty('prefix')) {
+                    prefix = descriptor[item.value]['prefix'];
+                  }
+
+                  if (descriptor[item.value].hasOwnProperty('suffix')) {
+                    suffix = descriptor[item.value]['suffix'];
+                  }
+
+                  this.$layout.find('[data-id="' + 'operation-' + operation + '-' + item.value + '"]').val(prefix + value + suffix);
                 }
               }
             }
@@ -6497,13 +6615,7 @@ var View = /*#__PURE__*/function () {
     (0, _defineProperty2.default)(this, "$headerContainer", void 0);
     (0, _defineProperty2.default)(this, "$layoutContainer", void 0);
     (0, _defineProperty2.default)(this, "$footerContainer", void 0);
-
-    // assign a UUID
-    var S4 = function S4() {
-      return ((1 + Math.random()) * 0x10000 | 0).toString(16).substring(1);
-    }; // generate a random guid
-
-
+    // generate a random UUID
     this.uuid = _materialLib.UIHelper.getUUID();
     this.context = context;
     this.entity = entity;

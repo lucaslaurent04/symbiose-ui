@@ -22,84 +22,141 @@ declare global {
  */
 export class ContextService {
 
-  private observable: ReplaySubject<any>;
+    private observable: ReplaySubject<any>;
+    public ready: ReplaySubject<any>;
 
-  private descriptor: any = {
-    route: '',
-    context: {}
-  };
+    private route: string = '';
+    private context: any = {};
 
-  public getObservable() {
-    return this.observable;
-  }
+    private timeout: any;
 
-  public getDescriptor() {
-    return this.descriptor;
-  }
+    private target: string = '#sb-container';
 
-  constructor(
-    private router: Router,
-    @Inject(DOCUMENT) private document: Document,
-    private eq:EqualUIService
-  ) {
 
-    this.observable = new ReplaySubject<any>(1);
-
-    // listen to context changes
-    this.eq.addSubscriber(['open', 'close'], (context:any) => {
-      this.descriptor.context = {...context};
-      this.observable.next(this.descriptor);
-    });
-
-    // listen to route change requests
-    this.eq.addSubscriber(['navigate'], (descriptor:any) => {
-      this.change(descriptor);
-    });
-
-    // listen to route changes and keep track of current route
-    this.router.events.subscribe( (event: any) => {
-      if (event instanceof NavigationEnd) {
-        console.log('ContextService : route change', event);
-        this.descriptor.route = event.url;
-      }
-    });
-
-  }
-
-  /**
-   * Request a change by providing a descriptor that holds a route and/or a context.
-   *
-   * @param descriptor  Descriptor might contain both route and context objects.
-   */
-  public change(descriptor:any) {
-
-    // switch route, if requested
-    if(descriptor.hasOwnProperty('route')) {
-      console.log("ContextService: received route change request", descriptor);
-
-      // make sure no eq context is left open
-      this.eq.closeAll();
-      this.descriptor.route = descriptor.route;
-      this.descriptor.context = {};
-      this.router.navigate([descriptor.route]);
+    /**
+     * Provide observable for subrinbing on future updates.
+     * New subscribers will receive latest value set (history depth of 1).
+     */
+    public getObservable() {
+        return this.observable;
     }
 
-    // switch context, if requested
-    if(descriptor.hasOwnProperty('context')) {
-      console.log("ContextService: received context change request", descriptor);
-      this.descriptor.context = {...descriptor.context};
-      // request eq.openContext()
-      if(!descriptor.context_only) {
+    /**
+     * Provide current descriptor
+     */
+    public getDescriptor() {
+        return {route: this.route, context: this.context};
+    }
 
-        if(descriptor.context.hasOwnProperty('display_mode') && descriptor.context.display_mode == 'popup') {
-          this.eq.popup(descriptor.context);
+    public setTarget(target: string) {
+        this.target = target;
+    }
+
+    constructor(
+        private router: Router,
+        @Inject(DOCUMENT) private document: Document,
+        private eq:EqualUIService
+    ) {
+
+        this.ready = new ReplaySubject<any>(1);
+        this.observable = new ReplaySubject<any>(1);
+
+        /* 
+            listen to context changes from eQ: notify components that need sync (e.g. sidemenu)
+        */
+
+        this.eq.addSubscriber(['open', 'close'], (context:any) => {
+            console.log('ContextService : eQ open/close', context);
+//            this.context = {...context};
+//            this.observable.next(this.getDescriptor());
+            this.change({context: {...context}, context_only: true});
+        });
+
+        this.eq.addSubscriber(['navigate'], (descriptor:any) => {
+            console.log('ContextService : eQ navigate');
+            this.change({...descriptor, context_only: true});
+        });
+
+        // listen to route changes and keep current route
+        this.router.events.subscribe( (event: any) => {
+            if (event instanceof NavigationEnd) {
+                console.log('ContextService : route change', event);
+                this.route = event.url;
+                this.observable.next(this.getDescriptor());
+                // if no controller has requested a change within 500ms, change to current context
+                this.timeout = setTimeout( () => {
+                    this.timeout = undefined;
+                    this.change({context: this.context});
+                }, 500);
+            }
+        });
+
+  }
+
+   /**
+    * Request a change by providing a descriptor that holds a route and/or a context.
+    * Changing route and context are mutually exclusive operations.
+    * If both are requested, local descriptor is updated and route is changed. A second call is made 500ms later for requesting a eQ context change.
+    *
+    * @param descriptor  Descriptor might contain both route and context objects.
+    */
+    public async change(descriptor:any) {
+
+        // if a call is pending, abort it
+        if(this.timeout) {
+            clearTimeout(this.timeout);
         }
-        else {
-          this.eq.open(descriptor.context);
-        }      
-      }      
-      this.observable.next({context: descriptor.context});
+
+        // notify subscribers
+        this.ready.next(false);
+
+        /* 
+            pass-1 update the context part of the local descriptor (to allow subscribers to route change to get the current value)
+        */
+        if(descriptor.hasOwnProperty('context')) {
+            console.log("ContextService: received context change request", descriptor, this);
+            this.context = {...descriptor.context};
+        }
+
+        // navigate to route, if requested (a route is present)
+        if(descriptor.hasOwnProperty('route')) {
+            console.log("ContextService: received route change request", descriptor, this);
+            // make sure no eQ context is left open
+            this.eq.closeAll();
+            // changing route resets the context
+            if(!descriptor.hasOwnProperty('context')) {
+                this.context = {};
+            }
+            // change route (this will notify Router and ActivatedRoute subscribers)
+            this.router.navigate([descriptor.route]);
+        }
+        /*
+            pass-2 switch context, if requested
+            context might depend on route change (controllers can request a change of target after being instanciated)
+        */
+        else if(descriptor.hasOwnProperty('context')) {
+            // inject current target (might have been updated by controllers)
+            let context = {...descriptor.context};
+            context.target = this.target;
+
+            // request eQ to open context
+            if(!descriptor.hasOwnProperty('context_only')) {
+                if(context.hasOwnProperty('display_mode') && context.display_mode == 'popup') {
+                    let dom_container = 'body';
+                    if(context.hasOwnProperty('dom_container')) {
+                        dom_container = context.dom_container;
+                    }
+                    await this.eq.popup(context, dom_container);
+                }
+                else {
+                    console.log("requesting context opening", context);
+                    await this.eq.open(context);
+                }
+            }
+            // notify subscribers
+            this.ready.next(true);
+            this.observable.next(this.getDescriptor());
+        }
     }
-  }
 
 }

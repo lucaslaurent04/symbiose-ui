@@ -3,18 +3,20 @@ import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 
 import { AppComponent } from './in/app.component';
-import { PosComponent } from './in/pos/pos.component';
 
 const routes: Routes = [
   /* routes specific to current app */
   {
     path: 'bookings',
-    loadChildren: () => import(`./in/bookings/booking.module`).then(m => m.AppInBookingModule) 
+    loadChildren: () => import(`./in/bookings/bookings.module`).then(m => m.AppInBookingsModule) 
+  },
+  {
+    path: 'booking/:booking_id',
+    loadChildren: () => import(`./in/booking/booking.module`).then(m => m.AppInBookingModule) 
   },
   {
     path: 'planning',
-    component: PosComponent
-    // loadChildren: () => import(`./in/planning/planning.module`).then(m => m.AppInPlanningModule) 
+    loadChildren: () => import(`./in/planning/planning.module`).then(m => m.AppInPlanningModule) 
   },
   {
     /*

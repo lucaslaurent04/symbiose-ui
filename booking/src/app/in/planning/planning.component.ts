@@ -92,6 +92,7 @@ export class PlanningComponent implements OnInit, AfterViewInit {
 
     public onShowBooking(booking: any) {
         let descriptor:any = {
+            context_silent: true, // do not update sidebar            
             context: {
                 entity: 'lodging\\sale\\booking\\Booking',
                 type: 'form',
@@ -100,7 +101,6 @@ export class PlanningComponent implements OnInit, AfterViewInit {
                 mode: 'view',
                 purpose: 'view',
                 display_mode: 'popup',
-                context_silent: true, // do not update sidebar
                 callback: (data:any) => {
                     // restart angular lifecycles
                     this.cd.reattach();

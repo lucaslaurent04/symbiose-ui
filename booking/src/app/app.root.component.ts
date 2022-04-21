@@ -39,11 +39,11 @@ export class AppRootComponent implements OnInit {
   public async ngOnInit() {
 
     try {
-      await this.auth.authenticate();
+        await this.auth.authenticate();
     }
     catch(err) {
-      window.location.href = '/apps';
-      return;
+        window.location.href = '/apps';
+        return;
     }
 
     // load menus from server
@@ -55,36 +55,30 @@ export class AppRootComponent implements OnInit {
     this.topMenuItems = top_menu.items;
     this.translationsMenuTop = top_menu.translation;
 
-    this.context.getObservable().subscribe( (context:any) => {
-      console.log('AppRootComponent: received context update', context);
-      window.context = context;
-      $('#eq-context').trigger('click');
-    });
-
   }
 
-  public onToggleItem(item:any) {
-    // if item is expanded, fold siblings, if any
-    if(item.expanded) {
-      for(let sibling of this.navMenuItems) {
-        if(item!= sibling) {
-          sibling.expanded = false;
-          sibling.hidden = true;
+    public onToggleItem(item:any) {
+        // if item is expanded, fold siblings, if any
+        if(item.expanded) {
+            for(let sibling of this.navMenuItems) {
+                if(item!= sibling) {
+                    sibling.expanded = false;
+                    sibling.hidden = true;
+                }
+            }
         }
-      }
-    }
-    else {
-      for(let sibling of this.navMenuItems) {
-        sibling.hidden = false;
-        if(sibling.children) {
-          for(let subitem of sibling.children) {
-            subitem.expanded = false;
-            subitem.hidden = false;
-          }
+        else {
+            for(let sibling of this.navMenuItems) {
+                sibling.hidden = false;
+                if(sibling.children) {
+                    for(let subitem of sibling.children) {
+                        subitem.expanded = false;
+                        subitem.hidden = false;
+                    }
+                }
+            }
         }
-      }
     }
-  }
 
   /**
    * Items are handled as descriptors.
@@ -92,56 +86,56 @@ export class AppRootComponent implements OnInit {
    * And might have an additional `context` property.
    * @param item
    */
-  public onSelectItem(item:any) {
-    let descriptor:any = {};
+    public onSelectItem(item:any) {
+        let descriptor:any = {};
 
-    if(item.hasOwnProperty('route')) {
-      descriptor.route = item.route;
+        if(item.hasOwnProperty('route')) {
+            descriptor.route = item.route;
+        }
+        else {
+            descriptor.route = '/';
+        }
+
+        if(item.hasOwnProperty('context')) {
+            descriptor.context = {
+                ...{
+                    type:    'list',
+                    name:    'default',
+                    mode:    'view',
+                    purpose: 'view',
+//                    target:  '#sb-container',
+                    reset:    true
+                },
+                ...item.context
+            };
+
+            if( item.context.hasOwnProperty('view') ) {
+                let parts = item.context.view.split('.');
+                if(parts.length) descriptor.context.type = <string>parts.shift();
+                if(parts.length) descriptor.context.name = <string>parts.shift();
+            }
+
+            if( item.context.hasOwnProperty('purpose') && item.context.purpose == 'create') {
+                // descriptor.context.type = 'form';
+                descriptor.context.mode = 'edit';
+            }
+
+        }
+
+        this.context.change(descriptor);
     }
-    else {
-      descriptor.route = '/';
+
+
+    public onUpdateSideMenu(show: boolean) {
+        this.show_side_menu = show;
     }
 
-    if(item.hasOwnProperty('context')) {
-      descriptor.context = {
-        ...{
-          type:    'list',
-          name:    'default',
-          mode:    'view',
-          purpose: 'view',
-          target:  '#sb-container',
-          reset:    true
-        },
-        ...item.context
-      };
-
-      if( item.context.hasOwnProperty('view') ) {
-        let parts = item.context.view.split('.');
-        if(parts.length) descriptor.context.type = <string>parts.shift();
-        if(parts.length) descriptor.context.name = <string>parts.shift();
-      }
-
-      if( item.context.hasOwnProperty('purpose') && item.context.purpose == 'create') {
-        // descriptor.context.type = 'form';
-        descriptor.context.mode = 'edit';
-      }
-
+    public toggleSideMenu() {
+        this.show_side_menu = !this.show_side_menu;
     }
 
-    this.context.change(descriptor);
-  }
 
-
-  public showSideMenu() {
-    this.show_side_menu = true;
-  }
-
-  public toggleSideMenu() {
-    this.show_side_menu = !this.show_side_menu;
-  }
-
-
-  public toggleSideBar() {
-    this.show_side_bar = !this.show_side_bar;
-  }
+    public toggleSideBar() {
+        this.show_side_bar = !this.show_side_bar;
+    }
 }
