@@ -1,2 +1,2 @@
 #!/bin/bash
-ng build --configuration production --output-hashing none --base-href /auth/
+ng build --configuration production --output-hashing none --base-href="//auth\\"
