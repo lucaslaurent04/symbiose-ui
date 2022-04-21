@@ -8,7 +8,7 @@
   <form (mouseenter)="focusState = true" (mouseleave)="focusState = false">
     <mat-form-field appearance="standard" >
       <mat-label>{{setting.title}}</mat-label>
-      <mat-select  ([value])="settingValue" [formControl]="control" (selectionChange)="onChange($event)"
+      <mat-select [(value)]="settingValue" [formControl]="control" (selectionChange)="onChange($event)"
         disableOptionCentering>
         <mat-option *ngFor="let choice of choices" value="{{choice.value}}">
           <ng-container *ngIf="choice.name != ''">{{choice.value}} <b>({{choice.name}})</b> </ng-container>
