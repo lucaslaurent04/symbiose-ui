@@ -218,7 +218,7 @@ export class AppSideMenuComponent implements OnInit {
                                     let match = regexp.exec(domain);
 
                                     while (match) {
-                                        if (match.length) {
+                                        if (match.length && !object_fields.includes(match[1])) {
                                             object_fields.push(match[1]);
                                         }
                                         match = regexp.exec(domain);
@@ -237,11 +237,10 @@ export class AppSideMenuComponent implements OnInit {
 
                     // 'history' : read modifications history
                     try {
-
                         const collection = await this.api.collect('core\\Log', [
-                        ['object_id', '=', this.object_id],
-                        ['object_class', '=', this.object_class],
-                        ['user_id', '>', 0]
+                            ['object_id', '=', this.object_id],
+                            ['object_class', '=', this.object_class],
+                            ['user_id', '>', 0]
                         ], ['action', 'user_id.name'], 'id', 'desc', 0, 10);
 
                         this.latest_changes = collection;
@@ -250,8 +249,14 @@ export class AppSideMenuComponent implements OnInit {
                         console.warn(response);
                     }
 
-
                     let has_route: boolean = false;
+                    // remove routes that are not part of the current view
+                    for(let i = this.object_routes_items.length-1; i >= 0; --i) {
+                        let id = this.object_routes_items[i].id;
+                        if(!view_routes.find( (e:any) => e.id == id )) {
+                            this.object_routes_items.splice(i, 1);
+                        }
+                    }
                     // build routes, if any
                     for (let route of view_routes) {
                         if (route.hasOwnProperty('visible')) {
@@ -386,51 +391,47 @@ export class AppSideMenuComponent implements OnInit {
         this.context.change(descriptor);
     }
 
-  public async onObjectCheck(item: any) {
-    if (item.hasOwnProperty('controller')) {
-        try {
-            const data = await this.api.fetch('/?get=' + item.controller, {
-                id: this.object_id
-            });
-            console.log(data);
-            // no error status : nothing went wrong
-            this.object_checks_result.title = "Rien à signaler";
-            this.object_checks_result.content = [];
-        }
-        catch (response: any) {
-            console.log(response);
-            if (response && response.status != 404) {
+    public async onObjectCheck(item: any) {
+        if (item.hasOwnProperty('controller')) {
+            try {
+                const data = await this.api.fetch('/?get=' + item.controller, {
+                    id: this.object_id
+                });
+                // no error status : nothing went wrong
+                this.object_checks_result.title = "Rien à signaler";
+                this.object_checks_result.content = [];
+            }
+            catch (response: any) {
+                if (response && response.status != 404) {
 
-                if (response.hasOwnProperty('status')) {
-                    this.object_checks_result.title = "Erreur(s) détectée(s)";
-                    if (response.status == 409) {
-                        this.object_checks_result.title = "Conflit(s) détecté(s)";
-                    }
-                }
-
-                if (response.hasOwnProperty('error')) {
-                    if (response.error.hasOwnProperty('errors')) {
-                        for (let key of Object.keys(response.error.errors)) {
-                            let msg_id = response.error.errors[key];
-                            this.object_checks_result.content.push({
-                            type: 'message',
-                            message: this.translate.instant(msg_id)
-                            });
+                    if (response.hasOwnProperty('status')) {
+                        this.object_checks_result.title = "Erreur(s) détectée(s)";
+                        if (response.status == 409) {
+                            this.object_checks_result.title = "Conflit(s) détecté(s)";
                         }
                     }
-                    else {
-                        this.object_checks_result.content = response.error;
+
+                    if (response.hasOwnProperty('error')) {
+                        if (response.error.hasOwnProperty('errors')) {
+                            for (let key of Object.keys(response.error.errors)) {
+                                let msg_id = response.error.errors[key];
+                                this.object_checks_result.content.push({
+                                type: 'message',
+                                message: this.translate.instant(msg_id)
+                                });
+                            }
+                        }
+                        else {
+                            this.object_checks_result.content = response.error;
+                        }
                     }
                 }
             }
         }
     }
 
-  }
-
 
     public onObjectCheckResult(line: any) {
-        console.log(line);
         let context = {
             entity: line.object_class,
             type: 'form',
@@ -447,14 +448,18 @@ export class AppSideMenuComponent implements OnInit {
     }
 
     public onObjectRoute(item: any) {
-
         console.log('AppSideMenuComponent::onObjectRoute', item, this.object);
         let descriptor: any = {};
 
         if (item.hasOwnProperty('route')) {
             let route = item.route;
             for (let object_field of Object.keys(this.object)) {
-                route = route.replace('object.' + object_field, this.object[object_field]);
+                let target = this.object[object_field];
+                // handle m2o sub-ojects (assuming id is always loaded)
+                if(typeof target == 'object') {
+                    target = target.id;
+                }
+                route = route.replace('object.' + object_field, target);
             }
             descriptor.route = route;
         }
@@ -464,7 +469,12 @@ export class AppSideMenuComponent implements OnInit {
             if (context.hasOwnProperty('domain') && Array.isArray(context.domain)) {
                 let domain = JSON.stringify(context.domain);
                 for (let object_field of Object.keys(this.object)) {
-                    domain = domain.replace('object.' + object_field, this.object[object_field]);
+                    let target = this.object[object_field];
+                    // handle m2o sub-ojects (assuming id is always loaded)
+                    if(typeof target == 'object') {
+                        target = target.id;
+                    }
+                    domain = domain.replace('object.' + object_field, target);
                 }
                 context.domain = JSON.parse(domain);
             }

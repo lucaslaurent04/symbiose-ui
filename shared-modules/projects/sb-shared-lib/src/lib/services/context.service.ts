@@ -119,7 +119,7 @@ export class ContextService {
         }
 
         // navigate to route, if requested (a route is present)
-        if(descriptor.hasOwnProperty('route')) {
+        if(descriptor.hasOwnProperty('route') && descriptor.route != this.route) {
             console.log("ContextService: received route change request", descriptor, this);
             // make sure no eQ context is left open
             this.eq.closeAll();
