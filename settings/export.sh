@@ -1,2 +1,2 @@
 #!/bin/bash
-mkdir -p ../../settings & cp -a dist/symbiose/. ../../settings/
+rm -rf ../../settings & mkdir ../../settings & cp -a dist/symbiose/* ../../settings/

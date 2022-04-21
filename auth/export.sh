@@ -1,2 +1,2 @@
 #!/bin/bash
-mkdir -p ../../auth && cp -a dist/symbiose/. ../../auth/
+rm -rf ../../auth & mkdir ../../auth & cp -a dist/symbiose/* ../../auth/

@@ -1,2 +1,2 @@
 #!/bin/bash
-mkdir -p ../../documents & cp -a dist/symbiose/. ../../documents/
+rm -rf ../../documents & mkdir ../../documents & cp -a dist/symbiose/* ../../documents/
