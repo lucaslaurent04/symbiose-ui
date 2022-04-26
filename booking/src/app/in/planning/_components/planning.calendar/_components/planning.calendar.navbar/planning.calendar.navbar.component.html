@@ -80,17 +80,32 @@
 
 
 <div class="overlay">
-    <ng-container *ngIf="consumption">
-        <div class="rental-unit-details">
-            <span>{{rental_unit.name}}</span>
-        </div>
-        <div class="consumption-details">            
-            <span ng-container *ngIf="consumption">
-                {{consumption.booking_id.name}} - {{consumption.booking_id.customer_id.name}} - {{consumption.date_from | date : 'fullDate' }} @ {{consumption.schedule_from}} → {{consumption.date_to | date : 'fullDate'}} @ {{consumption.schedule_to}}
-            </span>                            
-        </div>
-        <div class="date-details">
-            <span *ngFor="let holiday of holidays">{{holiday.name}}</span>        
-        </div>
-    </ng-container>
+    <div class="rental-unit-details">
+        <span *ngIf="rental_unit">{{rental_unit.name}}</span>
+    </div>
+    <div class="consumption-details">            
+        <span *ngIf="consumption">
+            <div>{{consumption.booking_id?.name}}</div> 
+            <div style="max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{consumption.booking_id?.customer_id?.name}}</div>
+            <div>{{consumption.date_from | date : 'fullDate' }} @ {{consumption.schedule_from}} → {{consumption.date_to | date : 'fullDate'}} @ {{consumption.schedule_to}}</div>
+            <div>{{consumption.qty}} p.</div>
+        </span>                            
+    </div>
+    <div class="date-details">
+        <span *ngIf="holidays">{{calcHolidays()}}</span>
+    </div>
+
+    <!--
+    <div class="rental-unit-details">
+        <span>rental_unit.name</span>
+    </div>
+    <div class="consumption-details">            
+        <span >
+            consumption.booking_id.name - consumption.booking_id.customer_id.name - consumption.date_from | date : 'fullDate'  @ consumption.schedule_from → consumption.date_to | date : 'fullDate' @ consumption.schedule_to
+        </span>                            
+    </div>
+    <div class="date-details">
+        <span >holiday.name</span>        
+    </div>
+    -->
 </div>

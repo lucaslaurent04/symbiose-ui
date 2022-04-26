@@ -103,7 +103,10 @@ export class AppSideMenuComponent implements OnInit {
             this.view_description = '';
             this.latest_changes = [];
 
-            if (descriptor.hasOwnProperty('context') && !descriptor.hasOwnProperty('context_silent')) {
+            if (descriptor.hasOwnProperty('context') && !descriptor.context_silent
+                && descriptor.context.entity && descriptor.context.entity.length) {
+
+                console.log('SideMenu::searching for context menu');
 
                 // 1) retrieve the details of the view that was requested
                 let view_type = (descriptor.context.hasOwnProperty('type')) ? descriptor.context.type : 'list';
@@ -124,7 +127,7 @@ export class AppSideMenuComponent implements OnInit {
                     // domain is expected to be single ID filter (ex. ['id', '=', 3])
                     let candidate = parseInt(descriptor.context.domain[2]);
 
-                    if (!Number.isNaN(candidate)) {
+                    if (!isNaN(candidate)) {
                         object_id = candidate;
                     }
                 }
@@ -135,7 +138,7 @@ export class AppSideMenuComponent implements OnInit {
                     const parts = descriptor.route.split('/');
                     for(let i = parts.length; i > 0; --i) {
                         let candidate = parseInt(parts[i - 1]);
-                        if (!Number.isNaN(candidate)) {
+                        if (!isNaN(candidate)) {
                             object_id = candidate;
                             break;
                         }
@@ -249,7 +252,6 @@ export class AppSideMenuComponent implements OnInit {
                         console.warn(response);
                     }
 
-                    let has_route: boolean = false;
                     // remove routes that are not part of the current view
                     for(let i = this.object_routes_items.length-1; i >= 0; --i) {
                         let id = this.object_routes_items[i].id;
@@ -307,14 +309,10 @@ export class AppSideMenuComponent implements OnInit {
                         if(!this.object_routes_items.find( (e:any) => e.id == route.id )) {
                             this.object_routes_items.push(route);
                         }
-                        has_route = true;
                     }
 
-                    // notify parent that there are new routes
-                    if (has_route) {
-                        // show side menu
-                        this.updated.emit(true);
-                    }
+                    // notify parent about if there are routes or not
+                    this.updated.emit(!!this.object_routes_items.length);
 
                     // 'checks' : read checks specific to object (verifications)
                     try {

@@ -29,72 +29,58 @@ export class BookingCompositionComponent implements OnInit, AfterContentInit {
 
   @ViewChild('fileUpload') file_upload: ElementRef;
   
-  public showSbContainer: boolean = false;
-  public selectedTabIndex:number = 0;
-  public loading = true;
+    public showSbContainer: boolean = false;
+    public selectedTabIndex:number = 0;
+    public loading = true;
 
-  public booking_id: number;
-  public booking: any = new Booking();
+    public booking_id: number;
+    public booking: any = new Booking();
 
-  constructor(
-    private dialog: MatDialog,
-    private api: ApiService, 
-    private route: ActivatedRoute,
-    private context:ContextService,
-    private snack: MatSnackBar,
-    private zone: NgZone) {
-    
-  }
+
+    // flag telling if the route to which the component is associated with is currently active (amongst routes defined in first parent routing module)
+    private active = false;
+
+    constructor(
+        private dialog: MatDialog,
+        private api: ApiService, 
+        private route: ActivatedRoute,
+        private context:ContextService,
+        private snack: MatSnackBar,
+        private zone: NgZone) {
+    }
 
   /**
    * Set up callbacks when component DOM is ready.
    */
-  public ngAfterContentInit() {
-    this.loading = false;
+    public ngAfterContentInit() {
+        console.log('BookingCompositionComponent::ngAfterViewInit');
+        
+        this.load( Object.getOwnPropertyNames(new Booking()) );  
 
-    // _open and _close event are relayed by eqListener on the DOM node given as target when a context is requested
-    // #sb-booking-container is defined in booking.edit.component.html
-    $('#sb-composition-container').on('_close', (event, data) => {
-      this.zone.run( () => {
-        this.showSbContainer = false;
-        this.selectedTabIndex = 0;
-      });
-    });
-
-    $('#sb-composition-container').on('_open', (event, data) => {
-      this.zone.run( () => {
-        this.showSbContainer = true;
-      });
-    });
-  }
-
-  ngOnInit() {
-    // fetch the booking ID from the route
-    this.route.params.subscribe( async (params) => {
-      if(params && params.hasOwnProperty('booking_id')) {
-        try {
-          this.booking_id = <number> params['booking_id'];
-          const booking = await this.load( Object.getOwnPropertyNames(new Booking()) );  
-          this.booking = new Booking(
-            booking.id,
-            booking.name,
-            booking.composition_id
-          );
-        }
-        catch(error) {
-          console.warn(error);
-        }
-      }
-    });
-  }
-
-  private async load(fields: any[]) {
-    const result = <Array<any>> await this.api.read("lodging\\sale\\booking\\Booking", [this.booking_id], fields);
-    if(result && result.length) {
-      return result[0];
+        this.active = true;
+        this.loading = false;
     }
-    return {};
-  }
+
+    ngOnInit() {
+        console.log('BookingCompositionComponent::ngOnInit');
+
+        // fetch the booking ID from the route
+        this.route.params.subscribe( async (params) => {
+            this.booking_id = parseInt(params['booking_id'], 10);
+        });
+    }
+
+    private async load(fields: any[]) {
+        const result = <Array<any>> await this.api.read("lodging\\sale\\booking\\Booking", [this.booking_id], fields);
+        if(result && result.length) {
+            const booking = <Booking> result[0];
+            this.booking = new Booking(
+                booking.id,
+                booking.name,
+                booking.composition_id
+            );
+        }
+    }
 
   /**
    * Request a new eQ context for selecting a payer, and relay change to self::payerChange(), if an object was created
@@ -122,7 +108,7 @@ export class BookingCompositionComponent implements OnInit, AfterContentInit {
     };
 
     // will trigger #sb-composition-container.on('_open')
-    this.context.change(descriptor);
+    // this.context.change(descriptor);
   }
   
   public onGenerate() {
@@ -135,12 +121,7 @@ export class BookingCompositionComponent implements OnInit, AfterContentInit {
       if(result) {
         const data:any = await this.api.fetch('?do=lodging_composition_generate&booking_id='+this.booking_id);
         // reload
-        const booking = await this.load( Object.getOwnPropertyNames(new Booking()) );  
-        this.booking = new Booking(
-          booking.id,
-          booking.name,
-          booking.composition_id
-        );
+        this.load(Object.getOwnPropertyNames(new Booking()));
       }
       else {
         console.log('answer is no');
@@ -167,12 +148,7 @@ export class BookingCompositionComponent implements OnInit, AfterContentInit {
         });
 
         // reload
-        const booking = await this.load( Object.getOwnPropertyNames(new Booking()) );  
-        this.booking = new Booking(
-          booking.id,
-          booking.name,
-          booking.composition_id
-        );
+        this.load(Object.getOwnPropertyNames(new Booking()));
 
       }
       catch (err) {

@@ -31,7 +31,9 @@
             line-height: 70px;
             font-size: 20px;
             font-weight: 400;
-
+            white-space: nowrap;
+            text-overflow: ellipsis;
+            overflow: hidden;
         }
 
         .date-selector {
@@ -105,7 +107,7 @@
         .rental-unit-details {
             display: flex;
             height: 100%;
-            flex: 1 1 25%;
+            flex: 1 1 15%;
 
             span {
                 min-width: 20%;
@@ -118,14 +120,18 @@
         .consumption-details{
             display: flex;
             height: 100%;
-            flex: 1 0 50%;
+            flex: 1 0 60%;
             width: 100%;
             overflow: hidden;
             white-space: nowrap;
             text-overflow: ellipsis;            
-            text-align: center;
 
             span {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-around;
+                width: 100%;
                 text-align: center;
                 border-bottom: solid 1px var(--mdc-theme-secondary);
                 font-weight: 500;
@@ -136,9 +142,7 @@
         .date-details {
             height: 100%;
             display: flex;
-            margin-left: auto;
-
-            flex: 1 1 25%;
+            flex: 1 0 25%;
 
             span {
                 min-width: 15%;

@@ -15,11 +15,19 @@
                 </th>
             </tr>
             <tr class="head">
-                <th #calTableHeadCells class="head-days" *ngFor="let day of headers.days" [class.small]="cells_width <= 26" [class.hidden]="cells_width < 10" [ngClass]="getHolidayClasses(day)">
-                    <div *ngIf="cells_width > 26" class="week-day">{{ day | date: 'EEE'}}</div>
-                    <div *ngIf="cells_width <= 26" class="week-day">{{ day | date: 'EEEEE'}}</div>
-                    <div class="month-day">{{ day | date: 'd'}}</div>
-                </th>
+                <ng-container *ngFor="let day of headers.days" >
+                    <th #calTableHeadCells
+                        (mouseenter)="onhoverDate(day)" 
+                        (mouseleave)="onhoverDate(null)" 
+                        class="head-days" 
+                        [class.small]="cells_width <= 26" 
+                        [class.hidden]="cells_width < 10" 
+                        [ngClass]="getHolidayClasses(day)">
+                            <div *ngIf="cells_width > 26" class="week-day">{{ day | date: 'EEE'}}</div>
+                            <div *ngIf="cells_width <= 26" class="week-day">{{ day | date: 'EEEEE'}}</div>
+                            <div class="month-day">{{ day | date: 'd'}}</div>
+                    </th>
+                </ng-container>
             </tr>
         </thead>
         <tbody>

@@ -127,6 +127,7 @@ export class AppRootComponent implements OnInit {
 
 
     public onUpdateSideMenu(show: boolean) {
+        console.log('AppRootComponent::onUpdateSideMenu', show);
         this.show_side_menu = show;
     }
 

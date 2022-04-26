@@ -15,28 +15,6 @@ interface DateRange {
   to: Date
 }
 
-class RentalUnitClass {
-  constructor(
-    public id: number = 0,
-    public name: string = '',
-    public code: string = '',
-    public capacity: number = 0,
-  ) {}
-}
-
-
-class ConsumptionClass {
-  constructor(
-    public id:number = 0,
-    public booking_id = 0,
-    public booking_line_id = 0,
-    public rental_unit_id = 0,
-    public date: Date = new Date(),
-    public schedule_from: string = '',
-    public schedule_to: string = ''
-  ) {}
-}
-
 @Component({
     selector: 'planning',
     templateUrl: './planning.component.html',

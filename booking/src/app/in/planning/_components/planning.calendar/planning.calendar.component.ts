@@ -33,7 +33,7 @@ class ConsumptionClass {
 export class PlanningCalendarComponent implements OnInit, AfterViewInit, AfterViewChecked {
     @Output() filters = new EventEmitter<ChangeReservationArg>();
     @Output() showBooking = new EventEmitter();
-    
+
     // attach DOM element to compute the cells width
     @ViewChild('calTable') calTable: any;
     @ViewChild('calTableRefColumn') calTableRefColumn: any;
@@ -72,16 +72,16 @@ export class PlanningCalendarComponent implements OnInit, AfterViewInit, AfterVi
     }
 
     async ngOnInit() {
+
         this.params.getObservable().subscribe( () => {
             console.log('PlanningCalendarComponent cal params change', this.params);
             this.loading = true;
             this.cd.detectChanges();
             // refresh the view, then run onchange
-            setTimeout( async () => { 
+            setTimeout( async () => {
                 await this.onFiltersChange();
                 this.cd.reattach();
                 this.loading = false;
-
                 this.cd.detectChanges();
             });
         });
@@ -211,11 +211,13 @@ export class PlanningCalendarComponent implements OnInit, AfterViewInit, AfterVi
         }
 
         try {
+
             this.consumptions = await this.api.fetch('/?get=lodging_booking_consumptions', {
                 date_from: this.params.date_from.toISOString(),
                 date_to: this.params.date_to.toISOString(),
                 centers_ids: JSON.stringify(this.params.centers_ids)
             });
+
         }
         catch(response) {
             console.warn('unable to fetch rental units');
@@ -281,19 +283,32 @@ export class PlanningCalendarComponent implements OnInit, AfterViewInit, AfterVi
     }
 
 
-    public onhoverBooking(event:any) {
+    public onhoverBooking(consumption:any) {
         // relay hovered consumption to navbar
-        this.hovered_consumption = event;
-        if(event) {
-            this.hovered_rental_unit = this.rental_units.find( (o:any) => o.id == event.rental_unit_id.id );
-
-            let date_index:string = event['date'].substring(0, 10);
-            console.log(date_index, this.holidays);
+        this.hovered_consumption = consumption;
+        console.log('hover consumption', consumption);
+        if(consumption) {
+            this.hovered_rental_unit = this.rental_units.find( (o:any) => o.id == consumption.rental_unit_id.id );
+            let date_index:string = consumption['date'].substring(0, 10);
             if(this.holidays.hasOwnProperty(date_index) && this.holidays[date_index].length) {
                 this.hovered_holidays = this.holidays[date_index];
-                console.log(this.hovered_holidays);
-            }            
+            }
         }
+        else {
+            this.hovered_holidays = undefined;
+            this.hovered_rental_unit = undefined;            
+        }
+    }
+
+    public onhoverDate(day:Date) {
+        let result;
+        if(day) {
+            let date_index:string = day.toISOString().substring(0, 10);
+            if(this.holidays.hasOwnProperty(date_index) && this.holidays[date_index].length) {
+                result = this.holidays[date_index];
+            }
+        }
+        this.hovered_holidays = result;
     }
 
     public onSelectedBooking(event: any) {

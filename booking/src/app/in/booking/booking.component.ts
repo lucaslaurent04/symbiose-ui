@@ -1,5 +1,6 @@
-import { Component, OnInit, AfterViewInit, ChangeDetectorRef, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ChangeDetectorRef, ViewChild, ElementRef, HostListener, OnDestroy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
+import { delay } from 'rxjs/operators';
 import { ContextService } from 'sb-shared-lib';
 
 
@@ -8,17 +9,24 @@ import { ContextService } from 'sb-shared-lib';
   templateUrl: 'booking.component.html',
   styleUrls: ['booking.component.scss']
 })
-export class BookingComponent implements OnInit, AfterViewInit {
+export class BookingComponent implements OnInit, AfterViewInit, OnDestroy {
     // @ViewChild('sbContainer') sbContainer: ElementRef;
+    @HostListener('unloaded')
+    ngOnDestroy() {
+        console.log('BookingComponent::ngOnDestroy');
+        this.active = false;
+    }
 
     public ready: boolean = false;
+
+    // flag telling if the route to which the component is associated with is currently active (amongst routes defined in first parent routing module)
+    private active:boolean = false;
 
     private default_descriptor: any = {
         route: '/booking/object.id',
         context: {
             entity: 'lodging\\sale\\booking\\Booking',
-            view:   'form.default',
-            reset: true
+            view:   'form.default'
         }
     };
 
@@ -32,33 +40,33 @@ export class BookingComponent implements OnInit, AfterViewInit {
 
 
     public ngAfterViewInit() {
+        console.log('BookingComponent::ngAfterViewInit');
 
-        this.route.params.subscribe( async (params) => {
-            console.log('BookingComponent : received routeParams change', params);
+        this.context.setTarget('#sb-container-booking');
 
-            this.context.setTarget('#sb-container-booking');
+        const descriptor = this.context.getDescriptor();
+        if(!Object.keys(descriptor.context).length) {
+            this.default_descriptor.context.domain = ["id", "=", this.booking_id];
+            this.context.change(this.default_descriptor);
+        }
 
-            if(params && params.hasOwnProperty('booking_id')) {
-                const booking_id:number = <number> params['booking_id'];
-                if(isNaN(booking_id)) {
-                    return;
-                }
-                this.booking_id = booking_id;
-                const descriptor = this.context.getDescriptor();
-                if(!Object.keys(descriptor.context).length) {
-                    this.default_descriptor.route = '/booking/'+this.booking_id;
-                    this.default_descriptor.context.domain = ["id", "=", this.booking_id];
-                    this.context.change(this.default_descriptor);
-                }
-            }
-        });
+        this.active = true;
     }
 
     public ngOnInit() {
-        console.log('BookingComponent init');
+        console.log('BookingComponent::ngOnInit');
 
-        this.context.ready.subscribe( (is_ready:boolean) => {
-            this.ready = is_ready;
+        this.context.ready.subscribe( (ready:boolean) => {
+            this.ready = ready;
+        });
+
+
+        /*
+            subscribe only once.
+            routing module is AppRoutingModule, siblings are /planning and /bookings
+        */
+        this.route.params.subscribe( async (params) => {            
+            this.booking_id = parseInt(params['booking_id'], 10);
         });
     }
 

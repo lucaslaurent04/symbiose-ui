@@ -25,8 +25,8 @@ export class EqualUIService {
         await this.eq.popup(context, domContainerSelector);
     }
 
-    public closeAll() {
-        this.eq.closeAll();
+    public async closeAll() {
+        await this.eq.closeAll();
     }
 
     public addSubscriber(events: string[], callback: (context:any) => void) {

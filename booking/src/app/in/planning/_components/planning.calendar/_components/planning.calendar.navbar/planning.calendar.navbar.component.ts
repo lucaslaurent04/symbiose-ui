@@ -158,4 +158,8 @@ export class PlanningCalendarNavbarComponent implements OnInit, AfterViewInit, A
     }
 
 
+    public calcHolidays() {
+        return this.holidays.map( (a:any) => a.name ).join(', ');
+    }
+
 }

@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@angular/core';
 
-import { Observable, ReplaySubject } from 'rxjs';
+import { ReplaySubject } from 'rxjs';
 import * as $ from 'jquery';
 import { DOCUMENT } from '@angular/common';
 
@@ -34,8 +34,8 @@ export class ContextService {
 
 
     /**
-     * Provide observable for subrinbing on future updates.
-     * New subscribers will receive latest value set (history depth of 1).
+     * Provide observable for subsribing on contexts updates.
+     * #memo - New subscribers will receive latest value set (history depth of 1).
      */
     public getObservable() {
         return this.observable;
@@ -67,8 +67,6 @@ export class ContextService {
 
         this.eq.addSubscriber(['open', 'close'], (context:any) => {
             console.log('ContextService : eQ open/close', context);
-//            this.context = {...context};
-//            this.observable.next(this.getDescriptor());
             this.change({context: {...context}, context_only: true});
         });
 
@@ -83,7 +81,7 @@ export class ContextService {
                 console.log('ContextService : route change', event);
                 this.route = event.url;
                 this.observable.next(this.getDescriptor());
-                // if no controller has requested a change within 500ms, change to current context
+                // if no controller requests a change within 500ms, change to current context
                 this.timeout = setTimeout( () => {
                     this.timeout = undefined;
                     this.change({context: this.context});
@@ -107,7 +105,7 @@ export class ContextService {
             clearTimeout(this.timeout);
         }
 
-        // notify subscribers
+        // notify subscribers that we're loading something
         this.ready.next(false);
 
         /* 
@@ -122,7 +120,7 @@ export class ContextService {
         if(descriptor.hasOwnProperty('route') && descriptor.route != this.route) {
             console.log("ContextService: received route change request", descriptor, this);
             // make sure no eQ context is left open
-            this.eq.closeAll();
+            await this.eq.closeAll();
             // changing route resets the context
             if(!descriptor.hasOwnProperty('context')) {
                 this.context = {};
@@ -134,11 +132,17 @@ export class ContextService {
             pass-2 switch context, if requested
             context might depend on route change (controllers can request a change of target after being instanciated)
         */
+        // else if(descriptor.hasOwnProperty('context') && Object.keys(descriptor.context).length) {
         else if(descriptor.hasOwnProperty('context')) {
-            // inject current target (might have been updated by controllers)
-            let context = {...descriptor.context};
+            console.log("ContextService: processing received context", descriptor);            
+            // ignore route, if present
+            let context:any = {...descriptor.context};
+            // inject current target (might have been updated by distinct controllers)
             context.target = this.target;
-
+            let context_silent = false;
+            if(descriptor.hasOwnProperty('context_silent')) {
+                context_silent = descriptor.context_silent;
+            }
             // request eQ to open context
             if(!descriptor.hasOwnProperty('context_only')) {
                 if(context.hasOwnProperty('display_mode') && context.display_mode == 'popup') {
@@ -155,7 +159,7 @@ export class ContextService {
             }
             // notify subscribers
             this.ready.next(true);
-            this.observable.next(this.getDescriptor());
+            this.observable.next({route: this.route, context: context, context_silent: context_silent});
         }
     }
 
