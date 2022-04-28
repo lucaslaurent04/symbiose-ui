@@ -63,10 +63,6 @@
             transform: translateZ(0);
         }
 
-        .ref-column {
-            /* room reference column header*/
-        }
-
         .stat-column {
             /* room status column header*/
             width: 36px;
@@ -191,9 +187,17 @@
     tr.rows td.cell-days {
         position: relative;
 
+        .cell-overlay {
+            position: absolute; 
+            z-index: 2; 
+            top: 0; 
+            left: 0; 
+            height: 100%; 
+            width: 100%;
+        }
         .is-today {
             position: absolute;
-            background: orangered;
+            background: crimson;
             width: 100%;
             height: calc(100% + 4px);
             top: -2px;
@@ -223,6 +227,13 @@
         cursor: default;
         user-select: none;
 
+        &.rental-unit {
+            cursor: pointer;
+        }
+        &.status {
+            color: crimson;
+        }
+
         .cell-hint{
             display: none;
             position: fixed;
@@ -231,8 +242,9 @@
             background-color:white;
             border-style:solid;
             border-width:1px;
-            font-size: 20px;
-            border-color:#3f51b5;
+            font-size: 15px;
+            border-color:grey;
+            box-shadow: 0 3px 5px 0 rgb(0 0 0 / 10%) !important;
             padding: 3px 10px;
             border-radius: 4px;
             color:black;
@@ -250,6 +262,8 @@
             display: block;
         }
     }
+
+
 
     tr.rows {
         height: 35px;

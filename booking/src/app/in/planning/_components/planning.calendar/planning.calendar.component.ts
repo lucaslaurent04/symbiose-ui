@@ -1,8 +1,6 @@
 import { Component, ChangeDetectionStrategy, ChangeDetectorRef, Input, Output, EventEmitter, ViewChild, OnInit, AfterViewInit, ViewChildren, QueryList, ElementRef, AfterViewChecked, HostBinding } from '@angular/core';
 
 import { ChangeReservationArg } from 'src/app/model/changereservationarg';
-import { RentalUnitClass } from 'src/app/model/rental.unit.class';
-import { BookingDayClass } from 'src/app/model/booking.class';
 import { HeaderDays } from 'src/app/model/headerdays';
 
 
@@ -10,18 +8,15 @@ import { ApiService, AuthService } from 'sb-shared-lib';
 import {CalendarParamService} from '../../_services/calendar.param.service';
 
 
-class ConsumptionClass {
-  constructor(
-    public id:number = 0,
-    public booking_id = 0,
-    public booking_line_id = 0,
-    public booking_line_group_id = 0,
-    public is_accomodation: Boolean = false,
-    public rental_unit_id = 0,
-    public date: Date = new Date(),
-    public schedule_from: string = '',
-    public schedule_to: string = ''
-  ) {}
+class RentalUnit {
+    constructor(
+        public id: number = 0,
+        public name: string = '',
+        public capacity: number = 0,
+        public code: string = '',
+        public status: string = '',
+        public action_required: string = ''
+    ) {}
 }
 
 @Component({
@@ -33,6 +28,7 @@ class ConsumptionClass {
 export class PlanningCalendarComponent implements OnInit, AfterViewInit, AfterViewChecked {
     @Output() filters = new EventEmitter<ChangeReservationArg>();
     @Output() showBooking = new EventEmitter();
+    @Output() showRentalUnit = new EventEmitter();
 
     // attach DOM element to compute the cells width
     @ViewChild('calTable') calTable: any;
@@ -46,10 +42,6 @@ export class PlanningCalendarComponent implements OnInit, AfterViewInit, AfterVi
     public headerdays: HeaderDays;
 
     public cells_width: number;
-
-    public colors: any[] = [
-        '#ff9633', '#0fc4a7','#0288d1','#9575cd','#C80651'
-    ];
 
     public consumptions: any = [];
     public rental_units: any = [];
@@ -129,12 +121,12 @@ export class PlanningCalendarComponent implements OnInit, AfterViewInit, AfterVi
         return (day.getDate() == today.getDate() && day.getMonth() == today.getMonth() && day.getFullYear() == today.getFullYear());
     }
 
-    public hasConsumption(rentalUnit:RentalUnitClass, day: Date):any {
+    public hasConsumption(rentalUnit:RentalUnit, day: Date):any {
         let date_index:string = day.toISOString().substring(0, 10);
         return (this.consumptions.hasOwnProperty(rentalUnit.id) && this.consumptions[rentalUnit.id].hasOwnProperty(date_index));
     }
 
-    public getConsumption(rentalUnit:RentalUnitClass, day: Date):any {
+    public getConsumption(rentalUnit:RentalUnit, day: Date):any {
         let result = {};
 
         let date_index:string = day.toISOString().substring(0, 10);
@@ -196,14 +188,16 @@ export class PlanningCalendarComponent implements OnInit, AfterViewInit, AfterVi
         }
 
         try {
+            console.log('########################', Object.getOwnPropertyNames(new RentalUnit()));
             const rental_units = await this.api.collect(
                 "lodging\\realestate\\RentalUnit",
                 ["center_id", "in",  this.params.centers_ids],
-                Object.getOwnPropertyNames(new RentalUnitClass()),
-                'id', 'asc', 0, 100
+                Object.getOwnPropertyNames(new RentalUnit()),
+                'name', 'asc', 0, 500
             );
             if(rental_units) {
                 this.rental_units = rental_units;
+                console.log(rental_units);
             }
         }
         catch(response) {
@@ -286,18 +280,6 @@ export class PlanningCalendarComponent implements OnInit, AfterViewInit, AfterVi
     public onhoverBooking(consumption:any) {
         // relay hovered consumption to navbar
         this.hovered_consumption = consumption;
-        console.log('hover consumption', consumption);
-        if(consumption) {
-            this.hovered_rental_unit = this.rental_units.find( (o:any) => o.id == consumption.rental_unit_id.id );
-            let date_index:string = consumption['date'].substring(0, 10);
-            if(this.holidays.hasOwnProperty(date_index) && this.holidays[date_index].length) {
-                this.hovered_holidays = this.holidays[date_index];
-            }
-        }
-        else {
-            this.hovered_holidays = undefined;
-            this.hovered_rental_unit = undefined;            
-        }
     }
 
     public onhoverDate(day:Date) {
@@ -314,4 +296,27 @@ export class PlanningCalendarComponent implements OnInit, AfterViewInit, AfterVi
     public onSelectedBooking(event: any) {
         this.showBooking.emit(event);
     }
+
+    public onSelectedRentalUnit(rental_unit: any) {
+        this.showRentalUnit.emit(rental_unit);
+    }
+
+    public onhoverDay(rental_unit: any, day:Date) {
+        this.hovered_rental_unit = rental_unit;
+
+        if(day) {
+            let date_index:string = day.toISOString().substring(0, 10);
+            if(this.holidays.hasOwnProperty(date_index) && this.holidays[date_index].length) {
+                this.hovered_holidays = this.holidays[date_index];
+            }
+        }
+        else {
+            this.hovered_holidays = undefined;
+        }        
+    }
+
+    public onhoverRentalUnit(rental_unit: any) {
+        this.hovered_rental_unit = rental_unit;
+    }
+
 }

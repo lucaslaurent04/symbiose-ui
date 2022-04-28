@@ -8,15 +8,11 @@ const millisecondsPerDay:number = 24 * 60 * 60 * 1000;
   styleUrls: ['./planning.calendar.booking.component.scss']
 })
 export class PlanningCalendarBookingComponent implements OnInit, OnChanges  {
-    @Input()  color: string;
     @Input()  day: Date;
     @Input()  consumption: any;
-    @Input()  sojourns: any[];
     @Input()  width: number;
     @Output() hover = new EventEmitter<any>();
-    @Output() selected = new EventEmitter<any>();    
-
-    public has_consumption = false;
+    @Output() selected = new EventEmitter<any>();
 
     constructor(
         private elementRef: ElementRef
@@ -42,13 +38,6 @@ export class PlanningCalendarBookingComponent implements OnInit, OnChanges  {
 
         const unit = this.width/(24*3600);
 
-        if(!this.consumption || !Object.keys(this.consumption).length) {
-            this.has_consumption = false;
-            return;    
-        }
-
-        this.has_consumption = true;
-
         let date = new Date(this.consumption.date);
         // offset since the start of the current day
         let offset:number = 0;
@@ -61,7 +50,7 @@ export class PlanningCalendarBookingComponent implements OnInit, OnChanges  {
 
             let date_from = new Date(this.consumption.date_from.substring(0, 10));
             let date_to = new Date(this.consumption.date_to.substring(0, 10));
-            
+
             let days = Math.abs(date_to.getTime() - date_from.getTime()) / millisecondsPerDay;
 
             offset  = unit * time_from;
@@ -84,6 +73,30 @@ export class PlanningCalendarBookingComponent implements OnInit, OnChanges  {
 
     public onLeaveConsumption(consumption:any) {
         this.hover.emit();
+    }
+
+    public getColor() {
+        const colors: any = {
+            yellow: '#ff9633',
+            turquoise: '#0fc4a7',
+            green: '#0FA200',
+            blue: '#0288d1',
+            violet: '#9575cd',
+            red: '#C80651'
+        };
+
+        if(this.consumption.type == 'ooo') {
+            return colors['red'];
+        }
+        if(this.consumption.booking_id?.status == 'option') {
+            return colors['blue'];
+        }
+        else {
+            if(this.consumption.booking_id?.payment_status == 'paid') {
+                return colors['green'];
+            }
+            return colors['yellow'];
+        }
     }
 
 }

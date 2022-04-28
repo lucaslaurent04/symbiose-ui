@@ -40,7 +40,7 @@ export class BookingsComponent implements OnInit, AfterViewInit, OnDestroy {
     public ngAfterViewInit() {
         console.log('BookingsComponent::ngAfterViewInit');
 
-        this.context.setTarget('#sb-container');                
+        this.context.setTarget('#sb-container');
         const descriptor = this.context.getDescriptor();
         if(!Object.keys(descriptor.context).length) {
             console.log('BookingComponent : requesting change', this.default_descriptor);

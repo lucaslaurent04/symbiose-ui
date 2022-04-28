@@ -7,7 +7,7 @@
 } 
 
 :host {
-
+ 
     .reservedBox {
         position: relative;
         height: 35px;
@@ -42,6 +42,10 @@
         cursor: pointer;
         padding: 0 2px;
         border-radius: 5px;
+
+        &.part {
+            opacity: 0.5;
+        }
 
         div {
             text-align: left;

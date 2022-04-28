@@ -39,8 +39,10 @@ export class BookingEditBookingsGroupAccomodationLineComponent implements OnInit
 
   // read-only parent group
   @Input() groupInput: any;
+  @Input() productInput: any;
+
   // read-only parent booking
-  @Input() bookingInput: any;
+  @Input() bookingInput: Observable<any>;
 
   @Input() assignmentOutput: ReplaySubject<any>;
   @Input() assignmentInput:  ReplaySubject<any>;
@@ -196,32 +198,31 @@ export class BookingEditBookingsGroupAccomodationLineComponent implements OnInit
     
   }
 
-  private async filterRentalUnits(name: string) {
-    let filtered:any[] = [];
+    private async filterRentalUnits(name: string) {
+        let filtered:any[] = [];
 
-    try {
+        try {
+            const data:any = await this.api.fetch('/?get=lodging_booking_rentalunits', {
+                query: name,
+                center_id: this.booking.center_id,
+                date_from: (new Date(this.groupInput.date_from)).toISOString(),
+                date_to: (new Date(this.groupInput.date_to).toISOString()),
+                product_id: this.productInput.id
+            });
 
-      let domain = [
-        ["name", "ilike", '%'+name+'%']
-      ];
+            filtered = data;
 
-      if(this.booking && this.booking.hasOwnProperty('center_id')) {
-        domain.push(["center_id", "=", this.booking.center_id]);
-      }
+            if(filtered.length == 1) {
+                // single result : wait for list update, then auto select 
+                setTimeout( () => this.rentalUnitAutocomplete.options.first.select(), 100);
+            }
 
-      let data:any[] = await this.api.collect("lodging\\realestate\\RentalUnit", domain, ["id", "name", "capacity"], 'name', 'asc', 0, 25);
-      filtered = data;
-
-      if(filtered.length == 1) {
-        // single result : wait for list update and auto select 
-        setTimeout( () => this.rentalUnitAutocomplete.options.first.select(), 100);
-      }
-    }
-    catch(response) {
-      console.log(response);
-    }
-    return filtered;
-  }  
+        }
+        catch(response) {
+            console.log(response);
+        }
+        return filtered;
+    }  
 
 
   public remove() {

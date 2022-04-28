@@ -1,4 +1,4 @@
-import { Component, AfterContentInit, OnInit, NgZone, Inject, ViewChild, ElementRef } from '@angular/core';
+import { Component, AfterContentInit, OnInit, NgZone, Inject, ViewChild, ElementRef, HostListener, OnDestroy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 
@@ -25,13 +25,19 @@ class Booking {
   templateUrl: 'composition.component.html',
   styleUrls: ['composition.component.scss']
 })
-export class BookingCompositionComponent implements OnInit, AfterContentInit {
+export class BookingCompositionComponent implements OnInit, AfterContentInit, OnDestroy {
+    @HostListener('unloaded')
+    ngOnDestroy() {
+        console.log('BookingsComponent::ngOnDestroy');
+        this.active = false;
+    }
+    @ViewChild('fileUpload') file_upload: ElementRef;
 
-  @ViewChild('fileUpload') file_upload: ElementRef;
-  
     public showSbContainer: boolean = false;
     public selectedTabIndex:number = 0;
-    public loading = true;
+
+    public ready: boolean = false;
+    public loading: boolean = false;
 
     public booking_id: number;
     public booking: any = new Booking();
@@ -42,7 +48,7 @@ export class BookingCompositionComponent implements OnInit, AfterContentInit {
 
     constructor(
         private dialog: MatDialog,
-        private api: ApiService, 
+        private api: ApiService,
         private route: ActivatedRoute,
         private context:ContextService,
         private snack: MatSnackBar,
@@ -54,19 +60,39 @@ export class BookingCompositionComponent implements OnInit, AfterContentInit {
    */
     public ngAfterContentInit() {
         console.log('BookingCompositionComponent::ngAfterViewInit');
-        
-        this.load( Object.getOwnPropertyNames(new Booking()) );  
+
+        this.load( Object.getOwnPropertyNames(new Booking()) );
 
         this.active = true;
-        this.loading = false;
     }
 
-    ngOnInit() {
+    public ngAfterViewInit() {
+        console.log('BookingsComponent::ngAfterViewInit');
+
+        this.context.setTarget('#sb-composition-container');
+    }
+
+    public ngOnInit() {
         console.log('BookingCompositionComponent::ngOnInit');
 
         // fetch the booking ID from the route
         this.route.params.subscribe( async (params) => {
-            this.booking_id = parseInt(params['booking_id'], 10);
+            this.booking_id = <number> params['booking_id'];
+
+            // relay change to context (to display sidemenu panes according to current object)
+            this.context.change({
+                context_only: true,   // do not change the view
+                context: {
+                    entity: 'lodging\\sale\\booking\\Booking',
+                    type: 'form',
+                    purpose: 'view',
+                    domain: ['id', '=', this.booking_id]
+                }
+            });
+        });
+
+        this.context.ready.subscribe( (ready:boolean) => {
+            this.ready = ready;
         });
     }
 
@@ -82,122 +108,139 @@ export class BookingCompositionComponent implements OnInit, AfterContentInit {
         }
     }
 
-  /**
-   * Request a new eQ context for selecting a payer, and relay change to self::payerChange(), if an object was created
-   * #sb-booking-container is defined in booking.edit.component.html
-   */
-  public viewFullList() {
-    // 
-    this.selectedTabIndex = 1;
+    /**
+     * Request a new eQ context for selecting a payer, and relay change to self::payerChange(), if an object was created
+     * #sb-composition-container is defined in .component.html file
+     */
+    public viewFullList() {
 
-    let descriptor = {
-      context: {
-        entity:     'sale\\booking\\CompositionItem',
-        type:       'list',
-        name:       'default',
-        domain:     ['composition_id', '=', this.booking.composition_id],
-        mode:       'view',
-        purpose:    'view',
-        target:     '#sb-composition-container',
-        callback:   (data:any) => {
-          if(data && data.objects && data.objects.length) {
-            // received data
-          }
-        }
-      }
-    };
+        this.selectedTabIndex = 1;
+        this.showSbContainer = true;
 
-    // will trigger #sb-composition-container.on('_open')
-    // this.context.change(descriptor);
-  }
-  
-  public onGenerate() {
-    const dialogRef = this.dialog.open(BookingCompositionDialogConfirm, {
-      width: '50vw',
-      data: {booking: this.booking}
-    });
+        setTimeout( () => {
+            let descriptor = {
+                context: {
+                    entity:     'sale\\booking\\CompositionItem',
+                    type:       'list',
+                    name:       'default',
+                    domain:     ['composition_id', '=', this.booking.composition_id],
+                    close_button: true,
+                    callback:   (data:any) => {
+                        this.selectedTabIndex = 0;
+                        this.showSbContainer = false;
+                        setTimeout( () => {
+                            // re-load booking context (to display sidemenu panes according to current object)
+                            this.context.change({
+                                context_only: true,   // do not change the view
+                                context: {
+                                    entity: 'lodging\\sale\\booking\\Booking',
+                                    type: 'form',
+                                    purpose: 'view',
+                                    domain: ['id', '=', this.booking_id]
+                                }
+                            });
 
-    dialogRef.afterClosed().subscribe( async (result) => {
-      if(result) {
-        const data:any = await this.api.fetch('?do=lodging_composition_generate&booking_id='+this.booking_id);
-        // reload
-        this.load(Object.getOwnPropertyNames(new Booking()));
-      }
-      else {
-        console.log('answer is no');
-      }
-    });
-  }
+                        })
+                    }
+                }
+            };
 
-
-  public async onFileSelected(event:any) {
-    console.log('BookingCompositionComponent::onFileSelected', event);
-    const file:File = event.target.files[0];
-
-    if(file) {
-
-      const data:any = await this.readFile(file);
-
-      try {
-
-        const response:any = await this.api.call('?do=lodging_composition_import', {
-            name: file.name,
-            type: file.type,
-            data: data,
-            booking_id: this.booking_id 
+            this.context.change(descriptor);
         });
-
-        // reload
-        this.load(Object.getOwnPropertyNames(new Booking()));
-
-      }
-      catch (err) {
-          this.snack.open("Format non reconnu", "Erreur");
-          console.log(err);
-      }
-
     }
 
-    // reset input 
-    this.file_upload.nativeElement.value = "";
-  }
+    public onGenerate() {
+        const dialogRef = this.dialog.open(BookingCompositionDialogConfirm, {
+            width: '50vw',
+            data: {booking: this.booking}
+        });
+
+        dialogRef.afterClosed().subscribe( async (result) => {
+            if(result) {
+                const data:any = await this.api.fetch('?do=lodging_composition_generate&booking_id='+this.booking_id);
+                // reload
+                await this.load(Object.getOwnPropertyNames(new Booking()));
+                this.loading = false;
+            }
+            else {
+                console.log('answer is no');
+            }
+        });
+    }
 
 
-  private readFile(file: any) {
-    return new Promise((resolve, reject) => {
-        var reader = new FileReader();
-        let blob = new Blob([file], { type: file.type });
-        reader.onload = () => {
-          resolve(reader.result);
+    public async onFileSelected(event:any) {
+        console.log('BookingCompositionComponent::onFileSelected', event);
+        const file:File = event.target.files[0];
+
+        if(file) {
+
+            const data:any = await this.readFile(file);
+
+            try {
+
+                const response:any = await this.api.call('?do=lodging_composition_import', {
+                    name: file.name,
+                    type: file.type,
+                    data: data,
+                    booking_id: this.booking_id
+                });
+
+                this.loading = true;
+                setTimeout( async () => {
+                    // reload
+                    await this.load(Object.getOwnPropertyNames(new Booking()));
+                    this.loading = false;
+                })
+
+            }
+            catch (err) {
+                this.snack.open("Format non reconnu", "Erreur");
+                console.log(err);
+            }
+
         }
-        reader.onerror = reject;
-        reader.readAsDataURL(blob);
-    });
-  }
+
+        // reset input
+        this.file_upload.nativeElement.value = "";
+    }
+
+
+    private readFile(file: any) {
+        return new Promise((resolve, reject) => {
+            var reader = new FileReader();
+            let blob = new Blob([file], { type: file.type });
+            reader.onload = () => {
+                resolve(reader.result);
+            }
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+        });
+    }
 
 }
 
 
 @Component({
-  selector: 'dialog-booking-composition-generate-confirm-dialog',
-  template: `
-  <h1 mat-dialog-title>Générer la composition</h1>
+    selector: 'dialog-booking-composition-generate-confirm-dialog',
+    template: `
+    <h1 mat-dialog-title>Générer la composition</h1>
 
-  <div mat-dialog-content>
+    <div mat-dialog-content>
     <p>Cet assistant générera une composition sur base de la réservation <b>{{data.booking.name}}</b>.</p>
     <p>Les détails de la composition existante seront remplacés et les éventuels changements effectués seront perdus.</p>
     <p><b>Confirmez-vous la (re)génération ?</b></p>
-  </div>
+    </div>
 
-  <div mat-dialog-actions>
+    <div mat-dialog-actions>
     <button mat-button [mat-dialog-close]="false">Annuler</button>
     <button mat-button [mat-dialog-close]="true" cdkFocusInitial>Créer</button>
-  </div>
-  `
+    </div>
+    `
 })
 export class BookingCompositionDialogConfirm {
-  constructor(
-    public dialogRef: MatDialogRef<BookingCompositionDialogConfirm>,
-    @Inject(MAT_DIALOG_DATA) public data: BookingCompositionDialogConfirmData
-  ) {}
-}  
+    constructor(
+        public dialogRef: MatDialogRef<BookingCompositionDialogConfirm>,
+        @Inject(MAT_DIALOG_DATA) public data: BookingCompositionDialogConfirmData
+    ) {}
+}

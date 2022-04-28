@@ -46,7 +46,7 @@ class Organisation {
     public id: number = 0,
     public name: string = '',
     public email: string = '',
-    public signature: string = ''    
+    public signature: string = ''
   ) {}
 }
 
@@ -153,149 +153,148 @@ export class BookingContractComponent implements OnInit, AfterContentInit {
   public ngAfterContentInit() {
     this.loading = false;
 
-    this.vm.title.formControl.setValue(this.vm.title.value);    
+    this.vm.title.formControl.setValue(this.vm.title.value);
     this.vm.message.formControl.setValue(this.vm.message.value);
 
   }
 
-  ngOnInit() {
+    ngOnInit() {
 
-    /*
-    There is always max. one valid contract
-    */
-   
-    this.auth.getObservable().subscribe( async (user: UserClass) => {
-      this.user = user;
-      this.refreshSenderAddresses();
-    });
+        /*
+        There is always max. one valid contract
+        */
 
-    // fetch the booking ID from the route
-    this.route.params.subscribe( async (params) => {
-      if(params && params.hasOwnProperty('booking_id')) {
-        try {
-          this.booking_id = <number> params['booking_id'];
-          const result = await this.loadBooking();
+        this.auth.getObservable().subscribe( async (user: UserClass) => {
+            this.user = user;
+            this.refreshSenderAddresses();
+        });
 
-          let booking:any = new Booking();
-          for(let field of Object.getOwnPropertyNames(booking) ) {
-            if(result.hasOwnProperty(field)) {
-              booking[field] = result[field];
-            }
-          }
-          this.booking = <Booking> booking;
+        // fetch the booking ID from the route
+        this.route.params.subscribe( async (params) => {
+        if(params && params.hasOwnProperty('booking_id')) {
+            try {
+                this.booking_id = <number> params['booking_id'];
+                const result = await this.loadBooking();
 
-          if(this.booking.contracts_ids && this.booking.contracts_ids.length) {
-            this.contract_id = this.booking.contracts_ids.shift();
-          }
-
-          // relay change to context (to display sidemenu panes according to current object)
-          this.context.change({
-            context_only: true,   // do not change the view
-            context: {
-              entity: 'lodging\\sale\\booking\\Booking',
-              type: 'form',
-              purpose: 'view',
-              domain: ['id', '=', this.booking_id]              
-            }
-          });
-
-        }
-        catch(error) {
-          console.warn(error);
-        }
-
-        if(this.booking.customer_id) {
-          try {
-
-            const result = await this.loadCustomer();
-
-            let customer:any = new Customer();
-            for(let field of Object.getOwnPropertyNames(customer) ) {
-              if(result.hasOwnProperty(field)) {
-                customer[field] = result[field];
-              }
-            }
-            this.customer = <Customer> customer;
-            this.refreshRecipientAddresses();
-          }
-          catch(error) {
-            console.warn(error);
-          }
-        }
-
-
-        if(this.booking.contacts_ids && this.booking.contacts_ids.length) {
-          try {
-            const result = <Array<any>> await this.loadContacts();
-
-            if(result && result.length) {
-              // reset current list
-              this.contacts = [];
-              for(let item of result) {
-                let contact:any = new Contact();
-                for(let field of Object.getOwnPropertyNames(contact) ) {
-                  if(contact.hasOwnProperty(field)) {
-                    contact[field] = item[field];
-                  }
+                let booking:any = new Booking();
+                for(let field of Object.getOwnPropertyNames(booking) ) {
+                    if(result.hasOwnProperty(field)) {
+                        booking[field] = result[field];
+                    }
                 }
-                this.contacts.push(contact);
-              }
+                this.booking = <Booking> booking;
+
+                if(this.booking.contracts_ids && this.booking.contracts_ids.length) {
+                    this.contract_id = this.booking.contracts_ids.shift();
+                }
+
+                // relay change to context (to display sidemenu panes according to current object)
+                this.context.change({
+                    context_only: true,   // do not change the view
+                    context: {
+                        entity: 'lodging\\sale\\booking\\Booking',
+                        type: 'form',
+                        purpose: 'view',
+                        domain: ['id', '=', this.booking_id]
+                    }
+                });
             }
-            this.refreshRecipientAddresses();
-          }
-          catch(error) {
-            console.warn(error);
-          }
-        }
-        if(this.booking.center_id) {
-          try {
-
-            const result = await this.loadCenter();
-
-            let center:any = new Center();
-            for(let field of Object.getOwnPropertyNames(center) ) {
-              if(result.hasOwnProperty(field)) {
-                center[field] = result[field];
-              }
+            catch(error) {
+                console.warn(error);
             }
-            this.center = <Center> center;
-            this.refreshSenderAddresses();
 
-            this.fetchTemplates();
-          }
-          catch(error) {
-            console.warn(error);
-          }
-        }
+            if(this.booking.customer_id) {
+                try {
 
-        if(this.center.organisation_id) {
-          try {
-            const result = await this.loadOrganisation();
+                    const result = await this.loadCustomer();
 
-            let organisation:any = new Organisation();
-            for(let field of Object.getOwnPropertyNames(organisation) ) {
-              if(result.hasOwnProperty(field)) {
-                organisation[field] = result[field];
-              }
+                    let customer:any = new Customer();
+                    for(let field of Object.getOwnPropertyNames(customer) ) {
+                        if(result.hasOwnProperty(field)) {
+                            customer[field] = result[field];
+                        }
+                    }
+                    this.customer = <Customer> customer;
+                    this.refreshRecipientAddresses();
+                }
+                catch(error) {
+                    console.warn(error);
+                }
             }
-            this.organisation = <Organisation> organisation;
-            this.refreshSenderAddresses();
-          }
-          catch(error) {
-            console.warn(error);
-          }
+
+
+            if(this.booking.contacts_ids && this.booking.contacts_ids.length) {
+                try {
+                    const result = <Array<any>> await this.loadContacts();
+
+                    if(result && result.length) {
+                        // reset current list
+                        this.contacts = [];
+                        for(let item of result) {
+                            let contact:any = new Contact();
+                            for(let field of Object.getOwnPropertyNames(contact) ) {
+                                if(contact.hasOwnProperty(field)) {
+                                    contact[field] = item[field];
+                                }
+                            }
+                            this.contacts.push(contact);
+                        }
+                    }
+                    this.refreshRecipientAddresses();
+                }
+                catch(error) {
+                    console.warn(error);
+                }
+            }
+            if(this.booking.center_id) {
+                try {
+
+                    const result = await this.loadCenter();
+
+                    let center:any = new Center();
+                    for(let field of Object.getOwnPropertyNames(center) ) {
+                        if(result.hasOwnProperty(field)) {
+                            center[field] = result[field];
+                        }
+                    }
+                    this.center = <Center> center;
+                    this.refreshSenderAddresses();
+
+                    this.fetchTemplates();
+                }
+                catch(error) {
+                    console.warn(error);
+                }
+            }
+
+            if(this.center.organisation_id) {
+                try {
+                    const result = await this.loadOrganisation();
+
+                    let organisation:any = new Organisation();
+                    for(let field of Object.getOwnPropertyNames(organisation) ) {
+                        if(result.hasOwnProperty(field)) {
+                            organisation[field] = result[field];
+                        }
+                    }
+                    this.organisation = <Organisation> organisation;
+                    this.refreshSenderAddresses();
+                }
+                catch(error) {
+                    console.warn(error);
+                }
+            }
+
         }
 
-      }
 
-
-    });
-  }
+        });
+    }
 
 
   /**
-   * fetch template from server for 
-   * 
+   * fetch template from server for
+   *
    * quote.mail.subject, quote.mail.body + organisation signature
    */
    private async fetchTemplates() {
@@ -404,7 +403,7 @@ export class BookingContractComponent implements OnInit, AfterContentInit {
     if(!this.vm.recipient.addresses.length) {
       // for testing
       this.vm.recipient.addresses.push(this.user.login);
-    }    
+    }
 
   }
 
@@ -433,7 +432,7 @@ export class BookingContractComponent implements OnInit, AfterContentInit {
     /*
       Validate values (otherwise mark fields as invalid)
     */
-   
+
 
     let is_error = false;
 
@@ -446,7 +445,7 @@ export class BookingContractComponent implements OnInit, AfterContentInit {
       this.vm.recipient.formControl.markAsTouched();
       is_error = true;
     }
-    
+
     if(this.vm.title.formControl.invalid || this.vm.title.value.length == 0) {
       this.vm.title.formControl.markAsTouched();
       is_error = true;

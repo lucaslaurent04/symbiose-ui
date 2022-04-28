@@ -13,7 +13,7 @@
 
   <div class="part-container" *ngIf="vGroup.rental_units.folded">
     <div class="row">
-      <div class="row-products-title">{{product.name}} [{{vm.assignments.total}}]</div>
+      <div class="row-products-title">{{product.name}} ({{product.id}}) [{{vm.assignments.total}}]</div>
     </div>
   </div>
 
@@ -24,7 +24,7 @@
 
     <div class="row" *ngFor="let assignment of assignments; let index = index;">
       <div class="row-line">
-        <booking-edit-bookings-group-accomodation-line [groupInput]="groupInput" [bookingInput]="bookingInput" [assignmentInput]="_assignmentOutput[index]" [assignmentOutput]="_assignmentInput" ></booking-edit-bookings-group-accomodation-line>
+        <booking-edit-bookings-group-accomodation-line [productInput]="product" [groupInput]="groupInput" [bookingInput]="bookingInput" [assignmentInput]="_assignmentOutput[index]" [assignmentOutput]="_assignmentInput" ></booking-edit-bookings-group-accomodation-line>
       </div>      
       <div class="row-remove"><button mat-icon-button (click)="vm.assignments.remove(assignment)"> <mat-icon>delete</mat-icon></button></div>
     </div>

@@ -1,8 +1,8 @@
 <div class="reservedBox">
 
-    <div class="booking-details" [style.background-color]="color" (click)="onShowBooking(consumption)" (mouseenter) ="onEnterConsumption(consumption)"  (mouseleave) ="onLeaveConsumption(consumption)">
+    <div class="booking-details" [class.part]="consumption.type == 'part'" [style.background-color]="getColor()" (mouseenter)="onEnterConsumption(consumption)"  (mouseleave)="onLeaveConsumption(consumption)">
 
-        <ng-container *ngIf="consumption.type == 'book'">
+        <div *ngIf="consumption.type != 'ooo'" (click)="onShowBooking(consumption)" >
             <div style="display: flex;">
                 <div style="flex: 0 1 20%;">{{consumption.booking_id.name}}</div>
                 <div style="margin-left: auto">
@@ -17,9 +17,9 @@
             <div style="display: flex;">
                 <div style="flex: 0 1 20%;">{{consumption.booking_id?.customer_id?.name}}</div>
             </div>
-        </ng-container>
+        </div>
 
-        <ng-container *ngIf="consumption.type == 'ooo'">
+        <div *ngIf="consumption.type == 'ooo'">
             <div style="display: flex;">
                 <div style="flex: 0 1 20%;">bloqué</div>
                 <div style="margin-left: auto">
@@ -29,9 +29,7 @@
             <div style="display: flex;">
                 <div style="flex: 0 1 20%;">{{consumption.booking_id?.customer_id?.name}}</div>
             </div>
-        </ng-container>
-
-
+        </div>
 
     </div>
 

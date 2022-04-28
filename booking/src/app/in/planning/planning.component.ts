@@ -94,4 +94,30 @@ export class PlanningComponent implements OnInit, AfterViewInit {
         this.context.change(descriptor);
     }
 
+
+    public onShowRentalUnit(rental_unit: any) {
+        let descriptor:any = {
+            context_silent: true, // do not update sidebar            
+            context: {
+                entity: 'lodging\\realestate\\RentalUnit',
+                type: 'form',
+                name: 'default',
+                domain: ['id', '=', rental_unit.id],
+                mode: 'view',
+                purpose: 'view',
+                display_mode: 'popup',
+                callback: (data:any) => {
+                    // restart angular lifecycles
+                    this.cd.reattach();
+                }
+            }
+        };
+
+        if(this.fullscreen) {
+            descriptor.context['dom_container'] = '.planning-body';
+        }
+        // prevent angular lifecycles while a context is open
+        this.cd.detach();
+        this.context.change(descriptor);
+    }
 }
