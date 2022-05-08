@@ -23,7 +23,7 @@ export class BookingComponent implements OnInit, AfterViewInit, OnDestroy {
     private active:boolean = false;
 
     private default_descriptor: any = {
-        route: '/booking/object.id',
+        // route: '/booking/object.id',
         context: {
             entity: 'lodging\\sale\\booking\\Booking',
             view:   'form.default'
@@ -60,13 +60,12 @@ export class BookingComponent implements OnInit, AfterViewInit, OnDestroy {
             this.ready = ready;
         });
 
-
         /*
             subscribe only once.
             routing module is AppRoutingModule, siblings are /planning and /bookings
         */
         this.route.params.subscribe( async (params) => {            
-            this.booking_id = parseInt(params['booking_id'], 10);
+            this.booking_id = <number> parseInt(params['booking_id'], 10);            
         });
     }
 

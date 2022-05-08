@@ -12,7 +12,7 @@ import {MatSnackBar} from '@angular/material/snack-bar';
 
 import { Observable, ReplaySubject, BehaviorSubject } from 'rxjs';
 
-import { find, map, mergeMap, startWith, debounceTime } from 'rxjs/operators';
+import { find, map, mergeMap, startWith, debounceTime, debounce } from 'rxjs/operators';
 
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 
@@ -29,11 +29,14 @@ interface vmModel {
   },
   daterange: {
     start: {
+        value:      Date,        
       formControl:  FormControl
     },
     end: {
+        value:      Date,
       formControl:  FormControl
     },
+    timeout:        any,
     nights_count:   number,
     change:         () => void
   },
@@ -110,28 +113,28 @@ export class BookingEditBookingsGroupComponent implements OnInit  {
   // fields for sub-items
   private model_fields = {
     BookingLine: [
-      "id", "name", "product_id", "order", "qty", "price_id", "vat_rate", "unit_price", "price", 
+      "id", "name", "product_id", "order", "qty", "price_id", "vat_rate", "unit_price", "price",
       "booking_id", "booking_line_group_id", "qty_vars",
       "price_adapters_ids", "auto_discounts_ids", "manual_discounts_ids",
       "qty_accounting_method", "is_accomodation", "is_meal"
     ],
     // accomodations are bookinglines with is_accomodation set to true
     Accomodation: [
-      "id", "product_id", "rental_unit_assignments_ids"
+      "id", "product_id", "booking_line_group_id", "rental_unit_assignments_ids"
     ]
 
   };
 
   private center: any;
 
-  // current group  
+  // current group
   public group: any;
 
   // sub-objects (not present in group)
   public pack:any;
   public customer:any;
   public rate_class:any;
-  
+
   public lines: Array<any>;   // bookingLines
   public accomodations: Array<any>;   // bookingLines
 
@@ -166,11 +169,14 @@ export class BookingEditBookingsGroupComponent implements OnInit  {
       },
       daterange: {
         start:{
+            value:      new Date(),
           formControl:  new FormControl()
         },
         end:{
+            value:      new Date(),            
           formControl:  new FormControl()
         },
+        timeout:        0,
         nights_count:   0,
         change:         () => this.dateRangeChange()
       },
@@ -254,11 +260,11 @@ export class BookingEditBookingsGroupComponent implements OnInit  {
     );
 
     this.vm.daterange.start.formControl.valueChanges.subscribe( (date:Date)  => {
-      this.dateRangeUpdate();
+      this.dateRangeChange();
     });
 
     this.vm.daterange.end.formControl.valueChanges.subscribe( (date:Date)  => {
-      this.dateRangeUpdate();
+      this.dateRangeChange();
     });
 
     this.vm.participants_count.formControl.valueChanges.subscribe( (value:number)  => {
@@ -271,7 +277,7 @@ export class BookingEditBookingsGroupComponent implements OnInit  {
 
   }
 
-  
+
 
 
   public toggleFold() {
@@ -281,7 +287,7 @@ export class BookingEditBookingsGroupComponent implements OnInit  {
 
   /**
    * Assign values from parent and load sub-objects required by the view.
-   * 
+   *
    * @param group
    */
   private async load(group:any) {
@@ -312,7 +318,7 @@ export class BookingEditBookingsGroupComponent implements OnInit  {
             let rate_class = data[0];
             this.rate_class = rate_class;
             this.vm.rate_class.name = rate_class.name + ' - ' + this.rate_class.description;
-          }  
+          }
         }
 
         if(group.pack_id) {
@@ -344,11 +350,15 @@ export class BookingEditBookingsGroupComponent implements OnInit  {
         }
 
         if(group.date_from) {
-          this.vm.daterange.start.formControl.setValue(group.date_from);
+            let date_from = (typeof group.date_from == 'string')?new Date(group.date_from):new Date(group.date_from.getTime());
+            this.vm.daterange.start.value = new Date(date_from.getTime());
+            this.vm.daterange.start.formControl.setValue(date_from);          
         }
-        
+
         if(group.date_to) {
-          this.vm.daterange.end.formControl.setValue(group.date_to);
+            let date_to = (typeof group.date_to == 'string')?new Date(group.date_to):new Date(group.date_to.getTime());
+            this.vm.daterange.end.value = new Date(date_to.getTime());
+            this.vm.daterange.end.formControl.setValue(date_to);
         }
 
         if(group.booking_lines_ids) {
@@ -409,7 +419,7 @@ export class BookingEditBookingsGroupComponent implements OnInit  {
               this._accomodationOutput.splice(data.length);
             }
           }
-        }        
+        }
       }
       catch(response) {console.warn(response);}
       this.ready = true;
@@ -431,7 +441,7 @@ export class BookingEditBookingsGroupComponent implements OnInit  {
       }
 
 
-      if(has_change) {        
+      if(has_change) {
         let data = await this.loadAccomodations([line.id], this.model_fields['Accomodation']);
         let object = data[0];
         for(let field of Object.keys(object)) {
@@ -450,7 +460,7 @@ export class BookingEditBookingsGroupComponent implements OnInit  {
 
   /**
    * Handle update events received from BookingLine children.
-   * 
+   *
    */
   private async updateFromLine(line: any) {
     console.log("BookingEditBookingsGroupComponent: received changes from child", line);
@@ -465,7 +475,7 @@ export class BookingEditBookingsGroupComponent implements OnInit  {
       if(line.hasOwnProperty('product_id') && line.product_id != t_line.product_id) {
         await this.updateProduct(line);
         has_change = true;
-        // this implies reloading current group price and booking price        
+        // this implies reloading current group price and booking price
         refresh_requests['booking_id'] = ['price'];
         refresh_requests['self'] = ['price'];
       }
@@ -514,7 +524,7 @@ export class BookingEditBookingsGroupComponent implements OnInit  {
         if(line.refresh.hasOwnProperty('self')) {
           if(Array.isArray(line.refresh.self)) {
             model_fields = line.refresh.self;
-          }          
+          }
           // reload object from server
           let data = await this.loadLines([line.id], model_fields);
           this._lineOutput[index].next(data[0]);
@@ -532,7 +542,7 @@ export class BookingEditBookingsGroupComponent implements OnInit  {
         }
       }
       // reload whole object from server
-      else if(has_change) {        
+      else if(has_change) {
         let data = await this.loadLines([line.id], this.model_fields['BookingLine']);
         let object = data[0];
         for(let field of Object.keys(object)) {
@@ -576,15 +586,6 @@ export class BookingEditBookingsGroupComponent implements OnInit  {
     return data;
   }
 
-  private dateRangeUpdate() {
-    let start = this.vm.daterange.start.formControl.value;
-    let end = this.vm.daterange.end.formControl.value;
-    if(start && end) {
-      let diff = Math.floor((Date.parse(end.toString()) - Date.parse(start.toString())) / (60*60*24*1000));
-      this.vm.daterange.nights_count = (diff < 0)?0:diff;
-    }
-  }
-
   private nbPersChange() {
     console.log('BookingEditCustomerComponent::nbPersChange');
     // relay change to parent component
@@ -598,9 +599,37 @@ export class BookingEditBookingsGroupComponent implements OnInit  {
   }
 
   private dateRangeChange() {
-    console.log('BookingEditCustomerComponent::dateRangeChange');
-    // relay change to parent component
-    this.groupOutput.next({id: this.group.id, date_from: this.vm.daterange.start.formControl.value, date_to: this.vm.daterange.end.formControl.value})
+    let start = this.vm.daterange.start.formControl.value;
+    let end = this.vm.daterange.end.formControl.value;
+
+
+    if(!start || !end) return;
+
+    if(typeof start == 'string') {
+        start = new Date(start);
+    }
+
+    if(typeof end == 'string') {
+        end = new Date(end);
+    }
+
+    if(start <= end) {
+        let diff = Math.floor((Date.parse(end.toString()) - Date.parse(start.toString())) / (60*60*24*1000));
+        this.vm.daterange.nights_count = (diff < 0)?0:diff;
+
+        // relay change to parent component
+        if((start.getTime() != this.vm.daterange.start.value.getTime() || end.getTime() != this.vm.daterange.end.value.getTime())) {
+            if(this.vm.daterange.timeout) {
+                clearTimeout(this.vm.daterange.timeout);
+            }
+            this.vm.daterange.timeout = setTimeout( () => {
+                this.groupOutput.next({id: this.group.id, date_from: start, date_to: end})
+                this.vm.daterange.start.value = new Date(start.getTime());
+                this.vm.daterange.end.value = new Date(end.getTime());
+            }, 300);
+        }
+    }
+
   }
 
   private packChange(target:string, value:any) {
@@ -622,7 +651,7 @@ export class BookingEditBookingsGroupComponent implements OnInit  {
         }
         // relay change to parent component
         this.groupOutput.next({id: this.group.id, has_pack: value})
-        break;        
+        break;
       case 'is_locked':
         this.vm.pack.is_locked = value;
         // relay change to parent component
@@ -728,12 +757,12 @@ $products = sale\catalog\Product::search(['family_id', 'in', $families_ids])
       }
 
       let data:any[] = await this.api.collect(
-        "lodging\\sale\\catalog\\Product", 
-        domain, 
-        ["id", "name", "sku"], 
+        "lodging\\sale\\catalog\\Product",
+        domain,
+        ["id", "name", "sku"],
         'name', 'asc', 0, 25
       );
-        
+
       filtered = data;
     }
     catch(response) {
@@ -772,10 +801,10 @@ $products = sale\catalog\Product::search(['family_id', 'in', $families_ids])
 
   /**
    * Emit change to parent for partial update.
-   * @param line 
+   * @param line
    */
   private async lineRemove(line: any) {
-    this.groupOutput.next({id: this.group.id, booking_lines_ids: [-line.id], refresh: {self: ['price'], booking_id: ['price']}});    
+    this.groupOutput.next({id: this.group.id, booking_lines_ids: [-line.id], refresh: {self: ['price'], booking_id: ['price']}});
   }
 
   private lineDrop(event:CdkDragDrop<any>) {
@@ -809,7 +838,7 @@ $products = sale\catalog\Product::search(['family_id', 'in', $families_ids])
   private async updateRentalUnit(line:any) {
     await this.api.update("lodging\\sale\\booking\\BookingLine", [line.id], <any>{"rental_unit_id": line.rental_unit_id});
   }
-  
+
   private async updateQtyVars(line:any) {
     await this.api.update("lodging\\sale\\booking\\BookingLine", [line.id], <any>{"qty_vars": line.qty_vars});
   }

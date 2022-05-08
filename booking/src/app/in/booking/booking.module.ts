@@ -1,14 +1,13 @@
 import { NgModule } from '@angular/core';
-import { MAT_DATE_LOCALE } from '@angular/material/core';
+import { DateAdapter, MAT_DATE_LOCALE } from '@angular/material/core';
 import { Platform } from '@angular/cdk/platform';
 
-import { SharedLibModule, AuthInterceptorService, DateAdapter } from 'sb-shared-lib';
+import { SharedLibModule, CustomDateAdapter } from 'sb-shared-lib';
 
 import { BookingRoutingModule } from './booking-routing.module';
 
 import { BookingComponent } from './booking.component';
 import { BookingServicesComponent, BookingUpdateDialogConfirm, BookingDeletionDialogConfirm } from './services/services.component';
-
 
 import { BookingEditBookingsComponent } from './services/components/booking.edit.bookings/booking.edit.bookings.component';
 import { BookingEditBookingsGroupComponent } from './services/components/booking.edit.bookings/components/booking.edit.bookings.group/booking.edit.bookings.group.component';
@@ -22,6 +21,7 @@ import { BookingCompositionLinesComponent } from './composition/components/booki
 
 import { BookingQuoteComponent } from './quote/quote.component';
 import { BookingContractComponent } from './contract/contract.component';
+import { BookingInvoiceComponent } from './invoice/invoice.component';
 
 
 @NgModule({
@@ -38,10 +38,11 @@ import { BookingContractComponent } from './contract/contract.component';
     BookingCompositionComponent, BookingCompositionDialogConfirm,
     BookingCompositionLinesComponent,
     BookingQuoteComponent, 
-    BookingContractComponent
+    BookingContractComponent,
+    BookingInvoiceComponent
   ],
   providers: [
-    { provide: DateAdapter, useClass: DateAdapter, deps: [MAT_DATE_LOCALE, Platform] }
+    { provide: DateAdapter, useClass: CustomDateAdapter, deps: [MAT_DATE_LOCALE, Platform] }
   ]
 })
 export class AppInBookingModule { }

@@ -1,5 +1,6 @@
 import { Component, Inject, OnInit, OnChanges, NgZone, Output, Input, EventEmitter, SimpleChanges, ViewChild } from '@angular/core';
-import { AuthService, ApiService, ContextService } from 'sb-shared-lib';
+import { AuthService, ContextService } from 'sb-shared-lib';
+import { BookingApiService } from 'src/app/in/booking/_services/booking.api.service';
 
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatAutocomplete, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
@@ -37,31 +38,31 @@ interface vmModel {
 })
 export class BookingEditBookingsGroupAccomodationLineComponent implements OnInit  {
 
-  // read-only parent group
-  @Input() groupInput: any;
-  @Input() productInput: any;
+    // read-only parent group
+    @Input() groupInput: any;
+    @Input() productInput: any;
 
-  // read-only parent booking
-  @Input() bookingInput: Observable<any>;
+    // read-only parent booking
+    @Input() bookingInput: Observable<any>;
 
-  @Input() assignmentOutput: ReplaySubject<any>;
-  @Input() assignmentInput:  ReplaySubject<any>;
+    @Input() assignment: any;
+
+    @Output() updated:  EventEmitter<any> = new EventEmitter();
 
 
-  private assignment:any = null;
   private booking: any = null;
 
   public rental_unit:any;
 
-  
+
   @ViewChild(MatAutocomplete) rentalUnitAutocomplete: MatAutocomplete;
-  
+
   private ready = false;
 
   public vm: vmModel;
 
   constructor(
-              private api: ApiService,
+              private api: BookingApiService,
               private auth: AuthService,
               private zone: NgZone
               ) {
@@ -93,7 +94,9 @@ export class BookingEditBookingsGroupAccomodationLineComponent implements OnInit
 
   public ngOnInit() {
 
-    this.assignmentInput.subscribe( (assignment: any) => this.load(assignment) );
+    // this.assignmentInput.subscribe( (assignment: any) => this.load(assignment) );
+
+    this.load();
 
     this.bookingInput.subscribe( (booking: any) => this.booking = booking);
 
@@ -110,33 +113,31 @@ export class BookingEditBookingsGroupAccomodationLineComponent implements OnInit
 
   /**
    * Assign values from parent and load sub-objects required by the view.
-   * 
-   * @param accomodation 
+   *
+   * @param accomodation
    */
-  private async load(assignment:any) {
+  private async load() {
     this.zone.run( () => {
       this.ready = false;
-    });    
-    
+    });
+
     this.zone.run( async () => {
       try {
 
-        this.assignment = assignment;
-
-        if(assignment.rental_unit_id) {
-          let data:any = await this.api.read("lodging\\realestate\\RentalUnit", [assignment.rental_unit_id], ["id", "name", "capacity"]);
+        if(this.assignment.rental_unit_id) {
+          let data:any = await this.api.read("lodging\\realestate\\RentalUnit", [this.assignment.rental_unit_id], ["id", "name", "capacity"]);
           if(data && data.length) {
             let rental_unit = data[0];
             this.rental_unit = rental_unit;
             this.vm.rental_unit.name = rental_unit.name + ' ('+ rental_unit.capacity +')';
-          }  
+          }
         }
 
-        if(assignment.qty) {
-          this.vm.qty.value = assignment.qty;
-          this.vm.qty.formControl.setValue(assignment.qty);
+        if(this.assignment.qty) {
+          this.vm.qty.value = this.assignment.qty;
+          this.vm.qty.formControl.setValue(this.assignment.qty);
         }
-        
+
       }
       catch(response) {console.warn(response);}
       this.ready = true;
@@ -174,18 +175,19 @@ export class BookingEditBookingsGroupAccomodationLineComponent implements OnInit
 
 
   private rentalUnitChange(event:any) {
-    console.log('BookingEditCustomerComponent::rentalUnitChange', event)
+    console.log('BookingEditCustomerComponent::rentalUnitChange', event);
 
     // from mat-autocomplete
     if(event && event.option && event.option.value) {
       let rental_unit = event.option.value;
-      let qty = rental_unit.capacity;
+      let qty = Math.min(rental_unit.capacity, this.groupInput.nb_pers);
       this.rental_unit = rental_unit;
-      this.vm.rental_unit.name = rental_unit.name + ' ('+ rental_unit.capacity +')';      
+      this.vm.rental_unit.name = rental_unit.name + ' ('+ rental_unit.capacity +')';
+
       this.vm.qty.value = qty;
       this.vm.qty.formControl.setValue(qty);
       // relay change to parent component
-      this.assignmentOutput.next({id: this.assignment.id, rental_unit_id: rental_unit.id, qty: qty});
+      this.updated.emit({id: this.assignment.id, rental_unit_id: rental_unit.id, qty: qty});
     }
 
     // from qty formControl
@@ -193,9 +195,9 @@ export class BookingEditBookingsGroupAccomodationLineComponent implements OnInit
       let qty = event.srcElement.value;
       this.vm.qty.value = qty;
       // relay change to parent component
-      this.assignmentOutput.next({id: this.assignment.id, qty: this.vm.qty.value});
+      this.updated.emit({id: this.assignment.id, qty: qty});      
     }
-    
+
   }
 
     private async filterRentalUnits(name: string) {
@@ -213,7 +215,7 @@ export class BookingEditBookingsGroupAccomodationLineComponent implements OnInit
             filtered = data;
 
             if(filtered.length == 1) {
-                // single result : wait for list update, then auto select 
+                // single result : wait for list update, then auto select
                 setTimeout( () => this.rentalUnitAutocomplete.options.first.select(), 100);
             }
 
@@ -222,7 +224,7 @@ export class BookingEditBookingsGroupAccomodationLineComponent implements OnInit
             console.log(response);
         }
         return filtered;
-    }  
+    }
 
 
   public remove() {

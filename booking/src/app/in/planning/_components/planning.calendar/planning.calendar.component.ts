@@ -67,15 +67,7 @@ export class PlanningCalendarComponent implements OnInit, AfterViewInit, AfterVi
 
         this.params.getObservable().subscribe( () => {
             console.log('PlanningCalendarComponent cal params change', this.params);
-            this.loading = true;
-            this.cd.detectChanges();
-            // refresh the view, then run onchange
-            setTimeout( async () => {
-                await this.onFiltersChange();
-                this.cd.reattach();
-                this.loading = false;
-                this.cd.detectChanges();
-            });
+            this.onRefresh();
         });
     }
 
@@ -111,6 +103,18 @@ export class PlanningCalendarComponent implements OnInit, AfterViewInit, AfterVi
         this.cd.detectChanges();
     }
 
+    public onRefresh() {
+        console.log('onrefresh')
+        this.loading = true;
+        this.cd.detectChanges();
+        // refresh the view, then run onchange
+        setTimeout( async () => {
+            await this.onFiltersChange();
+            this.cd.reattach();
+            this.loading = false;
+            this.cd.detectChanges();
+        });
+    }
 
     public isWeekEnd(day:Date) {
         return (day.getDay() == 0 || day.getDay() == 6);
@@ -188,7 +192,6 @@ export class PlanningCalendarComponent implements OnInit, AfterViewInit, AfterVi
         }
 
         try {
-            console.log('########################', Object.getOwnPropertyNames(new RentalUnit()));
             const rental_units = await this.api.collect(
                 "lodging\\realestate\\RentalUnit",
                 ["center_id", "in",  this.params.centers_ids],

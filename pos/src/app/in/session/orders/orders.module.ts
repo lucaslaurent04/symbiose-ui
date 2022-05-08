@@ -1,8 +1,8 @@
 import { NgModule } from '@angular/core';
-import { MAT_DATE_LOCALE } from '@angular/material/core';
+import { DateAdapter, MAT_DATE_LOCALE } from '@angular/material/core';
 import { Platform } from '@angular/cdk/platform';
 
-import { SharedLibModule, AuthInterceptorService, DateAdapter } from 'sb-shared-lib';
+import { SharedLibModule, AuthInterceptorService, CustomDateAdapter } from 'sb-shared-lib';
 
 import { SessionOrdersRoutingModule } from './orders-routing.module';
 
@@ -19,7 +19,7 @@ import { SessionOrdersNewComponent } from './new/new.component';
     SessionOrdersNewComponent    
   ],
   providers: [
-    { provide: DateAdapter, useClass: DateAdapter, deps: [MAT_DATE_LOCALE, Platform] }
+    { provide: DateAdapter, useClass: CustomDateAdapter, deps: [MAT_DATE_LOCALE, Platform] }
   ]
 })
 export class AppInSessionOrdersModule { }

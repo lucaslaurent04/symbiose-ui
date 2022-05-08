@@ -1,5 +1,5 @@
 <div>
-    <planning-calendar-navbar [consumption]="hovered_consumption" [rental_unit]="hovered_rental_unit" [holidays]="hovered_holidays"></planning-calendar-navbar>
+    <planning-calendar-navbar (refresh)="onRefresh()" [consumption]="hovered_consumption" [rental_unit]="hovered_rental_unit" [holidays]="hovered_holidays"></planning-calendar-navbar>
 </div>
 
 <div class="container">
@@ -35,13 +35,14 @@
             <tr class="rows" *ngFor="let rental_unit of rental_units; let index = index;">
                 <td class="cell-room rental-unit" (mouseenter)="onhoverRentalUnit(rental_unit)"  (mouseleave)="onhoverRentalUnit(null)" (click)="onSelectedRentalUnit(rental_unit)">{{ rental_unit.code }}<span class="cell-hint">{{ rental_unit.name }}</span></td>
                 <td class="cell-room status">
-                    <i *ngIf="rental_unit.status == 'ready'" class="material-icons" style="color: green;">check</i>
-                    <i *ngIf="rental_unit.status == 'busy_part'" class="material-icons">add_home</i>
-                    <i *ngIf="rental_unit.status == 'busy_full'" class="material-icons">home_filled</i>
-                    <i *ngIf="rental_unit.status == 'ooo'" class="material-icons">block</i>
+                    <i *ngIf="rental_unit.status == 'ready'" class="material-icons" style="font-size: 20px; color: green;">check</i>
+                    <i *ngIf="rental_unit.status == 'busy_part'" class="material-icons" style="font-size: 20px;">add_home</i>
+                    <i *ngIf="rental_unit.status == 'busy_full'" class="material-icons" style="font-size: 20px;">home_filled</i>
+                    <i *ngIf="rental_unit.status == 'ooo'" class="material-icons" style="font-size: 21px;">block</i>
                 </td>
 
-                <td *ngFor="let day of headers.days" class="cell-days" [class.is-weekend]="isWeekEnd(day)" (mouseenter)="onhoverDay(rental_unit, day)"  (mouseleave)="onhoverDay(null, null)">
+                <!-- <td *ngFor="let day of headers.days" class="cell-days" [class.is-weekend]="isWeekEnd(day)" (mouseenter)="onhoverDay(rental_unit, day)"  (mouseleave)="onhoverDay(null, null)"> -->
+                <td *ngFor="let day of headers.days" class="cell-days" [class.is-weekend]="isWeekEnd(day)">                    
 
                     <!-- <div class="cell-overlay" (mouseenter)="onhoverDay(rental_unit, day)"  (mouseleave)="onhoverDay(null, null)"></div> -->
 
@@ -52,7 +53,8 @@
                         [width]="cells_width"
                         [day]="day"
                         [consumption]="getConsumption(rental_unit, day)"
-                        (hover)="onhoverBooking($event)"
+                        (hover)="onhoverBooking($event);onhoverDay(rental_unit, day)"
+                        (mouseleave)="onhoverDay(null, null)"                        
                         (selected)="onSelectedBooking($event)">
                     </planning-calendar-booking>
                 </td>

@@ -6,6 +6,7 @@ import { BookingServicesComponent } from './services/services.component';
 import { BookingContractComponent } from './contract/contract.component';
 import { BookingCompositionComponent } from './composition/composition.component';
 import { BookingQuoteComponent } from './quote/quote.component';
+import { BookingInvoiceComponent } from './invoice/invoice.component';
 
 const routes: Routes = [
     {
@@ -26,7 +27,7 @@ const routes: Routes = [
     },
     {
         path: 'invoice/:invoice_id',
-        loadChildren: () => import(`./invoice/invoice.module`).then(m => m.AppInBookingInvoiceModule)
+        component: BookingInvoiceComponent
     },
     {
         path: 'funding/:funding_id',

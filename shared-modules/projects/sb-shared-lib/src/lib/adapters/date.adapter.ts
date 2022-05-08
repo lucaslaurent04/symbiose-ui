@@ -2,7 +2,7 @@ import { Inject, LOCALE_ID } from '@angular/core';
 import { NativeDateAdapter } from '@angular/material/core';
 import { parse, format as dateFnsFormat } from 'date-fns';
 
-export class DateAdapter extends NativeDateAdapter {
+export class CustomDateAdapter extends NativeDateAdapter {
     
 
   /*

@@ -20,6 +20,7 @@ export class PlanningCalendarNavbarComponent implements OnInit, AfterViewInit, A
     @Input() rental_unit: any;
     @Input() holidays: any;    
     @Output() changedays = new EventEmitter<ChangeReservationArg>();
+    @Output() refresh = new EventEmitter<Boolean>();    
 
     dateFrom: Date;
     dateTo: Date;
@@ -151,6 +152,10 @@ export class PlanningCalendarNavbarComponent implements OnInit, AfterViewInit, A
 
         this.vm.date_range.get("date_from").setValue(this.dateFrom);
         this.vm.date_range.get("date_to").setValue(this.dateTo);
+    }
+
+    public onRefresh() {
+        this.refresh.emit(true);
     }
 
     public onchangeSelectedCenters() {

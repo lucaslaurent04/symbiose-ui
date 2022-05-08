@@ -7,7 +7,7 @@
     
 
     ::ng-deep quill-editor .ql-container {
-        height: 300px !important;
+        height: 200px !important;
         font-size: 15px;
     }
 
@@ -91,6 +91,11 @@
                     margin-left: auto;
                     min-width: 300px;
                     text-align: right;
+
+                    .print-mode-selector {
+                        width: auto;
+                        margin-top: -20px;
+                    }
                 }
 
                 button {
@@ -114,6 +119,11 @@
                     overflow: hidden;
                     text-overflow: ellipsis;
                     white-space: nowrap;
+                    user-select: none;
+                    a {
+                        text-decoration: underline;
+                        cursor: pointer;
+                    }
                 }
 
                 .cell.title {

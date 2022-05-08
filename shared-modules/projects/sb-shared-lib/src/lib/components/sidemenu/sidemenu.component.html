@@ -1,18 +1,18 @@
 <div class="side-inner">
     <div class="header-tabs" >
-        <div class="tab-button">
+        <div class="tab-button" [class.active]="selected_tab_id == 'object-routes'">
             <button mat-icon-button (click)="selected_tab_id = 'object-routes'"><mat-icon >play_circle_outline</mat-icon></button>
         </div>
-        <div class="tab-button">
+        <div class="tab-button" [class.active]="selected_tab_id == 'validity-check'">
             <button mat-icon-button (click)="selected_tab_id = 'validity-check'"><mat-icon >check_circle_outline</mat-icon></button>
         </div>
-        <div class="tab-button">
+        <div class="tab-button" [class.active]="selected_tab_id == 'view-help'">
             <button mat-icon-button (click)="selected_tab_id = 'view-help'" ><mat-icon >help_outline</mat-icon></button>
         </div>
-        <div class="tab-button">
+        <div class="tab-button" [class.active]="selected_tab_id == 'object-history'">
             <button mat-icon-button (click)="selected_tab_id = 'object-history'" ><mat-icon >history</mat-icon></button>
         </div>
-        <div class="tab-button">
+        <div class="tab-button" [class.active]="selected_tab_id == 'user-settings'">
             <button mat-icon-button (click)="selected_tab_id = 'user-settings'" ><mat-icon >settings</mat-icon></button>
         </div>
     </div>
@@ -26,20 +26,12 @@
 
     <div class="tab-inner" [class.hidden]="selected_tab_id != 'validity-check'">
         <div class="validity-check-item" *ngFor="let item of object_checks_items">
-            <button mat-stroked-button (click)="onObjectCheck(item)"><mat-icon >check_box</mat-icon> {{item.label}} </button>
+            <div style="display: flex; font-weight: 500;" [style]="'color: '+getAlertColor(item)" ><mat-icon style="margin-right: 10px;">{{getAlertIcon(item)}}</mat-icon> {{item.message_model_id.label}}</div>
+            <div style="font-size: 14px;">{{item.message_model_id.description}}</div>
+            <div *ngIf="item.parsed_links.length" style="display: flex; overflow: hidden; align-items: center;"><mat-icon style="font-size: 22px;">visibility</mat-icon><a *ngFor="let link of item.parsed_links" href="{{link.link}}" style="background-color: lightgrey; padding: 3px 5px; border-radius: 4px; margin-right: 5px">{{link.text}}</a></div>
+            <div *ngIf="item.controller" style="margin-top: 10px;"><button mat-button (click)="onDismissAlert(item)">RÉESSAYER</button></div>
         </div>
-        <div class="validity-check-result">
-            <span class="result-title">{{object_checks_result.title}}</span>
-            <div class="result-content">
-                <div *ngFor="let line of object_checks_result.content">
-                    <span *ngIf="line.type == 'message'">{{line.message}}</span>
-                    <span *ngIf="line.type == 'object'">
-                        <button mat-button (click)="onObjectCheckResult(line)">{{line.object_name}}</button>
-                    </span>
-                </div>
-            </div>
-
-        </div>
+        <div *ngIf="!object_checks_items.length" style="display: flex; justify-content: center;"><div>Rien à signaler</div></div>
     </div>
 
     <div class="tab-inner" [class.hidden]="selected_tab_id != 'view-help'">

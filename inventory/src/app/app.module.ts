@@ -3,10 +3,10 @@ import { NgModule, LOCALE_ID } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
 
-import { MatNativeDateModule, MAT_DATE_LOCALE } from '@angular/material/core';
+import { DateAdapter, MatNativeDateModule, MAT_DATE_LOCALE } from '@angular/material/core';
 import { Platform, PlatformModule } from '@angular/cdk/platform';
 
-import { SharedLibModule, AuthInterceptorService, DateAdapter } from 'sb-shared-lib';
+import { SharedLibModule, AuthInterceptorService, CustomDateAdapter } from 'sb-shared-lib';
 import { NgxMaterialTimepickerModule } from 'ngx-material-timepicker';
 
 import { AppRoutingModule } from './app-routing.module';
@@ -45,7 +45,7 @@ registerLocaleData(localeFr);
     { provide: MAT_SNACK_BAR_DEFAULT_OPTIONS, useValue: { duration: 4000 } },    
     { provide: MAT_DATE_LOCALE, useValue: 'fr-BE' },
     { provide: LOCALE_ID, useValue: 'fr-BE' },
-    { provide: DateAdapter, useClass: DateAdapter, deps: [MAT_DATE_LOCALE, Platform] }
+    { provide: DateAdapter, useClass: CustomDateAdapter, deps: [MAT_DATE_LOCALE, Platform] }
   ],
   bootstrap: [AppRootComponent]
 })

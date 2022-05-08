@@ -1,8 +1,8 @@
 import { NgModule } from '@angular/core';
-import { MAT_DATE_LOCALE } from '@angular/material/core';
+import { DateAdapter, MAT_DATE_LOCALE } from '@angular/material/core';
 import { Platform } from '@angular/cdk/platform';
 import { FormsModule } from '@angular/forms';
-import { SharedLibModule, AuthInterceptorService, DateAdapter } from 'sb-shared-lib';
+import { SharedLibModule, AuthInterceptorService, CustomDateAdapter } from 'sb-shared-lib';
 
 import { DocumentsRoutingModule } from './documents-routing.module';
 
@@ -28,7 +28,7 @@ import { NgxDocViewerModule } from 'ngx-doc-viewer';
  
   // , PaymentsImportDialogConfirm
   providers: [
-    { provide: DateAdapter, useClass: DateAdapter, deps: [MAT_DATE_LOCALE, Platform] }
+    { provide: DateAdapter, useClass: CustomDateAdapter, deps: [MAT_DATE_LOCALE, Platform] }
   ]
 })
 export class AppInDocumentsModule { }

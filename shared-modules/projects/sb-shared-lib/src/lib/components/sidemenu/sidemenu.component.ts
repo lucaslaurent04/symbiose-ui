@@ -106,7 +106,7 @@ export class AppSideMenuComponent implements OnInit {
             if (descriptor.hasOwnProperty('context') && !descriptor.context_silent
                 && descriptor.context.entity && descriptor.context.entity.length) {
 
-                console.log('SideMenu::searching for context menu');
+                console.log('SideMenu::searching for context menu', descriptor.context);
 
                 // 1) retrieve the details of the view that was requested
                 let view_type = (descriptor.context.hasOwnProperty('type')) ? descriptor.context.type : 'list';
@@ -115,29 +115,18 @@ export class AppSideMenuComponent implements OnInit {
 
                 if (descriptor.context.hasOwnProperty('view')) {
                     view_id = descriptor.context.view;
-                    let parts = view_id.split('.');
-                    if (parts.length) view_type = < string > parts.shift();
-                    if (parts.length) view_name = < string > parts.shift();
                 }
 
                 // 2) retrieve the object id (provided in context domain or in route URL)
                 let object_id: number = 0;
 
-                if (object_id == 0 && descriptor.context.hasOwnProperty('domain')) {
-                    // domain is expected to be single ID filter (ex. ['id', '=', 3])
-                    let candidate = parseInt(descriptor.context.domain[2]);
-
-                    if (!isNaN(candidate)) {
-                        object_id = candidate;
-                    }
-                }
 
                 // by convention the current object id, if present in route, is the latest numeric value (ex.: '/booking/13/contract/735')
-                if (object_id == 0 && descriptor.hasOwnProperty('route')) {
+                if (descriptor.hasOwnProperty('route')) {
                     // route is expected to hold the ID of the object as last part
                     const parts = descriptor.route.split('/');
                     for(let i = parts.length; i > 0; --i) {
-                        let candidate = parseInt(parts[i - 1]);
+                        let candidate = parseInt(parts[i - 1], 10);
                         if (!isNaN(candidate)) {
                             object_id = candidate;
                             break;
@@ -145,12 +134,41 @@ export class AppSideMenuComponent implements OnInit {
                     }
                 }
 
+                // id in domain prevails over route
+                if (descriptor.context.hasOwnProperty('domain')) {
+                    // domain is expected to be single ID filter (ex. ['id', '=', 3])
+                    let domain: any[] = [];
+                    if(Array.isArray(descriptor.context.domain) && descriptor.context.domain.length) {
+                        // make sure we deal with an array of arrays (list of clauses)
+                        if(!Array.isArray(descriptor.context.domain[0])) {
+                            domain.push(descriptor.context.domain);
+                        }
+                        for(let clause of domain) {
+                            if(clause[0] == 'id') {
+                                let candidate = parseInt(clause[2], 10);
+                                if (!isNaN(candidate)) {
+                                    object_id = candidate;
+                                }
+                            }
+                        }
+                    }
+                }
+
+
                 // 3) retrive the entity that was requested
                 let object_class: string = descriptor.context.entity;
 
                 // check if we are showing a view for a specific entity but we want the actions to apply on another entity
                 if (descriptor.context.hasOwnProperty('target_entity')) {
                     object_class = descriptor.context.target_entity;
+                    if (descriptor.context.hasOwnProperty('target_view') || descriptor.context.hasOwnProperty('target_type') || descriptor.context.hasOwnProperty('target_name')) {
+                        let view_type = (descriptor.context.hasOwnProperty('target_type')) ? descriptor.context.target_type : 'form';
+                        let view_name = (descriptor.context.hasOwnProperty('target_name')) ? descriptor.context.target_name : 'default';
+                        view_id = view_type + '.' + view_name;
+                        if (descriptor.context.hasOwnProperty('target_view')) {
+                            view_id = descriptor.context.target_view;
+                        }
+                    }
                 }
 
                 // if(view_id != this.view_id || this.object_class != object_class || this.object_id != object_id) {
@@ -161,10 +179,11 @@ export class AppSideMenuComponent implements OnInit {
                 }
                 else {
 
-                    // remember resolved
+                    // remember resolved args
                     this.view_id = view_id;
                     this.object_id = object_id;
                     this.object_class = object_class;
+                    console.log('AppSideMenuComponent: updated values', this.view_id, this.object_class, this.object_id);
 
                     let object_fields = ['id', 'name', 'state', 'created', 'modified', 'status', 'order'];
 
@@ -180,7 +199,6 @@ export class AppSideMenuComponent implements OnInit {
 
                         const translation:any = await apiService.getTranslation(this.object_class);
                         const view:any = await apiService.getView(this.object_class, this.view_id);
-
 
                         // load routes from view, if any
                         if (view.hasOwnProperty('routes') && view.routes.length) {
@@ -239,18 +257,7 @@ export class AppSideMenuComponent implements OnInit {
                     this.object = data[0];
 
                     // 'history' : read modifications history
-                    try {
-                        const collection = await this.api.collect('core\\Log', [
-                            ['object_id', '=', this.object_id],
-                            ['object_class', '=', this.object_class],
-                            ['user_id', '>', 0]
-                        ], ['action', 'user_id.name'], 'id', 'desc', 0, 10);
-
-                        this.latest_changes = collection;
-                    }
-                    catch (response) {
-                        console.warn(response);
-                    }
+                    await this.updateHistory();
 
                     // remove routes that are not part of the current view
                     for(let i = this.object_routes_items.length-1; i >= 0; --i) {
@@ -313,27 +320,15 @@ export class AppSideMenuComponent implements OnInit {
 
                     // notify parent about if there are routes or not
                     this.updated.emit(!!this.object_routes_items.length);
-
-                    // 'checks' : read checks specific to object (verifications)
-                    try {
-                        const view: any = await this.api.fetch('/?get=model_view&entity=' + object_class + '&view_id=checks.default' + '&lang=' + this.environment.lang);
-                        // load checks from view, if any
-                        if (view.hasOwnProperty('checks') && view.checks.length) {
-                            this.object_checks_items = view.checks;
-                        }
-                        else {
-                            this.object_checks_items = [];
-                        }
-                    }
-                    catch (err) {
-                        console.warn(err);
-                    }
-
                 }
+
+
+                // 'alerts' : read alert messages specific to object (checks)
+                await this.updateAlerts();
 
                 // 'help' : in all cases, request detailed documentation about the current view
                 try {
-                    const helper: any = await this.api.fetch('/?get=model_view-help&entity=' + descriptor.context.entity + '&view_id=' + this.view_id + '&lang=' + this.environment.lang);
+                    const helper: any = await this.api.fetch('/?get=model_view-help&entity=' + object_class + '&view_id=' + this.view_id + '&lang=' + this.environment.lang);
                     // #todo : use a cache here
 
                     if (helper && helper.hasOwnProperty('result')) {
@@ -351,7 +346,62 @@ export class AppSideMenuComponent implements OnInit {
 
     }
 
-    onHelpFullScreen() {
+    private async updateHistory() {
+        try {
+            const collection = await this.api.collect('core\\Log', [
+                ['object_id', '=', this.object_id],
+                ['object_class', '=', this.object_class],
+                ['user_id', '>', 0]
+            ], ['action', 'user_id.name'], 'id', 'desc', 0, 10);
+
+            this.latest_changes = collection;
+        }
+        catch (response) {
+            console.warn(response);
+        }        
+    }
+
+    private async updateAlerts() {
+        try {
+
+            const data = await this.api.fetch('/?get=model_collect', {
+                entity: "core\\alert\\Message",
+                fields: JSON.stringify(["severity", "controller", "message_model_id.name", "message_model_id.label", "message_model_id.description", "links"]),
+                domain: JSON.stringify([["object_class", "=", this.object_class], ["object_id", "=", this.object_id]]),
+                lang: this.environment.lang
+            });
+
+            this.object_checks_items = [];
+            // load checks from view, if any
+            if (data && data.length) {
+                for(let item of data) {
+                    item.parsed_links = [];
+                    if(item.links) {
+                        let links = JSON.parse(item.links);
+                        for(let link of links) {
+                            let parts = link.replace(/\[([^\]]+)\]\(([^\)]+)\)/, '$2,$1').split(',');
+                            console.log(parts);
+                            item.parsed_links.push({link: parts[0], text: parts[1]});
+                        }
+                    }
+                    this.object_checks_items.push(item);
+                }
+                // switch to alert pane
+                this.selected_tab_id = 'validity-check';
+                // notify parent about that pane must be visible
+                this.updated.emit(true);
+            }
+            else {
+                this.selected_tab_id = 'object-routes';                        
+            }
+
+        }
+        catch (err) {
+            console.warn(err);
+        }
+    }
+
+    public onHelpFullScreen() {
         console.log('onHelpFullScreen');
         if (screenfull.isEnabled) {
             screenfull.toggle(this.helpFullScreen.nativeElement);
@@ -429,24 +479,9 @@ export class AppSideMenuComponent implements OnInit {
     }
 
 
-    public onObjectCheckResult(line: any) {
-        let context = {
-            entity: line.object_class,
-            type: 'form',
-            name: 'default',
-            domain: ['id', '=', line.object_id],
-            mode: 'view',
-            purpose: 'view'
-        };
-
-        this.context.change({
-            context: context,
-            route: "/"
-        });
-    }
-
     public onObjectRoute(item: any) {
-        console.log('AppSideMenuComponent::onObjectRoute', item, this.object);
+        console.log('AppSideMenuComponent::onObjectRoute', item, this.view_id, this.object_class, this.object_id, this.object);
+
         let descriptor: any = {};
 
         if (item.hasOwnProperty('route')) {
@@ -483,6 +518,40 @@ export class AppSideMenuComponent implements OnInit {
             this.context.change(descriptor);
         }
 
+    }
+
+    public async onDismissAlert(alert:any) {
+        try {
+            const data:any = await this.api.fetch('?do=core_alert_dismiss&id='+alert.id);
+            // reload
+            this.updateAlerts();
+        }
+        catch(response) {
+            // ignore errors
+        }
+
+    }
+
+    public getAlertIcon(alert: any) {
+        switch(alert.severity) {
+            case 'notice': return 'info_outline';
+            case 'warning': return 'star_outline';
+            case 'important': return 'warning_amber';
+            case 'urgent': return 'priority_high';
+        }
+        return 'info_outline';
+    }
+
+    public getAlertColor(alert:any) {
+        switch(alert.severity) {
+            case 'notice': return '#4e4ad6';
+            case 'warning': return '#41c01b';
+            case 'important': return '#eead26';
+            case 'urgent': return '#ff0000';
+        }
+        return 'black';
+
+        
     }
 
 }

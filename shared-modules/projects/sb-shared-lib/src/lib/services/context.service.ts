@@ -66,8 +66,13 @@ export class ContextService {
         */
 
         this.eq.addSubscriber(['open', 'close'], (context:any) => {
-            console.log('ContextService : eQ open/close', context);
+            console.log('ContextService : eQ context open/close', context);
             this.change({context: {...context}, context_only: true});
+        });
+
+        this.eq.addSubscriber(['updated'], () => {
+            console.log('ContextService : eQ context updated');
+            this.observable.next({context: {...this.context}});
         });
 
         this.eq.addSubscriber(['navigate'], (descriptor:any) => {

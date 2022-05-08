@@ -1,9 +1,9 @@
 import { NgModule } from '@angular/core';
-import { MAT_DATE_LOCALE } from '@angular/material/core';
+import { DateAdapter, MAT_DATE_LOCALE } from '@angular/material/core';
 import { Platform } from '@angular/cdk/platform';
 
 
-import { SharedLibModule, AuthInterceptorService, DateAdapter } from 'sb-shared-lib';
+import { SharedLibModule, AuthInterceptorService, CustomDateAdapter } from 'sb-shared-lib';
 
 import { SessionsComponent } from './sessions.component';
 
@@ -16,7 +16,7 @@ import { SessionsComponent } from './sessions.component';
     SessionsComponent
   ],
   providers: [
-    { provide: DateAdapter, useClass: DateAdapter, deps: [MAT_DATE_LOCALE, Platform] }
+    { provide: DateAdapter, useClass: CustomDateAdapter, deps: [MAT_DATE_LOCALE, Platform] }
   ]
 })
 export class AppInSessionsModule { }
