@@ -15,3 +15,9 @@ echo sale
 (cd ./sale/ ; sh export.sh)
 echo pos
 (cd ./pos/ ; sh export.sh)
+echo stats
+(cd ./stats/ ; sh export.sh)
+echo accounting
+(cd ./accounting/ ; sh export.sh)
+echo workbench
+(cd ./workbench/ ; sh export.sh)

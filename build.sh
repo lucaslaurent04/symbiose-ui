@@ -7,3 +7,6 @@
 (cd ./settings/ ; sh build.sh)
 (cd ./sale/ ; sh build.sh)
 (cd ./pos/ ; sh build.sh)
+(cd ./stats/ ; sh build.sh)
+(cd ./accounting/ ; sh build.sh)
+(cd ./workbench/ ; sh build.sh)
