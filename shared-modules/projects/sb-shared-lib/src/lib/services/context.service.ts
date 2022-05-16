@@ -85,6 +85,7 @@ export class ContextService {
             if (event instanceof NavigationEnd) {
                 console.log('ContextService : route change', event);
                 this.route = event.url;
+                this.context = {};
                 this.observable.next(this.getDescriptor());
                 // if no controller requests a change within 500ms, change to current context
                 this.timeout = setTimeout( () => {
@@ -165,6 +166,10 @@ export class ContextService {
             // notify subscribers
             this.ready.next(true);
             this.observable.next({route: this.route, context: context, context_silent: context_silent});
+        }
+        else {
+            // nothing to do: notify subscribers
+            this.ready.next(true);
         }
     }
 

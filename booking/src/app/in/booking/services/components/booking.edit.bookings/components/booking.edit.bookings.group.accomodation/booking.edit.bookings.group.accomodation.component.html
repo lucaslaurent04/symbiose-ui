@@ -24,7 +24,7 @@
 
     <div class="row" *ngFor="let assignment of assignments; let index = index;">
       <div class="row-line">
-        <booking-edit-bookings-group-accomodation-line [assignment]="assignment" [productInput]="product" [groupInput]="groupInput" [bookingInput]="bookingInput" (updated)="updateFromLine($event)"></booking-edit-bookings-group-accomodation-line>
+        <booking-edit-bookings-group-accomodation-line [assignment]="assignment" [assignments]="assignments" [productInput]="product" [groupInput]="groupInput" [bookingInput]="bookingInput" (updated)="updateFromLine($event)"></booking-edit-bookings-group-accomodation-line>
       </div>      
       <div class="row-remove"><button mat-icon-button (click)="vm.assignments.remove(assignment)"> <mat-icon>delete</mat-icon></button></div>
     </div>

@@ -1,14 +1,15 @@
-import { Component, Input, Output, EventEmitter, OnInit, NgZone, ChangeDetectorRef, AfterViewChecked, AfterViewInit } from '@angular/core';
+import { Component, Input, Output, EventEmitter, OnInit, NgZone, ChangeDetectorRef, AfterViewChecked, AfterViewInit, ViewChild, ElementRef } from '@angular/core';
 import { Observable }  from 'rxjs';
 import { find, map, mergeMap, startWith, debounceTime } from 'rxjs/operators';
 
-import {CalendarParamService} from '../../../../_services/calendar.param.service';
+import { CalendarParamService } from '../../../../_services/calendar.param.service';
 
 import { HeaderDays } from 'src/app/model/headerdays';
 import { ChangeReservationArg } from 'src/app/model/changereservationarg';
 import { ApiService, AuthService } from 'sb-shared-lib';
 import { FormControl, FormGroup } from '@angular/forms';
-
+import { MatSelect } from '@angular/material/select';
+import { MatOption } from '@angular/material/core';
 
 @Component({
   selector: 'planning-calendar-navbar',
@@ -21,6 +22,7 @@ export class PlanningCalendarNavbarComponent implements OnInit, AfterViewInit, A
     @Input() holidays: any;    
     @Output() changedays = new EventEmitter<ChangeReservationArg>();
     @Output() refresh = new EventEmitter<Boolean>();    
+    @ViewChild('centerSelector') centerSelector: MatSelect;
 
     dateFrom: Date;
     dateTo: Date;
@@ -29,6 +31,7 @@ export class PlanningCalendarNavbarComponent implements OnInit, AfterViewInit, A
     centers: any[] = [];
     selected_centers_ids: any[] = [];
 
+    private rental_untis_filter_default: any[] = [['can_rent', '=', true]];
 
     vm: any = {
         duration:   '31',
@@ -98,7 +101,7 @@ export class PlanningCalendarNavbarComponent implements OnInit, AfterViewInit, A
                 try {
                     const centers = await this.api.collect('lodging\\identity\\Center',
                         ['id', 'in', user.centers_ids],
-                        ['id', 'name', 'code'],
+                        ['id', 'name', 'code', 'sojourn_type_id'],
                         'name','asc',0,50
                     );
                     if(centers.length) {
@@ -159,9 +162,68 @@ export class PlanningCalendarNavbarComponent implements OnInit, AfterViewInit, A
     }
 
     public onchangeSelectedCenters() {
+        console.log('::onchangeSelectedCenters');
         this.params.centers_ids = this.selected_centers_ids;
     }
 
+
+    filters: any = {
+        has_children: 'crossed',
+        is_accomodation: 'crossed'
+    };
+
+    public onclickUnselectAllCenters() {
+        // this.centerSelector.close();
+        this.centerSelector.options.forEach((item: MatOption) => item.deselect());
+    }
+
+    public onclickSelectAllCenters() {
+        // this.centerSelector.close();
+        this.centerSelector.options.forEach((item: MatOption) => item.select());
+    }
+
+    public onclickSelectGA() {
+        this.centerSelector.options.forEach((item: MatOption) => {
+            const center = this.centers.find(center => center.id == item.value);
+            if(center.sojourn_type_id == 1) {
+                item.select();
+            }
+            else {
+                item.deselect();
+            }
+        });
+    }
+
+    public onclickSelectGG() {
+        this.centerSelector.options.forEach((item: MatOption) => {
+            const center = this.centers.find(center => center.id == item.value);
+            if(center.sojourn_type_id == 2) {
+                item.select();
+            }
+            else {
+                item.deselect();
+            }
+        });        
+    }
+
+    public toggleFilter($event: any, filter:string) {
+        $event.stopPropagation();
+        
+        let domain: any[] = [...this.rental_untis_filter_default];
+        if(this.filters[filter] === 'crossed') {
+           this.filters[filter] = 'unchecked'; 
+            domain.push([filter, '=', false]);
+        }
+        else if(this.filters[filter] === 'unchecked') {
+            this.filters[filter] = 'checked'; 
+            domain.push([filter, '=', true]);
+        }
+        else if(this.filters[filter] == 'checked') {
+            this.filters[filter] = 'crossed'; 
+        }
+
+        this.params.rental_units_filter = domain;
+    }
 
     public calcHolidays() {
         return this.holidays.map( (a:any) => a.name ).join(', ');

@@ -46,6 +46,8 @@ export class BookingEditBookingsGroupAccomodationLineComponent implements OnInit
     @Input() bookingInput: Observable<any>;
 
     @Input() assignment: any;
+    // list of all assignments (to prevent assigning same UL twice)
+    @Input() assignments: any[];    
 
     @Output() updated:  EventEmitter<any> = new EventEmitter();
 
@@ -212,7 +214,11 @@ export class BookingEditBookingsGroupAccomodationLineComponent implements OnInit
                 product_id: this.productInput.id
             });
 
-            filtered = data;
+            for(let unit of data) {
+                if(this.assignments.findIndex( (a:any) => a.rental_unit_id == unit.id ) < 0) {
+                    filtered.push(unit);
+                }
+            }
 
             if(filtered.length == 1) {
                 // single result : wait for list update, then auto select

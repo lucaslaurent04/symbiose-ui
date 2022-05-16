@@ -2,7 +2,7 @@
 
   <div class="outer-wrapper" style="width: 100%">
     <div class="header" style="display: flex; width: 100%;">
-      <div style="flex: 1;">Ajouter un groupe de services <button mat-mini-fab color="primary" style="transform: scale(0.66);" (click)="vm.groups.add()"> <mat-icon>add</mat-icon></button></div>
+      <div *ngIf="booking.status == 'quote' || booking.status == 'checkedout'" style="flex: 1;">Ajouter un groupe de services <button mat-mini-fab color="primary" style="transform: scale(0.66);" (click)="vm.groups.add()"> <mat-icon>add</mat-icon></button></div>
       <div style="margin-left: auto; font-size: 20px;">Total TTC {{vm.price.value | number: '1.2-2'}} €</div>
     </div>    
     <div class="inner-wrapper" *ngIf="groups.length">

@@ -17,11 +17,11 @@
             <tr class="head">
                 <ng-container *ngFor="let day of headers.days" >
                     <th #calTableHeadCells
-                        (mouseenter)="onhoverDate(day)" 
-                        (mouseleave)="onhoverDate(null)" 
-                        class="head-days" 
-                        [class.small]="cells_width <= 26" 
-                        [class.hidden]="cells_width < 10" 
+                        (mouseenter)="onhoverDate(day)"
+                        (mouseleave)="onhoverDate(null)"
+                        class="head-days"
+                        [class.small]="cells_width <= 26"
+                        [class.hidden]="cells_width < 10"
                         [ngClass]="getHolidayClasses(day)">
                             <div *ngIf="cells_width > 26" class="week-day">{{ day | date: 'EEE'}}</div>
                             <div *ngIf="cells_width <= 26" class="week-day">{{ day | date: 'EEEEE'}}</div>
@@ -32,8 +32,8 @@
         </thead>
         <tbody>
             <!-- body -->
-            <tr class="rows" *ngFor="let rental_unit of rental_units; let index = index;">
-                <td class="cell-room rental-unit" (mouseenter)="onhoverRentalUnit(rental_unit)"  (mouseleave)="onhoverRentalUnit(null)" (click)="onSelectedRentalUnit(rental_unit)">{{ rental_unit.code }}<span class="cell-hint">{{ rental_unit.name }}</span></td>
+            <tr class="rows cdk-drag-disabled" (dragstart)="preventDrag($event)"  *ngFor="let rental_unit of rental_units; let index = index;" [class.highlight]="(index == hover_row_index)">
+                <td class="cell-room rental-unit" (mouseenter)="onhoverRentalUnit(rental_unit);hover_row_index = index" (mouseleave)="onhoverRentalUnit(null); hover_row_index = -1" (click)="onSelectedRentalUnit(rental_unit)">{{ rental_unit.code }}<span class="cell-hint">{{ rental_unit.name }}</span></td>
                 <td class="cell-room status">
                     <i *ngIf="rental_unit.status == 'ready'" class="material-icons" style="font-size: 20px; color: green;">check</i>
                     <i *ngIf="rental_unit.status == 'busy_part'" class="material-icons" style="font-size: 20px;">add_home</i>
@@ -42,7 +42,7 @@
                 </td>
 
                 <!-- <td *ngFor="let day of headers.days" class="cell-days" [class.is-weekend]="isWeekEnd(day)" (mouseenter)="onhoverDay(rental_unit, day)"  (mouseleave)="onhoverDay(null, null)"> -->
-                <td *ngFor="let day of headers.days" class="cell-days" [class.is-weekend]="isWeekEnd(day)">                    
+                <td *ngFor="let day of headers.days" (dragstart)="preventDrag($event)" class="cell-days cdk-drag-disabled" [class.is-weekend]="isWeekEnd(day)" (mousedown)="onmousedown($event, rental_unit, day)" (mouseup)="onmouseup()" (mouseover)="onmouseover($event, day)">
 
                     <!-- <div class="cell-overlay" (mouseenter)="onhoverDay(rental_unit, day)"  (mouseleave)="onhoverDay(null, null)"></div> -->
 
@@ -54,11 +54,17 @@
                         [day]="day"
                         [consumption]="getConsumption(rental_unit, day)"
                         (hover)="onhoverBooking($event);onhoverDay(rental_unit, day)"
-                        (mouseleave)="onhoverDay(null, null)"                        
+                        (mouseleave)="onhoverDay(null, null)"
                         (selected)="onSelectedBooking($event)">
                     </planning-calendar-booking>
                 </td>
+
             </tr>
         </tbody>
     </table>
+    <div #selector style="position: absolute; background-color: #ff4081; z-index: 0;" 
+                [style.left.px]="selection.left" 
+                [style.top.px]="selection.top" 
+                [style.width.px]="selection.width" 
+                [style.height.px]="selection.height"></div>
 </div>

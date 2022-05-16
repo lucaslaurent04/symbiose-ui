@@ -9,116 +9,112 @@ import { ContextService } from 'sb-shared-lib';
 export class AppComponent implements OnInit  {
 
 
-  public ready: boolean = false;
-  public context_open: boolean = false;
+    public ready: boolean = false;
+    public context_open: boolean = false;
 
-  constructor(
-    private context: ContextService,
-    private zone: NgZone
-  ) {}
-
-
-  public ngOnInit() {
-
-    this.context.getObservable().subscribe( (descriptor:any) => {
-      this.context_open = (Object.keys(descriptor.context).length != 0);
-    });
-  }
+    constructor(
+        private context: ContextService,
+        private zone: NgZone
+    ) {}
 
 
-  public createCustomer() {
+    public ngOnInit() {
 
-    let descriptor = {
-      context: {
-        entity:     'sale\\customer\\Customer',
-        type:       'form',
-        name:       'create',
-        domain:     [ ['owner_identity_id', '=', 1] ],
-        mode:       'edit',
-        purpose:    'create',
-        target:     '#sb-container',
-        callback:   (data:any) => {
-          if(data && data.objects && data.objects.length) {
-            console.log('received value from create customer', data);
-          }
-        }
-      }
-    };
-
-    this.context.change(descriptor);
-  }
+    }
 
 
-  public searchCustomer() {
+    public createCustomer() {
+        let descriptor = {
+            context: {
+                entity:     'sale\\customer\\Customer',
+                type:       'form',
+                name:       'create',
+                domain:     [ ['owner_identity_id', '=', 1] ],
+                mode:       'edit',
+                purpose:    'create',
+                target:     '#sb-container',
+                callback:   (data:any) => {
+                    if(data && data.objects && data.objects.length) {
+                        console.log('received value from create customer', data);
+                    }
+                }
+            }
+        };
 
-    let descriptor = {
-      context: {
-        entity:     'sale\\customer\\Customer',
-        type:       'list',
-        name:       'default',
-        domain:     [ ['owner_identity_id', '=', 1] ],
-        mode:       'view',
-        purpose:    'view',
-        target:     '#sb-container'
-      }
-    };
-
-    this.context.change(descriptor);
-  }
+        this.context.change(descriptor);
+    }
 
 
-  public createBooking() {
+    public searchCustomer() {
 
-    let descriptor = {
-      route: '/bookings',
-      context: {
-        entity:     'lodging\\sale\\booking\\Booking',
-        type:       'form',
-        name:       'create',
-        mode:       'edit',
-        purpose:    'create',
-        target:     '#sb-container',
-        callback:   (data:any) => {
-          if(data && data.objects && data.objects.length) {
-            console.log('received value from create booking', data);
-            // new_id =  data.objects[0].id
-            let descriptor = {
-              context: {
+        let descriptor = {
+            context: {
+            entity:     'sale\\customer\\Customer',
+            type:       'list',
+            name:       'default',
+            domain:     [ ['owner_identity_id', '=', 1] ],
+            mode:       'view',
+            purpose:    'view',
+            target:     '#sb-container'
+            }
+        };
+
+        this.context.change(descriptor);
+    }
+
+
+    public createBooking() {
+
+        let descriptor = {
+            route: '/bookings',
+            context: {
                 entity:     'lodging\\sale\\booking\\Booking',
-                type:       'list',
-                name:       'default',                
-                mode:       'view',
-                purpose:    'view',                
-                target:     '#sb-container'
-              }
-            };        
-            setTimeout( () => {
-              this.context.change(descriptor);
-            });            
-          }
-        }
-      }
-    };
+                type:       'form',
+                name:       'create',
+                mode:       'edit',
+                purpose:    'create',
+                target:     '#sb-container',
+                callback:   (data:any) => {
+                    if(data && data.objects && data.objects.length) {
+                        console.log('received value from create booking', data);
+                        // new_id =  data.objects[0].id
+                        let descriptor = {
+                            context: {
+                            entity:     'lodging\\sale\\booking\\Booking',
+                            type:       'list',
+                            name:       'default',
+                            mode:       'view',
+                            purpose:    'view',
+                            target:     '#sb-container'
+                            }
+                        };
+                        setTimeout( () => {
+                            this.context.change(descriptor);
+                        });
+                    }
+                }
+            }
+        };
 
-    this.context.change(descriptor);
-  }
+        this.context.change(descriptor);
+    }
 
 
-  public searchBooking() {
-    let descriptor = {
-      route: '/bookings',
-      context: {
-        entity:     'lodging\\sale\\booking\\Booking',
-        type:       'list',
-        name:       'default',
-        mode:       'view',
-        purpose:    'view',
-        target:     '#sb-container'
-      }
-    };
+    public searchBooking() {
+        let descriptor = {
+            route: '/bookings',
+            context: {
+            entity:     'lodging\\sale\\booking\\Booking',
+            type:       'list',
+            name:       'default',
+            mode:       'view',
+            purpose:    'view',
+            target:     '#sb-container'
+            }
+        };
 
-    this.context.change(descriptor);
-  }
+        this.context.change(descriptor);
+    }
 
 
   public searchContact() {
@@ -136,5 +132,5 @@ export class AppComponent implements OnInit  {
     };
 
     this.context.change(descriptor);
-  }  
+  }
 }

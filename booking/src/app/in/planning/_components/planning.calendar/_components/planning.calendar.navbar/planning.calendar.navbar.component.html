@@ -14,9 +14,29 @@
     -->
     <div class="centers-selector">
         <mat-form-field>
-        <mat-select  [(ngModel)]="selected_centers_ids" [disableOptionCentering]="true" multiple (closed)="onchangeSelectedCenters()" >
-            <mat-option  *ngFor="let center of centers" [value]="center.id" >{{center.name}}</mat-option>
-        </mat-select>
+            <mat-select #centerSelector multiple
+                        [(ngModel)]="selected_centers_ids" 
+                        panelClass="centers-selector"
+                        [disableOptionCentering]="true"  
+                        (closed)="onchangeSelectedCenters()" 
+                        (selectionChange)="onchangeSelectedCenters()">
+                <mat-optgroup [label]="'Sélection'">&nbsp;<a style="cursor: pointer;" (click)="onclickSelectAllCenters()">Tous</a> &nbsp; <a style="cursor: pointer;" (click)="onclickUnselectAllCenters()">Aucun</a> &nbsp; <a style="cursor: pointer;" (click)="onclickSelectGA()">GA</a> &nbsp; <a style="cursor: pointer;" (click)="onclickSelectGG()">GG</a></mat-optgroup>
+                <mat-optgroup [label]="'Filtrer'">&nbsp; 
+                    <mat-checkbox type="checkbox"
+                    [indeterminate]="filters['has_children'] == 'crossed'" 
+                    [disabled]="'disabled'"
+                    [ngModel]="filters['has_children'] === 'checked'" 
+                    [color]="'accent'"
+                    (click)="toggleFilter($event, 'has_children')" >Unités parentes </mat-checkbox>&nbsp; 
+                    <mat-checkbox type="checkbox"
+                    [indeterminate]="filters['is_accomodation'] == 'crossed'" 
+                    [disabled]="'disabled'"
+                    [ngModel]="filters['is_accomodation'] === 'checked'" 
+                    [color]="'accent'"
+                    (click)="toggleFilter($event, 'is_accomodation')" >Logements </mat-checkbox>&nbsp; 
+                </mat-optgroup>
+                <mat-option *ngFor="let center of centers" [value]="center.id" >{{center.name}}</mat-option>
+            </mat-select>
         </mat-form-field>
     </div>
 
@@ -39,7 +59,7 @@
         </mat-form-field>
 
         <button mat-icon-button (click)="picker.open()">
-        <mat-icon>calendar_today</mat-icon>
+            <mat-icon>calendar_today</mat-icon>
         </button>
     </div>
 

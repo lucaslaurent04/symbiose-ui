@@ -121,39 +121,40 @@ export class AppSideMenuComponent implements OnInit {
                 let object_id: number = 0;
 
 
-                // by convention the current object id, if present in route, is the latest numeric value (ex.: '/booking/13/contract/735')
-                if (descriptor.hasOwnProperty('route')) {
-                    // route is expected to hold the ID of the object as last part
-                    const parts = descriptor.route.split('/');
-                    for(let i = parts.length; i > 0; --i) {
-                        let candidate = parseInt(parts[i - 1], 10);
-                        if (!isNaN(candidate)) {
-                            object_id = candidate;
-                            break;
+                if(view_type == 'form') {
+                    // by convention the current object id, if present in route, is the latest numeric value (ex.: '/booking/13/contract/735')
+                    if (descriptor.hasOwnProperty('route')) {
+                        // route is expected to hold the ID of the object as last part
+                        const parts = descriptor.route.split('/');
+                        for(let i = parts.length; i > 0; --i) {
+                            let candidate = parseInt(parts[i - 1], 10);
+                            if (!isNaN(candidate)) {
+                                object_id = candidate;
+                                break;
+                            }
                         }
                     }
-                }
 
-                // id in domain prevails over route
-                if (descriptor.context.hasOwnProperty('domain')) {
-                    // domain is expected to be single ID filter (ex. ['id', '=', 3])
-                    let domain: any[] = [];
-                    if(Array.isArray(descriptor.context.domain) && descriptor.context.domain.length) {
-                        // make sure we deal with an array of arrays (list of clauses)
-                        if(!Array.isArray(descriptor.context.domain[0])) {
-                            domain.push(descriptor.context.domain);
-                        }
-                        for(let clause of domain) {
-                            if(clause[0] == 'id') {
-                                let candidate = parseInt(clause[2], 10);
-                                if (!isNaN(candidate)) {
-                                    object_id = candidate;
+                    // id in domain prevails over route
+                    if (descriptor.context.hasOwnProperty('domain')) {
+                        // domain is expected to be single ID filter (ex. ['id', '=', 3])
+                        let domain: any[] = [];
+                        if(Array.isArray(descriptor.context.domain) && descriptor.context.domain.length) {
+                            // make sure we deal with an array of arrays (list of clauses)
+                            if(!Array.isArray(descriptor.context.domain[0])) {
+                                domain.push(descriptor.context.domain);
+                            }
+                            for(let clause of domain) {
+                                if(clause[0] == 'id') {
+                                    let candidate = parseInt(clause[2], 10);
+                                    if (!isNaN(candidate)) {
+                                        object_id = candidate;
+                                    }
                                 }
                             }
                         }
                     }
                 }
-
 
                 // 3) retrive the entity that was requested
                 let object_class: string = descriptor.context.entity;
@@ -171,6 +172,11 @@ export class AppSideMenuComponent implements OnInit {
                     }
                 }
 
+                // remember resolved args
+                this.view_id = view_id;
+                this.object_id = object_id;
+                this.object_class = object_class;
+
                 // if(view_id != this.view_id || this.object_class != object_class || this.object_id != object_id) {
                 if(!object_id) {
                     this.object_routes_items = [];
@@ -178,11 +184,6 @@ export class AppSideMenuComponent implements OnInit {
                     this.updated.emit(false);
                 }
                 else {
-
-                    // remember resolved args
-                    this.view_id = view_id;
-                    this.object_id = object_id;
-                    this.object_class = object_class;
                     console.log('AppSideMenuComponent: updated values', this.view_id, this.object_class, this.object_id);
 
                     let object_fields = ['id', 'name', 'state', 'created', 'modified', 'status', 'order'];
@@ -362,6 +363,10 @@ export class AppSideMenuComponent implements OnInit {
     }
 
     private async updateAlerts() {
+        if(this.object_class.length == 0 || this.object_id == 0) {
+            this.object_checks_items = [];
+            return;
+        }
         try {
 
             const data = await this.api.fetch('/?get=model_collect', {
@@ -483,16 +488,17 @@ export class AppSideMenuComponent implements OnInit {
         console.log('AppSideMenuComponent::onObjectRoute', item, this.view_id, this.object_class, this.object_id, this.object);
 
         let descriptor: any = {};
+        let target_id:any = 0;
 
         if (item.hasOwnProperty('route')) {
             let route = item.route;
             for (let object_field of Object.keys(this.object)) {
-                let target = this.object[object_field];
+                target_id = this.object[object_field];
                 // handle m2o sub-ojects (assuming id is always loaded)
-                if(typeof target == 'object') {
-                    target = target.id;
+                if(typeof target_id == 'object') {
+                    target_id = target_id.id;
                 }
-                route = route.replace('object.' + object_field, target);
+                route = route.replace('object.' + object_field, target_id);
             }
             descriptor.route = route;
         }
@@ -502,14 +508,17 @@ export class AppSideMenuComponent implements OnInit {
             if (context.hasOwnProperty('domain') && Array.isArray(context.domain)) {
                 let domain = JSON.stringify(context.domain);
                 for (let object_field of Object.keys(this.object)) {
-                    let target = this.object[object_field];
+                    target_id = this.object[object_field];
                     // handle m2o sub-ojects (assuming id is always loaded)
-                    if(typeof target == 'object') {
-                        target = target.id;
+                    if(typeof target_id == 'object') {
+                        target_id = target_id.id;
                     }
-                    domain = domain.replace('object.' + object_field, target);
+                    domain = domain.replace('object.' + object_field, target_id);
                 }
                 context.domain = JSON.parse(domain);
+            }
+            else if(target_id) {
+                context.domain = ['id', '=', target_id];
             }
             descriptor.context = context;
         }

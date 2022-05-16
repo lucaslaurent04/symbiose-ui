@@ -3,9 +3,12 @@
         <app-header [section]="'Réservations'"
                     [i18n]="translationsMenuTop"
                     [items]="topMenuItems"
+                    [action]="'Nouvelle réservation'"
                     (toggleMenu)="toggleSideMenu()"
                     (toggleBar)="toggleSideBar()"
-                    (select)="onSelectItem($event)" >
+                    (select)="onSelectItem($event)" 
+                    (onAction)="onAction()">
+                    <div>ok</div>
         </app-header>
     </div>
     <div class="app-body">

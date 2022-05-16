@@ -80,12 +80,47 @@ export class AppRootComponent implements OnInit {
         }
     }
 
-  /**
-   * Items are handled as descriptors.
-   * They always have a `route` property (if not, it is added and set to '/').
-   * And might have an additional `context` property.
-   * @param item
-   */
+    public onAction() {
+        let descriptor = {
+            route: '/bookings',
+            context: {
+                entity:     'lodging\\sale\\booking\\Booking',
+                type:       'form',
+                name:       'create',
+                mode:       'edit',
+                purpose:    'create',
+                target:     '#sb-container',
+                callback:   (data:any) => {
+                    if(data && data.objects && data.objects.length) {
+                        console.log('received value from create booking', data);
+                        // new_id =  data.objects[0].id
+                        let descriptor = {
+                            context: {
+                            entity:     'lodging\\sale\\booking\\Booking',
+                            type:       'list',
+                            name:       'default',
+                            mode:       'view',
+                            purpose:    'view',
+                            target:     '#sb-container'
+                            }
+                        };
+                        setTimeout( () => {
+                            this.context.change(descriptor);
+                        });
+                    }
+                }
+            }
+        };
+
+        this.context.change(descriptor);
+    }
+
+    /**
+     * Items are handled as descriptors.
+     * They always have a `route` property (if not, it is added and set to '/').
+     * And might have an additional `context` property.
+     * @param item
+     */
     public onSelectItem(item:any) {
         let descriptor:any = {};
 

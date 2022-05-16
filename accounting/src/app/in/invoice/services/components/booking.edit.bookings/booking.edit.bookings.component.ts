@@ -56,7 +56,7 @@ export class BookingEditBookingsComponent implements OnInit  {
   private model_fields = {
     BookingLineGroup: ["id", "booking_id", "name", "order", "has_pack", "pack_id", "price",
                       "is_locked", "is_autosale", "is_extra", "date_from", "date_to",
-                      "sojourn_type", "nb_pers", "nb_nights", "rate_class_id",
+                      "sojourn_type_id", "nb_pers", "nb_nights", "rate_class_id",
                       "booking_lines_ids", "accomodations_ids"]
   };
 
@@ -202,13 +202,13 @@ export class BookingEditBookingsComponent implements OnInit  {
       if(this.customer && this.customer.rate_class_id) {
         rate_class_id = this.customer.rate_class_id;
       }
-      let sojourn_type = (this.center.discount_list_category_id == 2)?'GG':'GA';
+      let sojourn_type_id = (this.center.discount_list_category_id == 1)?1/*GA*/ :2/*GG*/;
       const group:any = await this.api.create("lodging\\sale\\booking\\BookingLineGroup", {
         name: "Séjour " + this.center.name,
         order: this.groups.length + 1,
         booking_id: this.booking.id,
         rate_class_id: rate_class_id,
-        sojourn_type: sojourn_type,
+        sojourn_type_id: sojourn_type_id,
         date_from: this.booking.date_from,
         date_to: this.booking.date_to
       });
@@ -329,7 +329,7 @@ export class BookingEditBookingsComponent implements OnInit  {
         has_change = true;
       }
 
-      if(group.hasOwnProperty('sojourn_type') && group.sojourn_type != t_group.sojourn_type) {
+      if(group.hasOwnProperty('sojourn_type_id') && group.sojourn_type_id != t_group.sojourn_type_id) {
         await this.updateSojournType(group);
         refresh_requests.push('price');
         has_change = true;
@@ -435,10 +435,10 @@ export class BookingEditBookingsComponent implements OnInit  {
 
   private async updateSojournType(group:any) {
     console.log('BookingEditBookingsComponent::updateSojournType', group);
-    await this.api.update("lodging\\sale\\booking\\BookingLineGroup", [group.id], <any>{"sojourn_type": group.sojourn_type});
+    await this.api.update("lodging\\sale\\booking\\BookingLineGroup", [group.id], <any>{"sojourn_type_id": group.sojourn_type_id});
     // update local instance
     let t_group = this.groups.find( (element) => element.id == group.id);
-    t_group.sojourn_type = group.sojourn_type;
+    t_group.sojourn_type_id = group.sojourn_type_id;
   }
 
   private async updateOrder(group:any) {

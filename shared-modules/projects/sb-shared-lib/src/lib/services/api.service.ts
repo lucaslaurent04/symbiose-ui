@@ -374,7 +374,7 @@ export class ApiService {
       }
     }
 
-    this.snack.open(this.translate.instant('SB_ERROR_'+error), this.translate.instant('SB_ERROR_ERROR'));
+    this.snack.open(this.translate.instant('SB_ERROR_'+error), this.translate.instant('SB_ERROR_ERROR').toUpperCase());
   }  
 
 }

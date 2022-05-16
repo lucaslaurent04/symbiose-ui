@@ -56,7 +56,7 @@ export class BookingEditBookingsComponent implements OnInit  {
   private model_fields = {
     BookingLineGroup: ["id", "booking_id", "name", "order", "has_pack", "pack_id", "price",
                       "is_locked", "is_autosale", "is_extra", "date_from", "date_to",
-                      "sojourn_type", "nb_pers", "nb_nights", "rate_class_id",
+                      "sojourn_type_id", "nb_pers", "nb_nights", "rate_class_id",
                       "booking_lines_ids", "accomodations_ids"]
   };
 
@@ -162,7 +162,7 @@ export class BookingEditBookingsComponent implements OnInit  {
         }
 
         if(booking.center_id) {
-          let data:any = await this.api.read("lodging\\identity\\Center", [booking.center_id], ["id", "name", "code", "organisation_id", "discount_list_category_id"]);
+          let data:any = await this.api.read("lodging\\identity\\Center", [booking.center_id], ["id", "name", "code", "organisation_id", "sojourn_type_id"]);
           if(data && data.length) {
             this.center = data[0];
           }
@@ -193,41 +193,51 @@ export class BookingEditBookingsComponent implements OnInit  {
     this.vm.groups.folded[event.group_id] = event.status;
   }
 
-  private async groupAdd() {
-    console.log("group add");
+    private async groupAdd() {
+        console.log("BookingEditBookingsComponent::groupAdd", this.booking);
 
-    try {
-      let rate_class_id = 4;
-      // default rate class is the rate_class of the customer of the booking
-      if(this.customer && this.customer.rate_class_id) {
-        rate_class_id = this.customer.rate_class_id;
-      }
-      let sojourn_type = (this.center.discount_list_category_id == 2)?'GG':'GA';
-      const group:any = await this.api.create("lodging\\sale\\booking\\BookingLineGroup", {
-        name: "Séjour " + this.center.name,
-        order: this.groups.length + 1,
-        booking_id: this.booking.id,
-        rate_class_id: rate_class_id,
-        sojourn_type: sojourn_type,
-        date_from: this.booking.date_from,
-        date_to: this.booking.date_to
-      });
+        try {
+            let rate_class_id = 4;
+            // default rate class is the rate_class of the customer of the booking
+            if(this.customer && this.customer.rate_class_id) {
+                rate_class_id = this.customer.rate_class_id;
+            }
+            let sojourn_type_id = this.center.sojourn_type_id;
 
-      this.vm.groups.folded[group.id] = false;
+            let values:any = {
+                name: "Séjour " + this.center.name,
+                order: this.groups.length + 1,
+                booking_id: this.booking.id,
+                rate_class_id: rate_class_id,
+                sojourn_type_id: sojourn_type_id,
+                date_from: this.booking.date_from,
+                date_to: this.booking.date_to
+            };
 
-      let data = await this.loadGroups([group.id], this.model_fields['BookingLineGroup']);
+            if(this.booking.status != 'quote') {
+                values.name = "Suppléments";
+                values.is_extra = true;
+                values.date_from = new Date().toISOString();
+                values.date_to =  new Date().toISOString();
 
-      let item = new ReplaySubject(1);
-      this._groupOutput.push(item);
-      this.groups.push(data[0]);
-      item.next(data[0]);
-      // emit change to parent
-      //this.bookingOutput.next({booking_lines_groups_ids: groups_ids});
+            }
+            const group:any = await this.api.create("lodging\\sale\\booking\\BookingLineGroup", values);
+
+            this.vm.groups.folded[group.id] = false;
+
+            let data = await this.loadGroups([group.id], this.model_fields['BookingLineGroup']);
+
+            let item = new ReplaySubject(1);
+            this._groupOutput.push(item);
+            this.groups.push(data[0]);
+            item.next(data[0]);
+            // emit change to parent
+            //this.bookingOutput.next({booking_lines_groups_ids: groups_ids});
+        }
+        catch(response: any) {
+            this.api.errorFeedback(response);
+        }
     }
-    catch(response: any) {
-      this.api.errorFeedback(response);
-    }
-  }
 
   private async groupRemove(group:any) {
 
@@ -254,6 +264,7 @@ export class BookingEditBookingsComponent implements OnInit  {
       let index = this.groups.findIndex( (element) => element.id == group.id);
       this.groups.splice(index, 1);
       this._groupOutput.splice(index, 1);
+        this.bookingOutput.next({id: this.booking.id, refresh: ['price']});
     }
     catch(response) {
       this.api.errorFeedback(response);
@@ -329,7 +340,7 @@ export class BookingEditBookingsComponent implements OnInit  {
         has_change = true;
       }
 
-      if(group.hasOwnProperty('sojourn_type') && group.sojourn_type != t_group.sojourn_type) {
+      if(group.hasOwnProperty('sojourn_type') && group.sojourn_type_id != t_group.sojourn_type_id) {
         await this.updateSojournType(group);
         refresh_requests.push('price');
         has_change = true;
@@ -435,10 +446,10 @@ export class BookingEditBookingsComponent implements OnInit  {
 
   private async updateSojournType(group:any) {
     console.log('BookingEditBookingsComponent::updateSojournType', group);
-    await this.api.update("lodging\\sale\\booking\\BookingLineGroup", [group.id], <any>{"sojourn_type": group.sojourn_type});
+    await this.api.update("lodging\\sale\\booking\\BookingLineGroup", [group.id], <any>{"sojourn_type_id": group.sojourn_type_id});
     // update local instance
     let t_group = this.groups.find( (element) => element.id == group.id);
-    t_group.sojourn_type = group.sojourn_type;
+    t_group.sojourn_type_id = group.sojourn_type_id;
   }
 
   private async updateOrder(group:any) {

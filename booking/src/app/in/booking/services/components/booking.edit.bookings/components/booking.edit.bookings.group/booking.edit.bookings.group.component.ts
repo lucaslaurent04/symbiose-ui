@@ -46,7 +46,7 @@ interface vmModel {
     change:         () => void
   },
   sojourn_type: {
-    value:          'GG',
+    value:          string,
     change:         (event:any) => void
   },
   pack: {
@@ -345,8 +345,8 @@ export class BookingEditBookingsGroupComponent implements OnInit  {
           this.vm.participants_count.formControl.setValue(group.nb_pers);
         }
 
-        if(group.sojourn_type) {
-          this.vm.sojourn_type.value = group.sojourn_type;
+        if(group.sojourn_type_id) {
+          this.vm.sojourn_type.value = (group.sojourn_type_id == 1)?'GA':'GG';
         }
 
         if(group.date_from) {
@@ -692,7 +692,7 @@ export class BookingEditBookingsGroupComponent implements OnInit  {
   private sojournTypeChange(event:any) {
     this.vm.sojourn_type.value = event.value;
     // relay change to parent component
-    this.groupOutput.next({id: this.group.id, sojourn_type: this.vm.sojourn_type.value, refresh: { self: ['price', 'booking_lines_ids'], booking_id: ['price'] }});
+    this.groupOutput.next({id: this.group.id, sojourn_type_id: (this.vm.sojourn_type.value == 'GA')?1:2, refresh: { self: ['price', 'booking_lines_ids'], booking_id: ['price'] }});
   }
 
   private rateClassChange(event:any) {

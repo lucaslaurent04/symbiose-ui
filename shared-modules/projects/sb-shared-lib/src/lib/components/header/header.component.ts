@@ -11,8 +11,10 @@ export class HeaderComponent implements OnInit {
     @Output() toggleBar = new EventEmitter();
     @Input() section: string;
     @Input() items: any[];
+    @Input() action: string;    
     @Input() i18n: any;
     @Output() select = new EventEmitter<any>();
+    @Output() onAction = new EventEmitter<any>();    
 
     date: Date = new Date();
     constructor(private router: Router) { }
@@ -28,6 +30,9 @@ export class HeaderComponent implements OnInit {
         this.toggleBar.emit();
     }
 
+    public doAction() {
+        this.onAction.emit();
+    }
 
     public onSelectItem(item:any) {
         console.log('onclick', item);

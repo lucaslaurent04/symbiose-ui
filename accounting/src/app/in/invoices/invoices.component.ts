@@ -24,7 +24,7 @@ export class InvoicesComponent implements OnInit, AfterViewInit, OnDestroy {
     private default_descriptor: any = {
         // route is current ng route
         context: {
-            entity: 'lodging\\sale\\booking\\Booking',
+            entity: 'lodging\\sale\\booking\\Invoice',
             view: "list.default",
             order: "id",
             sort: "desc"
@@ -43,7 +43,7 @@ export class InvoicesComponent implements OnInit, AfterViewInit, OnDestroy {
         this.context.setTarget('#sb-container');
         const descriptor = this.context.getDescriptor();
         if(!Object.keys(descriptor.context).length) {
-            console.log('BookingComponent : requesting change', this.default_descriptor);
+            console.log('InvoicesComponent : requesting change', this.default_descriptor);
             this.context.change(this.default_descriptor);
         }
 
@@ -54,12 +54,13 @@ export class InvoicesComponent implements OnInit, AfterViewInit, OnDestroy {
         console.log('InvoicesComponent::ngOnInit');
 
         this.context.ready.subscribe( (ready:boolean) => {
+            console.log('InvoicesComponent:: received context ready', ready);
             this.ready = ready;
         });
 
         // once view is ready, subscribe to route changes
         this.route.params.subscribe( async (params:any) => {
-            // no params for this route(/bookings)
+            // no params for this route (/invoices)
         });
 
         // if no context or all contexts have been closed, re-open default context (wait for route init)

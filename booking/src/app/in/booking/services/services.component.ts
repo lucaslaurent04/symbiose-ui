@@ -68,6 +68,7 @@ export class BookingServicesComponent implements OnInit, AfterViewInit  {
     'validated': 'Validée',
     'checkedin': 'En cours',
     'checkedout': 'Terminée',
+    'invoiced': 'Facturée',    
     'debit_balance': 'Solde débiteur',
     'credit_balance': 'Solde créditeur',
     'balanced': 'Soldée'

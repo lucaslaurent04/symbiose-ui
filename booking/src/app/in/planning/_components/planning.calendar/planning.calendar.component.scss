@@ -7,6 +7,7 @@
     height: 100%;
 
     .container {
+        position: relative;
         overflow-y: scroll;
         overflow-x: hidden;
         height: calc(100% - 90px);
@@ -48,7 +49,8 @@
 
 
     table.cal-table {
-
+        position: relative;
+        z-index: 1;
         table-layout: fixed;
         border-spacing: 0;
         width: 100%;
@@ -58,9 +60,11 @@
         border-right: solid 1px #e0e0e0;
         border-bottom: solid 1px #e0e0e0;
 
+        background-color: transparent;
         tbody {
             position: relative;
             transform: translateZ(0);
+            background-color: transparent;
         }
 
         .stat-column {
@@ -186,6 +190,7 @@
 
     tr.rows td.cell-days {
         position: relative;
+        background-color: transparent;
 
         .cell-overlay {
             position: absolute; 
@@ -266,10 +271,10 @@
 
 
     tr.rows {
-        height: 35px;
+        height: 30px;
     }
 
-    tr.rows:hover {
+    tr.rows.highlight {
         background-color: #e0e0e0;
     }
 

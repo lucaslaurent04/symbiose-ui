@@ -33,6 +33,7 @@ export class PlanningCalendarComponent implements OnInit, AfterViewInit, AfterVi
     // attach DOM element to compute the cells width
     @ViewChild('calTable') calTable: any;
     @ViewChild('calTableRefColumn') calTableRefColumn: any;
+    @ViewChild('selector') selector: any;
 
     @ViewChildren("calTableHeadCells") calTableHeadCells: QueryList<ElementRef>;
 
@@ -150,10 +151,28 @@ export class PlanningCalendarComponent implements OnInit, AfterViewInit, AfterVi
         }
         return result.map( (o:any) => o.type);
     }
-
+hover_row_index = -1;
     private async onFiltersChange() {
-
         this.createHeaderDays();
+
+        try {
+            const domain: any[] = [...this.params.rental_units_filter];
+            domain.push(["center_id", "in",  this.params.centers_ids]);
+            const rental_units = await this.api.collect(
+                "lodging\\realestate\\RentalUnit",
+                domain,
+                Object.getOwnPropertyNames(new RentalUnit()),
+                'name', 'asc', 0, 500
+            );
+            if(rental_units) {
+                this.rental_units = rental_units;
+                console.log(rental_units);
+            }
+        }
+        catch(response) {
+            console.warn('unable to fetch rental units');
+        }
+
 
         if(this.params.centers_ids.length <= 0) {
             this.loading = false;
@@ -191,21 +210,7 @@ export class PlanningCalendarComponent implements OnInit, AfterViewInit, AfterVi
             console.warn('unable to fetch holidays');
         }
 
-        try {
-            const rental_units = await this.api.collect(
-                "lodging\\realestate\\RentalUnit",
-                ["center_id", "in",  this.params.centers_ids],
-                Object.getOwnPropertyNames(new RentalUnit()),
-                'name', 'asc', 0, 500
-            );
-            if(rental_units) {
-                this.rental_units = rental_units;
-                console.log(rental_units);
-            }
-        }
-        catch(response) {
-            console.warn('unable to fetch rental units');
-        }
+
 
         try {
 
@@ -315,11 +320,123 @@ export class PlanningCalendarComponent implements OnInit, AfterViewInit, AfterVi
         }
         else {
             this.hovered_holidays = undefined;
-        }        
+        }
     }
 
     public onhoverRentalUnit(rental_unit: any) {
         this.hovered_rental_unit = rental_unit;
     }
 
+
+
+    public selection =  {
+        is_active: false,
+        left: 0,
+        top: 0,
+        width: 0,
+        height: 0,
+        cell_from: {
+            left: 0,
+            width: 0,
+            rental_unit: {},
+            date: {}
+        },
+        cell_to: {
+            date: new Date()
+        }
+    };
+
+    public onmouseup() {
+
+        if(this.selection.is_active) {
+            // make from and to right
+            let rental_unit:any = this.selection.cell_from.rental_unit;
+            let from:any = this.selection.cell_from;
+            let to:any = this.selection.cell_to;
+            if(this.selection.cell_to.date < this.selection.cell_from.date) {
+                from = this.selection.cell_to;
+                to = this.selection.cell_from;
+            }
+            // check selection for existing consumption
+            let valid = true;
+            let diff = (<Date>this.selection.cell_to.date).getTime() - (<Date>this.selection.cell_from.date).getTime();
+            let days = Math.abs(Math.floor(diff / (60*60*24*1000)))+1;
+            // do not check last day : overlapse is allowed if checkout is before checkin
+            for (let i = 0; i < days-1; i++) {
+                let currdate = new Date(from.date.getTime());
+                currdate.setDate(currdate.getDate() + i);
+
+                if(this.hasConsumption(rental_unit, currdate)) {
+                    console.log("consumption found");
+                    valid = false;
+                    break;
+                }
+            }
+            if(!valid){
+                this.selection.is_active = false;
+                this.selection.width = 0;        
+            }
+            else {
+                console.log('selection is valid', from.rental_unit, from.date, to.date);
+
+                // open dialog for requesting action
+
+                this.selection.is_active = false;
+                this.selection.width = 0;        
+
+            }
+        }
+        else {
+            this.selection.is_active = false;
+            this.selection.width = 0;
+        }
+
+    }
+
+    public onmousedown($event: any, rental_unit: any, day: any) {
+
+        let table = this.calTable.nativeElement.getBoundingClientRect();
+        let cell = $event.target.getBoundingClientRect();
+
+        this.selection.top = cell.top - table.top;
+        this.selection.left = cell.left - table.left + this.calTable.nativeElement.offsetLeft;
+
+        this.selection.width = cell.width;
+        this.selection.height = cell.height;
+
+        this.selection.cell_from.left = this.selection.left;
+        this.selection.cell_from.width = cell.width;
+        this.selection.cell_from.date = day;
+        this.selection.cell_from.rental_unit = rental_unit;
+
+        this.selection.is_active = true;
+    }
+
+    public onmouseover($event: any, day:any) {
+        if(this.selection.is_active) {
+            // selection entre le départ et la case en cours
+            let table = this.calTable.nativeElement.getBoundingClientRect();
+            let cell = $event.target.getBoundingClientRect();
+
+            this.selection.cell_to.date = day;
+
+            // diff entre les deux dates
+            let diff = (<Date>this.selection.cell_to.date).getTime() - (<Date>this.selection.cell_from.date).getTime();
+            let days = Math.abs(Math.floor(diff / (60*60*24*1000)))+1;
+
+            this.selection.width = this.selection.cell_from.width * days
+
+            if(this.selection.cell_from.date > this.selection.cell_to.date) {
+                this.selection.left = cell.left - table.left + this.calTable.nativeElement.offsetLeft;
+            }
+            else {
+                this.selection.left = this.selection.cell_from.left;
+            }
+        }
+
+    }
+
+    public preventDrag($event:any) {
+        $event.preventDefault();
+    }
 }

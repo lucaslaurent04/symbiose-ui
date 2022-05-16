@@ -60,7 +60,10 @@ export class BookingFundingInvoiceComponent implements OnInit, AfterContentInit 
     public customer: any = new Partner();
     public payer: any = new Partner();
 
-    public payment_terms: any = {};
+    public payment_terms: any = {
+        "id": 1,
+        "name": "default"
+    };
 
     public bookingControl:FormControl;
     public fundingControl:FormControl;
@@ -208,7 +211,6 @@ export class BookingFundingInvoiceComponent implements OnInit, AfterContentInit 
     }
 
     public selectPayementTerms(event:any) {
-        console.log('payment terms selected', event);
         this.payment_terms = event;
     }
 

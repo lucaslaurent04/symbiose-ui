@@ -42,6 +42,8 @@ export class BookingApiService {
   public create(entity:string, fields:any = {}) {
     console.log('BookingApiService::create', this.booking);
 
+    return this.api.create(entity, fields);
+
     if(this.booking.status != 'quote') {
       return new Promise( (resolve, reject) => reject({error: {errors: { INVALID_STATUS: true}}}) );
     }
@@ -72,7 +74,9 @@ export class BookingApiService {
    */
   public update(entity:string, ids:number[], values:{}, force: boolean=false) {
     console.log('BookingApiService::update', this.booking);
-  
+
+    return this.api.update(entity, ids, values, force);  
+
     if(this.booking.status != 'quote') {
       return new Promise( (resolve, reject) => reject({error: {errors: { INVALID_STATUS: true}}}) );
     }
@@ -91,6 +95,8 @@ export class BookingApiService {
    */
   public remove(entity:string, ids:any[], permanent:boolean=false) {
     console.log('BookingApiService::remove', this.booking);
+
+    return this.api.remove(entity, ids, permanent)
 
     if(this.booking.status != 'quote') {
       return new Promise( (resolve, reject) => reject({error: {errors: { INVALID_STATUS: true}}}) );
@@ -152,6 +158,7 @@ export class BookingApiService {
 
   public errorFeedback(response: any) {
     
+
     let error:string = 'UNKNOWN';
 
     if(response && response.hasOwnProperty('error') && response['error'].hasOwnProperty('errors')) {
@@ -164,7 +171,21 @@ export class BookingApiService {
         error = 'INVALID_PARAM';
         if(errors['INVALID_PARAM'] == 'maximum_size_exceeded') {
           error = 'MAXIMUM_SIZE_EXCEEDED';
-        }        
+        }
+
+        if(typeof errors['INVALID_PARAM'] == 'object') {
+            for(let field in errors['INVALID_PARAM']) {
+                let error_id:string = <string> String((Object.keys(errors['INVALID_PARAM'][field]))[0]);
+                let msg:string = <string>(Object.values(errors['INVALID_PARAM'][field]))[0];
+                let translated_error = this.translate.instant('SB_ERROR_'+error_id.toUpperCase());
+                if(translated_error.length) {
+                    msg = translated_error;
+                }
+                this.snack.open(field+': '+msg, this.translate.instant('SB_ERROR_ERROR').toUpperCase());
+                return;                            
+            }
+        }
+
       }
       else if(errors.hasOwnProperty('NOT_ALLOWED')) {
         error = 'NOT_ALLOWED';
@@ -174,7 +195,7 @@ export class BookingApiService {
       }
     }
 
-    this.snack.open(this.translate.instant('SB_ERROR_'+error), this.translate.instant('SB_ERROR_ERROR'));
+    this.snack.open(this.translate.instant('SB_ERROR_'+error), this.translate.instant('SB_ERROR_ERROR').toUpperCase());
   }
 
 }

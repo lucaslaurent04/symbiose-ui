@@ -108,6 +108,13 @@
     border-radius: 50em;
 }
 
+.navbar-action {
+    margin-left: auto;
+    text-transform: uppercase;
+    margin-right: 20px;
+}
+
 .navbar-date {
-    margin-left: auto; 
+    display: block;
+    margin-left: none; 
 }

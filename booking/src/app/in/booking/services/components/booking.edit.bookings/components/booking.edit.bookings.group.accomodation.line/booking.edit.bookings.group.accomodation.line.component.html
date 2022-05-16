@@ -31,7 +31,7 @@
   <mat-form-field style="max-width: 100px;">
     <mat-label>Quantité</mat-label>
     <input  type="number"
-            min="0"
+            min="1"
             matInput
             (blur)="vm.qty.change($event)"
             [formControl]="vm.qty.formControl" >

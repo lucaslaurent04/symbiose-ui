@@ -16,69 +16,81 @@ import {animate, state, style, transition, trigger} from '@angular/animations';
   ]
 })
 export class MenuListItemComponent implements OnInit {
-  public expanded: boolean = false;
-  @HostBinding('attr.aria-expanded') ariaExpanded = this.expanded;
-  @Input() item: any = {};
-  @Input() depth: number;
-  @Input() i18n: any;
-  @Output() select = new EventEmitter<any>();
-  @Output() toggle = new EventEmitter<any>();
+    @Input() item: any = {};
+    @Input() depth: number;
+    @Input() i18n: any;
+    @Output() select = new EventEmitter<any>();
+    @Output() toggle = new EventEmitter<any>();
 
-  constructor() {
-    if (this.depth === undefined) {
-      this.depth = 0;
-    }
-  }
+    public expanded: boolean = false;    
 
-  ngOnInit() {
-
-  }
-
-  public onItemToggle(item: any) {
-    // if item is expanded, fold siblings, if any
-    if(item.expanded) {
-      // make sure item is visible
-      item.hidden = false;
-      if(this.item.children) {
-        for(let sibling of this.item.children) {
-          if(item != sibling) {
-            sibling.hidden = true;
-            sibling.expanded = false;
-          }
+    constructor() {
+        if (this.depth === undefined) {
+            this.depth = 0;
         }
-      }
-      // and that children are visible but not expanded
-      if(item.children) {
-        for(let sibling of item.children) {
-          sibling.hidden = false;
-          sibling.expanded = false;
-        }
-      }
     }
-    // if item is folded, make sure all sibling are visible
-    else {
-      if(this.item.children) {
-        for(let sibling of this.item.children) {
-          sibling.hidden = false;
-          if(sibling.children) {
-            for(let subitem of sibling.children) {
-              subitem.expanded = false;
-              subitem.hidden = true;
+
+    ngOnInit() {
+    }
+
+    public onItemToggle(item: any) {
+        // if item is expanded, fold siblings, if any
+        if(item.expanded) {
+            // make sure item is visible
+            item.hidden = false;
+            if(this.item.children) {
+                for(let child of this.item.children) {
+                    if(item != child) {
+                        child.hidden = true;
+                        child.expanded = false;
+                        child.selected = false;
+                    }
+                }
             }
-          }
+            // and that children are visible but not expanded
+            if(item.children) {
+                for(let child of item.children) {
+                    child.hidden = false;
+                    child.expanded = false;
+                }
+            }
         }
-      }
+        // if item is folded, make sure all sibling are visible
+        else {
+            if(this.item.children) {
+                for(let child of this.item.children) {
+                    child.hidden = false;
+                    child.selected = false;
+                    if(child.children) {
+                        for(let subitem of child.children) {
+                            subitem.expanded = false;
+                            subitem.hidden = true;
+                        }
+                    }
+                }
+            }
+        }
     }
-  }
 
-  public onItemSelected(item: any) {
-    if (item.type == 'entry') {
-      this.select.emit(item);
+    public onItemSelected(item: any) {
+        if (item.type == 'entry') {
+            this.select.emit(item);
+        }
+        else if (item.children && item.children.length) {
+            let is_child_open = false;
+            for(let child of item.children) {
+                if(child.expanded) {
+                    is_child_open = true;
+                }
+            }
+            if(!is_child_open) {
+                item.expanded = !item.expanded;
+                this.toggle.emit(item);            
+            }
+            else {
+                this.onItemToggle(item);
+            }
+        }
     }
-    else if (item.children && item.children.length) {
-        item.expanded = !item.expanded;
-        this.toggle.emit(item);
-    }
-  }
 
 }

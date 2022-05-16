@@ -17,6 +17,7 @@ export class CalendarParamService {
     // duration in days
     private _duration: number;
     private _centers_ids: number[];
+    private _rental_units_filter: any[];
 
     // timeout handler for debounce
     private timeout: any;
@@ -32,7 +33,7 @@ export class CalendarParamService {
      * Current state according to instant values of the instance.
      */
     private getState():string {
-        return this._date_from.getTime() + this._date_to.getTime() + this._centers_ids.toString();
+        return this._date_from.getTime() + this._date_to.getTime() + this._centers_ids.toString() + JSON.stringify(this._rental_units_filter);
     }
 
     private treatAsUTC(date:Date): Date {
@@ -48,14 +49,13 @@ export class CalendarParamService {
         // add a debounce in case range is updated several times in a row
         this.timeout = setTimeout( () => {
             console.log('update', this._date_from, this._date_to);
-            this.timeout = undefined;            
+            this.timeout = undefined;
             const new_state = this.getState();
             if(new_state != this.state) {
                 this.state = new_state;
                 this._duration = Math.abs(this.treatAsUTC(this._date_to).getTime() - this.treatAsUTC(this._date_from).getTime()) / millisecondsPerDay;
                 this.observable.next(this.state);
             }
-
         }, 150);
     }
 
@@ -65,6 +65,7 @@ export class CalendarParamService {
         this._date_to = new Date(this._date_from.getTime());
         this._date_to.setDate(this._date_from.getDate() + this._duration);
         this._centers_ids = [];
+        this._rental_units_filter = [['can_rent', '=', true]];
         this.state = this.getState();
     }
 
@@ -87,6 +88,11 @@ export class CalendarParamService {
         this.updateRange();
     }
 
+    public set rental_units_filter(filter: any[]) {
+        this._rental_units_filter = filter;
+        this.updateRange();
+    }
+
     public get centers_ids(): number[] {
         return this._centers_ids;
     }
@@ -101,6 +107,10 @@ export class CalendarParamService {
 
     public get duration(): number {
         return this._duration;
+    }
+
+    public get rental_units_filter(): any[] {
+        return this._rental_units_filter;
     }
 
 }
