@@ -1,4 +1,4 @@
-<div class="container" [class.hidden]="showSbContainer">
+<div class="container">
     <div class="booking-header">Réservation <small>[{{booking.name}} - {{booking.id}}]</small> <span> › </span> Services réservés</div>
     <div class="booking-body">
 
@@ -10,10 +10,8 @@
         </div>
 
         <div>
-            <booking-edit-bookings [bookingInput]="_bookingOutput" [bookingOutput]="_bookingInput"></booking-edit-bookings>
+            <booking-services-booking [booking_id]="booking_id"></booking-services-booking>
         </div>
 
     </div>
 </div>
-
-<div id="sb-booking-container" class="sb-container"></div>

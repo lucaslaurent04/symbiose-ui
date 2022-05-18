@@ -12,35 +12,12 @@ import { Observable, BehaviorSubject, ReplaySubject } from 'rxjs';
 import { find, map, startWith, debounceTime, switchMap } from 'rxjs/operators';
 
 
-/*
-This is a SmartComponent.
-
-Sub-components are in charge of:
- * loading sub-objects required for displaying the values related to the current booking.
- * creating sub-objects when required
- * send data update notifications to this component
-
-Smart components are in charge of updating the model.
-
-*/
-
 class Booking {
   constructor(
     public id: number = 0,
     public name: string = '',
     public created: Date = new Date(),
-    public date_from: Date = new Date(),
-    public date_to: Date = new Date(),
-    public price: number = 0,
-    public status: string = '',
-    public customer_id: number = 0,
-    public has_payer_organisation: boolean = false,
-    public payer_organisation_id: number = 0,
-    public center_id: number = 0,
-    public type_id = 0,
-    public description: string = '',
-    public contacts_ids: Array<number> = [],
-    public booking_lines_groups_ids: Array<number> = []
+    public status: string = ''
   ) {}
 }
 
@@ -53,12 +30,7 @@ class Booking {
 export class BookingServicesComponent implements OnInit, AfterViewInit  {
 
   public booking: any = new Booking();
-  public id: number = 0;
-
-  public _bookingInput:  ReplaySubject<any> = new ReplaySubject(1);
-  public _bookingOutput: ReplaySubject<any> = new ReplaySubject(1);
-
-  public showSbContainer: boolean = false;
+  public booking_id: number = 0;
 
 
   public status:any = {
@@ -92,31 +64,17 @@ export class BookingServicesComponent implements OnInit, AfterViewInit  {
    * Set up callbacks when component DOM is ready.
    */
   public ngAfterViewInit() {
-    // _open and _close event are relayed by eqListener on the DOM node given as target when a context is requested
-    // #sb-booking-container is defined in booking.edit.component.html
-    $('#sb-booking-container').on('_close', (event, data) => {
-      this.zone.run( () => {
-        this.showSbContainer = false;
-      });
-    });
-    $('#sb-booking-container').on('_open', (event, data) => {
-      this.zone.run( () => {
-        this.showSbContainer = true;
-      });
-    });
   }
 
   public ngOnInit() {
     console.log('BookingEditComponent init');
 
-    // listen to changes relayed by children component on the _bookingInput observable
-    this._bookingInput.subscribe(params => this.update(params));
 
     // fetch the booking ID from the route
     this.route.params.subscribe( async (params) => {
       console.log('BookingEditComponent : recevied routeParams change', params);
       if(params && params.hasOwnProperty('booking_id')) {
-        this.id = <number> params['booking_id'];
+        this.booking_id = <number> params['booking_id'];
 
         try {
           // load booking object
@@ -125,8 +83,7 @@ export class BookingServicesComponent implements OnInit, AfterViewInit  {
           for(let field of Object.keys(data)) {
             this.booking[field] = data[field];
           }
-          // relay to children
-          this._bookingOutput.next(this.booking);
+
           // assign booking to Booking API service (for conditionning calls)
           this.api.setBooking(this.booking);
 
@@ -137,7 +94,7 @@ export class BookingServicesComponent implements OnInit, AfterViewInit  {
               entity: 'lodging\\sale\\booking\\Booking',
               type: 'form',
               purpose: 'view',
-              domain: ['id', '=', this.id]
+              domain: ['id', '=', this.booking_id]
             }
           });
         }
@@ -154,7 +111,7 @@ export class BookingServicesComponent implements OnInit, AfterViewInit  {
    *
    */
   private async load(fields:any) {
-    const result:any = await this.api.read("lodging\\sale\\booking\\Booking", [this.id], fields);
+    const result:any = await this.api.read("lodging\\sale\\booking\\Booking", [this.booking_id], fields);
     if(result && result.length) {
       return result[0];
     }
@@ -198,8 +155,7 @@ export class BookingServicesComponent implements OnInit, AfterViewInit  {
         for(let field of Object.keys(data)) {
           this.booking[field] = data[field];
         }
-        // notify children
-        this._bookingOutput.next(this.booking);
+
         return;
       }
 
@@ -251,8 +207,6 @@ export class BookingServicesComponent implements OnInit, AfterViewInit  {
         for(let field of Object.keys(data)) {
           this.booking[field] = data[field];
         }
-        // relay changes to children components
-        this._bookingOutput.next(this.booking);
         // notify User
         this.snack.open("Réservation mise à jour");
       }
@@ -297,12 +251,12 @@ export class BookingServicesComponent implements OnInit, AfterViewInit  {
 
   private async updateCustomer(customer_id:number) {
     console.log('BookingEditComponent::updateCustomer', customer_id);
-    await this.api.update("lodging\\sale\\booking\\Booking", [this.id], <any>{"customer_id": customer_id});
+    await this.api.update("lodging\\sale\\booking\\Booking", [this.booking_id], <any>{"customer_id": customer_id});
   }
 
   private async updateDescription(description:string) {
     console.log('BookingEditComponent::updateDescription', description);
-    await this.api.update("lodging\\sale\\booking\\Booking", [this.id], <any>{"description": description});
+    await this.api.update("lodging\\sale\\booking\\Booking", [this.booking_id], <any>{"description": description});
   }
 
   private async updatePayer(payer_organisation_id:number) {
@@ -318,18 +272,18 @@ export class BookingServicesComponent implements OnInit, AfterViewInit  {
       values.payer_organisation_id = payer_organisation_id;
     }
 
-    await this.api.update("lodging\\sale\\booking\\Booking", [this.id], values);
+    await this.api.update("lodging\\sale\\booking\\Booking", [this.booking_id], values);
   }
 
 
   private async updateCenter(center_id:number) {
     console.log('BookingEditComponent::updateCenter', center_id);
-    await this.api.update("lodging\\sale\\booking\\Booking", [this.id], <any>{"center_id": center_id});
+    await this.api.update("lodging\\sale\\booking\\Booking", [this.booking_id], <any>{"center_id": center_id});
   }
 
   private async updateType(type_id:number) {
     console.log('BookingEditComponent::updateType', type_id);
-    await this.api.update("lodging\\sale\\booking\\Booking", [this.id], <any>{"type_id": type_id});
+    await this.api.update("lodging\\sale\\booking\\Booking", [this.booking_id], <any>{"type_id": type_id});
   }
 
 

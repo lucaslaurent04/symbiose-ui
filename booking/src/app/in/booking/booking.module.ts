@@ -9,12 +9,12 @@ import { BookingRoutingModule } from './booking-routing.module';
 import { BookingComponent } from './booking.component';
 import { BookingServicesComponent, BookingUpdateDialogConfirm, BookingDeletionDialogConfirm } from './services/services.component';
 
-import { BookingEditBookingsComponent } from './services/components/booking.edit.bookings/booking.edit.bookings.component';
-import { BookingEditBookingsGroupComponent } from './services/components/booking.edit.bookings/components/booking.edit.bookings.group/booking.edit.bookings.group.component';
-import { BookingEditBookingsGroupLineComponent } from './services/components/booking.edit.bookings/components/booking.edit.bookings.group.line/booking.edit.bookings.group.line.component';
-import { BookingEditBookingsGroupLineDiscountComponent } from './services/components/booking.edit.bookings/components/booking.edit.bookings.group.line.discount/booking.edit.bookings.group.line.discount.component';
-import { BookingEditBookingsGroupAccomodationComponent } from './services/components/booking.edit.bookings/components/booking.edit.bookings.group.accomodation/booking.edit.bookings.group.accomodation.component';
-import { BookingEditBookingsGroupAccomodationLineComponent } from './services/components/booking.edit.bookings/components/booking.edit.bookings.group.accomodation.line/booking.edit.bookings.group.accomodation.line.component';
+import { BookingServicesBookingComponent } from './services/_components/booking/booking.component';
+import { BookingServicesBookingGroupComponent } from './services/_components/booking/_components/group/group.component';
+import { BookingServicesBookingGroupLineComponent } from './services/_components/booking/_components/group/_components/line/line.component';
+import { BookingServicesBookingGroupAccomodationComponent } from './services/_components/booking/_components/group/_components/accomodation/accomodation.component';
+import { BookingServicesBookingGroupAccomodationAssignmentComponent } from './services/_components/booking/_components/group/_components/accomodation/_components/assignment.component';
+import { BookingServicesBookingGroupLineDiscountComponent } from './services/_components/booking/_components/group/_components/line/_components/discount/discount.component';
 
 import { BookingCompositionComponent, BookingCompositionDialogConfirm } from './composition/composition.component';
 import { BookingCompositionLinesComponent } from './composition/components/booking.composition.lines/booking.composition.lines.component';
@@ -31,10 +31,9 @@ import { BookingInvoiceComponent } from './invoice/invoice.component';
   ],
   declarations: [
     BookingComponent, BookingServicesComponent, BookingUpdateDialogConfirm, BookingDeletionDialogConfirm,
-    BookingEditBookingsComponent, 
-    BookingEditBookingsGroupComponent, 
-    BookingEditBookingsGroupAccomodationComponent, BookingEditBookingsGroupAccomodationLineComponent,
-    BookingEditBookingsGroupLineComponent, BookingEditBookingsGroupLineDiscountComponent,
+    BookingServicesBookingComponent, BookingServicesBookingGroupComponent, 
+    BookingServicesBookingGroupLineComponent, BookingServicesBookingGroupAccomodationComponent, BookingServicesBookingGroupAccomodationAssignmentComponent,
+    BookingServicesBookingGroupLineDiscountComponent,
     BookingCompositionComponent, BookingCompositionDialogConfirm,
     BookingCompositionLinesComponent,
     BookingQuoteComponent, 
