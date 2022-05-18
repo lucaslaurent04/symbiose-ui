@@ -20,7 +20,7 @@
         / \
        *   *
       / \
-    *   *
+     *   *
 
     Each TreeComponent is a (partially) loaded object: either the root or a relational field.
     The fields returned by the server-model should match the view-model, defined in a TS class defined this way:
@@ -41,17 +41,17 @@
     }
     ```
 
-    In case an update is made within a TreeComponent, the component is in charge of: 
+    In case an update is made within a TreeComponent (node), it (the component) is in charge of: 
         * updating the server-model by sending a request to the back-end 
-        * relaying the event to its parent (trough `@output emit()`)
+        * relaying the event to its parent (trough `@output emit()`) (optionally this can be skipped is no change in display is expected)
+        * if the TreeComponent is the RootTreeComponent, it reloads the tree, using the load() method.
 
-    If the TreeComponent is the RootTreeComponent, it reloads the tree, using the load() method.
+    When the RootTreeComponent receives the response from the back-end, it passes the received object to its `update()` method.
+    The `update()` method is defined in the TreeComponent class (and is therefore common to all TreeComponent components), and can be overloaded by any TreeComponent.
 
-    When the RootTreeComponent received the response from the back-end, it passes the received object to its `update()` method.
-    The `update()` method is defined in the TreeComponent class (and is therefore common to all TreeComponent components) can be overloaded by any TreeComponent.
-
-    TreeComponents can implement two @output properties : `updated`and `deleted`
+    
     TreeComponents must implement a `model` @input property, defined this way : ```@Input() set model(values: any) { this.update(values) }```
+    In addition TreeComponents can implement two @output properties : `updated`and `deleted`
 
     When a TreeComponent receives a new model (from its `update()` method), it performs the following processing: 
         * simple fields are updated (which triggers the update of the bound widgets components)
@@ -60,7 +60,10 @@
             b) if an ID is present in the Server-model but not in the View-model, it is added to the view (created)
             c) if an ID is present in both Server-model and View-model, the subtree is passed to the `update()` method of th related TreeComponent
 
-    A TreeComponent that has sub-items, should implement the followoing features:
+    A TreeComponent that has sub-items, should implement a componentsMap for mapping relational fields with related sub-components.
+
+
+    Example:
 
     interface ItemComponentsMap {
         sub_items_ids: QueryList<SubItemComponent>
@@ -165,20 +168,26 @@ export class TreeComponent<I, T> implements TreeComponentInterface {
                 else {
                     // pass-1 - remove items not present anymore
                     // check items in local-model against server-model
-                    if(this.instance[field].length) {
-                        for(let i = this.instance[field].length-1; i >= 0; --i) {
-                            let line = this.instance[field][i];
-                            const found = values[field].find( (item:any) => item.id == line.id);
-                            // line not in server-model
-                            if(!found) {
-                                // remove line from local-model
-                                this.instance[field].splice(i, 1);
+                    if(Object.keys(this.instance[field]).length) {
+                        if(Object.keys(values[field]).length == 0) {
+                            // empty array or object
+                            this.instance[field] = values[field];
+                        }
+                        else {
+                            for(let i = this.instance[field].length-1; i >= 0; --i) {
+                                let line = this.instance[field][i];
+                                const found = values[field].find( (item:any) => item.id == line.id);
+                                // line not in server-model
+                                if(!found) {
+                                    // remove line from local-model
+                                    this.instance[field].splice(i, 1);
+                                }
                             }
                         }
                     }
                     // pass-2 - add missing items
                     // check items in server-model against local-model
-                    for(let i = 0; i < values[field].length; ++i) {
+                    for(let i = 0; i < Object.keys(values[field]).length; ++i) {
                         let value = values[field][i];
                         const found = this.instance[field].find( (item:any) => item.id == value.id);
                         // item not in local-model

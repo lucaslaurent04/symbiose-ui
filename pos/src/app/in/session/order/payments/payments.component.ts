@@ -19,9 +19,10 @@ interface OrderComponentsMap {
   styleUrls: ['payments.component.scss']
 })
 export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderComponentsMap> implements RootTreeComponent, OnInit, AfterViewInit {
-
-
     @ViewChildren(SessionOrderPaymentsOrderPaymentComponent) SessionOrderPaymentsOrderPaymentComponents: QueryList<SessionOrderPaymentsOrderPaymentComponent>; 
+
+    public ready: boolean = false;
+
     public posLineDisplay :any;
     public typeMode : any;
     public amount : any;
@@ -30,8 +31,7 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
     public selectedPaymentPart : number;
     public selectedOrderLine : number;
     public currentOrder : any;
-    public focus: string;
-    public ready: boolean = false;
+    public focus: string;    
     public due: number;
     public change: any;
     public session: CashdeskSession = new CashdeskSession();
@@ -56,8 +56,6 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
     }
 
     public ngOnInit() {
-        
-        
         // fetch the ID from the route
         this.route.params.subscribe( async (params) => {
             if(params && params.hasOwnProperty('session_id') && params.hasOwnProperty('order_id')) {

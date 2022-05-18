@@ -18,7 +18,7 @@ interface OrderComponentsMap {
 })
 export class SessionOrderLinesComponent extends TreeComponent<Order, OrderComponentsMap> implements RootTreeComponent, OnInit, AfterViewInit {
 
-    @ViewChildren(SessionOrderLinesOrderLineComponent) SessionOrderLinesOrderLineComponents: QueryList<SessionOrderLinesOrderLineComponent>; 
+    @ViewChildren(SessionOrderLinesOrderLineComponent) SessionOrderLinesOrderLineComponents: QueryList<SessionOrderLinesOrderLineComponent>;
 
     public ready: boolean = false;
 

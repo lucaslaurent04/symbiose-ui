@@ -172,7 +172,7 @@ export class AppSideMenuComponent implements OnInit {
                     }
                 }
 
-                // remember resolved args
+                // remember (un)resolved args
                 this.view_id = view_id;
                 this.object_id = object_id;
                 this.object_class = object_class;

@@ -61,14 +61,18 @@ export class SessionOrderPaymentsOrderPaymentComponent extends TreeComponent<Ord
         this.componentsMap = map;
     }
 
-public onclickOk() {
-    console.log(this.componentsMap.order_lines_ids);
-       console.log(this.SessionOrderPaymentsOrderLineComponents.toArray());
-}
+    public onclickOk() {
+        console.log(this.componentsMap.order_lines_ids);
+        console.log(this.SessionOrderPaymentsOrderLineComponents.toArray());
+    }
+
     public ngOnInit() {
         // init componentsMap
+        // ??
+        /*
         this.componentsMap = {
         };
+        */
         this.qty.valueChanges.subscribe( (value:number)  => this.instance.qty = value );
         this.unit_price.valueChanges.subscribe( (value:number)  => this.instance.unit_price = value );
     }
