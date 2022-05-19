@@ -73,10 +73,10 @@ export class AppsComponent implements OnInit {
 
     public async ngOnInit() {
         this.auth.getObservable().subscribe( (user:any) => {
+            this.user_apps = [];
+
             if(user.id > 0) {
                 this.user = user;
-
-                this.user_apps = [];
 
                 for(let app_name of Object.keys(this.apps)) {
                     let app = this.apps[app_name];
