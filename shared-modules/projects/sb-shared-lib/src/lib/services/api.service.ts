@@ -16,7 +16,11 @@ export class ApiService {
   private cache: any = {};
   private cache_validity: number = 1000; // cache validity in milliseconds
 
-  constructor(private http: HttpClient, private env:EnvService, private translate:TranslateService, private snack: MatSnackBar) {
+  constructor(
+    private http: HttpClient, 
+    private env:EnvService, 
+    private translate:TranslateService, 
+    private snack: MatSnackBar) {
   }
 
   /**
@@ -348,33 +352,39 @@ export class ApiService {
     return data;
   }
 
+  // #todo : move this to equal-ui or replicate equal translation svc
+  public async errorFeedback(response: any) {
+    if(response && response.hasOwnProperty('error') && response['error'].hasOwnProperty('errors') && Object.keys(response['error']['errors']).length) {
+        const errors: string[] = ['INVALID_STATUS', 'INVALID_PARAM', 'NOT_ALLOWED', 'CONFLICT_OBJECT'];        
+        let response_errors:any = response['error']['errors'];
 
+        for(let error of Object.keys(response_errors)) {
+            let value = response_errors[error];
 
-  public errorFeedback(response: any) {
-    // default to unknown error    
-    let error:string = 'UNKNOWN';
-
-    if(response && response.hasOwnProperty('error') && response['error'].hasOwnProperty('errors')) {
-      let errors = response['error']['errors'];
-
-      if(errors.hasOwnProperty('INVALID_STATUS')) {
-        error = 'INVALID_STATUS';
-      }
-      else if(errors.hasOwnProperty('INVALID_PARAM')) {
-        error = 'INVALID_PARAM';
-        if(errors['INVALID_PARAM'] == 'maximum_size_exceeded') {
-          error = 'MAXIMUM_SIZE_EXCEEDED';
-        }        
-      }
-      else if(errors.hasOwnProperty('NOT_ALLOWED')) {
-        error = 'NOT_ALLOWED';
-      }
-      else if(errors.hasOwnProperty('CONFLICT_OBJECT')) {
-        error = 'CONFLICT_OBJECT';
-      }
+            if(typeof value == 'object') {
+                for(let field in value) {
+                    let error_id:string = <string> String((Object.keys(value[field]))[0]);
+                    let msg:string = <string>(Object.values(value[field]))[0];
+                    let translated_error = this.translate.instant('SB_ERROR_'+error_id.toUpperCase());
+                    if(translated_error.length) {
+                        msg = translated_error;
+                    }
+                    this.snack.open(field+': '+msg, this.translate.instant('SB_ERROR_ERROR').toUpperCase());
+                    return;                            
+                }
+            }
+            else {
+                // handle special errors
+                if(value == 'maximum_size_exceeded') {
+                    error = 'MAXIMUM_SIZE_EXCEEDED';
+                }
+                this.snack.open(this.translate.instant('SB_ERROR_'+error), this.translate.instant('SB_ERROR_ERROR').toUpperCase());
+            }
+        }
     }
-
-    this.snack.open(this.translate.instant('SB_ERROR_'+error), this.translate.instant('SB_ERROR_ERROR').toUpperCase());
+    else {
+        this.snack.open(this.translate.instant('SB_ERROR_'+'UNKNOWN'), this.translate.instant('SB_ERROR_ERROR').toUpperCase());
+    }
   }  
 
 }
