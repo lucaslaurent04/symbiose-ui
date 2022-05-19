@@ -19,44 +19,44 @@ import { EnvService} from './env.service';
  * in the former, the User object will be populated with values reveived from the server.
  */
 export class AuthService {
-  readonly MAX_RETRIES = 2;
+    readonly MAX_RETRIES = 2;
 
-  // current User
-  private _user = new UserClass();
+    // current User
+    private _user = new UserClass();
 
-  // internal counter for preventing infinite-loop in case of server error
-  private retries = 0;
+    // internal counter for preventing infinite-loop in case of server error
+    private retries = 0;
 
-  // timestamp of last auth
-  public last_auth_time: number;
+    // timestamp of last auth
+    public last_auth_time: number;
 
-  private observable: ReplaySubject<any>;
+    private observable: ReplaySubject<any>;
 
 
-  // #todo - make this private
-  public get user(): any {
-    return this._user;
-  }
+    // #todo - make this private
+    public get user(): any {
+        return this._user;
+    }
 
-  private set user(user: any) {
-    this._user = {...this._user, ...user};
-    // notify subscribers
-    this.observable.next(this._user);
-  }
+    private set user(user: any) {
+        this._user = {...this._user, ...user};
+        // notify subscribers
+        this.observable.next(this._user);
+    }
 
-  public getObservable(): ReplaySubject<any> {
-    return this.observable;
-  }
+    public getObservable(): ReplaySubject<any> {
+        return this.observable;
+    }
 
-  public getUser(): UserClass {
-    return this._user;
-  }
+    public getUser(): UserClass {
+        return this._user;
+    }
 
-  
-  constructor(private http: HttpClient, private env:EnvService) {
-    this.observable = new ReplaySubject<any>(1);
-    this.last_auth_time = -1;
-  }
+
+    constructor(private http: HttpClient, private env:EnvService) {
+        this.observable = new ReplaySubject<any>(1);
+        this.last_auth_time = -1;
+    }
 
 
   /**
@@ -114,112 +114,102 @@ export class AuthService {
 
   }
 
-  /**
-   * Assert a user is member of a given group
-   */
-  public async hasGroup(group: string | number) {
-    let result = false;
-    if(typeof group == 'string') {
-      group = group.replace('*', '');
-    }
-    // get list of groups current user is assigned to
-    // check if given group is part of the array
-    if(this.user.groups_ids) {
-      for(let group_id in this.user.groups_ids) {
-        if(typeof group == 'number') {
-          if(this.user.groups_ids[group_id].id == group) {
-            result = true;
-            break;
-          }
+    /**
+     * Assert a user is member of a given group
+     */
+    public async hasGroup(group: string) {
+        let result = false;
+        const target_group = group.replace('*', '');
+        // get list of groups current user is assigned to        
+        if(this.user.groups) {
+            for(let group_name of this.user.groups) {
+                // check if given group is part of the array    
+                if(group_name.indexOf(target_group) === 0) {
+                    result = true;
+                    break;
+                }            
+            }
         }
-        else {
-          if(this.user.groups_ids[group_id].name.indexOf(group) === 0) {
-            result = true;
-            break;
-          }
+        return result;
+    }
+
+
+    public async signOut() {
+        // update local user object and notify subscribers
+        this.user = new UserClass();
+        const environment:any = await this.env.getEnv();
+        // send a request to remove the cookie and revoke access_token
+        return this.http.get<any>(environment.backend_url + '/?do=user_signout').toPromise();
+    }
+
+    /**
+     * Upon success, the response from the server should contain httpOnly cookies holding access_token and refresh_token.
+     *
+     * @param login string  email address of the user to log in
+     * @param password string untouched string of password given by user
+     *
+     * @returns Promise
+     * @throws HttpErrorResponse  HTTP error that occured during user login
+     */
+    public async signIn(login: string, password: string) {
+        try {
+            const environment:any = await this.env.getEnv();
+            const data = await this.http.get<any>(environment.backend_url+'/?do=user_signin', {
+                params: {
+                login: login,
+                password: password
+                }
+            })
+            .pipe(
+                catchError((response: HttpErrorResponse, caught: Observable<any>) => {
+                    throw response;
+                })
+            )
+            .toPromise();
+
+            // authentication will trigger router navigation within running controller
+            await this.authenticate();
         }
-      }
-    }
-    return result;
-  }
-
-
-  public async signOut() {
-    // update local user object and notify subscribers
-    this.user = new UserClass();
-    const environment:any = await this.env.getEnv();
-    // send a request to remove the cookie and revoke access_token
-    return this.http.get<any>(environment.backend_url + '/?do=user_signout').toPromise();
-  }
-
-  /**
-   * Upon success, the response from the server should contain httpOnly cookies holding access_token and refresh_token.
-   *
-   * @param login string  email address of the user to log in
-   * @param password string untouched string of password given by user
-   *
-   * @returns Promise
-   * @throws HttpErrorResponse  HTTP error that occured during user login
-   */
-  public async signIn(login: string, password: string) {
-    try {
-      const environment:any = await this.env.getEnv();
-      const data = await this.http.get<any>(environment.backend_url+'/?do=user_signin', {
-          params: {
-            login: login,
-            password: password
-          }
-      })
-      .pipe(
-        catchError((response: HttpErrorResponse, caught: Observable<any>) => {
-          throw response;
-        })
-      )
-      .toPromise();
-
-      // authentication will trigger router navigation within running controller
-      await this.authenticate();
-    }
-    catch(response) {
-      throw response;
-    }
-  }
-
-
-  /**
-   * @param email string  email address related to the account to recover
-   * @returns void
-   * @throws HttpErrorResponse  HTTP error that occured during user login
-   */
-  public async passRecover(email: string) {
-    const environment:any = await this.env.getEnv();
-    return this.http.get<any>(environment.backend_url+'/?do=user_pass-recover', {
-        params: {
-            email: email
+        catch(response) {
+            throw response;
         }
-    }).toPromise();
-  }
+    }
 
-  /**
-   * Upon success an new acces token is received as httpOnly cookie (and stored by the browser). Otherwise no change is made.
-   *
-   * @returns Promise
-   * @throws HttpErrorResponse  HTTP error that occured during user login
-   */
-  private async refreshToken() {
-      try {
+
+    /**
+     * @param email string  email address related to the account to recover
+     * @returns void
+     * @throws HttpErrorResponse  HTTP error that occured during user login
+     */
+    public async passRecover(email: string) {
+        const environment:any = await this.env.getEnv();
+        return this.http.get<any>(environment.backend_url+'/?do=user_pass-recover', {
+            params: {
+                email: email
+            }
+        }).toPromise();
+    }
+
+    /**
+     * Upon success an new acces token is received as httpOnly cookie (and stored by the browser). Otherwise no change is made.
+     *
+     * @returns Promise
+     * @throws HttpErrorResponse  HTTP error that occured during user login
+     */
+    private async refreshToken() {
+        try {
         const environment:any = await this.env.getEnv();
         const data = await this.http.get<any>(environment.backend_url+'/?get=auth_refresh', { params: {} })
         .pipe(
-          catchError((err: HttpErrorResponse, caught: Observable<any>) => {
+            catchError((err: HttpErrorResponse, caught: Observable<any>) => {
             throw err;
-          })
+            })
         )
         .toPromise();
-      }
-      catch(err) {
+        }
+        catch(err) {
         throw err;
-      }
-  }
+        }
+    }
 
 }
