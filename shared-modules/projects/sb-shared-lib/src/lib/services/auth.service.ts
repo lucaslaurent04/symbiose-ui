@@ -117,7 +117,7 @@ export class AuthService {
     /**
      * Assert a user is member of a given group
      */
-    public async hasGroup(group: string) {
+    public hasGroup(group: string): boolean {
         let result = false;
         const target_group = group.replace('*', '');
         // get list of groups current user is assigned to        

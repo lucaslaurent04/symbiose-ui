@@ -313,10 +313,21 @@ export class BookingServicesBookingGroupComponent extends TreeComponent<BookingL
 
     }
 
-    public async onchangeHasPack(hask_pack:any) {
+    public async onchangeIsSojourn(is_sojourn:any) {
         try {
-            let fields: any = {has_pack: hask_pack};
-            if(hask_pack === false) {
+            this.instance.is_sojourn = is_sojourn;
+            await this.api.update(this.instance.entity, [this.instance.id], {is_sojourn: is_sojourn});
+            // do not relay change 
+        }
+        catch(response) {
+            this.api.errorFeedback(response);
+        }        
+    }
+
+    public async onchangeHasPack(has_pack:any) {
+        try {
+            let fields: any = {has_pack: has_pack};
+            if(has_pack === false) {
                 this.vm.pack.name = '';
                 fields['pack_id'] = null;
             }

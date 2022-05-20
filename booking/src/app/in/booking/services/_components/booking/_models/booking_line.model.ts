@@ -19,6 +19,7 @@ export class BookingLine {
         public free_qty: number = 0,
         public discount: number = 0,                
         public unit_price: number = 0,
+        public is_rental_unit: boolean = false,        
         public is_accomodation: boolean = false,
         public is_meal: boolean = false,
         public qty_accounting_method: string = '',

@@ -6,14 +6,16 @@
         </mat-menu>        
     </div>
     <div class="box">
-        <div class="app" *ngFor="let app of user_apps">
-            <button mat-raised-button 
-                    [ngClass]="app" 
-                    color="primary" 
-                    [style]="'background-color: '+apps[app].color" 
-                    (click)="onSelect(app)">
-                <mat-icon>{{apps[app].icon}}</mat-icon> {{apps[app].name | translate}}
-            </button>
-        </div>    
+        <ng-container *ngFor="let app of getApps()">
+            <div class="app" *ngIf="isGranted(app)">
+                <button mat-raised-button 
+                        [ngClass]="app" 
+                        color="primary" 
+                        [style]="'background-color: '+apps[app].color" 
+                        (click)="onSelect(app)">
+                    <mat-icon>{{apps[app].icon}}</mat-icon> {{apps[app].name | translate}}
+                </button>
+            </div>
+        </ng-container>
     </div>
 </div>

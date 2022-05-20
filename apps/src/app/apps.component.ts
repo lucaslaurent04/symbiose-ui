@@ -44,7 +44,7 @@ export class AppsComponent implements OnInit {
             color: this.colors[2],
             groups: ['finance.default.user', 'finance.default.administrator']
         },
-        config: {
+        setting: {
             url: "/settings",
             name: "APPS_APP_SETTINGS",
             icon: 'settings',
@@ -74,23 +74,24 @@ export class AppsComponent implements OnInit {
     public async ngOnInit() {
         this.auth.getObservable().subscribe( (user:any) => {
             this.user_apps = [];
+            this.user = user;
+        });
+    }
 
-            if(user.id > 0) {
-                this.user = user;
+    public getApps() {
+        return Object.keys(this.apps);
+    }
 
-                for(let app_name of Object.keys(this.apps)) {
-                    let app = this.apps[app_name];
-                    if(app.groups) {
-                        for(let group of app.groups) {
-                            if(this.auth.hasGroup(group)) {
-                                this.user_apps.push(app_name);
-                                break;
-                            }
-                        }
-                    }
+    public isGranted(app_name:string) {
+        let app = this.apps[app_name];
+        if(app.groups) {
+            for(let group of app.groups) {
+                if(this.auth.hasGroup(group)) {
+                    return true;
                 }
             }
-        });
+        }
+        return false;
     }
 
     public onSelect(app: any) {

@@ -20,6 +20,7 @@ export class BookingLineGroup {
         public date_to: Date = new Date(),
         public nb_pers: number = 0,
         public nb_nights: number = 0,
+        public is_sojourn: boolean = false,        
         public pack_id: any = {},
         public sojourn_type_id: number = 0,
         public rate_class_id: any = {},        

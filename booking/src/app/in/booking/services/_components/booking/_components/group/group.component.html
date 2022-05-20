@@ -21,14 +21,14 @@
             <div style="flex: 0 1 40%; white-space: nowrap; overflow: hidden; margin-right: 20px;">
                 {{instance.name}}
             </div>
-            <div style="flex: 0 1 30%; white-space: nowrap; overflow: hidden; display: flex;">
-                <ng-container *ngIf="instance.nights_count > 0">
+            <div *ngIf="instance.is_sojourn" style="flex: 0 1 30%; white-space: nowrap; overflow: hidden; display: flex;">
+                <ng-container *ngIf="instance.nb_nights > 0">
                     {{instance.date_from | date: 'dd/MM/YY'}}
                     <i class="material-icons">arrow_right_alt</i>
-                    {{instance.date_from | date: 'dd/MM/YY'}}&nbsp;
-                    ({{instance.nights_count}} nuit<span *ngIf="instance.nights_count > 1">s</span>)
+                    {{instance.date_to | date: 'dd/MM/YY'}}&nbsp;
+                    ({{instance.nb_nights}} nuit<span *ngIf="instance.nb_nights > 1">s</span>)
                 </ng-container>
-                <ng-container *ngIf="instance.nights_count == 0">
+                <ng-container *ngIf="instance.nb_nights == 0">
                     {{instance.date_from | date: 'dd/MM/YY'}}
                 </ng-container>
             </div>
@@ -61,7 +61,7 @@
                 <div class="row">
 
                     <!-- sojourn name -->
-                    <div class="" style="min-width: 350px;">
+                    <div class="cell" style="max-width: 500px;">
                         <mat-form-field class="header">
                             <mat-label>Intitulé</mat-label>
                             <input type="text" matInput (blur)="onchangeName()" [formControl]="vm.name.formControl">
@@ -72,8 +72,18 @@
                         </mat-form-field>
                     </div>
 
+                    <!-- is sojourn -->
+                    <div class="cell" style="max-width: 150px;">
+                        <mat-form-field floatLabel="always" class="invisible">
+                            <mat-slide-toggle color="accent" [ngModel]="instance.is_sojourn"
+                                (change)="onchangeIsSojourn($event.checked)">Séjour ?
+                            </mat-slide-toggle>
+                            <textarea matInput hidden></textarea>
+                        </mat-form-field>
+                    </div>
+
                     <!-- sojourn Dates -->
-                    <div class="cell" style="max-width: 260px;">
+                    <div *ngIf="instance.is_sojourn" class="cell" style="max-width: 260px;">
                         <mat-form-field>
                             <mat-label>Dates</mat-label>
                             <mat-date-range-input [rangePicker]="sojournDateRangePicker">
@@ -88,7 +98,7 @@
                     </div>
 
                     <!-- participants -->
-                    <div class="cell" style="max-width: 150px;">
+                    <div *ngIf="instance.is_sojourn" class="cell" style="max-width: 150px;">
                         <mat-form-field>
                             <mat-label>Participants</mat-label>
                             <input type="number" matInput (blur)="onchangeNbPers()"

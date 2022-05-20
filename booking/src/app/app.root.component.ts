@@ -9,7 +9,7 @@ import { type } from 'jquery';
 
 
 /*
-This is the component that is bootstrapped by app.module.ts
+This is the component bootstrapped by app.module.ts
 */
 
 @Component({
@@ -19,43 +19,58 @@ This is the component that is bootstrapped by app.module.ts
 })
 export class AppRootComponent implements OnInit {
 
-  public show_side_menu: boolean = false;
-  public show_side_bar: boolean = true;
+    public show_side_menu: boolean = false;
+    public show_side_bar: boolean = true;
 
-  public topMenuItems:any[] = [];
-  public navMenuItems: any = [];
+    public topMenuItems:any[] = [];
+    public navMenuItems: any = [];
 
-  public translationsMenuLeft: any = {};
-  public translationsMenuTop: any = {};
+    public translationsMenuLeft: any = {};
+    public translationsMenuTop: any = {};
 
-  constructor(
-    private router: Router,
-    private context:ContextService,
-    private api:ApiService,
-    private auth:AuthService
-  ) {}
+    constructor(
+        private router: Router,
+        private context:ContextService,
+        private api:ApiService,
+        private auth:AuthService
+    ) {}
 
 
-  public async ngOnInit() {
+    public lower_screen_resolution: boolean = false;
 
-    try {
-        await this.auth.authenticate();
+    public async ngOnInit() {
+
+        this.lower_screen_resolution = window.innerWidth < 1152;
+        /*
+        window.onresize = () => {
+
+
+            this.lower_screen_resolution = window.innerWidth < 1152;
+
+            // if lower than 1280 : hide right pane
+            // if lower than 1152 : hide both panes
+            // if lower than 1024 : show too low resolution notice
+        }
+        */
+
+        try {
+            await this.auth.authenticate();
+        }
+        catch(err) {
+            window.location.href = '/apps';
+            return;
+        }
+
+        // load menus from server
+        const left_menu:any = await this.api.getMenu('sale', 'booking.left');
+        this.navMenuItems = left_menu.items;
+        this.translationsMenuLeft = left_menu.translation;
+
+        const top_menu:any = await this.api.getMenu('sale', 'booking.top');
+        this.topMenuItems = top_menu.items;
+        this.translationsMenuTop = top_menu.translation;
+
     }
-    catch(err) {
-        window.location.href = '/apps';
-        return;
-    }
-
-    // load menus from server
-    const left_menu:any = await this.api.getMenu('sale', 'booking.left');
-    this.navMenuItems = left_menu.items;
-    this.translationsMenuLeft = left_menu.translation;
-
-    const top_menu:any = await this.api.getMenu('sale', 'booking.top');
-    this.topMenuItems = top_menu.items;
-    this.translationsMenuTop = top_menu.translation;
-
-  }
 
     public onToggleItem(item:any) {
         // if item is expanded, fold siblings, if any
@@ -160,16 +175,13 @@ export class AppRootComponent implements OnInit {
         this.context.change(descriptor);
     }
 
-
     public onUpdateSideMenu(show: boolean) {
-        console.log('AppRootComponent::onUpdateSideMenu', show);
         this.show_side_menu = show;
     }
 
     public toggleSideMenu() {
         this.show_side_menu = !this.show_side_menu;
     }
-
 
     public toggleSideBar() {
         this.show_side_bar = !this.show_side_bar;
