@@ -396,6 +396,8 @@ var _ApiService = /*#__PURE__*/function () {
   }, {
     key: "fetch",
     value: function fetch(route) {
+      var _this4 = this;
+
       var body = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
       var content_type = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 'application/json';
       return new Promise( /*#__PURE__*/function () {
@@ -427,6 +429,10 @@ var _ApiService = /*#__PURE__*/function () {
                     if (xhr.status < 200 || xhr.status > 299) {
                       reject(xhr.response);
                     } else {
+                      if (xhr.getResponseHeader('X-Total-Count')) {
+                        _this4.last_count = parseInt(xhr.getResponseHeader('X-Total-Count'));
+                      }
+
                       resolve(xhr.response);
                     }
                   };
@@ -845,7 +851,7 @@ var _ApiService = /*#__PURE__*/function () {
     key: "collect",
     value: function () {
       var _collect = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee13(entity, domain, fields, order, sort, start, limit) {
-        var _this4 = this;
+        var _this5 = this;
 
         var lang,
             result,
@@ -883,7 +889,7 @@ var _ApiService = /*#__PURE__*/function () {
                   data: params,
                   contentType: 'application/x-www-form-urlencoded; charset=utf-8'
                 }).done(function (event, textStatus, jqXHR) {
-                  _this4.last_count = parseInt(jqXHR.getResponseHeader('X-Total-Count'));
+                  _this5.last_count = parseInt(jqXHR.getResponseHeader('X-Total-Count'));
                 });
 
               case 10:
@@ -1353,6 +1359,27 @@ var _defineProperty2 = _interopRequireDefault(__webpack_require__(/*! @babel/run
 
 /**
  * Class for Date descriptors parsing
+ * 
+ * 
+ 
+    ## date parser
+
+    * soit une chaine ISO
+    * soit une description au format relatif à NOW
+
+    Result of the parsing is always a date.
+
+
+    Syntaxe:
+    date.[this|prev|next].[day|week|month|quarter|semester|year].[first|last]
+
+
+    * today = date.this.day
+
+    * first day of current year = date.this.year.first
+
+    * last day of last week = date.prev.week.last
+
  *
  */
 var DateReference = /*#__PURE__*/function () {
@@ -1398,8 +1425,7 @@ var DateReference = /*#__PURE__*/function () {
               case 'week':
                 this.date = new Date(date);
                 var dow = date.getDay(),
-                    diff = date.getDate() - dow + (dow == 0 ? -6 : 1); // adjust sunday
-
+                    diff = -dow + (dow == 0 ? -6 : 1);
                 this.date.setDate(date.getDate() + diff + offset * 7);
 
                 if (day == 'last') {
@@ -4535,10 +4561,21 @@ var Model = /*#__PURE__*/function () {
               case 15:
                 _context2.prev = 15;
                 _context2.next = 18;
-                return _equalServices.ApiService.collect(this.view.getEntity(), this.view.getDomain(), fields, this.view.getOrder(), this.view.getSort(), this.view.getStart(), this.view.getLimit(), this.view.getLang());
+                return _equalServices.ApiService.fetch('/', {
+                  get: this.view.getController(),
+                  entity: this.view.getEntity(),
+                  domain: this.view.getDomain(),
+                  fields: fields,
+                  lang: this.view.getLang(),
+                  order: this.view.getOrder(),
+                  sort: this.view.getSort(),
+                  start: this.view.getStart(),
+                  limit: this.view.getLimit()
+                });
 
               case 18:
                 response = _context2.sent;
+                // let response = await ApiService.collect(this.view.getEntity(), this.view.getDomain(), fields, this.view.getOrder(), this.view.getSort(), this.view.getStart(), this.view.getLimit(), this.view.getLang());
                 this.objects = response;
                 this.loaded_promise.resolve();
                 this.total = _equalServices.ApiService.getLastCount();
@@ -5163,6 +5200,7 @@ var View = /*#__PURE__*/function () {
     (0, _defineProperty2.default)(this, "start", void 0);
     (0, _defineProperty2.default)(this, "limit", void 0);
     (0, _defineProperty2.default)(this, "group_by", void 0);
+    (0, _defineProperty2.default)(this, "controller", void 0);
     (0, _defineProperty2.default)(this, "lang", void 0);
     (0, _defineProperty2.default)(this, "layout", void 0);
     (0, _defineProperty2.default)(this, "model", void 0);
@@ -5459,6 +5497,7 @@ var View = /*#__PURE__*/function () {
       this.config = _objectSpread(_objectSpread({}, this.config), config);
     }
 
+    this.controller = this.config.hasOwnProperty('controller') ? this.config.controller : 'model_collect';
     this.order = this.config.hasOwnProperty('order') ? this.config.order : 'id';
     this.sort = this.config.hasOwnProperty('sort') ? this.config.sort : 'asc';
     this.start = this.config.hasOwnProperty('start') ? this.config.start : 0;
@@ -5584,6 +5623,10 @@ var View = /*#__PURE__*/function () {
                   }
                 }
 
+                if (this.view_schema.hasOwnProperty("controller")) {
+                  this.controller = this.view_schema.controller;
+                }
+
                 if (this.view_schema.hasOwnProperty("exports")) {
                   _iterator2 = _createForOfIteratorHelper(this.view_schema.exports);
 
@@ -5640,33 +5683,33 @@ var View = /*#__PURE__*/function () {
                   this.$layoutContainer.addClass('sb-view-layout-chart');
                 }
 
-                _context6.next = 38;
+                _context6.next = 39;
                 return this.layout.init();
 
-              case 38:
-                _context6.next = 40;
+              case 39:
+                _context6.next = 41;
                 return this.model.init();
 
-              case 40:
-                _context6.next = 45;
+              case 41:
+                _context6.next = 46;
                 break;
 
-              case 42:
-                _context6.prev = 42;
+              case 43:
+                _context6.prev = 43;
                 _context6.t0 = _context6["catch"](1);
                 console.log('Unable to init view (' + this.entity + '.' + this.getId() + ')', _context6.t0);
 
-              case 45:
+              case 46:
                 this.is_ready_promise.resolve();
                 this.$container.show();
                 console.log('View::init - end');
 
-              case 48:
+              case 49:
               case "end":
                 return _context6.stop();
             }
           }
-        }, _callee6, this, [[1, 42]]);
+        }, _callee6, this, [[1, 43]]);
       }));
 
       function init() {
@@ -5711,6 +5754,11 @@ var View = /*#__PURE__*/function () {
       }
 
       throw new Error("Unable to copy obj! Its type isn't supported.");
+    }
+  }, {
+    key: "hasAdvancedFilters",
+    value: function hasAdvancedFilters() {
+      return ['core_model_collect', 'model_collect'].indexOf(this.controller) < 0;
     }
   }, {
     key: "isReady",
@@ -5955,6 +6003,11 @@ var View = /*#__PURE__*/function () {
       return domain.parse({}, this.getUser()).toArray();
     }
   }, {
+    key: "getController",
+    value: function getController() {
+      return this.controller;
+    }
+  }, {
     key: "getSort",
     value: function getSort() {
       return this.sort;
@@ -6126,10 +6179,12 @@ var View = /*#__PURE__*/function () {
       this.$headerContainer.append(' \
             <div class="sb-view-header-list"> \
                 <div class="sb-view-header-actions"></div> \
+                <div class="sb-view-header-advanced"></div> \
                 <div class="sb-view-header-list-navigation"></div> \
             </div>');
       var $elem = this.$headerContainer.find('.sb-view-header-list');
       var $actions_set = $elem.find('.sb-view-header-actions');
+      var $level1 = $elem.find('.sb-view-header-advanced');
       var $level2 = $elem.find('.sb-view-header-list-navigation'); // left side : standard actions for views
 
       var $std_actions = (0, _jqueryLib.$)('<div />').addClass('sb-view-header-actions-std').appendTo($actions_set); // right side : the actions specific to the view, and depenging on object status
@@ -6144,7 +6199,8 @@ var View = /*#__PURE__*/function () {
 
       if (this.custom_actions.hasOwnProperty('ACTION.CREATE')) {
         has_action_create = this.custom_actions['ACTION.CREATE'] ? true : false;
-      }
+      } // append view actions, if requested
+
 
       if (this.config.show_actions) {
         switch (this.purpose) {
@@ -6375,6 +6431,17 @@ var View = /*#__PURE__*/function () {
           default:
             break;
         }
+      } // append advanced layout if requested
+
+
+      if (this.hasAdvancedFilters()) {
+        $elem.addClass('has-advanced-filters');
+        var $layout = (0, _jqueryLib.$)('<div class="sb-view-header-advanced-layout" />').appendTo($level1);
+        var view = new View(this.getContext(), this.controller.replace(/_/g, '\\'), 'search', 'default', [], 'edit', 'widget', this.lang, {});
+        view.isReady().then(function () {
+          var $container = view.getContainer();
+          $layout.append($container);
+        });
       } //  bulk assign action
 
 
@@ -6434,6 +6501,16 @@ var View = /*#__PURE__*/function () {
             _this2.applyFilter(filter.id);
           }
         }, 100);
+      });
+      var $advanced_filters_button = (0, _jqueryLib.$)('<div/>').addClass('sb-view-header-list-advanced-filters-button').append(_materialLib.UIHelper.createButton('advanced-filters', 'filters', 'icon', 'chevron_right')).prependTo($level1);
+      $advanced_filters_button.on('click', function () {
+        $elem.toggleClass('is-advanced-open');
+
+        var head_height = _this2.$headerContainer.height();
+
+        _this2.$layoutContainer.css({
+          height: 'calc(100% - ' + head_height + 'px)'
+        });
       }); // fields toggle menu : button for displaying the filters menu
 
       var $filters_button = (0, _jqueryLib.$)('<div/>').addClass('sb-view-header-list-filters mdc-menu-surface--anchor').append(_materialLib.UIHelper.createButton('view-filters', 'filters', 'icon', 'filter_list')); // create floating menu for filters selection
@@ -6561,8 +6638,7 @@ var View = /*#__PURE__*/function () {
         _this2.setStart(0);
 
         _this2.onchangeView();
-      }); // attach elements to header toolbar
-
+      });
       $level2.append($filters_button);
       $level2.append($filters_search);
       $level2.append($filters_set);
@@ -7419,6 +7495,7 @@ var View = /*#__PURE__*/function () {
       $select_field = _materialLib.UIHelper.createSelect(this.uuid + '_custom-filter-select-field', _equalServices.TranslationService.instant('SB_FILTERS_DIALOG_FIELD'), fields, Object.keys(fields)[0]).appendTo($elem); // setup handler for relaying value update to parent layout
 
       $select_field.addClass('dialog-select').find('input').on('change', function (event) {
+        console.log('dialog select', event);
         var $this = (0, _jqueryLib.$)(event.currentTarget);
         selected_field = $this.val();
         $elem.find('#' + _this6.uuid + '_custom-filter-select-operator').remove();
@@ -7459,9 +7536,10 @@ var View = /*#__PURE__*/function () {
         });
         $elem.append($select_operator);
         $elem.append($select_value);
-      }) // init
-      .trigger('change');
-      $dialog.find('.mdc-dialog__content').append($elem);
+      });
+      $dialog.find('.mdc-dialog__content').append($elem); // init
+
+      $select_field.trigger('change');
       $dialog.on('_accept', function () {
         var operand = selected_field;
         var operator = selected_operator;
@@ -8427,6 +8505,8 @@ var _LayoutList = __webpack_require__(/*! ./layouts/LayoutList */ "./build/layou
 
 var _LayoutForm = __webpack_require__(/*! ./layouts/LayoutForm */ "./build/layouts/LayoutForm.js");
 
+var _LayoutSearch = __webpack_require__(/*! ./layouts/LayoutSearch */ "./build/layouts/LayoutSearch.js");
+
 var _LayoutChart = __webpack_require__(/*! ./layouts/LayoutChart */ "./build/layouts/LayoutChart.js");
 
 var _LayoutDashboard = __webpack_require__(/*! ./layouts/LayoutDashboard */ "./build/layouts/LayoutDashboard.js");
@@ -8452,6 +8532,9 @@ var LayoutFactory = /*#__PURE__*/function () {
 
         case 'form':
           return new _LayoutForm.LayoutForm(view);
+
+        case 'search':
+          return new _LayoutSearch.LayoutSearch(view);
 
         case 'chart':
           return new _LayoutChart.LayoutChart(view);
@@ -8844,8 +8927,9 @@ var WidgetFactory = /*#__PURE__*/function () {
       config.description = _equalServices.TranslationService.resolve(translation, 'model', [], field, description, 'description');
       config.readonly = def.hasOwnProperty('readonly') ? def.readonly : item.hasOwnProperty('readonly') ? item['readonly'] : false;
       config.align = item.hasOwnProperty('align') ? item.align : 'left';
-      config.sortable = item.hasOwnProperty('sortable') && item.sortable;
-      config.layout = view.getType();
+      config.sortable = item.hasOwnProperty('sortable') && item.sortable; // only 'list' and 'form' are supported for widgets
+
+      config.layout = view.getType() == 'list' ? 'list' : 'form';
       config.lang = view.getLang();
       config.locale = view.getLocale();
 
@@ -8879,7 +8963,9 @@ var WidgetFactory = /*#__PURE__*/function () {
           entity: def['foreign_object'],
           view_type: view_type,
           view_name: view_name,
-          original_domain: domain.toArray()
+          original_domain: domain.toArray(),
+          action_create: true,
+          action_open: true
         });
       }
 
@@ -12311,6 +12397,511 @@ exports.LayoutList = LayoutList;
 
 /***/ }),
 
+/***/ "./build/layouts/LayoutSearch.js":
+/*!***************************************!*\
+  !*** ./build/layouts/LayoutSearch.js ***!
+  \***************************************/
+/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+var _interopRequireDefault = __webpack_require__(/*! @babel/runtime/helpers/interopRequireDefault */ "./node_modules/@babel/runtime/helpers/interopRequireDefault.js");
+
+Object.defineProperty(exports, "__esModule", ({
+  value: true
+}));
+exports.LayoutSearch = void 0;
+
+var _regenerator = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/regenerator */ "./node_modules/@babel/runtime/regenerator/index.js"));
+
+var _slicedToArray2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/slicedToArray */ "./node_modules/@babel/runtime/helpers/slicedToArray.js"));
+
+var _defineProperty2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/defineProperty */ "./node_modules/@babel/runtime/helpers/defineProperty.js"));
+
+var _asyncToGenerator2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/asyncToGenerator */ "./node_modules/@babel/runtime/helpers/asyncToGenerator.js"));
+
+var _classCallCheck2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/classCallCheck */ "./node_modules/@babel/runtime/helpers/classCallCheck.js"));
+
+var _createClass2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/createClass */ "./node_modules/@babel/runtime/helpers/createClass.js"));
+
+var _inherits2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/inherits */ "./node_modules/@babel/runtime/helpers/inherits.js"));
+
+var _possibleConstructorReturn2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/possibleConstructorReturn */ "./node_modules/@babel/runtime/helpers/possibleConstructorReturn.js"));
+
+var _getPrototypeOf2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/getPrototypeOf */ "./node_modules/@babel/runtime/helpers/getPrototypeOf.js"));
+
+var _jqueryLib = __webpack_require__(/*! ../jquery-lib */ "./build/jquery-lib.js");
+
+var _materialLib = __webpack_require__(/*! ../material-lib */ "./build/material-lib.js");
+
+var _equalWidgets = __webpack_require__(/*! ../equal-widgets */ "./build/equal-widgets.js");
+
+var _Layout2 = __webpack_require__(/*! ./Layout */ "./build/layouts/Layout.js");
+
+var _equalServices = __webpack_require__(/*! ../equal-services */ "./build/equal-services.js");
+
+var _Domain = __webpack_require__(/*! ../Domain */ "./build/Domain.js");
+
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) { symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); } keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2.default)(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
+function _createSuper(Derived) { var hasNativeReflectConstruct = _isNativeReflectConstruct(); return function _createSuperInternal() { var Super = (0, _getPrototypeOf2.default)(Derived), result; if (hasNativeReflectConstruct) { var NewTarget = (0, _getPrototypeOf2.default)(this).constructor; result = Reflect.construct(Super, arguments, NewTarget); } else { result = Super.apply(this, arguments); } return (0, _possibleConstructorReturn2.default)(this, result); }; }
+
+function _isNativeReflectConstruct() { if (typeof Reflect === "undefined" || !Reflect.construct) return false; if (Reflect.construct.sham) return false; if (typeof Proxy === "function") return true; try { Boolean.prototype.valueOf.call(Reflect.construct(Boolean, [], function () {})); return true; } catch (e) { return false; } }
+
+var LayoutSearch = /*#__PURE__*/function (_Layout) {
+  (0, _inherits2.default)(LayoutSearch, _Layout);
+
+  var _super = _createSuper(LayoutSearch);
+
+  function LayoutSearch() {
+    (0, _classCallCheck2.default)(this, LayoutSearch);
+    return _super.apply(this, arguments);
+  }
+
+  (0, _createClass2.default)(LayoutSearch, [{
+    key: "init",
+    value: function () {
+      var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
+        return _regenerator.default.wrap(function _callee$(_context) {
+          while (1) {
+            switch (_context.prev = _context.next) {
+              case 0:
+                console.log('LayoutSearch::init');
+
+                try {
+                  // initialize the layout
+                  this.layout();
+                } catch (err) {
+                  console.log('Something went wrong ', err);
+                }
+
+              case 2:
+              case "end":
+                return _context.stop();
+            }
+          }
+        }, _callee, this);
+      }));
+
+      function init() {
+        return _init.apply(this, arguments);
+      }
+
+      return init;
+    }() // refresh layout
+    // this method is called in response to parent View `onchangeModel` method
+
+  }, {
+    key: "refresh",
+    value: function () {
+      var _refresh = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
+        var full,
+            objects,
+            _args2 = arguments;
+        return _regenerator.default.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                full = _args2.length > 0 && _args2[0] !== undefined ? _args2[0] : false;
+                console.log('LayoutSearch::refresh'); // also re-generate the layout
+
+                if (full) {
+                  this.$layout.empty();
+                  this.layout();
+                } // feed layout with current Model
+
+
+                _context2.next = 5;
+                return this.view.getModel().get();
+
+              case 5:
+                objects = _context2.sent;
+                this.feed(objects);
+
+              case 7:
+              case "end":
+                return _context2.stop();
+            }
+          }
+        }, _callee2, this);
+      }));
+
+      function refresh() {
+        return _refresh.apply(this, arguments);
+      }
+
+      return refresh;
+    }()
+    /**
+     *
+     * This method also stores the list of instanciated widgets to allow switching from view mode to edit mode  (for a form or a cell)
+     *
+     */
+
+  }, {
+    key: "layout",
+    value: function layout() {
+      var _this = this;
+
+      console.log('LayoutSearch::layout');
+      var $elem = (0, _jqueryLib.$)('<div/>').css({
+        "width": "100%"
+      });
+      var view_schema = this.view.getViewSchema();
+      var view_fields = this.view.getViewFields();
+      var model_fields = this.view.getModelFields();
+      var translation = this.view.getTranslation();
+      var view_config = this.view.getConfig();
+
+      if (!view_schema.hasOwnProperty('layout') || !view_schema.layout.hasOwnProperty('groups')) {
+        console.warn("invalid layout, stop processing");
+        return;
+      }
+
+      _jqueryLib.$.each(view_schema.layout.groups, function (i, group) {
+        var group_id = 'group-' + i;
+        var $group = (0, _jqueryLib.$)('<div />').addClass('sb-view-form-group').appendTo($elem); // try to resolve the group title
+
+        var group_title = group.hasOwnProperty('label') ? group.label : '';
+
+        if (group.hasOwnProperty('id')) {
+          group_title = _equalServices.TranslationService.resolve(translation, 'view', [_this.view.getId(), 'layout'], group.id, group_title);
+        } // append the group title, if any
+
+
+        if (group_title.length) {
+          $group.append((0, _jqueryLib.$)('<div/>').addClass('sb-view-form-group-title').text(group_title));
+        }
+
+        var selected_section = 0;
+
+        if (view_config && view_config.hasOwnProperty('selected_sections') && view_config.selected_sections.hasOwnProperty(i)) {
+          selected_section = view_config.selected_sections[i];
+        }
+
+        var $tabs = _materialLib.UIHelper.createTabBar('sections-' + group_id, '', '').addClass('sb-view-form-sections-tabbar');
+
+        if (group.sections.length > 1 || group.sections[0].hasOwnProperty('label')) {
+          $group.append($tabs);
+        }
+
+        _jqueryLib.$.each(group.sections, function (j, section) {
+          var section_id = group_id + '-section-' + j;
+          var $section = (0, _jqueryLib.$)('<div />').attr('id', section_id).addClass('sb-view-form-section mdc-layout-grid').appendTo($group);
+
+          if (j != selected_section) {
+            $section.hide();
+          }
+
+          if (group.sections.length > 1 || section.hasOwnProperty('label')) {
+            // try to resolve the section title
+            var section_title = section.hasOwnProperty('label') ? section.label : section_id;
+
+            if (section.hasOwnProperty('id')) {
+              section_title = _equalServices.TranslationService.resolve(translation, 'view', [_this.view.getId(), 'layout'], section.id, section_title);
+            }
+
+            var $tab = _materialLib.UIHelper.createTabButton(section_id + '-tab', section_title, j == selected_section).addClass('sb-view-form-section-tab').on('click', function () {
+              $group.find('.sb-view-form-section').hide();
+              $group.find('#' + section_id).show();
+            });
+
+            if (section.hasOwnProperty('visible')) {
+              $tab.attr('data-visible', JSON.stringify(section.visible));
+            }
+
+            $tabs.find('.sb-view-form-sections').append($tab);
+          }
+
+          _jqueryLib.$.each(section.rows, function (k, row) {
+            var $row = (0, _jqueryLib.$)('<div />').addClass('sb-view-form-row mdc-layout-grid__inner').appendTo($section);
+
+            _jqueryLib.$.each(row.columns, function (l, column) {
+              var $column = (0, _jqueryLib.$)('<div />').addClass('mdc-layout-grid__cell').appendTo($row);
+
+              if (column.hasOwnProperty('width')) {
+                $column.addClass('mdc-layout-grid__cell--span-' + Math.round(parseInt(column.width, 10) / 100 * 12));
+              }
+
+              if (column.hasOwnProperty('align') && column.align == 'right') {
+                $column.css({
+                  'margin-left': 'auto'
+                });
+              }
+
+              var $inner_cell = (0, _jqueryLib.$)('<div />').addClass('mdc-layout-grid__cell').appendTo($column);
+              $column = (0, _jqueryLib.$)('<div />').addClass('mdc-layout-grid__inner').appendTo($inner_cell);
+
+              _jqueryLib.$.each(column.items, function (i, item) {
+                if (typeof _this.model_widgets[0] == 'undefined') {
+                  _this.model_widgets[0] = {};
+                }
+
+                var $cell = (0, _jqueryLib.$)('<div />').addClass('mdc-layout-grid__cell').appendTo($column); // compute the width (on a 12 columns grid basis), from 1 to 12
+
+                var width = item.hasOwnProperty('width') ? Math.round(parseInt(item.width, 10) / 100 * 12) : 12;
+                $cell.addClass('mdc-layout-grid__cell--span-' + width);
+
+                if (item.hasOwnProperty('type') && item.hasOwnProperty('value')) {
+                  if (item.type == 'field') {
+                    var config = _equalWidgets.WidgetFactory.getWidgetConfig(_this.view, item.value, translation, model_fields, view_fields);
+
+                    if (config) {
+                      config.action_create = false;
+                      config.action_open = false;
+
+                      var widget = _equalWidgets.WidgetFactory.getWidget(_this, config.type, config.title, '', config);
+
+                      widget.setMode(_this.view.getMode()); // store widget in widgets Map, using field name as key
+
+                      _this.model_widgets[0][item.value] = widget;
+                      $cell.append(widget.render());
+                    }
+                  } else if (item.type == 'label') {
+                    var label_title = _equalServices.TranslationService.resolve(translation, 'view', [_this.view.getId(), 'layout'], item.id, item.value);
+
+                    var _widget = _equalWidgets.WidgetFactory.getWidget(_this, 'label', '', label_title, _objectSpread({
+                      widget_type: 'label'
+                    }, item));
+
+                    _this.model_widgets[0]['__label_' + _widget.getId()] = _widget;
+                    $cell.append(_widget.render());
+                  }
+                }
+              });
+            });
+          });
+        });
+
+        _materialLib.UIHelper.decorateTabBar($tabs);
+      });
+
+      this.$layout.append($elem);
+    }
+  }, {
+    key: "feed",
+    value: function feed(objects) {
+      var _this2 = this;
+
+      console.log('LayoutSearch::feed', objects); // display the first object from the collection
+
+      var fields = Object.keys(this.view.getViewFields());
+      var model_fields = this.view.getModelFields(); // remember which element has focus (DOM is going to be modified)
+
+      var focused_widget_id = (0, _jqueryLib.$)("input:focus").closest('.sb-widget').attr('id');
+
+      if (objects.length > 0) {
+        (function () {
+          // #todo - keep internal index of the object to display (with a prev/next navigation in the header)
+          var object = objects[0]; // update actions in view header
+
+          var view_schema = _this2.view.getViewSchema(); // update tabs visibility, if any
+
+
+          var $tabs = _this2.$layout.find('.mdc-tab.sb-view-form-section-tab');
+
+          $tabs.each(function (i, elem) {
+            var $tab = (0, _jqueryLib.$)(elem);
+            var visible = $tab.attr('data-visible');
+
+            if (visible != undefined) {
+              console.log('section visible', visible);
+              var domain = new _Domain.Domain(JSON.parse(visible));
+
+              if (domain.evaluate(object)) {
+                $tab.show();
+              } else {
+                $tab.hide();
+              }
+            }
+          });
+
+          var _loop = function _loop() {
+            var widget_index = _Object$keys[_i];
+            var widget = _this2.model_widgets[0][widget_index];
+            var config = widget.getConfig();
+
+            if (config['widget_type'] == 'label') {
+              var visible = true; // handle visibility tests (domain)
+
+              if (config.hasOwnProperty('visible')) {
+                // visible attribute is a Domain
+                if (Array.isArray(config.visible)) {
+                  var domain = new _Domain.Domain(config.visible);
+                  visible = domain.evaluate(object);
+                } else {
+                  visible = config.visible;
+                }
+              }
+
+              var $parent = _this2.$layout.find('#' + widget.getId()).parent();
+
+              if (!visible) {
+                $parent.empty().append(widget.attach()).hide();
+              } else {
+                $parent.empty().append(widget.render()).show();
+              }
+            } else {
+              var field = config.field; // widget might be missing (if not visible)
+
+              if (!widget) return "continue";
+
+              var _$parent = _this2.$layout.find('#' + widget.getId()).parent();
+
+              var type = _this2.view.getModel().getFinalType(field);
+
+              var has_changed = false;
+              var value = object.hasOwnProperty(field) ? object[field] : undefined; // for relational fields, we need to check if the Model has been fetched
+
+              if (['one2many', 'many2one', 'many2many'].indexOf(type) > -1) {
+                var user = _this2.view.getUser(); // if widget has a domain, parse it using current object and user
+
+
+                if (config.hasOwnProperty('original_domain')) {
+                  var tmpDomain = new _Domain.Domain(config.original_domain);
+                  config.domain = tmpDomain.parse(object, user).toArray();
+                } else {
+                  config.domain = [];
+                } // if widget has a custom header defintion, parse subsequent domains, if any
+
+
+                if (config.hasOwnProperty('header') && config.header.hasOwnProperty('actions')) {
+                  for (var _i2 = 0, _Object$entries = Object.entries(config.header.actions); _i2 < _Object$entries.length; _i2++) {
+                    var _Object$entries$_i = (0, _slicedToArray2.default)(_Object$entries[_i2], 2),
+                        id = _Object$entries$_i[0],
+                        items = _Object$entries$_i[1];
+
+                    for (var index in items) {
+                      var item = items[index];
+
+                      if (item.hasOwnProperty('domain')) {
+                        var _tmpDomain = new _Domain.Domain(item.domain);
+
+                        config.header.actions[id][index].domain = _tmpDomain.parse(object, user).toArray();
+                      }
+                    }
+                  }
+                } // by convention, `name` subfield is always loaded for relational fields
+
+
+                if (type == 'many2one') {
+                  if (object[field]) {
+                    value = object[field]['name'];
+                    config.object_id = object[field]['id'];
+                  }
+                } else if (type == 'many2many' || type == 'one2many') {
+                  // init field if not present yet (o2m and m2m are not loaded by Model)
+                  if (!object.hasOwnProperty(field)) {
+                    object[field] = []; // force change detection (upon re-feed, the field do not change and remains an empty array)
+
+                    _$parent.data('value', null);
+                  } // for m2m fields, the value of the field is an array of ids
+                  // by convention, when a relation is to be removed, the id field is set to its negative value
+
+
+                  value = object[field]; // select ids to load by filtering targeted objects
+
+                  config.ids_to_add = object[field].filter(function (id) {
+                    return id > 0;
+                  });
+                  config.ids_to_del = object[field].filter(function (id) {
+                    return id < 0;
+                  }).map(function (id) {
+                    return -id;
+                  }); // we need the current object id for new objects creation
+
+                  config.object_id = object.id;
+                }
+              }
+
+              has_changed = !value || _$parent.data('value') != JSON.stringify(value);
+              widget.setConfig(_objectSpread(_objectSpread({}, config), {}, {
+                ready: true
+              })).setMode(_this2.view.getMode()).setValue(value); // store data to parent, for tracking changes at next refresh (prevent storing references)
+
+              _$parent.data('value', JSON.stringify(value) || null);
+
+              var _visible = true; // handle visibility tests (domain)
+
+              if (config.hasOwnProperty('visible')) {
+                // visible attribute is a Domain
+                if (Array.isArray(config.visible)) {
+                  var _domain = new _Domain.Domain(config.visible);
+
+                  _visible = _domain.evaluate(object);
+                } else {
+                  _visible = config.visible;
+                }
+              }
+
+              if (!_visible) {
+                _$parent.empty().append(widget.attach()).hide(); // visibility update need to trigger a redraw, whatever the value (so we change it to an arbitrary value)
+
+
+                _$parent.data('value', null);
+              } else {
+                var $widget = widget.render(); // Handle Widget update handler
+
+                $widget.on('_updatedWidget', /*#__PURE__*/function () {
+                  var _ref = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3(event) {
+                    var refresh,
+                        values,
+                        _args3 = arguments;
+                    return _regenerator.default.wrap(function _callee3$(_context3) {
+                      while (1) {
+                        switch (_context3.prev = _context3.next) {
+                          case 0:
+                            refresh = _args3.length > 1 && _args3[1] !== undefined ? _args3[1] : true;
+                            console.log("Layout::feedForm : received _updatedWidget", field, widget.getValue(), refresh); // update object with new value
+
+                            values = {};
+                            values[field] = widget.getValue();
+
+                            _this2.view.onchangeViewModel([object.id], values, refresh);
+
+                          case 5:
+                          case "end":
+                            return _context3.stop();
+                        }
+                      }
+                    }, _callee3);
+                  }));
+
+                  return function (_x) {
+                    return _ref.apply(this, arguments);
+                  };
+                }()); // prevent refreshing objects that haven't changed
+
+                if (has_changed) {
+                  // append rendered widget
+                  _$parent.empty().append($widget).show();
+                }
+              }
+            }
+          };
+
+          for (var _i = 0, _Object$keys = Object.keys(_this2.model_widgets[0]); _i < _Object$keys.length; _i++) {
+            var _ret = _loop();
+
+            if (_ret === "continue") continue;
+          } // try to give the focus back to the previously focused widget
+
+
+          (0, _jqueryLib.$)('#' + focused_widget_id).find('input').trigger('focus');
+        })();
+      }
+    }
+  }]);
+  return LayoutSearch;
+}(_Layout2.Layout);
+
+exports.LayoutSearch = LayoutSearch;
+
+/***/ }),
+
 /***/ "./build/material-lib.js":
 /*!*******************************!*\
   !*** ./build/material-lib.js ***!
@@ -12574,7 +13165,7 @@ var UIHelper = /*#__PURE__*/function () {
                 <span class="mdc-text-field__ripple"></span> \
                 <span class="mdc-floating-label">' + label + '</span> \
                 ' + (icon.length ? '<i aria-hidden="true" class="material-icons mdc-text-field__icon">' + icon + '</i>' : '') + '\
-                <input ' + (disabled ? 'disabled' : '') + ' class="mdc-text-field__input" type="text" role="presentation" autocorrect="off" autocomplete="off" spellcheck="false" value="' + value + '"> \
+                <input id="' + id + '_input" ' + (disabled ? 'disabled' : '') + ' class="mdc-text-field__input" type="text" role="presentation" autocorrect="off" autocomplete="off" spellcheck="false" value="' + value + '"> \
                 ' + (trailing_icon.length ? '<i class="material-icons mdc-text-field__icon mdc-text-field__icon--trailing" tabindex="0" role="button">' + trailing_icon + '</i>' : '') + '\
                 <span class="mdc-line-ripple"></span> \
             </label> \
@@ -12654,7 +13245,7 @@ var UIHelper = /*#__PURE__*/function () {
     value: function createListItem(id, label) {
       var icon = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : '';
       var $elem = (0, _jqueryLib.$)('\
-        <li class="mdc-list-item" id="' + id + '"> \
+        <li class="mdc-list-item" tabindex="-1" id="' + id + '"> \
             <span class="mdc-list-item__text">' + label + '</span> \
             <span class="mdc-list-item__ripple"></span> \
         </li>');
@@ -12786,9 +13377,9 @@ var UIHelper = /*#__PURE__*/function () {
                 </span> \
                 <span class="mdc-line-ripple"></span> \
             </div> \
-            <div class="mdc-select__menu mdc-menu mdc-menu-surface--fixed mdc-menu-surface" role="listbox"> \
-                <input type="text" style="display: none" value="' + selected + '" /> \
-                <ul class="mdc-list"></ul> \
+            <div id="' + id + '_menu" tabindex="-1" class="mdc-select__menu mdc-menu mdc-menu-surface--fixed mdc-menu-surface" role="listbox"> \
+                <input id="' + id + '_input" type="text" style="display: none" value="' + selected + '" /> \
+                <ul id="' + id + '_menu_list" class="mdc-list"></ul> \
             </div> \
             <div class="mdc-text-field-helper-line"> \
                 <div class="mdc-text-field-helper-text" aria-hidden="true" title="' + helper + '">' + helper + '</div> \
@@ -12799,7 +13390,7 @@ var UIHelper = /*#__PURE__*/function () {
       if (!Array.isArray(values)) {
         for (var key in values) {
           var $line = (0, _jqueryLib.$)(' \
-                <li class="mdc-list-item" role="option" data-value="' + key + '"> \
+                <li id="' + id + '_menu_list-' + key + '" class="mdc-list-item" role="option" data-value="' + key + '"> \
                     <span class="mdc-list-item__ripple"></span> \
                     <span class="mdc-list-item__text">' + values[key] + '</span> \
                 </li>');
@@ -12820,7 +13411,7 @@ var UIHelper = /*#__PURE__*/function () {
               var value = _step.value;
 
               var _$line = (0, _jqueryLib.$)(' \
-                <li class="mdc-list-item" role="option" data-value="' + value + '"> \
+                <li class="mdc-list-item" tabindex="-1" role="option" data-value="' + value + '"> \
                     <span class="mdc-list-item__ripple"></span> \
                     <span class="mdc-list-item__text">' + value + '</span> \
                 </li>');
@@ -12857,7 +13448,7 @@ var UIHelper = /*#__PURE__*/function () {
     value: function createList(id) {
       var label = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
       var values = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
-      var $elem = (0, _jqueryLib.$)('<ul id="' + id + '" role="menu" class="mdc-list"></ul>');
+      var $elem = (0, _jqueryLib.$)('<ul id="' + id + '" tabindex="-1" role="menu" class="mdc-list"></ul>');
       return $elem;
     }
   }, {
@@ -12865,7 +13456,7 @@ var UIHelper = /*#__PURE__*/function () {
     value: function createMenu(id) {
       var label = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '';
       var values = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : [];
-      var $elem = (0, _jqueryLib.$)('<div class="sb-ui-menu mdc-menu mdc-menu-surface mdc-menu-surface--fixed"></div>');
+      var $elem = (0, _jqueryLib.$)('<div id="' + id + '" tabindex="-1" class="sb-ui-menu mdc-menu mdc-menu-surface mdc-menu-surface--fixed"></div>');
       return $elem;
     }
   }, {
@@ -12935,7 +13526,7 @@ var UIHelper = /*#__PURE__*/function () {
                             <div class="mdc-button__ripple"></div> \
                             <span class="mdc-button__label">' + label_cancel + '</span> \
                         </button> \
-                        <button tabindex="1" type="button" class="mdc-button mdc-dialog__button" data-mdc-dialog-action="accept"> \
+                        <button tabindex="0" type="button" class="mdc-button mdc-dialog__button" data-mdc-dialog-action="accept"> \
                             <div class="mdc-button__ripple"></div> \
                             <span class="mdc-button__label">' + label_accept + '</span> \
                         </button> \
@@ -12973,8 +13564,35 @@ var UIHelper = /*#__PURE__*/function () {
     value: function decorateMenu($elem) {
       if (!$elem.length) return;
       var fields_toggle_menu = new _menu.MDCMenu($elem[0]);
+      fields_toggle_menu.setDefaultFocusState(0);
       $elem.on('_toggle', function () {
         fields_toggle_menu.open = !$elem.hasClass('mdc-menu-surface--open');
+      });
+      $elem.on('_open', function (event) {
+        event.stopPropagation();
+
+        if (!fields_toggle_menu.open) {
+          fields_toggle_menu.selectedIndex = 0;
+          fields_toggle_menu.open = true; // force preventing tab capture
+
+          $elem.find('.mdc-list-item').attr('tabindex', -1);
+        }
+      });
+      $elem.on('_close', function (event) {
+        event.stopPropagation();
+        fields_toggle_menu.open = false;
+      });
+      $elem.on('_moveup', function () {
+        var index = fields_toggle_menu.selectedIndex;
+        fields_toggle_menu.selectedIndex = index > 0 ? index - 1 : 0;
+      });
+      $elem.on('_movedown', function () {
+        var index = fields_toggle_menu.selectedIndex;
+        fields_toggle_menu.selectedIndex = index + 1;
+      });
+      $elem.on('_select', function (event) {
+        event.stopPropagation();
+        $elem.find('.mdc-list-item--selected').trigger('click');
       });
     }
   }, {
@@ -13152,10 +13770,6 @@ Object.defineProperty(exports, "__esModule", ({
 }));
 exports.default = void 0;
 
-var _regenerator = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/regenerator */ "./node_modules/@babel/runtime/regenerator/index.js"));
-
-var _asyncToGenerator2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/asyncToGenerator */ "./node_modules/@babel/runtime/helpers/asyncToGenerator.js"));
-
 var _classCallCheck2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/classCallCheck */ "./node_modules/@babel/runtime/helpers/classCallCheck.js"));
 
 var _createClass2 = _interopRequireDefault(__webpack_require__(/*! @babel/runtime/helpers/createClass */ "./node_modules/@babel/runtime/helpers/createClass.js"));
@@ -13184,40 +13798,16 @@ var Widget = /*#__PURE__*/function () {
 
     this.mode = 'view';
     this.$elem = $();
-    this.init();
+
+    var S4 = function S4() {
+      return ((1 + Math.random()) * 0x10000 | 0).toString(16).substring(1);
+    }; // generate a random guid
+
+
+    this.id = S4() + S4() + "-" + S4() + "-" + S4() + "-" + S4() + "-" + S4() + S4() + S4();
   }
 
   (0, _createClass2.default)(Widget, [{
-    key: "init",
-    value: function () {
-      var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
-        var S4;
-        return _regenerator.default.wrap(function _callee$(_context) {
-          while (1) {
-            switch (_context.prev = _context.next) {
-              case 0:
-                S4 = function S4() {
-                  return ((1 + Math.random()) * 0x10000 | 0).toString(16).substring(1);
-                }; // generate a random guid
-
-
-                this.id = S4() + S4() + "-" + S4() + "-" + S4() + "-" + S4() + "-" + S4() + S4() + S4();
-
-              case 2:
-              case "end":
-                return _context.stop();
-            }
-          }
-        }, _callee, this);
-      }));
-
-      function init() {
-        return _init.apply(this, arguments);
-      }
-
-      return init;
-    }()
-  }, {
     key: "getLayout",
     value: function getLayout() {
       return this.layout;
@@ -13577,6 +14167,7 @@ var WidgetDate = /*#__PURE__*/function (_Widget) {
 
             _this.$elem.trigger('_updatedWidget');
           });
+          this.$elem.find('button').attr('tabindex', -1);
           break;
 
         case 'view':
@@ -14933,9 +15524,9 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
       // on right side of widget, add an icon to open the target object (current selection) into a new context
 
 
-      var $button_open = _materialLib.UIHelper.createButton('m2o-actions-open-' + this.id, '', 'icon', 'open_in_new');
+      var $button_open = _materialLib.UIHelper.createButton('m2o-actions-open-' + this.id, '', 'icon', 'open_in_new').attr('tabindex', -1);
 
-      var $button_create = _materialLib.UIHelper.createButton('m2o-actions-create-' + this.id, '', 'icon', 'add');
+      var $button_create = _materialLib.UIHelper.createButton('m2o-actions-create-' + this.id, '', 'icon', 'add').attr('tabindex', -1);
 
       switch (this.mode) {
         case 'edit':
@@ -14943,7 +15534,7 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
           this.$elem = $('<div />');
 
           var $select = _materialLib.UIHelper.createInput('m2o-input-' + this.id, this.label, value, this.config.description, '', this.readonly).addClass('mdc-menu-surface--anchor').css({
-            "width": "calc(100% - 48px)",
+            "width": "100%",
             "display": "inline-block"
           });
 
@@ -14952,6 +15543,12 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
           var $menu_list = _materialLib.UIHelper.createList('m2o-menu-list-' + this.id).appendTo($menu);
 
           var $link = _materialLib.UIHelper.createListItem('m2o-actions-create-' + this.id, '<a style="text-decoration: underline;">' + _equalServices.TranslationService.instant('SB_WIDGETS_MANY2ONE_ADVANCED_SEARCH') + '</a>');
+
+          if (this.config.action_open || this.config.action_create) {
+            $select.css({
+              "width": "calc(100% - 48px)"
+            });
+          }
 
           _materialLib.UIHelper.decorateMenu($menu);
 
@@ -14962,71 +15559,81 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
           }
 
           this.$elem.append($select);
-          this.$elem.append($button_open); // open targeted object in new context
 
-          $button_open.on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
-            return _regenerator.default.wrap(function _callee$(_context) {
-              while (1) {
-                switch (_context.prev = _context.next) {
-                  case 0:
-                    if (_this.config.hasOwnProperty('object_id')) {
+          if (this.config.hasOwnProperty('object_id') && this.config.object_id > 0) {
+            $select.attr('data-selected', this.config.object_id);
+          }
+
+          if (this.config.action_open) {
+            this.$elem.append($button_open); // open targeted object in new context
+
+            $button_open.on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee() {
+              return _regenerator.default.wrap(function _callee$(_context) {
+                while (1) {
+                  switch (_context.prev = _context.next) {
+                    case 0:
+                      if (_this.config.hasOwnProperty('object_id')) {
+                        _this.getLayout().openContext({
+                          entity: _this.config.foreign_object,
+                          type: 'form',
+                          mode: 'edit',
+                          name: _this.config.hasOwnProperty('view_name') ? _this.config.view_name : 'default',
+                          domain: ['id', '=', _this.config.object_id]
+                        });
+                      }
+
+                    case 1:
+                    case "end":
+                      return _context.stop();
+                  }
+                }
+              }, _callee);
+            })));
+          }
+
+          if (this.config.action_create) {
+            this.$elem.append($button_create); // open creation form in new context
+
+            $button_create.on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
+              return _regenerator.default.wrap(function _callee2$(_context2) {
+                while (1) {
+                  switch (_context2.prev = _context2.next) {
+                    case 0:
                       _this.getLayout().openContext({
                         entity: _this.config.foreign_object,
                         type: 'form',
                         mode: 'edit',
+                        purpose: 'create',
+                        domain: domain,
                         name: _this.config.hasOwnProperty('view_name') ? _this.config.view_name : 'default',
-                        domain: ['id', '=', _this.config.object_id]
-                      });
-                    }
+                        callback: function callback(data) {
+                          if (data && data.selection && data.objects) {
+                            if (data.selection.length) {
+                              $button_create.hide();
+                              $button_open.show(); // m2o relations are always loaded as an object with {id:, name:}
 
-                  case 1:
-                  case "end":
-                    return _context.stop();
-                }
-              }
-            }, _callee);
-          })));
-          this.$elem.append($button_create); // open creation form in new context
+                              var object = data.objects.find(function (o) {
+                                return o.id == data.selection[0];
+                              });
+                              _this.value = {
+                                id: object.id,
+                                name: object.name
+                              };
 
-          $button_create.on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee2() {
-            return _regenerator.default.wrap(function _callee2$(_context2) {
-              while (1) {
-                switch (_context2.prev = _context2.next) {
-                  case 0:
-                    _this.getLayout().openContext({
-                      entity: _this.config.foreign_object,
-                      type: 'form',
-                      mode: 'edit',
-                      purpose: 'create',
-                      domain: domain,
-                      name: _this.config.hasOwnProperty('view_name') ? _this.config.view_name : 'default',
-                      callback: function callback(data) {
-                        if (data && data.selection && data.objects) {
-                          if (data.selection.length) {
-                            $button_create.hide();
-                            $button_open.show(); // m2o relations are always loaded as an object with {id:, name:}
-
-                            var object = data.objects.find(function (o) {
-                              return o.id == data.selection[0];
-                            });
-                            _this.value = {
-                              id: object.id,
-                              name: object.name
-                            };
-
-                            _this.$elem.trigger('_updatedWidget');
+                              _this.$elem.trigger('_updatedWidget');
+                            }
                           }
                         }
-                      }
-                    });
+                      });
 
-                  case 1:
-                  case "end":
-                    return _context2.stop();
+                    case 1:
+                    case "end":
+                      return _context2.stop();
+                  }
                 }
-              }
-            }, _callee2);
-          })));
+              }, _callee2);
+            })));
+          }
 
           var openSelectContext = function openSelectContext() {
             _this.getLayout().openContext(_objectSpread(_objectSpread({}, _this.config), {}, {
@@ -15059,87 +15666,139 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
             }));
           };
 
-          var feedObjects = function feedObjects() {
-            var $input = $select.find('input');
-            if (!$input.length) return;
-            var val = $input.val();
-            var parts = val.split(" ");
-            var domainArray = [];
+          var query = '';
 
-            var _iterator = _createForOfIteratorHelper(parts),
-                _step;
+          var feedObjects = /*#__PURE__*/function () {
+            var _ref3 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3() {
+              var $input, val, parts, domainArray, _iterator, _step, word, cond, tmpDomain, limit, response, _iterator2, _step2, _loop, object;
 
-            try {
-              for (_iterator.s(); !(_step = _iterator.n()).done;) {
-                var word = _step.value;
-                var cond = ['name', 'ilike', '%' + word + '%'];
-                domainArray.push(cond);
-              }
-            } catch (err) {
-              _iterator.e(err);
-            } finally {
-              _iterator.f();
-            }
+              return _regenerator.default.wrap(function _callee3$(_context3) {
+                while (1) {
+                  switch (_context3.prev = _context3.next) {
+                    case 0:
+                      $input = $select.find('input');
 
-            var tmpDomain = new _Domain.default(domainArray);
-            tmpDomain.merge(new _Domain.default(domain)); // fetch first objects from config.foreign_object (use config.domain) + add an extra line ("advanced search...")
+                      if ($input.length) {
+                        _context3.next = 3;
+                        break;
+                      }
 
-            var limit = _this.config.limit ? _this.config.limit : 5;
+                      return _context3.abrupt("return");
 
-            _equalServices.ApiService.collect(_this.config.foreign_object, tmpDomain.toArray(), ['id', 'name'], 'id', 'asc', 0, limit, _this.config.lang).then(function (response) {
-              objects = response;
-              $menu_list.empty();
+                    case 3:
+                      val = $input.val();
+                      parts = val.split(" ");
 
-              var _iterator2 = _createForOfIteratorHelper(objects),
-                  _step2;
+                      if (!(val == query && objects.length)) {
+                        _context3.next = 7;
+                        break;
+                      }
 
-              try {
-                var _loop = function _loop() {
-                  var object = _step2.value;
+                      return _context3.abrupt("return");
 
-                  _materialLib.UIHelper.createListItem(_this.id + '-object-' + object.id, object.name.replaceAll(' ', '&nbsp;')).appendTo($menu_list).attr('id', object.id).on('click', function (event) {
-                    $input.val(object.name).trigger('change');
-                    $select.attr('data-selected', object.id);
-                    $select.trigger('update');
-                  });
-                };
+                    case 7:
+                      query = val;
+                      domainArray = [];
+                      _iterator = _createForOfIteratorHelper(parts);
 
-                for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
-                  _loop();
+                      try {
+                        for (_iterator.s(); !(_step = _iterator.n()).done;) {
+                          word = _step.value;
+                          cond = ['name', 'ilike', '%' + word + '%'];
+                          domainArray.push(cond);
+                        }
+                      } catch (err) {
+                        _iterator.e(err);
+                      } finally {
+                        _iterator.f();
+                      }
+
+                      tmpDomain = new _Domain.default(domainArray);
+                      tmpDomain.merge(new _Domain.default(domain)); // fetch first objects from config.foreign_object (use config.domain) + add an extra line ("advanced search...")
+
+                      limit = _this.config.limit ? _this.config.limit : 5;
+                      _context3.prev = 14;
+                      _context3.next = 17;
+                      return _equalServices.ApiService.collect(_this.config.foreign_object, tmpDomain.toArray(), ['id', 'name'], 'id', 'asc', 0, limit, _this.config.lang);
+
+                    case 17:
+                      response = _context3.sent;
+                      objects = response;
+                      $menu_list.empty();
+                      _iterator2 = _createForOfIteratorHelper(objects);
+
+                      try {
+                        _loop = function _loop() {
+                          var object = _step2.value;
+
+                          _materialLib.UIHelper.createListItem(_this.id + '-object-' + object.id, object.name.replaceAll(' ', '&nbsp;')).appendTo($menu_list).attr('id', object.id).on('click', function (event) {
+                            $input.val(object.name).trigger('change');
+                            $select.attr('data-selected', object.id);
+                            $select.trigger('update');
+                          });
+                        };
+
+                        for (_iterator2.s(); !(_step2 = _iterator2.n()).done;) {
+                          _loop();
+                        }
+                      } catch (err) {
+                        _iterator2.e(err);
+                      } finally {
+                        _iterator2.f();
+                      }
+
+                      if (objects.length) {
+                        if (objects.length == 1) {
+                          // if list is exactly 1 object long : auto-select
+                          object = objects[0];
+                          $input.val(object.name).trigger('change');
+                          $select.attr('data-selected', object.id);
+                          $select.trigger('update');
+                        } else {
+                          $menu_list.append(_materialLib.UIHelper.createListDivider());
+                        }
+                      } // advanced search button
+
+
+                      $link.on('click', openSelectContext);
+                      $menu_list.append($link);
+                      _context3.next = 30;
+                      break;
+
+                    case 27:
+                      _context3.prev = 27;
+                      _context3.t0 = _context3["catch"](14);
+                      console.log('request failed', _context3.t0);
+
+                    case 30:
+                      ;
+
+                    case 31:
+                    case "end":
+                      return _context3.stop();
+                  }
                 }
-              } catch (err) {
-                _iterator2.e(err);
-              } finally {
-                _iterator2.f();
-              }
+              }, _callee3, null, [[14, 27]]);
+            }));
 
-              if (objects.length) {
-                if (objects.length == 1) {
-                  // if list is exactly 1 object long : auto-select
-                  var object = objects[0];
-                  $input.val(object.name).trigger('change');
-                  $select.attr('data-selected', object.id);
-                  $select.trigger('update');
-                } else {
-                  $menu_list.append(_materialLib.UIHelper.createListDivider());
-                }
-              } // advanced search button
-
-
-              $link.on('click', openSelectContext);
-              $menu_list.append($link);
-            }).catch(function (response) {
-              console.log('request failed', response);
-            });
-          };
+            return function feedObjects() {
+              return _ref3.apply(this, arguments);
+            };
+          }();
 
           if (this.config.layout == 'form' && !this.readonly) {
             var $button_reset = _materialLib.UIHelper.createButton('m2o-actions-reset-' + this.id, '', 'icon', 'close').css({
-              'position': 'absolute',
-              'right': '45px',
-              'top': '5px',
-              'z-index': '2'
+              "position": "absolute",
+              "right": "45px",
+              "top": "5px",
+              "z-index": "2"
             });
+
+            if (!this.config.action_open && !this.config.action_create) {
+              $button_reset.css({
+                "right": "5px"
+              });
+            }
 
             if (value.length) {
               this.$elem.append($button_reset); // make room for reset button
@@ -15154,25 +15813,79 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
                 id: 0,
                 name: ''
               };
+              $select.attr('data-selected', 0);
 
-              _this.$elem.trigger('_updatedWidget');
+              _this.$elem.trigger('_updatedWidget'); // give back the focus to the input after refreshing the view
+
+
+              setTimeout(function () {
+                $('#m2o-input-' + _this.id).trigger('click');
+              }, 500);
             });
             $select.on('click', function () {
-              // make the menu sync with its parent width (menu is 'fixed')
-              $select.find('.mdc-menu-surface').width($select.width());
-              $menu.trigger('_toggle');
-              feedObjects();
-            });
-            var timeout = null;
-            $select.find('input').on('keyup', function () {
-              if (timeout) {
-                clearTimeout(timeout);
+              if (!$select.find('input').is(":focus")) {
+                $select.find('input').trigger('focus');
               }
+            });
+            $select.find('input').on('blur', function () {
+              // wait for the focus be given at next widget AND change to be relayed, if any
+              setTimeout(function () {
+                $menu.trigger('_close');
+              }, 100);
+            });
+            $select.find('input').on('focus', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
+              return _regenerator.default.wrap(function _callee4$(_context4) {
+                while (1) {
+                  switch (_context4.prev = _context4.next) {
+                    case 0:
+                      if (!$select.attr('data-selected')) {
+                        _context4.next = 2;
+                        break;
+                      }
 
-              timeout = setTimeout(function () {
-                timeout = null;
-                feedObjects();
-              }, 300);
+                      return _context4.abrupt("return");
+
+                    case 2:
+                      _context4.next = 4;
+                      return feedObjects();
+
+                    case 4:
+                      // make the menu sync with its parent width (menu is 'fixed')
+                      $select.find('.mdc-menu-surface').width($select.width());
+                      $menu.trigger('_open');
+
+                    case 6:
+                    case "end":
+                      return _context4.stop();
+                  }
+                }
+              }, _callee4);
+            })));
+            var timeout = null;
+            $select.find('input').on('keyup', function (event) {
+              if (event.which == 9) {
+                // prevent double handling tab
+                return;
+              } else if (event.which == 13) {
+                // enter
+                $menu.trigger('_select');
+              } else if (event.which == 38) {
+                // up arrow
+                $menu.trigger('_moveup');
+              } else if (event.which == 40) {
+                // down arrow
+                $menu.trigger('_movedown');
+              } else {
+                // new char : update results
+                if (timeout) {
+                  clearTimeout(timeout);
+                }
+
+                timeout = setTimeout(function () {
+                  timeout = null;
+                  feedObjects();
+                }, 300);
+              }
             }); // upon value change, relay updated value to parent layout
 
             $select.on('update', function (event) {
@@ -15223,13 +15936,11 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
               this.$elem.append($input);
               this.$elem.append($button_open); // open targeted object in new context
 
-              $button_open.on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee3() {
-                return _regenerator.default.wrap(function _callee3$(_context3) {
+              $button_open.on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5() {
+                return _regenerator.default.wrap(function _callee5$(_context5) {
                   while (1) {
-                    switch (_context3.prev = _context3.next) {
+                    switch (_context5.prev = _context5.next) {
                       case 0:
-                        console.log(_this.config);
-
                         if (_this.config.hasOwnProperty('object_id') && _this.config.object_id && _this.config.object_id > 0) {
                           _this.getLayout().openContext({
                             entity: _this.config.foreign_object,
@@ -15239,12 +15950,12 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
                           });
                         }
 
-                      case 2:
+                      case 1:
                       case "end":
-                        return _context3.stop();
+                        return _context5.stop();
                     }
                   }
-                }, _callee3);
+                }, _callee5);
               })));
               break;
 
@@ -15256,10 +15967,10 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
               } else {
                 // open targeted object in new context
                 $input.on('click', /*#__PURE__*/function () {
-                  var _ref4 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4(event) {
-                    return _regenerator.default.wrap(function _callee4$(_context4) {
+                  var _ref6 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6(event) {
+                    return _regenerator.default.wrap(function _callee6$(_context6) {
                       while (1) {
-                        switch (_context4.prev = _context4.next) {
+                        switch (_context6.prev = _context6.next) {
                           case 0:
                             _this.getLayout().openContext({
                               entity: _this.config.foreign_object,
@@ -15272,14 +15983,14 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
 
                           case 2:
                           case "end":
-                            return _context4.stop();
+                            return _context6.stop();
                         }
                       }
-                    }, _callee4);
+                    }, _callee6);
                   }));
 
                   return function (_x) {
-                    return _ref4.apply(this, arguments);
+                    return _ref6.apply(this, arguments);
                   };
                 }());
               }
@@ -15411,7 +16122,7 @@ var WidgetSelect = /*#__PURE__*/function (_Widget) {
 
       switch (this.mode) {
         case 'edit':
-          this.$elem = _materialLib.UIHelper.createSelect('', this.label, this.config.values, value, this.config.description, this.readonly);
+          this.$elem = _materialLib.UIHelper.createSelect(this.getId(), this.label, this.config.values, value, this.config.description, this.readonly);
 
           if (this.config.layout == 'list') {
             this.$elem.css({
@@ -15709,6 +16420,8 @@ var WidgetText = /*#__PURE__*/function (_Widget) {
                 }
               });
 
+              _this.$elem.find('.ql-formats *').attr('tabindex', -1);
+
               _this.$elem.data('quill', editor);
 
               editor.root.innerHTML = value;
@@ -15738,7 +16451,8 @@ var WidgetText = /*#__PURE__*/function (_Widget) {
             value = $("<div/>").html(value).text();
             this.$elem = _materialLib.UIHelper.createInputView('', this.label, value, this.config.description);
           } else {
-            this.$elem = $('<div class="sb-ui-textarea" />').append($('<div class="textarea-content" />').html(value));
+            this.$elem = $('<div class="sb-ui-textarea" />');
+            this.$elem.append($('<div class="textarea-content" />').html(value));
           }
 
           break;
@@ -47064,7 +47778,7 @@ __webpack_require__.r(__webpack_exports__);
 
 var ___CSS_LOADER_EXPORT___ = _node_modules_css_loader_dist_runtime_api_js__WEBPACK_IMPORTED_MODULE_1___default()((_node_modules_css_loader_dist_runtime_cssWithMappingToString_js__WEBPACK_IMPORTED_MODULE_0___default()));
 // Module
-___CSS_LOADER_EXPORT___.push([module.id, ":root {\r\n    /* colored buttons */\r\n    --mdc-theme-primary: #3f51b5;\r\n    --mdc-theme-primary-hover: #4f61c5;\r\n\r\n    --mdc-theme-primary-selected: #f5f5ff;\r\n    --mdc-theme-primary-outline: #b1b1dc;\r\n\r\n\r\n\r\n    /* checkbox background */\r\n    /* --mdc-theme-secondary: #3f51b5; */\r\n    --mdc-theme-secondary: #ff4081;\r\n\r\n    /* menus */\r\n    --mdc-typography-subtitle1-font-size: 14px;\r\n    /* table headers */\r\n    --mdc-typography-subtitle2-font-weight: 600;\r\n\r\n\r\n    --mdc-layout-grid-margin-desktop: 12px;\r\n    --mdc-layout-grid-gutter-desktop: 24px;\r\n    --mdc-layout-grid-margin-tablet: 12px;\r\n    --mdc-layout-grid-gutter-tablet: 18px;\r\n    --mdc-layout-grid-margin-phone: 12px;\r\n    --mdc-layout-grid-gutter-phone: 16px;\r\n\r\n}\r\n\r\nbody, html {\r\n    margin: 0;\r\n    padding: 0;\r\n    height:100%;\r\n}\r\n\r\n#sb-root {\r\n    display: flex;\r\n    height: 100%;\r\n    flex-flow: column nowrap;\r\n}\r\n\r\n#sb-menu .sb-menu-button {\r\n    display: inline-block;\r\n}\r\n\r\n#sb-container, .sb-container {\r\n    width: 100%;\r\n    height: 100%;\r\n    overflow: hidden;\r\n    flex: 1 1 100%;\r\n    box-sizing: border-box;\r\n    display: none;\r\n    /* added for WP compliance */\r\n    background-color: white;\r\n    position: relative;\r\n    z-index: 2;\r\n}\r\n\r\n\r\n.sb-popup-wrapper {\r\n    position: absolute;\r\n    top: 0;\r\n    left: 0;\r\n    width: 100vw;\r\n    height: 100vh;\r\n    background-color: rgba(0,0,0,0.3);\r\n    z-index: 1000;\r\n}\r\n\r\n.sb-popup {\r\n    position: absolute;\r\n    left: 10%;\r\n    top: 10%;\r\n    width: 80%;\r\n    height: 80%;\r\n    background-color: white;\r\n    border: solid 1px #c8ced3;\r\n    border-radius: 10px;\r\n    padding: 10px;\r\n}\r\n\r\n.sb-popup-wrapper .sb-container-header .context-close {\r\n    display: block;\r\n    margin-left: auto;\r\n}\r\n\r\n.sb-popup-inner {\r\n    height: 100%;\r\n}\r\n\r\n.sb-container-header {\r\n    position: relative;\r\n    padding-left: 12px;\r\n    height: 48px;\r\n    border-bottom: solid 1px lightgrey;\r\n}\r\n\r\n.sb-container-header h3 {\r\n    line-height: 48px;\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n.sb-container-header a {\r\n    cursor: pointer;\r\n    text-decoration: none;\r\n    color: var(--mdc-theme-primary);\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n.sb-container-header .lang-selector {\r\n    height: 48px;\r\n    width: 150px;\r\n    position: absolute;\r\n    top: 0;\r\n    right: 0;\r\n}\r\n\r\n.sb-popup .sb-container-header .lang-selector {\r\n    right: 50px;\r\n}\r\n\r\n.sb-container-header .lang-selector .mdc-select__anchor {\r\n    height: 48px;\r\n}\r\n\r\n.sb-container-header .lang-selector .mdc-select__menu {\r\n    min-width: 150px !important;\r\n    max-width: 150px !important;\r\n}\r\n\r\n.sb-context {\r\n    /* container height minus the header */\r\n    height: calc(100% - 48px);\r\n}\r\n\r\n.sb-view {\r\n    position: relative;\r\n    height: 100%;\r\n}\r\n\r\n.sb-view .mdc-snackbar {\r\n    justify-content: left;\r\n}\r\n\r\n.sb-view .mdc-snackbar__action:not(:disabled) {\r\n    color: #ff4081;;\r\n}\r\n\r\n.sb-view-layout-list {\r\n    /* height must be decremented by height of other elements from parent (header and footer) */\r\n    height: calc(100% - 112px);\r\n    padding: 0 12px 6px 12px;\r\n}\r\n\r\n.sb-view-dashboard-row .sb-view-layout-list {\r\n    height: calc(100% - 66px) !important;\r\n    padding: 0 !important;\r\n}\r\n\r\n.sb-view-layout-form {\r\n    /* height must be decremented by height of other elements from parent (header and footer) */\r\n    height: calc(100% - 56px);\r\n    padding-bottom: 10px;\r\n}\r\n\r\n/* added for WP compliance */\r\n.sb-view-layout-form .sb-widget.sb-widget-mode-view input {\r\n    background: transparent;\r\n    border-color: transparent;\r\n}\r\n\r\n/* added for WP compliance */\r\n.sb-view .sb-widget input {\r\n    box-shadow: none;\r\n}\r\n\r\n.sb-view .sb-widget label {\r\n    user-select: none;\r\n}\r\n\r\n/* added for WP compliance */\r\n.sb-view-layout-form .sb-widget input {\r\n    border: 0;\r\n    padding: 0;\r\n}\r\n\r\n\r\n.sb-view-list-inline-actions-button {\r\n    transform: scale(0.7);\r\n}\r\n\r\n.sb-layout {\r\n    position: relative;\r\n    height: 100%;\r\n}\r\n\r\n\r\n.sb-view .sb-view-dialog .mdc-dialog__surface {\r\n    min-width: 450px;\r\n    width: 450px;\r\n    max-width: 450px;\r\n}\r\n\r\n.sb-view .sb-view-dialog .dialog-select {\r\n\tmargin-bottom: 12px;\r\n}\r\n\r\n.sb-view-layout-list table th {\r\n    cursor: pointer;\r\n    user-select: none;\r\n    position: sticky;\r\n    top: 0;\r\n    z-index: 3;\r\n}\r\n\r\n.sb-view-layout-list table th.sortable.hover {\r\n    background-color: #f0f0f0;\r\n}\r\n\r\n.sb-view-layout-list table th.sorted {\r\n    color: black;\r\n}\r\n\r\n.sb-view-layout-list table th.asc::after, .sb-view-layout-list table th.desc::after {\r\n    position: absolute;\r\n    margin-left: 6px;\r\n    font-family: FontAwesome;\r\n    opacity: 0.3;\r\n}\r\n\r\n.sb-view-layout-list table th.asc::after {\r\n    content: \"\\f0d7\";\r\n}\r\n\r\n.sb-view-layout-list table th.desc::after {\r\n    content: \"\\f0d8\";\r\n}\r\n\r\n.sb-view-layout-list table tr {\r\n    cursor: pointer;\r\n}\r\n\r\n.sb-view-layout-list .table-operations {\r\n    display: block;\r\n}\r\n\r\n.sb-view-layout-list .table-operations .operation {\r\n    min-height: 44px;\r\n}\r\n\r\n.sb-view-layout-list .table-operations .operation .operation-title {\r\n    text-transform: uppercase;\r\n    width: 100%;\r\n    text-align: left;\r\n    font-weight: 600;\r\n    padding: 0 12px 0 12px;\r\n}\r\n\r\n.sb-view-layout-list .table-operations .operation .operation-row {\r\n    display: flex;\r\n    width: 100%;\r\n    min-height: 44px;\r\n}\r\n\r\n.sb-view-layout-list .table-operations .operation .operation-row .operation-cell {\r\n    display: flex;\r\n    align-items: center;\r\n    padding: 0 2px;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n.sb-view-layout-list .table-operations .operation .operation-row .operation-cell input {\r\n    font-family: roboto;\r\n    font-size: 15px;\r\n    font-weight: 500;\r\n    border: 0;\r\n    width: 100%;\r\n}\r\n\r\n.sb-view-layout-list .table-operations .operation .operation-row .operation-cell:first-child {\r\n    padding-left: 12px;\r\n}\r\n\r\n\r\n.sb-view-header-list {\r\n    position: relative;\r\n    max-height: 112px;\r\n    /*\r\n    height: 112px;\r\n    line-height: 112px;\r\n    */\r\n}\r\n\r\n.sb-view-header-list-actions {\r\n    margin-left: 12px;\r\n    max-height: 56px;\r\n}\r\n\r\n.sb-view-header-list-actions button {\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-header-list-actions-selected {\r\n    position: relative;\r\n    display: flex;\r\n}\r\n\r\n/* todo: improve this (add a custom class)*/\r\n.sb-view-header-list-actions-selected .mdc-button__label {\r\n    padding-right: 10px;\r\n}\r\n\r\n.sb-view-header-list-actions-selected .mdc-button__label::after {\r\n    content: \"\\f0d7\";\r\n}\r\n\r\n.sb-view-header-list-actions-selected .mdc-button__label::after {\r\n    position: absolute;\r\n    margin-left: 6px;\r\n    font-family: FontAwesome;\r\n    opacity: 0.5;\r\n}\r\n\r\n.sb-view-header-list-navigation {\r\n    height: 56px;\r\n    line-height: 56px;\r\n    display: flex;\r\n    margin-left: 12px;\r\n}\r\n\r\n.sb-view-header-list-filters {\r\n    margin-top: 4px;\r\n}\r\n\r\n.sb-view-header-list-filters .sb-view-header-list-filters-menu {\r\n    min-width: 250px;\r\n}\r\n\r\n\r\n.sb-view-header-list-filters-search .mdc-text-field {\r\n    height: 36px;\r\n}\r\n\r\n.sb-view-header-list-filters-search .mdc-text-field__icon--trailing {\r\n    display: none;\r\n}\r\n\r\n.sb-view-header-list-filters-search .mdc-text-field--label-floating .mdc-text-field__icon--trailing {\r\n    display: block;\r\n    right: 0;\r\n}\r\n\r\n.sb-view-header-list-filters-search .mdc-floating-label--float-above {\r\n    display: none;\r\n}\r\n\r\n.sb-view-header-list-filters-set {\r\n    margin-top: 4px;\r\n}\r\n\r\n\r\n.sb-view-header-list-fields_toggle {\r\n    /* flex-grow: 1; */\r\n    margin-top: 4px;\r\n    margin-right: 10px;\r\n    text-align: right;\r\n}\r\n\r\n\r\n.sb-view-header-list-fields_toggle .sb-view-header-list-fields_toggle-menu {\r\n    min-width: 250px !important;\r\n    max-width: 250px !important;\r\n}\r\n\r\n.sb-view-header-list-pagination {\r\n    flex: 1;\r\n    flex-grow: 1;\r\n\r\n}\r\n\r\n.sb-view-header-list-pagination-limit_select {\r\n    margin-left: 12px;\r\n}\r\n\r\n.sb-view-header-list-pagination .pagination-navigation {\r\n    user-select: none;\r\n}\r\n\r\n\r\n.sb-widget-mode-view input {\r\n    color: black !important;\r\n    user-select: none;\r\n}\r\n\r\n.sb-widget-mode-view .mdc-text-field .mdc-floating-label,\r\n.sb-widget-mode-view.mdc-select .mdc-floating-label {\r\n    color: rgba(0,0,0,0.5) !important;\r\n    user-select: none;\r\n    font-size: 16px;\r\n    font-weight: 400;\r\n}\r\n\r\n.sb-widget-mode-edit .mdc-text-field .mdc-floating-label,\r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label {\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n}\r\n\r\n.sb-widget-mode-view .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above,\r\n.sb-widget-mode-view.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n}\r\n\r\n.sb-widget-mode-edit .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above,\r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.6) !important;\r\n    font-weight: 400;\r\n}\r\n\r\n.sb-widget.sb-ui-textarea {\r\n    height: 200px;\r\n    margin-top: 20px;\r\n}\r\n\r\n.sb-widget.sb-ui-textarea .ql-toolbar {\r\n    background: white;\r\n}\r\n\r\n.sb-widget.sb-ui-textarea .ql-toolbar .ql-fullscreen {\r\n    position: relative;\r\n}\r\n\r\n.sb-widget.sb-ui-textarea .ql-toolbar .ql-fullscreen::after {\r\n  position: absolute;   \r\n  content: \"⛶\";\r\n  font-size: 18px;\r\n  font-weight: 600;\r\n  top: 0;\r\n}\r\n\r\n.sb-widget.sb-ui-textarea .ql-editor {\r\n    background-color: white;\r\n}\r\n\r\n.sb-widget-mode-view.sb-ui-textarea {\r\n    font-size: 14px;\r\n    border: solid 1px lightgrey;\r\n    overflow-y: scroll;\r\n}\r\n\r\n.sb-widget.sb-ui-textarea .textarea-content {\r\n    overflow-y: auto;\r\n}\r\n\r\n.sb-widget.sb-ui-textarea .textarea-title {\r\n    position: absolute;\r\n    top: -24px;\r\n    left: 4px;\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n    transform: scale(75%);\r\n    font-size: 16px;\r\n}\r\n\r\n.sb-widget-mode-view.sb-ui-textarea p {\r\n    margin: 0;\r\n}\r\n\r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.6) !important;\r\n    font-weight: 400;\r\n}\r\n\r\n\r\n.sb-view-header-form {\r\n    position: relative;\r\n    height: 56px;\r\n}\r\n\r\n.sb-view-header-actions {\r\n    display: flex;\r\n    margin-left: 12px;\r\n    max-height: 56px;\r\n    padding-top: 10px;\r\n}\r\n\r\n.sb-view-header-actions .sb-view-header-actions-std {\r\n    flex: 0 1 50%;\r\n    display: flex;\r\n}\r\n\r\n.sb-view-header-actions .sb-view-header-actions-std button {\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-header-actions .sb-view-header-actions-view {\r\n    margin-left: auto;\r\n}\r\n\r\n.sb-view-header-actions .sb-view-header-actions-view button {\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-dashboard-section {\r\n    padding: 0 24px;\r\n}\r\n\r\n.sb-view-dashboard-group {\r\n    padding: 0;\r\n}\r\n\r\n.sb-view-dashboard-row {\r\n    position: relative;\r\n    padding: 12px 0;\r\n    box-sizing: content-box;\r\n}\r\n\r\n.sb-view-dashboard-row .sb-view-dashboard-cell-title {\r\n    position: absolute;\r\n    font-weight: 500;\r\n    width: 100%;\r\n    text-align: left;\r\n}\r\n\r\n.sb-view-form-group {\r\n    padding: 12px;\r\n}\r\n\r\n.sb-view-form-row:not(:first-child) {\r\n    padding-top: 24px;\r\n}\r\n\r\n.sb-view-form-group-title {\r\n    font-size: 20px;\r\n    margin-bottom: 12px;\r\n}\r\n\r\n.sb-view-form-sections-tabbar {\r\n    margin-top: 24px;\r\n    margin-bottom: 6px;\r\n}\r\n\r\n.sb-view-layout-chart {\r\n    height: 100%;\r\n}\r\n\r\n.sb-view-layout-list .mdc-line-ripple::before, .sb-view-layout-list .mdc-line-ripple::after {\r\n  border: none !important;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget label.mdc-text-field .mdc-floating-label {\r\n    display: none !important;\r\n}\r\n.sb-view-layout-list .sb-widget.sb-widget-mode-view label.mdc-text-field::before {\r\n    display: none !important;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget.sb-widget-mode-view input {\r\n    height: 100%;\r\n    background: none;\r\n    border-color: transparent;\r\n    box-shadow: none;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget.sb-widget-type-many2one.sb-widget-mode-view:not(.is-first) input {\r\n    cursor: pointer;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget.sb-widget-type-many2one.sb-widget-mode-view:not(.is-first) input:hover {\r\n    text-decoration: underline;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget-mode-edit button.mdc-icon-button {\r\n    padding: 0 0 0 5px;\r\n    height: auto;\r\n    width: auto;\r\n    position: absolute;\r\n}\r\n\r\n.sb-view-layout-form-input-button {\r\n    width: 25px;\r\n    height: 30px;\r\n    position: absolute;\r\n    right: 12px;\r\n    top: calc(50% - 15px);\r\n}\r\n\r\n.sb-view-layout-form-input-decoy {\r\n    position: absolute;\r\n    left: 16px;\r\n    bottom: 10px;\r\n    z-index: -1;\r\n    opacity: 0;\r\n}\r\n\r\n\r\n.sb-widget {\r\n    position: relative;\r\n}\r\n\r\n.sb-widget .sb-ui-checkbox {\r\n    position: relative;\r\n}\r\n\r\n.sb-widget .sb-ui-switch {\r\n    height: 56px;\r\n    line-height: 56px;\r\n}\r\n\r\n/* Material Components customizations */\r\n\r\n/* fix for ripple not working on icon-button */\r\nbutton.mdc-icon-button:hover, button.mdc-icon-button:active, button.mdc-icon-button:focus {\r\n    border-radius: 50%;\r\n    background-color: rgba(0,0,0,0.10);\r\n}\r\n\r\n/* fix tooltip not hiding */\r\n.mdc-tooltip--hide {\r\n    opacity: 0;\r\n}\r\n\r\n.mdc-button--primary {\r\n    background-color: var(--mdc-theme-primary) !important;\r\n}\r\n\r\n.mdc-button--secondary {\r\n    background-color: var(--mdc-theme-secondary) !important;\r\n}\r\n\r\n@keyframes button_spinner {\r\n    to {transform: rotate(360deg);}\r\n}\r\n\r\n.mdc-button--spinner:before {\r\n    content: '';\r\n    box-sizing: border-box;\r\n    position: absolute;\r\n    top: 50%;\r\n    left: 50%;\r\n    width: 20px;\r\n    height: 20px;\r\n    margin-top: -10px;\r\n    margin-left: -10px;\r\n    border-radius: 50%;\r\n    border: 2px solid #ffffff;\r\n    border-top-color: #000000;\r\n    animation: button_spinner .8s linear infinite;\r\n}\r\n\r\n/* Special SB widgets customizations */\r\n\r\n/* support for title strings */\r\n.sb-widget.title {\r\n    margin-top: -14px;\r\n}\r\n\r\n.sb-widget.title span.mdc-floating-label--float-above {\r\n    transform: translateY(-166%) !important;\r\n}\r\n.sb-widget.title label.mdc-text-field, .sb-widget.title .mdc-select__anchor {\r\n  height: 70px;\r\n}\r\n.sb-widget.title input.mdc-text-field__input {\r\n  font-size: 30px;\r\n  margin-top: auto;\r\n  height: 60px;\r\n}\r\n\r\n.sb-widget.title .mdc-select__selected-text {\r\n    font-size: 30px;\r\n    margin-top: 27px;\r\n    height: 30px;\r\n}\r\n\r\n\r\n.sb-view-layout-form {\r\n    overflow-y: scroll;\r\n    overflow-x: hidden;\r\n}\r\n\r\n\r\n.sb-view-layout-form::-webkit-scrollbar {\r\n    width: 6px;\r\n    overflow-y: scroll;\r\n    background: transparent;\r\n}\r\n\r\n.sb-view-layout-form::-webkit-scrollbar-thumb {\r\n    background: var(--mdc-theme-primary, #6200ee);\r\n    border-radius: 10px;\r\n}\r\n\r\n\r\n.sb-view-layout-form .sb-widget.sb-widget-type-boolean {\r\n    height: 56px;\r\n    padding-left: 16px;\r\n    width: 100%;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget.sb-widget-type-boolean {\r\n    height: 44px;\r\n    /* cannot identify the reason why this was necessary at some point */\r\n    /* padding-top: 14px; */\r\n}\r\n\r\n/* added for WP compliance */\r\n.sb-widget.sb-widget-type-boolean .mdc-switch__native-control {\r\n    opacity: 0 !important;\r\n}\r\n\r\n.sb-widget.sb-image-thumbnail {\r\n    height: 150px;\r\n    width: 150px;\r\n    background-size: cover;\r\n}\r\n\r\n.sb-widget-cell .sb-widget.sb-image-thumbnail {\r\n    height: 35px;\r\n    width: 35px;\r\n    border-radius: 0;\r\n}\r\n\r\n.sb-view-layout-list .sb-group-row {\r\n    background-color: rgba(0,0,0,0.03);\r\n}\r\n\r\n.sb-view-layout-list .sb-group-cell-label {\r\n    text-transform: uppercase;\r\n}\r\n\r\n.sb-view-layout-list .sb-group-cell-label span {\r\n    font-weight: 500;\r\n}\r\n\r\n.sb-view-layout-list .sb-group-row .sb-toggle-button, .sb-view-layout-list th.sb-group-cell .sb-toggle-button {\r\n    user-select: none;\r\n    transform: rotate(90deg);\r\n}\r\n\r\n.sb-view-layout-list .sb-group-row.folded .sb-toggle-button, .sb-view-layout-list th.sb-group-cell.folded .sb-toggle-button {\r\n    transform: rotate(0deg);\r\n}\r\n\r\n.sb-widget.sb-dropable {\r\n    outline: dashed 2px var(--mdc-theme-secondary);\r\n}\r\n\r\n.sb-widget.sb-dropable.highlight {\r\n    outline: solid 2px var(--mdc-theme-secondary);\r\n    opacity: 0.5;\r\n}\r\n\r\n/* adapt inputs for inline editing */\r\n.sb-widget-cell .mdc-text-field {\r\n  height: 100%;\r\n}\r\n\r\n.sb-widget-cell.allow-overflow {\r\n    overflow: visible !important;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field {\r\n    padding-left: 0;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-text-field {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    padding-left: 5px;\r\n    border-top-left-radius: 0;\r\n    border-top-right-radius: 0;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-select__anchor {\r\n    padding-left: 5px;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field-helper-line {\r\n  display: none;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--filled::before {\r\n  display: none;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--filled:not(.mdc-text-field--disabled) {\r\n    background-color: inherit;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-text-field--filled:not(.mdc-text-field--disabled) {\r\n    background-color: white;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--invalid .mdc-text-field__input {\r\n    color: var(--mdc-theme-error, #b00020);\r\n}\r\n\r\n.sb-widget-cell .mdc-select {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    margin-top: -14px;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit.mdc-select {\r\n    margin-top: 0;\r\n}\r\n\r\n.sb-widget.sb-widget-mode-edit .sb-ui-menu.mdc-menu-surface--is-open-below {\r\n    margin-top: 80px !important;\r\n}\r\n\r\n.sb-widget.sb-widget-mode-edit input[type=number]::-webkit-outer-spin-button,\r\n.sb-widget.sb-widget-mode-edit input[type=number]::-webkit-inner-spin-button{\r\n    margin-left: 20px;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .sb-ui-menu.mdc-menu-surface--is-open-below {\r\n    margin-top: 30px !important;\r\n}\r\n\r\n.sb-ui-menu.mdc-menu-surface--open {\r\n    margin-bottom: 60px !important;\r\n}\r\n\r\n.sb-ui-menu.mdc-menu-surface--is-open-below {\r\n    margin-top: 45px !important;\r\n}\r\n\r\n\r\n.sb-widget-cell .mdc-select__anchor {\r\n    height: 100%;\r\n}\r\n\r\n/* make mini-fab flat (mini save buttons) */\r\n.sb-view-layout-list-row-checkbox .mdc-fab--mini {\r\n    box-shadow: none !important;\r\n    margin: 2px 0;\r\n}\r\n\r\n\r\n/* mdc styling customizations */\r\n\r\n.mdc-data-table {\r\n    height: 100%;\r\n}\r\n\r\n.mdc-data-table__table-container::-webkit-scrollbar {\r\n    width: 6px;\r\n    overflow-y: scroll;\r\n    background: transparent;\r\n\r\n}\r\n\r\n.mdc-data-table__table-container::-webkit-scrollbar-thumb {\r\n    background: var(--mdc-theme-primary, #6200ee);\r\n    border-radius: 10px;\r\n}\r\n\r\n\r\n.mdc-data-table__table-container .table-loader {\r\n    display: none;\r\n    width: 100%;\r\n    height: calc(100% - 44px);\r\n    top: 44px;\r\n    position: absolute;\r\n    z-index: 4;\r\n}\r\n\r\n\r\n.mdc-data-table__table-container .table-loader .table-overlay {\r\n    position: absolute;\r\n    opacity: 0.5;\r\n    background-color: white;\r\n    width: 100%;\r\n    height: 100%;\r\n}\r\n\r\n.mdc-data-table__table-container .table-loader .table-spinner {\r\n    width: calc(100% + 2px);\r\n    position: absolute;\r\n    height: 4px;\r\n    z-index: 4;\r\n    left: -1px;\r\n    box-sizing: border-box;\r\n    border: 0;\r\n    background-color: white;\r\n\toverflow: hidden;\r\n    display: flex;\r\n    align-items: center;\r\n    align-content: center;\r\n    justify-content: flex-start;\r\n}\r\n\r\n.mdc-data-table__table-container .table-loader .table-spinner .spinner__element {\r\n\theight: 100%;\r\n\twidth: 100%;\r\n\tbackground: var(--mdc-theme-primary-outline);\r\n}\r\n\r\n.mdc-data-table__table-container .table-loader .table-spinner .spinner__element::before {\r\n\tcontent: '';\r\n\tdisplay: block;\r\n\tbackground-color: var(--mdc-theme-primary);\r\n\theight: 4px;\r\n\twidth: 0;\r\n    animation: tableSpinnerGetWidth 2s ease-in infinite;\r\n}\r\n\r\n@keyframes tableSpinnerGetWidth {\r\n\t100% { width: 100%; }\r\n}\r\n\r\n\r\n\r\n.mdc-data-table__pagination {\r\n    border-top: 0;\r\n}\r\n\r\n.mdc-data-table__cell {\r\n    height: 44px;\r\n    padding: 0 2px;\r\n}\r\n\r\n\r\n.mdc-data-table__header-cell {\r\n    height: 44px;\r\n    padding: 0 2px;\r\n}\r\n\r\n.mdc-data-table__cell:first-child, .mdc-data-table__header-cell:first-child {\r\n    padding-left: 12px;\r\n}\r\n\r\n.mdc-data-table__cell--checkbox {\r\n    padding: 0 !important;\r\n}\r\n\r\n.mdc-data-table__header-cell--checkbox {\r\n    width: 44px;\r\n    padding: 0 !important;\r\n}\r\n\r\n.mdc-data-table__row--selected {\r\n    background-color: var(--mdc-theme-primary-selected) !important;\r\n}\r\n\r\n\r\n/* custom style for special button with icon only */\r\n.mdc-button-icon {\r\n\tmin-width: 36px;\r\n}\r\n\r\n.mdc-button-icon  .mdc-button__ripple {\r\n\tborder-radius: 50%;\r\n    width: 36px;\r\n}\r\n\r\n\r\n/* custom style for split button (with dropdown) */\r\n.mdc-button-split_button {\r\n    margin-right: 0 !important;\r\n    border-top-right-radius: 0 !important;\r\n    border-bottom-right-radius: 0 !important;\r\n    box-shadow: rgb(0 0 0 / 20%) 4px 3px 1px -2px, rgb(0 0 0 / 14%) 0px 2px 2px 0px, rgb(0 0 0 / 12%) 0px 1px 5px 0px;\r\n}\r\n\r\n.mdc-button-split_button.mdc-button.mdc-ripple-upgraded--background-focused .mdc-button__ripple::before {\r\n    opacity: 0 !important;\r\n}\r\n\r\n.mdc-button-split_drop {\r\n    margin-left: 0 !important;\r\n    border-top-left-radius: 0 !important;\r\n    border-bottom-left-radius: 0 !important;\r\n    max-width: 30px;\r\n    min-width: 30px;\r\n    z-index: 2;\r\n}\r\n\r\n.mdc-button-split_drop .mdc-button__ripple {\r\n    border-top-left-radius: 0 !important;\r\n    border-bottom-left-radius: 0 !important;\r\n}\r\n\r\n.mdc-button-split_drop i.mdc-button__icon {\r\n    margin: 0;\r\n}\r\n\r\n.mdc-button-split_drop .mdc-menu {\r\n    left: unset !important;\r\n    right: 0 !important;\r\n    margin-top: 37px !important;\r\n    min-width: 100px !important;\r\n}\r\n\r\n\r\n.mdc-menu {\r\n    min-width: var(--mdc-menu-min-width, 200px) !important;\r\n    max-width: calc(100vw - 32px) !important;\r\n}\r\n\r\n.mdc-text-field:not(.mdc-text-field--disabled) .mdc-text-field__icon {\r\n    color: rgba(0,0,0,.54);\r\n    background-color: white;\r\n}\r\n\r\n.mdc-text-field--focused .mdc-text-field-helper-line .mdc-text-field-helper-text {\r\n    opacity: 1 !important;\r\n}\r\n\r\n.mdc-text-field--with-trailing-icon .mdc-text-field__icon {\r\n    left: initial;\r\n    right: 12px;\r\n}\r\n\r\n.mdc-text-field--with-leading-icon .mdc-text-field__icon, .mdc-text-field--with-trailing-icon .mdc-text-field__icon {\r\n    position: absolute;\r\n    top: 50%;\r\n    transform: translateY(-50%);\r\n    cursor: pointer;\r\n}\r\n\r\n.mdc-text-field--textarea {\r\n    outline: solid 1px rgba(0, 0,0,0.1);\r\n}\r\n\r\n.sb-view-layout.sb-view-layout-form .mdc-text-field--filled:not(.mdc-text-field--disabled), .mdc-select--filled:not(.mdc-select--disabled) .mdc-select__anchor {\r\n    background: transparent !important;\r\n}\r\n\r\n.sb-view-layout.sb-view-layout-form .sb-widget:hover .mdc-text-field-helper-text {\r\n    opacity: 1 !important;\r\n}\r\n\r\n.sb-view .sb-view-dialog .sb-widget:hover .mdc-text-field-helper-text {\r\n    opacity: 1 !important;\r\n}\r\n\r\n.mdc-layout-grid__cell {\r\n    position: relative;\r\n}\r\n\r\n.mdc-text-field-helper-line {\r\n    position: absolute;\r\n    width: 100%;\r\n    max-width: 100%;\r\n    padding-left: 0 !important;\r\n    padding-right: 0 !important;\r\n}\r\n\r\n\r\n.mdc-list-item .mdc-checkbox {\r\n    margin-left: -11px;\r\n}\r\n\r\n.mdc-list-item__graphic {\r\n    color: rgba(0,0,0,.54) !important;\r\n    margin-right: 12px;\r\n}\r\n\r\n.mdc-list-item__text {\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n.mdc-chip .mdc-chip__icon {\r\n    font-size: 22px;\r\n    height: 22px;\r\n}\r\n\r\n.mdc-list-item {\r\n    height: 44px;\r\n    align-items: center !important;\r\n}\r\n\r\n\r\n.mdc-text-field {\r\n    width: 100%;\r\n}\r\n\r\n.mdc-floating-label {\r\n    font-size: 16px !important;\r\n    /* color: rgba(0, 0, 0, 0.8) !important;*/\r\n}\r\n\r\n\r\n.mdc-text-field-helper-line .mdc-text-field-helper-text {\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n\r\n.mdc-text-field--invalid:not(.mdc-text-field--disabled) .mdc-text-field-helper-line .mdc-text-field-helper-text--validation-msg {\r\n    color: var(--mdc-theme-error, #b00020) !important;\r\n}\r\n\r\n.mdc-text-field--focused:not(.mdc-text-field--disabled) .mdc-floating-label {\r\n    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;\r\n}\r\n\r\n.mdc-select--focused:not(.mdc-text-field--disabled) .mdc-floating-label {\r\n    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;\r\n}\r\n\r\n.mdc-select {\r\n    width: 100%;\r\n}\r\n\r\n.mdc-select .mdc-text-field-helper-line {\r\n    position: absolute;\r\n    top: 100%;\r\n}\r\n\r\n.mdc-select--filled.mdc-select--disabled .mdc-select__anchor {\r\n    background-color: transparent !important;\r\n}\r\n\r\n.mdc-tab {\r\n    max-width: 280px;\r\n}\r\n\r\n.mdc-tab-bar {\r\n    border-bottom: 1px solid rgba(0, 0, 0, 0.12);\r\n}\r\n\r\n.mdc-tab__text-label {\r\n    user-select: none;\r\n}\r\n.mdc-tab.mdc-tab--active .mdc-tab__ripple {\r\n    background-color: var(--mdc-ripple-color, var(--mdc-theme-primary, #6200ee));\r\n    opacity: 0.1;\r\n}\r\n\r\n\r\n\r\n/* jqueryui datepicker material styling */\r\n\r\n\r\n.ui-datepicker {\r\n    /*z-index: 3 !important;*/\r\n    font-family: \"Roboto\";\r\n}\r\n\r\n.ui-datepicker {\r\n    padding: 0;\r\n    border: none;\r\n    width: 325px;\r\n    box-shadow: 4px 4px 10px 2px rgba(0, 0, 0, 0.24);\r\n    margin-left: -16px;\r\n    margin-top: 6px;\r\n    font-size: 14px;\r\n    z-index: 2 !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-title {\r\n    font-size: 17px;\r\n}\r\n\r\n.ui-datepicker-trigger {\r\n    position: absolute;\r\n    right: 12px;\r\n    top: 50%;\r\n    opacity: 0;\r\n    margin-top: -10px;\r\n    cursor: pointer;\r\n}\r\n\r\n.ui-corner-all {\r\n  border-radius: 0;\r\n}\r\n\r\n.ui-widget-header {\r\n  border: 0;\r\n}\r\n\r\n.ui-datepicker-header {\r\n  text-align: center;\r\n  background: white;\r\n  padding-bottom: 15px;\r\n  font-weight: 300;\r\n}\r\n.ui-datepicker-header .ui-datepicker-prev,\r\n.ui-datepicker-header .ui-datepicker-next,\r\n.ui-datepicker-header .ui-datepicker-title {\r\n  border: none;\r\n  outline: none;\r\n  margin: 5px;\r\n}\r\n\r\n.ui-datepicker-prev.ui-state-hover,\r\n.ui-datepicker-next.ui-state-hover {\r\n  border: none;\r\n  outline: none;\r\n  background: #b4cbe5;\r\n}\r\n\r\n.ui-datepicker .ui-state-default {\r\n  background: none;\r\n  border: none;\r\n  text-align: center;\r\n  height: 33px;\r\n  width: 33px;\r\n  line-height: 30px;\r\n  z-index: 1;\r\n}\r\n.ui-datepicker .ui-state-highlight {\r\n  color: var(--mdc-theme-primary);\r\n}\r\n.ui-datepicker .ui-state-active {\r\n  color: white;\r\n}\r\n\r\n\r\n\r\n.ui-datepicker-calendar thead th {\r\n    color: #999999;\r\n    font-weight: 200;\r\n}\r\n\r\n.ui-datepicker-buttonpane {\r\n  border: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-state-default {\r\n  background: white;\r\n  border: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-datepicker-close,\r\n.ui-datepicker-buttonpane .ui-datepicker-current {\r\n  background: white;\r\n  color: #284B72;\r\n  text-transform: uppercase;\r\n  border: none;\r\n  opacity: 1;\r\n  font-weight: 200;\r\n  outline: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-datepicker-close:hover,\r\n.ui-datepicker-buttonpane .ui-datepicker-current:hover {\r\n  background: #b4cbe5;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev {\r\n    text-decoration: none;\r\n    height: auto !important;\r\n    width: auto !important;\r\n\tleft: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-next {\r\n    text-decoration: none;\r\n    height: auto !important;\r\n    width: auto !important;\r\n\tright: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev .ui-icon, .ui-datepicker .ui-datepicker-next .ui-icon {\r\n    display: none !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev::after {\r\n    font-family: FontAwesome;\r\n\tcontent: \"\\f053\";\r\n\tdisplay: block;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-next::after {\r\n    font-family: FontAwesome;\r\n\tcontent: \"\\f054\";\r\n\tdisplay: block;\r\n}\r\n\r\n\r\n.ui-datepicker .ui-datepicker-prev.ui-state-hover, .ui-datepicker .ui-datepicker-next.ui-state-hover {\r\n    background: none;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev-hover {\r\n\tleft: 8px !important;\r\n    top: 8px !important;\r\n}\r\n.ui-datepicker .ui-datepicker-next-hover {\r\n\tright: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n\r\n\r\n\r\n\r\nbutton.ui-state-hover {\r\n    background: unset !important;\r\n    background-color: var(--mdc-theme-primary-hover) !important;\r\n    border: unset !important;\r\n    color: white !important;\r\n    box-shadow: 0px 3px 1px -2px rgb(0 0 0 / 20%), 0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%) !important;\r\n}\r\n\r\n\r\n\r\n/* jquery ui datepicker month year picker */\r\n.ui-datepicker .ui-datepicker-select-month td ,\r\n.ui-datepicker .ui-datepicker-select-year td {\r\n\theight: 33px;\r\n}\r\n.ui-datepicker .ui-datepicker-select-month td span,\r\n.ui-datepicker .ui-datepicker-select-month td a,\r\n.ui-datepicker .ui-datepicker-select-year td span,\r\n.ui-datepicker .ui-datepicker-select-year td a  {\r\n\ttext-align: center;\r\n}\r\n.ui-datepicker .ui-datepicker-select-year td.outoffocus {\r\n\topacity: 0.5;\r\n}\r\n\r\n.ui-datepicker-select-month .ui-state-default, .ui-datepicker-select-year .ui-state-default {\r\n    margin: auto;\r\n}\r\n\r\n.ui-datepicker td {\r\n    font-size: 14px !important;\r\n}\r\n\r\n.ui-datepicker .ui-state-default, .ui-datepicker .ui-state-active {\r\n    position: relative;\r\n    border: 0 !important;\r\n    background: none !important;\r\n}\r\n\r\n.ui-datepicker .ui-state-active::after {\r\n    position: absolute;\r\n    display: block;\r\n    content: '';\r\n    background-color:var(--mdc-theme-primary);\r\n    border-radius: 50%;\r\n    width: 34px;\r\n    height: 34px;\r\n    z-index: -1;\r\n    top: 0;\r\n    left: calc(50% - 16px)\r\n}\r\n\r\n\r\n.ui-datepicker .ui-state-default:not(.ui-state-active).ui-state-hover::after {\r\n    position: absolute;\r\n    display: block;\r\n    content: '';\r\n    background-color: rgba(0,0,0,0.05);\r\n    border-radius: 50%;\r\n    width: 34px;\r\n    height: 34px;\r\n    z-index: -1;\r\n    top: 0;\r\n    left: calc(50% - 16px)\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header {\r\n    display: flex;\r\n    align-items: center;\r\n    padding: 4px 24px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header .ui-datepicker-title {\r\n    flex: 1;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header-time-switch {\r\n    flex: 1;\r\n    line-height: 100%;\r\n    height: 100%;\r\n    align-self: center;\r\n}\r\n\r\n\r\n.timepicker{\r\n    display:block;\r\n    user-select:none;\r\n    margin:0 auto;\r\n    width:100%;\r\n    height:100%;\r\n    font-size:14px;\r\n}\r\n.timepicker__title{background-image:-webkit-linear-gradient(top,#fff 0,#f2f2f2 100%);position:relative;background:#f2f2f2;margin:0 auto;border-bottom:1px solid #e5e5e5;padding:12px 11px 10px 15px;color:#4C4C4C;font-size:inherit}\r\n.timepicker__close{-webkit-transform:translateY(-25%);-moz-transform:translateY(-25%);-ms-transform:translateY(-25%);-o-transform:translateY(-25%);transform:translateY(-25%);position:absolute;top:25%;right:10px;color:#34495e;cursor:pointer}\r\n.timepicker__close:before{content:'\\00d7'}\r\n.timepicker__controls{padding:10px 0;line-height:normal;margin:0}\r\n.timepicker__controls__control,.timepicker__controls__control--separator{vertical-align:middle;display:inline-block;font-size:inherit;margin:0 auto;width:35px;letter-spacing:1.3px}\r\n.timepicker__controls__control-down,.timepicker__controls__control-up{color:#34495e;position:relative;display:block;margin:3px auto;font-size:18px;cursor:pointer}\r\n.timepicker__controls__control-up:before{content:'\\f0d8'}\r\n.timepicker__controls__control-down:after{content:'\\f0d7'}\r\n.timepicker__controls__control--separator{width:5px}\r\n.text-center,.timepicker__controls,.timepicker__controls__control,.timepicker__controls__control--separator,.timepicker__controls__control-down,.timepicker__controls__control-up,.timepicker__title{text-align:center}\r\n.hover-state{color:#3498db}\r\n\r\n.fontello-after:after,.fontello:before,.timepicker__controls__control-down:after,.timepicker__controls__control-up:before{font-family:FontAwesome;font-style:normal;font-weight:400;display:inline-block;text-decoration:inherit;width:1em;margin-right:.2em;text-align:center;font-variant:normal;text-transform:none;line-height:1em;margin-left:.2em;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}\r\n.clearable-picker{position:relative;display:inline-block}\r\n.clearable-picker>.hastimepicker{padding-right:1em}\r\n.clearable-picker>.hastimepicker::-ms-clear{display:none}\r\n.clearable-picker>[data-clear-picker]{position:absolute;top:50%;right:0;transform:translateY(-50%);font-weight:700;font-size:.8em;padding:0 .3em .2em;line-height:1;color:#bababa;cursor:pointer}\r\n.clearable-picker>[data-clear-picker]:hover{color:#a1a1a1}\r\n.timepicker__controls__control span {\r\n    outline: none;\r\n}", "",{"version":3,"sources":["webpack://./css/equal.css"],"names":[],"mappings":"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","sourcesContent":[":root {\r\n    /* colored buttons */\r\n    --mdc-theme-primary: #3f51b5;\r\n    --mdc-theme-primary-hover: #4f61c5;\r\n\r\n    --mdc-theme-primary-selected: #f5f5ff;\r\n    --mdc-theme-primary-outline: #b1b1dc;\r\n\r\n\r\n\r\n    /* checkbox background */\r\n    /* --mdc-theme-secondary: #3f51b5; */\r\n    --mdc-theme-secondary: #ff4081;\r\n\r\n    /* menus */\r\n    --mdc-typography-subtitle1-font-size: 14px;\r\n    /* table headers */\r\n    --mdc-typography-subtitle2-font-weight: 600;\r\n\r\n\r\n    --mdc-layout-grid-margin-desktop: 12px;\r\n    --mdc-layout-grid-gutter-desktop: 24px;\r\n    --mdc-layout-grid-margin-tablet: 12px;\r\n    --mdc-layout-grid-gutter-tablet: 18px;\r\n    --mdc-layout-grid-margin-phone: 12px;\r\n    --mdc-layout-grid-gutter-phone: 16px;\r\n\r\n}\r\n\r\nbody, html {\r\n    margin: 0;\r\n    padding: 0;\r\n    height:100%;\r\n}\r\n\r\n#sb-root {\r\n    display: flex;\r\n    height: 100%;\r\n    flex-flow: column nowrap;\r\n}\r\n\r\n#sb-menu .sb-menu-button {\r\n    display: inline-block;\r\n}\r\n\r\n#sb-container, .sb-container {\r\n    width: 100%;\r\n    height: 100%;\r\n    overflow: hidden;\r\n    flex: 1 1 100%;\r\n    box-sizing: border-box;\r\n    display: none;\r\n    /* added for WP compliance */\r\n    background-color: white;\r\n    position: relative;\r\n    z-index: 2;\r\n}\r\n\r\n\r\n.sb-popup-wrapper {\r\n    position: absolute;\r\n    top: 0;\r\n    left: 0;\r\n    width: 100vw;\r\n    height: 100vh;\r\n    background-color: rgba(0,0,0,0.3);\r\n    z-index: 1000;\r\n}\r\n\r\n.sb-popup {\r\n    position: absolute;\r\n    left: 10%;\r\n    top: 10%;\r\n    width: 80%;\r\n    height: 80%;\r\n    background-color: white;\r\n    border: solid 1px #c8ced3;\r\n    border-radius: 10px;\r\n    padding: 10px;\r\n}\r\n\r\n.sb-popup-wrapper .sb-container-header .context-close {\r\n    display: block;\r\n    margin-left: auto;\r\n}\r\n\r\n.sb-popup-inner {\r\n    height: 100%;\r\n}\r\n\r\n.sb-container-header {\r\n    position: relative;\r\n    padding-left: 12px;\r\n    height: 48px;\r\n    border-bottom: solid 1px lightgrey;\r\n}\r\n\r\n.sb-container-header h3 {\r\n    line-height: 48px;\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n.sb-container-header a {\r\n    cursor: pointer;\r\n    text-decoration: none;\r\n    color: var(--mdc-theme-primary);\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n.sb-container-header .lang-selector {\r\n    height: 48px;\r\n    width: 150px;\r\n    position: absolute;\r\n    top: 0;\r\n    right: 0;\r\n}\r\n\r\n.sb-popup .sb-container-header .lang-selector {\r\n    right: 50px;\r\n}\r\n\r\n.sb-container-header .lang-selector .mdc-select__anchor {\r\n    height: 48px;\r\n}\r\n\r\n.sb-container-header .lang-selector .mdc-select__menu {\r\n    min-width: 150px !important;\r\n    max-width: 150px !important;\r\n}\r\n\r\n.sb-context {\r\n    /* container height minus the header */\r\n    height: calc(100% - 48px);\r\n}\r\n\r\n.sb-view {\r\n    position: relative;\r\n    height: 100%;\r\n}\r\n\r\n.sb-view .mdc-snackbar {\r\n    justify-content: left;\r\n}\r\n\r\n.sb-view .mdc-snackbar__action:not(:disabled) {\r\n    color: #ff4081;;\r\n}\r\n\r\n.sb-view-layout-list {\r\n    /* height must be decremented by height of other elements from parent (header and footer) */\r\n    height: calc(100% - 112px);\r\n    padding: 0 12px 6px 12px;\r\n}\r\n\r\n.sb-view-dashboard-row .sb-view-layout-list {\r\n    height: calc(100% - 66px) !important;\r\n    padding: 0 !important;\r\n}\r\n\r\n.sb-view-layout-form {\r\n    /* height must be decremented by height of other elements from parent (header and footer) */\r\n    height: calc(100% - 56px);\r\n    padding-bottom: 10px;\r\n}\r\n\r\n/* added for WP compliance */\r\n.sb-view-layout-form .sb-widget.sb-widget-mode-view input {\r\n    background: transparent;\r\n    border-color: transparent;\r\n}\r\n\r\n/* added for WP compliance */\r\n.sb-view .sb-widget input {\r\n    box-shadow: none;\r\n}\r\n\r\n.sb-view .sb-widget label {\r\n    user-select: none;\r\n}\r\n\r\n/* added for WP compliance */\r\n.sb-view-layout-form .sb-widget input {\r\n    border: 0;\r\n    padding: 0;\r\n}\r\n\r\n\r\n.sb-view-list-inline-actions-button {\r\n    transform: scale(0.7);\r\n}\r\n\r\n.sb-layout {\r\n    position: relative;\r\n    height: 100%;\r\n}\r\n\r\n\r\n.sb-view .sb-view-dialog .mdc-dialog__surface {\r\n    min-width: 450px;\r\n    width: 450px;\r\n    max-width: 450px;\r\n}\r\n\r\n.sb-view .sb-view-dialog .dialog-select {\r\n\tmargin-bottom: 12px;\r\n}\r\n\r\n.sb-view-layout-list table th {\r\n    cursor: pointer;\r\n    user-select: none;\r\n    position: sticky;\r\n    top: 0;\r\n    z-index: 3;\r\n}\r\n\r\n.sb-view-layout-list table th.sortable.hover {\r\n    background-color: #f0f0f0;\r\n}\r\n\r\n.sb-view-layout-list table th.sorted {\r\n    color: black;\r\n}\r\n\r\n.sb-view-layout-list table th.asc::after, .sb-view-layout-list table th.desc::after {\r\n    position: absolute;\r\n    margin-left: 6px;\r\n    font-family: FontAwesome;\r\n    opacity: 0.3;\r\n}\r\n\r\n.sb-view-layout-list table th.asc::after {\r\n    content: \"\\f0d7\";\r\n}\r\n\r\n.sb-view-layout-list table th.desc::after {\r\n    content: \"\\f0d8\";\r\n}\r\n\r\n.sb-view-layout-list table tr {\r\n    cursor: pointer;\r\n}\r\n\r\n.sb-view-layout-list .table-operations {\r\n    display: block;\r\n}\r\n\r\n.sb-view-layout-list .table-operations .operation {\r\n    min-height: 44px;\r\n}\r\n\r\n.sb-view-layout-list .table-operations .operation .operation-title {\r\n    text-transform: uppercase;\r\n    width: 100%;\r\n    text-align: left;\r\n    font-weight: 600;\r\n    padding: 0 12px 0 12px;\r\n}\r\n\r\n.sb-view-layout-list .table-operations .operation .operation-row {\r\n    display: flex;\r\n    width: 100%;\r\n    min-height: 44px;\r\n}\r\n\r\n.sb-view-layout-list .table-operations .operation .operation-row .operation-cell {\r\n    display: flex;\r\n    align-items: center;\r\n    padding: 0 2px;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n.sb-view-layout-list .table-operations .operation .operation-row .operation-cell input {\r\n    font-family: roboto;\r\n    font-size: 15px;\r\n    font-weight: 500;\r\n    border: 0;\r\n    width: 100%;\r\n}\r\n\r\n.sb-view-layout-list .table-operations .operation .operation-row .operation-cell:first-child {\r\n    padding-left: 12px;\r\n}\r\n\r\n\r\n.sb-view-header-list {\r\n    position: relative;\r\n    max-height: 112px;\r\n    /*\r\n    height: 112px;\r\n    line-height: 112px;\r\n    */\r\n}\r\n\r\n.sb-view-header-list-actions {\r\n    margin-left: 12px;\r\n    max-height: 56px;\r\n}\r\n\r\n.sb-view-header-list-actions button {\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-header-list-actions-selected {\r\n    position: relative;\r\n    display: flex;\r\n}\r\n\r\n/* todo: improve this (add a custom class)*/\r\n.sb-view-header-list-actions-selected .mdc-button__label {\r\n    padding-right: 10px;\r\n}\r\n\r\n.sb-view-header-list-actions-selected .mdc-button__label::after {\r\n    content: \"\\f0d7\";\r\n}\r\n\r\n.sb-view-header-list-actions-selected .mdc-button__label::after {\r\n    position: absolute;\r\n    margin-left: 6px;\r\n    font-family: FontAwesome;\r\n    opacity: 0.5;\r\n}\r\n\r\n.sb-view-header-list-navigation {\r\n    height: 56px;\r\n    line-height: 56px;\r\n    display: flex;\r\n    margin-left: 12px;\r\n}\r\n\r\n.sb-view-header-list-filters {\r\n    margin-top: 4px;\r\n}\r\n\r\n.sb-view-header-list-filters .sb-view-header-list-filters-menu {\r\n    min-width: 250px;\r\n}\r\n\r\n\r\n.sb-view-header-list-filters-search .mdc-text-field {\r\n    height: 36px;\r\n}\r\n\r\n.sb-view-header-list-filters-search .mdc-text-field__icon--trailing {\r\n    display: none;\r\n}\r\n\r\n.sb-view-header-list-filters-search .mdc-text-field--label-floating .mdc-text-field__icon--trailing {\r\n    display: block;\r\n    right: 0;\r\n}\r\n\r\n.sb-view-header-list-filters-search .mdc-floating-label--float-above {\r\n    display: none;\r\n}\r\n\r\n.sb-view-header-list-filters-set {\r\n    margin-top: 4px;\r\n}\r\n\r\n\r\n.sb-view-header-list-fields_toggle {\r\n    /* flex-grow: 1; */\r\n    margin-top: 4px;\r\n    margin-right: 10px;\r\n    text-align: right;\r\n}\r\n\r\n\r\n.sb-view-header-list-fields_toggle .sb-view-header-list-fields_toggle-menu {\r\n    min-width: 250px !important;\r\n    max-width: 250px !important;\r\n}\r\n\r\n.sb-view-header-list-pagination {\r\n    flex: 1;\r\n    flex-grow: 1;\r\n\r\n}\r\n\r\n.sb-view-header-list-pagination-limit_select {\r\n    margin-left: 12px;\r\n}\r\n\r\n.sb-view-header-list-pagination .pagination-navigation {\r\n    user-select: none;\r\n}\r\n\r\n\r\n.sb-widget-mode-view input {\r\n    color: black !important;\r\n    user-select: none;\r\n}\r\n\r\n.sb-widget-mode-view .mdc-text-field .mdc-floating-label,\r\n.sb-widget-mode-view.mdc-select .mdc-floating-label {\r\n    color: rgba(0,0,0,0.5) !important;\r\n    user-select: none;\r\n    font-size: 16px;\r\n    font-weight: 400;\r\n}\r\n\r\n.sb-widget-mode-edit .mdc-text-field .mdc-floating-label,\r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label {\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n}\r\n\r\n.sb-widget-mode-view .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above,\r\n.sb-widget-mode-view.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n}\r\n\r\n.sb-widget-mode-edit .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above,\r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.6) !important;\r\n    font-weight: 400;\r\n}\r\n\r\n.sb-widget.sb-ui-textarea {\r\n    height: 200px;\r\n    margin-top: 20px;\r\n}\r\n\r\n.sb-widget.sb-ui-textarea .ql-toolbar {\r\n    background: white;\r\n}\r\n\r\n.sb-widget.sb-ui-textarea .ql-toolbar .ql-fullscreen {\r\n    position: relative;\r\n}\r\n\r\n.sb-widget.sb-ui-textarea .ql-toolbar .ql-fullscreen::after {\r\n  position: absolute;   \r\n  content: \"⛶\";\r\n  font-size: 18px;\r\n  font-weight: 600;\r\n  top: 0;\r\n}\r\n\r\n.sb-widget.sb-ui-textarea .ql-editor {\r\n    background-color: white;\r\n}\r\n\r\n.sb-widget-mode-view.sb-ui-textarea {\r\n    font-size: 14px;\r\n    border: solid 1px lightgrey;\r\n    overflow-y: scroll;\r\n}\r\n\r\n.sb-widget.sb-ui-textarea .textarea-content {\r\n    overflow-y: auto;\r\n}\r\n\r\n.sb-widget.sb-ui-textarea .textarea-title {\r\n    position: absolute;\r\n    top: -24px;\r\n    left: 4px;\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n    transform: scale(75%);\r\n    font-size: 16px;\r\n}\r\n\r\n.sb-widget-mode-view.sb-ui-textarea p {\r\n    margin: 0;\r\n}\r\n\r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.6) !important;\r\n    font-weight: 400;\r\n}\r\n\r\n\r\n.sb-view-header-form {\r\n    position: relative;\r\n    height: 56px;\r\n}\r\n\r\n.sb-view-header-actions {\r\n    display: flex;\r\n    margin-left: 12px;\r\n    max-height: 56px;\r\n    padding-top: 10px;\r\n}\r\n\r\n.sb-view-header-actions .sb-view-header-actions-std {\r\n    flex: 0 1 50%;\r\n    display: flex;\r\n}\r\n\r\n.sb-view-header-actions .sb-view-header-actions-std button {\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-header-actions .sb-view-header-actions-view {\r\n    margin-left: auto;\r\n}\r\n\r\n.sb-view-header-actions .sb-view-header-actions-view button {\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-dashboard-section {\r\n    padding: 0 24px;\r\n}\r\n\r\n.sb-view-dashboard-group {\r\n    padding: 0;\r\n}\r\n\r\n.sb-view-dashboard-row {\r\n    position: relative;\r\n    padding: 12px 0;\r\n    box-sizing: content-box;\r\n}\r\n\r\n.sb-view-dashboard-row .sb-view-dashboard-cell-title {\r\n    position: absolute;\r\n    font-weight: 500;\r\n    width: 100%;\r\n    text-align: left;\r\n}\r\n\r\n.sb-view-form-group {\r\n    padding: 12px;\r\n}\r\n\r\n.sb-view-form-row:not(:first-child) {\r\n    padding-top: 24px;\r\n}\r\n\r\n.sb-view-form-group-title {\r\n    font-size: 20px;\r\n    margin-bottom: 12px;\r\n}\r\n\r\n.sb-view-form-sections-tabbar {\r\n    margin-top: 24px;\r\n    margin-bottom: 6px;\r\n}\r\n\r\n.sb-view-layout-chart {\r\n    height: 100%;\r\n}\r\n\r\n.sb-view-layout-list .mdc-line-ripple::before, .sb-view-layout-list .mdc-line-ripple::after {\r\n  border: none !important;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget label.mdc-text-field .mdc-floating-label {\r\n    display: none !important;\r\n}\r\n.sb-view-layout-list .sb-widget.sb-widget-mode-view label.mdc-text-field::before {\r\n    display: none !important;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget.sb-widget-mode-view input {\r\n    height: 100%;\r\n    background: none;\r\n    border-color: transparent;\r\n    box-shadow: none;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget.sb-widget-type-many2one.sb-widget-mode-view:not(.is-first) input {\r\n    cursor: pointer;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget.sb-widget-type-many2one.sb-widget-mode-view:not(.is-first) input:hover {\r\n    text-decoration: underline;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget-mode-edit button.mdc-icon-button {\r\n    padding: 0 0 0 5px;\r\n    height: auto;\r\n    width: auto;\r\n    position: absolute;\r\n}\r\n\r\n.sb-view-layout-form-input-button {\r\n    width: 25px;\r\n    height: 30px;\r\n    position: absolute;\r\n    right: 12px;\r\n    top: calc(50% - 15px);\r\n}\r\n\r\n.sb-view-layout-form-input-decoy {\r\n    position: absolute;\r\n    left: 16px;\r\n    bottom: 10px;\r\n    z-index: -1;\r\n    opacity: 0;\r\n}\r\n\r\n\r\n.sb-widget {\r\n    position: relative;\r\n}\r\n\r\n.sb-widget .sb-ui-checkbox {\r\n    position: relative;\r\n}\r\n\r\n.sb-widget .sb-ui-switch {\r\n    height: 56px;\r\n    line-height: 56px;\r\n}\r\n\r\n/* Material Components customizations */\r\n\r\n/* fix for ripple not working on icon-button */\r\nbutton.mdc-icon-button:hover, button.mdc-icon-button:active, button.mdc-icon-button:focus {\r\n    border-radius: 50%;\r\n    background-color: rgba(0,0,0,0.10);\r\n}\r\n\r\n/* fix tooltip not hiding */\r\n.mdc-tooltip--hide {\r\n    opacity: 0;\r\n}\r\n\r\n.mdc-button--primary {\r\n    background-color: var(--mdc-theme-primary) !important;\r\n}\r\n\r\n.mdc-button--secondary {\r\n    background-color: var(--mdc-theme-secondary) !important;\r\n}\r\n\r\n@keyframes button_spinner {\r\n    to {transform: rotate(360deg);}\r\n}\r\n\r\n.mdc-button--spinner:before {\r\n    content: '';\r\n    box-sizing: border-box;\r\n    position: absolute;\r\n    top: 50%;\r\n    left: 50%;\r\n    width: 20px;\r\n    height: 20px;\r\n    margin-top: -10px;\r\n    margin-left: -10px;\r\n    border-radius: 50%;\r\n    border: 2px solid #ffffff;\r\n    border-top-color: #000000;\r\n    animation: button_spinner .8s linear infinite;\r\n}\r\n\r\n/* Special SB widgets customizations */\r\n\r\n/* support for title strings */\r\n.sb-widget.title {\r\n    margin-top: -14px;\r\n}\r\n\r\n.sb-widget.title span.mdc-floating-label--float-above {\r\n    transform: translateY(-166%) !important;\r\n}\r\n.sb-widget.title label.mdc-text-field, .sb-widget.title .mdc-select__anchor {\r\n  height: 70px;\r\n}\r\n.sb-widget.title input.mdc-text-field__input {\r\n  font-size: 30px;\r\n  margin-top: auto;\r\n  height: 60px;\r\n}\r\n\r\n.sb-widget.title .mdc-select__selected-text {\r\n    font-size: 30px;\r\n    margin-top: 27px;\r\n    height: 30px;\r\n}\r\n\r\n\r\n.sb-view-layout-form {\r\n    overflow-y: scroll;\r\n    overflow-x: hidden;\r\n}\r\n\r\n\r\n.sb-view-layout-form::-webkit-scrollbar {\r\n    width: 6px;\r\n    overflow-y: scroll;\r\n    background: transparent;\r\n}\r\n\r\n.sb-view-layout-form::-webkit-scrollbar-thumb {\r\n    background: var(--mdc-theme-primary, #6200ee);\r\n    border-radius: 10px;\r\n}\r\n\r\n\r\n.sb-view-layout-form .sb-widget.sb-widget-type-boolean {\r\n    height: 56px;\r\n    padding-left: 16px;\r\n    width: 100%;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget.sb-widget-type-boolean {\r\n    height: 44px;\r\n    /* cannot identify the reason why this was necessary at some point */\r\n    /* padding-top: 14px; */\r\n}\r\n\r\n/* added for WP compliance */\r\n.sb-widget.sb-widget-type-boolean .mdc-switch__native-control {\r\n    opacity: 0 !important;\r\n}\r\n\r\n.sb-widget.sb-image-thumbnail {\r\n    height: 150px;\r\n    width: 150px;\r\n    background-size: cover;\r\n}\r\n\r\n.sb-widget-cell .sb-widget.sb-image-thumbnail {\r\n    height: 35px;\r\n    width: 35px;\r\n    border-radius: 0;\r\n}\r\n\r\n.sb-view-layout-list .sb-group-row {\r\n    background-color: rgba(0,0,0,0.03);\r\n}\r\n\r\n.sb-view-layout-list .sb-group-cell-label {\r\n    text-transform: uppercase;\r\n}\r\n\r\n.sb-view-layout-list .sb-group-cell-label span {\r\n    font-weight: 500;\r\n}\r\n\r\n.sb-view-layout-list .sb-group-row .sb-toggle-button, .sb-view-layout-list th.sb-group-cell .sb-toggle-button {\r\n    user-select: none;\r\n    transform: rotate(90deg);\r\n}\r\n\r\n.sb-view-layout-list .sb-group-row.folded .sb-toggle-button, .sb-view-layout-list th.sb-group-cell.folded .sb-toggle-button {\r\n    transform: rotate(0deg);\r\n}\r\n\r\n.sb-widget.sb-dropable {\r\n    outline: dashed 2px var(--mdc-theme-secondary);\r\n}\r\n\r\n.sb-widget.sb-dropable.highlight {\r\n    outline: solid 2px var(--mdc-theme-secondary);\r\n    opacity: 0.5;\r\n}\r\n\r\n/* adapt inputs for inline editing */\r\n.sb-widget-cell .mdc-text-field {\r\n  height: 100%;\r\n}\r\n\r\n.sb-widget-cell.allow-overflow {\r\n    overflow: visible !important;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field {\r\n    padding-left: 0;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-text-field {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    padding-left: 5px;\r\n    border-top-left-radius: 0;\r\n    border-top-right-radius: 0;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-select__anchor {\r\n    padding-left: 5px;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field-helper-line {\r\n  display: none;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--filled::before {\r\n  display: none;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--filled:not(.mdc-text-field--disabled) {\r\n    background-color: inherit;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-text-field--filled:not(.mdc-text-field--disabled) {\r\n    background-color: white;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--invalid .mdc-text-field__input {\r\n    color: var(--mdc-theme-error, #b00020);\r\n}\r\n\r\n.sb-widget-cell .mdc-select {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    margin-top: -14px;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit.mdc-select {\r\n    margin-top: 0;\r\n}\r\n\r\n.sb-widget.sb-widget-mode-edit .sb-ui-menu.mdc-menu-surface--is-open-below {\r\n    margin-top: 80px !important;\r\n}\r\n\r\n.sb-widget.sb-widget-mode-edit input[type=number]::-webkit-outer-spin-button,\r\n.sb-widget.sb-widget-mode-edit input[type=number]::-webkit-inner-spin-button{\r\n    margin-left: 20px;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .sb-ui-menu.mdc-menu-surface--is-open-below {\r\n    margin-top: 30px !important;\r\n}\r\n\r\n.sb-ui-menu.mdc-menu-surface--open {\r\n    margin-bottom: 60px !important;\r\n}\r\n\r\n.sb-ui-menu.mdc-menu-surface--is-open-below {\r\n    margin-top: 45px !important;\r\n}\r\n\r\n\r\n.sb-widget-cell .mdc-select__anchor {\r\n    height: 100%;\r\n}\r\n\r\n/* make mini-fab flat (mini save buttons) */\r\n.sb-view-layout-list-row-checkbox .mdc-fab--mini {\r\n    box-shadow: none !important;\r\n    margin: 2px 0;\r\n}\r\n\r\n\r\n/* mdc styling customizations */\r\n\r\n.mdc-data-table {\r\n    height: 100%;\r\n}\r\n\r\n.mdc-data-table__table-container::-webkit-scrollbar {\r\n    width: 6px;\r\n    overflow-y: scroll;\r\n    background: transparent;\r\n\r\n}\r\n\r\n.mdc-data-table__table-container::-webkit-scrollbar-thumb {\r\n    background: var(--mdc-theme-primary, #6200ee);\r\n    border-radius: 10px;\r\n}\r\n\r\n\r\n.mdc-data-table__table-container .table-loader {\r\n    display: none;\r\n    width: 100%;\r\n    height: calc(100% - 44px);\r\n    top: 44px;\r\n    position: absolute;\r\n    z-index: 4;\r\n}\r\n\r\n\r\n.mdc-data-table__table-container .table-loader .table-overlay {\r\n    position: absolute;\r\n    opacity: 0.5;\r\n    background-color: white;\r\n    width: 100%;\r\n    height: 100%;\r\n}\r\n\r\n.mdc-data-table__table-container .table-loader .table-spinner {\r\n    width: calc(100% + 2px);\r\n    position: absolute;\r\n    height: 4px;\r\n    z-index: 4;\r\n    left: -1px;\r\n    box-sizing: border-box;\r\n    border: 0;\r\n    background-color: white;\r\n\toverflow: hidden;\r\n    display: flex;\r\n    align-items: center;\r\n    align-content: center;\r\n    justify-content: flex-start;\r\n}\r\n\r\n.mdc-data-table__table-container .table-loader .table-spinner .spinner__element {\r\n\theight: 100%;\r\n\twidth: 100%;\r\n\tbackground: var(--mdc-theme-primary-outline);\r\n}\r\n\r\n.mdc-data-table__table-container .table-loader .table-spinner .spinner__element::before {\r\n\tcontent: '';\r\n\tdisplay: block;\r\n\tbackground-color: var(--mdc-theme-primary);\r\n\theight: 4px;\r\n\twidth: 0;\r\n    animation: tableSpinnerGetWidth 2s ease-in infinite;\r\n}\r\n\r\n@keyframes tableSpinnerGetWidth {\r\n\t100% { width: 100%; }\r\n}\r\n\r\n\r\n\r\n.mdc-data-table__pagination {\r\n    border-top: 0;\r\n}\r\n\r\n.mdc-data-table__cell {\r\n    height: 44px;\r\n    padding: 0 2px;\r\n}\r\n\r\n\r\n.mdc-data-table__header-cell {\r\n    height: 44px;\r\n    padding: 0 2px;\r\n}\r\n\r\n.mdc-data-table__cell:first-child, .mdc-data-table__header-cell:first-child {\r\n    padding-left: 12px;\r\n}\r\n\r\n.mdc-data-table__cell--checkbox {\r\n    padding: 0 !important;\r\n}\r\n\r\n.mdc-data-table__header-cell--checkbox {\r\n    width: 44px;\r\n    padding: 0 !important;\r\n}\r\n\r\n.mdc-data-table__row--selected {\r\n    background-color: var(--mdc-theme-primary-selected) !important;\r\n}\r\n\r\n\r\n/* custom style for special button with icon only */\r\n.mdc-button-icon {\r\n\tmin-width: 36px;\r\n}\r\n\r\n.mdc-button-icon  .mdc-button__ripple {\r\n\tborder-radius: 50%;\r\n    width: 36px;\r\n}\r\n\r\n\r\n/* custom style for split button (with dropdown) */\r\n.mdc-button-split_button {\r\n    margin-right: 0 !important;\r\n    border-top-right-radius: 0 !important;\r\n    border-bottom-right-radius: 0 !important;\r\n    box-shadow: rgb(0 0 0 / 20%) 4px 3px 1px -2px, rgb(0 0 0 / 14%) 0px 2px 2px 0px, rgb(0 0 0 / 12%) 0px 1px 5px 0px;\r\n}\r\n\r\n.mdc-button-split_button.mdc-button.mdc-ripple-upgraded--background-focused .mdc-button__ripple::before {\r\n    opacity: 0 !important;\r\n}\r\n\r\n.mdc-button-split_drop {\r\n    margin-left: 0 !important;\r\n    border-top-left-radius: 0 !important;\r\n    border-bottom-left-radius: 0 !important;\r\n    max-width: 30px;\r\n    min-width: 30px;\r\n    z-index: 2;\r\n}\r\n\r\n.mdc-button-split_drop .mdc-button__ripple {\r\n    border-top-left-radius: 0 !important;\r\n    border-bottom-left-radius: 0 !important;\r\n}\r\n\r\n.mdc-button-split_drop i.mdc-button__icon {\r\n    margin: 0;\r\n}\r\n\r\n.mdc-button-split_drop .mdc-menu {\r\n    left: unset !important;\r\n    right: 0 !important;\r\n    margin-top: 37px !important;\r\n    min-width: 100px !important;\r\n}\r\n\r\n\r\n.mdc-menu {\r\n    min-width: var(--mdc-menu-min-width, 200px) !important;\r\n    max-width: calc(100vw - 32px) !important;\r\n}\r\n\r\n.mdc-text-field:not(.mdc-text-field--disabled) .mdc-text-field__icon {\r\n    color: rgba(0,0,0,.54);\r\n    background-color: white;\r\n}\r\n\r\n.mdc-text-field--focused .mdc-text-field-helper-line .mdc-text-field-helper-text {\r\n    opacity: 1 !important;\r\n}\r\n\r\n.mdc-text-field--with-trailing-icon .mdc-text-field__icon {\r\n    left: initial;\r\n    right: 12px;\r\n}\r\n\r\n.mdc-text-field--with-leading-icon .mdc-text-field__icon, .mdc-text-field--with-trailing-icon .mdc-text-field__icon {\r\n    position: absolute;\r\n    top: 50%;\r\n    transform: translateY(-50%);\r\n    cursor: pointer;\r\n}\r\n\r\n.mdc-text-field--textarea {\r\n    outline: solid 1px rgba(0, 0,0,0.1);\r\n}\r\n\r\n.sb-view-layout.sb-view-layout-form .mdc-text-field--filled:not(.mdc-text-field--disabled), .mdc-select--filled:not(.mdc-select--disabled) .mdc-select__anchor {\r\n    background: transparent !important;\r\n}\r\n\r\n.sb-view-layout.sb-view-layout-form .sb-widget:hover .mdc-text-field-helper-text {\r\n    opacity: 1 !important;\r\n}\r\n\r\n.sb-view .sb-view-dialog .sb-widget:hover .mdc-text-field-helper-text {\r\n    opacity: 1 !important;\r\n}\r\n\r\n.mdc-layout-grid__cell {\r\n    position: relative;\r\n}\r\n\r\n.mdc-text-field-helper-line {\r\n    position: absolute;\r\n    width: 100%;\r\n    max-width: 100%;\r\n    padding-left: 0 !important;\r\n    padding-right: 0 !important;\r\n}\r\n\r\n\r\n.mdc-list-item .mdc-checkbox {\r\n    margin-left: -11px;\r\n}\r\n\r\n.mdc-list-item__graphic {\r\n    color: rgba(0,0,0,.54) !important;\r\n    margin-right: 12px;\r\n}\r\n\r\n.mdc-list-item__text {\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n.mdc-chip .mdc-chip__icon {\r\n    font-size: 22px;\r\n    height: 22px;\r\n}\r\n\r\n.mdc-list-item {\r\n    height: 44px;\r\n    align-items: center !important;\r\n}\r\n\r\n\r\n.mdc-text-field {\r\n    width: 100%;\r\n}\r\n\r\n.mdc-floating-label {\r\n    font-size: 16px !important;\r\n    /* color: rgba(0, 0, 0, 0.8) !important;*/\r\n}\r\n\r\n\r\n.mdc-text-field-helper-line .mdc-text-field-helper-text {\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n\r\n.mdc-text-field--invalid:not(.mdc-text-field--disabled) .mdc-text-field-helper-line .mdc-text-field-helper-text--validation-msg {\r\n    color: var(--mdc-theme-error, #b00020) !important;\r\n}\r\n\r\n.mdc-text-field--focused:not(.mdc-text-field--disabled) .mdc-floating-label {\r\n    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;\r\n}\r\n\r\n.mdc-select--focused:not(.mdc-text-field--disabled) .mdc-floating-label {\r\n    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;\r\n}\r\n\r\n.mdc-select {\r\n    width: 100%;\r\n}\r\n\r\n.mdc-select .mdc-text-field-helper-line {\r\n    position: absolute;\r\n    top: 100%;\r\n}\r\n\r\n.mdc-select--filled.mdc-select--disabled .mdc-select__anchor {\r\n    background-color: transparent !important;\r\n}\r\n\r\n.mdc-tab {\r\n    max-width: 280px;\r\n}\r\n\r\n.mdc-tab-bar {\r\n    border-bottom: 1px solid rgba(0, 0, 0, 0.12);\r\n}\r\n\r\n.mdc-tab__text-label {\r\n    user-select: none;\r\n}\r\n.mdc-tab.mdc-tab--active .mdc-tab__ripple {\r\n    background-color: var(--mdc-ripple-color, var(--mdc-theme-primary, #6200ee));\r\n    opacity: 0.1;\r\n}\r\n\r\n\r\n\r\n/* jqueryui datepicker material styling */\r\n\r\n\r\n.ui-datepicker {\r\n    /*z-index: 3 !important;*/\r\n    font-family: \"Roboto\";\r\n}\r\n\r\n.ui-datepicker {\r\n    padding: 0;\r\n    border: none;\r\n    width: 325px;\r\n    box-shadow: 4px 4px 10px 2px rgba(0, 0, 0, 0.24);\r\n    margin-left: -16px;\r\n    margin-top: 6px;\r\n    font-size: 14px;\r\n    z-index: 2 !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-title {\r\n    font-size: 17px;\r\n}\r\n\r\n.ui-datepicker-trigger {\r\n    position: absolute;\r\n    right: 12px;\r\n    top: 50%;\r\n    opacity: 0;\r\n    margin-top: -10px;\r\n    cursor: pointer;\r\n}\r\n\r\n.ui-corner-all {\r\n  border-radius: 0;\r\n}\r\n\r\n.ui-widget-header {\r\n  border: 0;\r\n}\r\n\r\n.ui-datepicker-header {\r\n  text-align: center;\r\n  background: white;\r\n  padding-bottom: 15px;\r\n  font-weight: 300;\r\n}\r\n.ui-datepicker-header .ui-datepicker-prev,\r\n.ui-datepicker-header .ui-datepicker-next,\r\n.ui-datepicker-header .ui-datepicker-title {\r\n  border: none;\r\n  outline: none;\r\n  margin: 5px;\r\n}\r\n\r\n.ui-datepicker-prev.ui-state-hover,\r\n.ui-datepicker-next.ui-state-hover {\r\n  border: none;\r\n  outline: none;\r\n  background: #b4cbe5;\r\n}\r\n\r\n.ui-datepicker .ui-state-default {\r\n  background: none;\r\n  border: none;\r\n  text-align: center;\r\n  height: 33px;\r\n  width: 33px;\r\n  line-height: 30px;\r\n  z-index: 1;\r\n}\r\n.ui-datepicker .ui-state-highlight {\r\n  color: var(--mdc-theme-primary);\r\n}\r\n.ui-datepicker .ui-state-active {\r\n  color: white;\r\n}\r\n\r\n\r\n\r\n.ui-datepicker-calendar thead th {\r\n    color: #999999;\r\n    font-weight: 200;\r\n}\r\n\r\n.ui-datepicker-buttonpane {\r\n  border: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-state-default {\r\n  background: white;\r\n  border: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-datepicker-close,\r\n.ui-datepicker-buttonpane .ui-datepicker-current {\r\n  background: white;\r\n  color: #284B72;\r\n  text-transform: uppercase;\r\n  border: none;\r\n  opacity: 1;\r\n  font-weight: 200;\r\n  outline: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-datepicker-close:hover,\r\n.ui-datepicker-buttonpane .ui-datepicker-current:hover {\r\n  background: #b4cbe5;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev {\r\n    text-decoration: none;\r\n    height: auto !important;\r\n    width: auto !important;\r\n\tleft: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-next {\r\n    text-decoration: none;\r\n    height: auto !important;\r\n    width: auto !important;\r\n\tright: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev .ui-icon, .ui-datepicker .ui-datepicker-next .ui-icon {\r\n    display: none !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev::after {\r\n    font-family: FontAwesome;\r\n\tcontent: \"\\f053\";\r\n\tdisplay: block;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-next::after {\r\n    font-family: FontAwesome;\r\n\tcontent: \"\\f054\";\r\n\tdisplay: block;\r\n}\r\n\r\n\r\n.ui-datepicker .ui-datepicker-prev.ui-state-hover, .ui-datepicker .ui-datepicker-next.ui-state-hover {\r\n    background: none;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev-hover {\r\n\tleft: 8px !important;\r\n    top: 8px !important;\r\n}\r\n.ui-datepicker .ui-datepicker-next-hover {\r\n\tright: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n\r\n\r\n\r\n\r\nbutton.ui-state-hover {\r\n    background: unset !important;\r\n    background-color: var(--mdc-theme-primary-hover) !important;\r\n    border: unset !important;\r\n    color: white !important;\r\n    box-shadow: 0px 3px 1px -2px rgb(0 0 0 / 20%), 0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%) !important;\r\n}\r\n\r\n\r\n\r\n/* jquery ui datepicker month year picker */\r\n.ui-datepicker .ui-datepicker-select-month td ,\r\n.ui-datepicker .ui-datepicker-select-year td {\r\n\theight: 33px;\r\n}\r\n.ui-datepicker .ui-datepicker-select-month td span,\r\n.ui-datepicker .ui-datepicker-select-month td a,\r\n.ui-datepicker .ui-datepicker-select-year td span,\r\n.ui-datepicker .ui-datepicker-select-year td a  {\r\n\ttext-align: center;\r\n}\r\n.ui-datepicker .ui-datepicker-select-year td.outoffocus {\r\n\topacity: 0.5;\r\n}\r\n\r\n.ui-datepicker-select-month .ui-state-default, .ui-datepicker-select-year .ui-state-default {\r\n    margin: auto;\r\n}\r\n\r\n.ui-datepicker td {\r\n    font-size: 14px !important;\r\n}\r\n\r\n.ui-datepicker .ui-state-default, .ui-datepicker .ui-state-active {\r\n    position: relative;\r\n    border: 0 !important;\r\n    background: none !important;\r\n}\r\n\r\n.ui-datepicker .ui-state-active::after {\r\n    position: absolute;\r\n    display: block;\r\n    content: '';\r\n    background-color:var(--mdc-theme-primary);\r\n    border-radius: 50%;\r\n    width: 34px;\r\n    height: 34px;\r\n    z-index: -1;\r\n    top: 0;\r\n    left: calc(50% - 16px)\r\n}\r\n\r\n\r\n.ui-datepicker .ui-state-default:not(.ui-state-active).ui-state-hover::after {\r\n    position: absolute;\r\n    display: block;\r\n    content: '';\r\n    background-color: rgba(0,0,0,0.05);\r\n    border-radius: 50%;\r\n    width: 34px;\r\n    height: 34px;\r\n    z-index: -1;\r\n    top: 0;\r\n    left: calc(50% - 16px)\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header {\r\n    display: flex;\r\n    align-items: center;\r\n    padding: 4px 24px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header .ui-datepicker-title {\r\n    flex: 1;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header-time-switch {\r\n    flex: 1;\r\n    line-height: 100%;\r\n    height: 100%;\r\n    align-self: center;\r\n}\r\n\r\n\r\n.timepicker{\r\n    display:block;\r\n    user-select:none;\r\n    margin:0 auto;\r\n    width:100%;\r\n    height:100%;\r\n    font-size:14px;\r\n}\r\n.timepicker__title{background-image:-webkit-linear-gradient(top,#fff 0,#f2f2f2 100%);position:relative;background:#f2f2f2;margin:0 auto;border-bottom:1px solid #e5e5e5;padding:12px 11px 10px 15px;color:#4C4C4C;font-size:inherit}\r\n.timepicker__close{-webkit-transform:translateY(-25%);-moz-transform:translateY(-25%);-ms-transform:translateY(-25%);-o-transform:translateY(-25%);transform:translateY(-25%);position:absolute;top:25%;right:10px;color:#34495e;cursor:pointer}\r\n.timepicker__close:before{content:'\\00d7'}\r\n.timepicker__controls{padding:10px 0;line-height:normal;margin:0}\r\n.timepicker__controls__control,.timepicker__controls__control--separator{vertical-align:middle;display:inline-block;font-size:inherit;margin:0 auto;width:35px;letter-spacing:1.3px}\r\n.timepicker__controls__control-down,.timepicker__controls__control-up{color:#34495e;position:relative;display:block;margin:3px auto;font-size:18px;cursor:pointer}\r\n.timepicker__controls__control-up:before{content:'\\f0d8'}\r\n.timepicker__controls__control-down:after{content:'\\f0d7'}\r\n.timepicker__controls__control--separator{width:5px}\r\n.text-center,.timepicker__controls,.timepicker__controls__control,.timepicker__controls__control--separator,.timepicker__controls__control-down,.timepicker__controls__control-up,.timepicker__title{text-align:center}\r\n.hover-state{color:#3498db}\r\n\r\n.fontello-after:after,.fontello:before,.timepicker__controls__control-down:after,.timepicker__controls__control-up:before{font-family:FontAwesome;font-style:normal;font-weight:400;display:inline-block;text-decoration:inherit;width:1em;margin-right:.2em;text-align:center;font-variant:normal;text-transform:none;line-height:1em;margin-left:.2em;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}\r\n.clearable-picker{position:relative;display:inline-block}\r\n.clearable-picker>.hastimepicker{padding-right:1em}\r\n.clearable-picker>.hastimepicker::-ms-clear{display:none}\r\n.clearable-picker>[data-clear-picker]{position:absolute;top:50%;right:0;transform:translateY(-50%);font-weight:700;font-size:.8em;padding:0 .3em .2em;line-height:1;color:#bababa;cursor:pointer}\r\n.clearable-picker>[data-clear-picker]:hover{color:#a1a1a1}\r\n.timepicker__controls__control span {\r\n    outline: none;\r\n}"],"sourceRoot":""}]);
+___CSS_LOADER_EXPORT___.push([module.id, ":root {\r\n    /* colored buttons */\r\n    --mdc-theme-primary: #3f51b5;\r\n    --mdc-theme-primary-hover: #4f61c5;\r\n\r\n    --mdc-theme-primary-selected: #f5f5ff;\r\n    --mdc-theme-primary-outline: #b1b1dc;\r\n\r\n\r\n\r\n    /* checkbox background */\r\n    /* --mdc-theme-secondary: #3f51b5; */\r\n    --mdc-theme-secondary: #ff4081;\r\n\r\n    /* menus */\r\n    --mdc-typography-subtitle1-font-size: 14px;\r\n    /* table headers */\r\n    --mdc-typography-subtitle2-font-weight: 600;\r\n\r\n\r\n    --mdc-layout-grid-margin-desktop: 12px;\r\n    --mdc-layout-grid-gutter-desktop: 24px;\r\n    --mdc-layout-grid-margin-tablet: 12px;\r\n    --mdc-layout-grid-gutter-tablet: 18px;\r\n    --mdc-layout-grid-margin-phone: 12px;\r\n    --mdc-layout-grid-gutter-phone: 16px;\r\n\r\n}\r\n\r\nbody, html {\r\n    margin: 0;\r\n    padding: 0;\r\n    height:100%;\r\n}\r\n\r\n#sb-root {\r\n    display: flex;\r\n    height: 100%;\r\n    flex-flow: column nowrap;\r\n}\r\n\r\n#sb-menu .sb-menu-button {\r\n    display: inline-block;\r\n}\r\n\r\n#sb-container, .sb-container {\r\n    width: 100%;\r\n    height: 100%;\r\n    overflow: hidden;\r\n    flex: 1 1 100%;\r\n    box-sizing: border-box;\r\n    display: none;\r\n    /* added for WP compliance */\r\n    background-color: white;\r\n    position: relative;\r\n    z-index: 2;\r\n}\r\n\r\n\r\n.sb-popup-wrapper {\r\n    position: absolute;\r\n    top: 0;\r\n    left: 0;\r\n    width: 100vw;\r\n    height: 100vh;\r\n    background-color: rgba(0,0,0,0.3);\r\n    z-index: 1000;\r\n}\r\n\r\n.sb-popup {\r\n    position: absolute;\r\n    left: 10%;\r\n    top: 10%;\r\n    width: 80%;\r\n    height: 80%;\r\n    background-color: white;\r\n    border: solid 1px #c8ced3;\r\n    border-radius: 10px;\r\n    padding: 10px;\r\n}\r\n\r\n.sb-popup-wrapper .sb-container-header .context-close {\r\n    display: block;\r\n    margin-left: auto;\r\n}\r\n\r\n.sb-popup-inner {\r\n    height: 100%;\r\n}\r\n\r\n.sb-container-header {\r\n    position: relative;\r\n    padding-left: 12px;\r\n    height: 48px;\r\n    border-bottom: solid 1px lightgrey;\r\n}\r\n\r\n.sb-container-header h3 {\r\n    line-height: 48px;\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n.sb-container-header a {\r\n    cursor: pointer;\r\n    text-decoration: none;\r\n    color: var(--mdc-theme-primary);\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n.sb-container-header .lang-selector {\r\n    height: 48px;\r\n    width: 150px;\r\n    position: absolute;\r\n    top: 0;\r\n    right: 0;\r\n}\r\n\r\n.sb-popup .sb-container-header .lang-selector {\r\n    right: 50px;\r\n}\r\n\r\n.sb-container-header .lang-selector .mdc-select__anchor {\r\n    height: 48px;\r\n}\r\n\r\n.sb-container-header .lang-selector .mdc-select__menu {\r\n    min-width: 150px !important;\r\n    max-width: 150px !important;\r\n}\r\n\r\n.sb-context {\r\n    /* container height minus the header */\r\n    height: calc(100% - 48px);\r\n}\r\n\r\n.sb-view {\r\n    position: relative;\r\n    height: 100%;\r\n}\r\n\r\n.sb-view .mdc-snackbar {\r\n    justify-content: left;\r\n}\r\n\r\n.sb-view .mdc-snackbar__action:not(:disabled) {\r\n    color: #ff4081;;\r\n}\r\n\r\n.sb-view-layout-list {\r\n    /* height must be decremented by height of other elements from parent (header and footer) */\r\n    height: calc(100% - 112px);\r\n    padding: 0 12px 6px 12px;\r\n}\r\n\r\n.sb-view-dashboard-row .sb-view-layout-list {\r\n    height: calc(100% - 66px) !important;\r\n    padding: 0 !important;\r\n}\r\n\r\n.sb-view-layout-form {\r\n    /* height must be decremented by height of other elements from parent (header and footer) */\r\n    height: calc(100% - 56px);\r\n    padding-bottom: 10px;\r\n}\r\n\r\n/* added for WP compliance */\r\n.sb-view-layout-form .sb-widget.sb-widget-mode-view input {\r\n    background: transparent;\r\n    border-color: transparent;\r\n}\r\n\r\n/* added for WP compliance */\r\n.sb-view .sb-widget input {\r\n    box-shadow: none;\r\n}\r\n\r\n.sb-view .sb-widget label {\r\n    user-select: none;\r\n}\r\n\r\n/* added for WP compliance */\r\n.sb-view-layout-form .sb-widget input {\r\n    border: 0;\r\n    padding: 0;\r\n}\r\n\r\n\r\n.sb-view-list-inline-actions-button {\r\n    transform: scale(0.7);\r\n}\r\n\r\n.sb-layout {\r\n    position: relative;\r\n    height: 100%;\r\n}\r\n\r\n\r\n.sb-view .sb-view-dialog .mdc-dialog__surface {\r\n    min-width: 450px;\r\n    width: 450px;\r\n    max-width: 450px;\r\n}\r\n\r\n.sb-view .sb-view-dialog .dialog-select {\r\n\tmargin-bottom: 12px;\r\n}\r\n\r\n.sb-view-layout-list table th {\r\n    cursor: pointer;\r\n    user-select: none;\r\n    position: sticky;\r\n    top: 0;\r\n    z-index: 3;\r\n}\r\n\r\n.sb-view-layout-list table th.sortable.hover {\r\n    background-color: #f0f0f0;\r\n}\r\n\r\n.sb-view-layout-list table th.sorted {\r\n    color: black;\r\n}\r\n\r\n.sb-view-layout-list table th.asc::after, .sb-view-layout-list table th.desc::after {\r\n    position: absolute;\r\n    margin-left: 6px;\r\n    font-family: FontAwesome;\r\n    opacity: 0.3;\r\n}\r\n\r\n.sb-view-layout-list table th.asc::after {\r\n    content: \"\\f0d7\";\r\n}\r\n\r\n.sb-view-layout-list table th.desc::after {\r\n    content: \"\\f0d8\";\r\n}\r\n\r\n.sb-view-layout-list table tr {\r\n    cursor: pointer;\r\n}\r\n\r\n.sb-view-layout-list .table-operations {\r\n    display: block;\r\n}\r\n\r\n.sb-view-layout-list .table-operations .operation {\r\n    min-height: 44px;\r\n}\r\n\r\n.sb-view-layout-list .table-operations .operation .operation-title {\r\n    text-transform: uppercase;\r\n    width: 100%;\r\n    text-align: left;\r\n    font-weight: 600;\r\n    padding: 0 12px 0 12px;\r\n}\r\n\r\n.sb-view-layout-list .table-operations .operation .operation-row {\r\n    display: flex;\r\n    width: 100%;\r\n    min-height: 44px;\r\n}\r\n\r\n.sb-view-layout-list .table-operations .operation .operation-row .operation-cell {\r\n    display: flex;\r\n    align-items: center;\r\n    padding: 0 2px;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n.sb-view-layout-list .table-operations .operation .operation-row .operation-cell input {\r\n    font-family: roboto;\r\n    font-size: 15px;\r\n    font-weight: 500;\r\n    border: 0;\r\n    width: 100%;\r\n}\r\n\r\n.sb-view-layout-list .table-operations .operation .operation-row .operation-cell:first-child {\r\n    padding-left: 12px;\r\n}\r\n\r\n\r\n.sb-view-header-list {\r\n    position: relative;\r\n    max-height: 112px;\r\n    /*\r\n    height: 112px;\r\n    line-height: 112px;\r\n    */\r\n}\r\n\r\n.sb-view-header-list.has-advanced-filters {\r\n    max-height: unset;\r\n}\r\n\r\n.sb-view-header-list-actions {\r\n    margin-left: 12px;\r\n    max-height: 56px;\r\n}\r\n\r\n.sb-view-header-list-actions button {\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-header-list-actions-selected {\r\n    position: relative;\r\n    display: flex;\r\n}\r\n\r\n/* todo: improve this (add a custom class)*/\r\n.sb-view-header-list-actions-selected .mdc-button__label {\r\n    padding-right: 10px;\r\n}\r\n\r\n.sb-view-header-list-actions-selected .mdc-button__label::after {\r\n    content: \"\\f0d7\";\r\n}\r\n\r\n.sb-view-header-list-actions-selected .mdc-button__label::after {\r\n    position: absolute;\r\n    margin-left: 6px;\r\n    font-family: FontAwesome;\r\n    opacity: 0.5;\r\n}\r\n\r\n.sb-view-header-list-navigation {\r\n    height: 56px;\r\n    line-height: 56px;\r\n    display: flex;\r\n    margin-left: 12px;\r\n}\r\n\r\n\r\n.sb-view-header-list .sb-view-header-advanced {\r\n    display: none;\r\n}\r\n\r\n.sb-view-header-list.has-advanced-filters .sb-view-header-advanced {\r\n    position: absolute;\r\n    display: block;    \r\n    left: 12px;\r\n    margin-top: 4px;    \r\n}\r\n\r\n.sb-view-header-list.has-advanced-filters .sb-view-header-advanced .sb-view-header-advanced-layout {\r\n    display: none;\r\n}\r\n\r\n.sb-view-header-list.is-advanced-open .sb-view-header-advanced .sb-view-header-advanced-layout {\r\n    display: block;\r\n    width: calc(100% - 60px);\r\n    margin-left: 48px;\r\n    margin-top: -12px;\r\n}\r\n\r\n.sb-view-header-list.is-advanced-open .sb-view-header-advanced {\r\n    position: relative;\r\n}\r\n\r\n.sb-view-header-list.is-advanced-open .sb-view-header-advanced .sb-view-header-list-advanced-filters-button {\r\n    transform: rotate(-90deg); \r\n    transform-origin: bottom left;\r\n    position: absolute;\r\n    left: 48px;\r\n    margin-top: 12px;\r\n}\r\n\r\n.sb-view-header-list-filters {\r\n    margin-top: 4px;\r\n}\r\n\r\n.sb-view-header-list.has-advanced-filters .sb-view-header-list-filters {\r\n    margin-left: 48px;\r\n}\r\n\r\n.sb-view-header-list-filters .sb-view-header-list-filters-menu {\r\n    min-width: 250px;\r\n}\r\n\r\n\r\n.sb-view-header-list-filters-search .mdc-text-field {\r\n    height: 36px;\r\n}\r\n\r\n.sb-view-header-list-filters-search .mdc-text-field__icon--trailing {\r\n    display: none;\r\n}\r\n\r\n.sb-view-header-list-filters-search .mdc-text-field--label-floating .mdc-text-field__icon--trailing {\r\n    display: block;\r\n    right: 0;\r\n}\r\n\r\n.sb-view-header-list-filters-search .mdc-floating-label--float-above {\r\n    display: none;\r\n}\r\n\r\n.sb-view-header-list-filters-set {\r\n    margin-top: 4px;\r\n}\r\n\r\n\r\n.sb-view-header-list-fields_toggle {\r\n    /* flex-grow: 1; */\r\n    margin-top: 4px;\r\n    margin-right: 10px;\r\n    text-align: right;\r\n}\r\n\r\n\r\n.sb-view-header-list-fields_toggle .sb-view-header-list-fields_toggle-menu {\r\n    min-width: 250px !important;\r\n    max-width: 250px !important;\r\n}\r\n\r\n.sb-view-header-list-pagination {\r\n    flex: 1;\r\n    flex-grow: 1;\r\n\r\n}\r\n\r\n.sb-view-header-list-pagination-limit_select {\r\n    margin-left: 12px;\r\n}\r\n\r\n.sb-view-header-list-pagination .pagination-navigation {\r\n    user-select: none;\r\n}\r\n\r\n\r\n.sb-widget-mode-view input {\r\n    color: black !important;\r\n    user-select: none;\r\n}\r\n\r\n.sb-widget-mode-view .mdc-text-field .mdc-floating-label,\r\n.sb-widget-mode-view.mdc-select .mdc-floating-label {\r\n    color: rgba(0,0,0,0.5) !important;\r\n    user-select: none;\r\n    font-size: 16px;\r\n    font-weight: 400;\r\n}\r\n\r\n.sb-widget-mode-edit .mdc-text-field .mdc-floating-label,\r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label {\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n}\r\n\r\n.sb-widget-mode-view .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above,\r\n.sb-widget-mode-view.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n}\r\n\r\n.sb-widget-mode-edit .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above,\r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.6) !important;\r\n    font-weight: 400;\r\n}\r\n\r\n.sb-widget.sb-ui-textarea {\r\n    height: 200px;\r\n    margin-top: 20px;\r\n}\r\n\r\n.sb-widget.sb-ui-textarea .ql-toolbar {\r\n    background: white;\r\n}\r\n\r\n.sb-widget.sb-ui-textarea .ql-toolbar .ql-fullscreen {\r\n    position: relative;\r\n}\r\n\r\n.sb-widget.sb-ui-textarea .ql-toolbar .ql-fullscreen::after {\r\n  position: absolute;   \r\n  content: \"⛶\";\r\n  font-size: 18px;\r\n  font-weight: 600;\r\n  top: 0;\r\n}\r\n\r\n.sb-widget.sb-ui-textarea .ql-editor {\r\n    background-color: white;\r\n}\r\n\r\n.sb-widget-mode-view.sb-ui-textarea {\r\n    position: relative;\r\n    font-size: 14px;\r\n    border: solid 1px lightgrey;\r\n}\r\n\r\n.sb-widget.sb-ui-textarea .textarea-content {\r\n    height: 100%;\r\n    overflow-y: auto;\r\n}\r\n\r\n.sb-widget.sb-ui-textarea .textarea-content::-webkit-scrollbar {\r\n    width: 6px;\r\n    overflow-y: scroll;\r\n    background: transparent;\r\n}\r\n\r\n.sb-widget.sb-ui-textarea .textarea-content::-webkit-scrollbar-thumb {\r\n    background: var(--mdc-theme-primary, #6200ee);\r\n    border-radius: 10px;\r\n}\r\n\r\n.sb-widget.sb-ui-textarea .ql-editor::-webkit-scrollbar {\r\n    width: 6px;\r\n    overflow-y: scroll;\r\n    background: transparent;\r\n}\r\n\r\n.sb-widget.sb-ui-textarea .ql-editor::-webkit-scrollbar-thumb {\r\n    background: var(--mdc-theme-primary, #6200ee);\r\n    border-radius: 10px;\r\n}\r\n\r\n\r\n\r\n.sb-widget.sb-ui-textarea .textarea-title {\r\n    position: absolute;\r\n    top: -24px;\r\n    left: 4px;\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n    transform: scale(75%);\r\n    font-size: 16px;\r\n}\r\n\r\n.sb-widget-mode-view.sb-ui-textarea p {\r\n    margin: 0;\r\n}\r\n\r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.6) !important;\r\n    font-weight: 400;\r\n}\r\n\r\n\r\n.sb-view-header-form {\r\n    position: relative;\r\n    height: 56px;\r\n}\r\n\r\n.sb-view-header-actions {\r\n    display: flex;\r\n    margin-left: 12px;\r\n    max-height: 56px;\r\n    padding-top: 10px;\r\n}\r\n\r\n.sb-view-header-actions .sb-view-header-actions-std {\r\n    flex: 0 1 50%;\r\n    display: flex;\r\n}\r\n\r\n.sb-view-header-actions .sb-view-header-actions-std button {\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-header-actions .sb-view-header-actions-view {\r\n    margin-left: auto;\r\n}\r\n\r\n.sb-view-header-actions .sb-view-header-actions-view button {\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-dashboard-section {\r\n    padding: 0 24px;\r\n}\r\n\r\n.sb-view-dashboard-group {\r\n    padding: 0;\r\n}\r\n\r\n.sb-view-dashboard-row {\r\n    position: relative;\r\n    padding: 12px 0;\r\n    box-sizing: content-box;\r\n}\r\n\r\n.sb-view-dashboard-row .sb-view-dashboard-cell-title {\r\n    position: absolute;\r\n    font-weight: 500;\r\n    width: 100%;\r\n    text-align: left;\r\n}\r\n\r\n.sb-view-form-group {\r\n    padding: 12px;\r\n}\r\n\r\n.sb-view-form-row:not(:first-child) {\r\n    padding-top: 24px;\r\n}\r\n\r\n.sb-view-form-group-title {\r\n    font-size: 20px;\r\n    margin-bottom: 12px;\r\n}\r\n\r\n.sb-view-form-sections-tabbar {\r\n    margin-top: 24px;\r\n    margin-bottom: 6px;\r\n}\r\n\r\n.sb-view-layout-chart {\r\n    height: 100%;\r\n}\r\n\r\n.sb-view-layout-list .mdc-line-ripple::before, .sb-view-layout-list .mdc-line-ripple::after {\r\n  border: none !important;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget label.mdc-text-field .mdc-floating-label {\r\n    display: none !important;\r\n}\r\n.sb-view-layout-list .sb-widget.sb-widget-mode-view label.mdc-text-field::before {\r\n    display: none !important;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget.sb-widget-mode-view input {\r\n    height: 100%;\r\n    background: none;\r\n    border-color: transparent;\r\n    box-shadow: none;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget.sb-widget-type-many2one.sb-widget-mode-view:not(.is-first) input {\r\n    cursor: pointer;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget.sb-widget-type-many2one.sb-widget-mode-view:not(.is-first) input:hover {\r\n    text-decoration: underline;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget-mode-edit button.mdc-icon-button {\r\n    padding: 0 0 0 5px;\r\n    height: auto;\r\n    width: auto;\r\n    position: absolute;\r\n}\r\n\r\n.sb-view-layout-form-input-button {\r\n    width: 25px;\r\n    height: 30px;\r\n    position: absolute;\r\n    right: 12px;\r\n    top: calc(50% - 15px);\r\n}\r\n\r\n.sb-view-layout-form-input-decoy {\r\n    position: absolute;\r\n    left: 16px;\r\n    bottom: 10px;\r\n    z-index: -1;\r\n    opacity: 0;\r\n}\r\n\r\n\r\n.sb-widget {\r\n    position: relative;\r\n}\r\n\r\n.sb-widget .sb-ui-checkbox {\r\n    position: relative;\r\n}\r\n\r\n.sb-widget .sb-ui-switch {\r\n    height: 56px;\r\n    line-height: 56px;\r\n}\r\n\r\n/* Material Components customizations */\r\n\r\n/* fix for ripple not working on icon-button */\r\nbutton.mdc-icon-button:hover, button.mdc-icon-button:active, button.mdc-icon-button:focus {\r\n    border-radius: 50%;\r\n    background-color: rgba(0,0,0,0.10);\r\n}\r\n\r\n/* fix tooltip not hiding */\r\n.mdc-tooltip--hide {\r\n    opacity: 0;\r\n}\r\n\r\n.mdc-button--primary {\r\n    background-color: var(--mdc-theme-primary) !important;\r\n}\r\n\r\n.mdc-button--secondary {\r\n    background-color: var(--mdc-theme-secondary) !important;\r\n}\r\n\r\n@keyframes button_spinner {\r\n    to {transform: rotate(360deg);}\r\n}\r\n\r\n.mdc-button--spinner:before {\r\n    content: '';\r\n    box-sizing: border-box;\r\n    position: absolute;\r\n    top: 50%;\r\n    left: 50%;\r\n    width: 20px;\r\n    height: 20px;\r\n    margin-top: -10px;\r\n    margin-left: -10px;\r\n    border-radius: 50%;\r\n    border: 2px solid #ffffff;\r\n    border-top-color: #000000;\r\n    animation: button_spinner .8s linear infinite;\r\n}\r\n\r\n/* Special SB widgets customizations */\r\n\r\n/* support for title strings */\r\n.sb-widget.title {\r\n    margin-top: -14px;\r\n}\r\n\r\n.sb-widget.title span.mdc-floating-label--float-above {\r\n    transform: translateY(-166%) !important;\r\n}\r\n.sb-widget.title label.mdc-text-field, .sb-widget.title .mdc-select__anchor {\r\n  height: 70px;\r\n}\r\n.sb-widget.title input.mdc-text-field__input {\r\n  font-size: 30px;\r\n  margin-top: auto;\r\n  height: 60px;\r\n}\r\n\r\n.sb-widget.title .mdc-select__selected-text {\r\n    font-size: 30px;\r\n    margin-top: 27px;\r\n    height: 30px;\r\n}\r\n\r\n\r\n.sb-view-layout-form {\r\n    overflow-y: scroll;\r\n    overflow-x: hidden;\r\n}\r\n\r\n\r\n.sb-view-layout-form::-webkit-scrollbar {\r\n    width: 6px;\r\n    overflow-y: scroll;\r\n    background: transparent;\r\n}\r\n\r\n.sb-view-layout-form::-webkit-scrollbar-thumb {\r\n    background: var(--mdc-theme-primary, #6200ee);\r\n    border-radius: 10px;\r\n}\r\n\r\n\r\n.sb-view-layout-form .sb-widget.sb-widget-type-boolean {\r\n    height: 56px;\r\n    padding-left: 16px;\r\n    width: 100%;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget.sb-widget-type-boolean {\r\n    height: 44px;\r\n    /* cannot identify the reason why this was necessary at some point */\r\n    /* padding-top: 14px; */\r\n}\r\n\r\n/* added for WP compliance */\r\n.sb-widget.sb-widget-type-boolean .mdc-switch__native-control {\r\n    opacity: 0 !important;\r\n}\r\n\r\n.sb-widget.sb-image-thumbnail {\r\n    height: 150px;\r\n    width: 150px;\r\n    background-size: cover;\r\n}\r\n\r\n.sb-widget-cell .sb-widget.sb-image-thumbnail {\r\n    height: 35px;\r\n    width: 35px;\r\n    border-radius: 0;\r\n}\r\n\r\n.sb-view-layout-list .sb-group-row {\r\n    background-color: rgba(0,0,0,0.03);\r\n}\r\n\r\n.sb-view-layout-list .sb-group-cell-label {\r\n    text-transform: uppercase;\r\n}\r\n\r\n.sb-view-layout-list .sb-group-cell-label span {\r\n    font-weight: 500;\r\n}\r\n\r\n.sb-view-layout-list .sb-group-row .sb-toggle-button, .sb-view-layout-list th.sb-group-cell .sb-toggle-button {\r\n    user-select: none;\r\n    transform: rotate(90deg);\r\n}\r\n\r\n.sb-view-layout-list .sb-group-row.folded .sb-toggle-button, .sb-view-layout-list th.sb-group-cell.folded .sb-toggle-button {\r\n    transform: rotate(0deg);\r\n}\r\n\r\n.sb-widget.sb-dropable {\r\n    outline: dashed 2px var(--mdc-theme-secondary);\r\n}\r\n\r\n.sb-widget.sb-dropable.highlight {\r\n    outline: solid 2px var(--mdc-theme-secondary);\r\n    opacity: 0.5;\r\n}\r\n\r\n/* adapt inputs for inline editing */\r\n.sb-widget-cell .mdc-text-field {\r\n  height: 100%;\r\n}\r\n\r\n.sb-widget-cell.allow-overflow {\r\n    overflow: visible !important;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field {\r\n    padding-left: 0;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-text-field {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    padding-left: 5px;\r\n    border-top-left-radius: 0;\r\n    border-top-right-radius: 0;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-select__anchor {\r\n    padding-left: 5px;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field-helper-line {\r\n  display: none;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--filled::before {\r\n  display: none;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--filled:not(.mdc-text-field--disabled) {\r\n    background-color: inherit;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-text-field--filled:not(.mdc-text-field--disabled) {\r\n    background-color: white;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--invalid .mdc-text-field__input {\r\n    color: var(--mdc-theme-error, #b00020);\r\n}\r\n\r\n.sb-widget-cell .mdc-select {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    margin-top: -14px;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit.mdc-select {\r\n    margin-top: 0;\r\n}\r\n\r\n.sb-widget.sb-widget-mode-edit .sb-ui-menu.mdc-menu-surface--is-open-below {\r\n    margin-top: 80px !important;\r\n}\r\n\r\n.sb-widget.sb-widget-mode-edit input[type=number]::-webkit-outer-spin-button,\r\n.sb-widget.sb-widget-mode-edit input[type=number]::-webkit-inner-spin-button{\r\n    margin-left: 20px;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .sb-ui-menu.mdc-menu-surface--is-open-below {\r\n    margin-top: 30px !important;\r\n}\r\n\r\n.sb-ui-menu.mdc-menu-surface--open {\r\n    margin-bottom: 60px !important;\r\n}\r\n\r\n.sb-ui-menu.mdc-menu-surface--is-open-below {\r\n    margin-top: 45px !important;\r\n}\r\n\r\n\r\n.sb-widget-cell .mdc-select__anchor {\r\n    height: 100%;\r\n}\r\n\r\n/* make mini-fab flat (mini save buttons) */\r\n.sb-view-layout-list-row-checkbox .mdc-fab--mini {\r\n    box-shadow: none !important;\r\n    margin: 2px 0;\r\n}\r\n\r\n\r\n/* mdc styling customizations */\r\n\r\n.mdc-data-table {\r\n    height: 100%;\r\n}\r\n\r\n.mdc-data-table__table-container::-webkit-scrollbar {\r\n    width: 6px;\r\n    overflow-y: scroll;\r\n    background: transparent;\r\n\r\n}\r\n\r\n.mdc-data-table__table-container::-webkit-scrollbar-thumb {\r\n    background: var(--mdc-theme-primary, #6200ee);\r\n    border-radius: 10px;\r\n}\r\n\r\n\r\n.mdc-data-table__table-container .table-loader {\r\n    display: none;\r\n    width: 100%;\r\n    height: calc(100% - 44px);\r\n    top: 44px;\r\n    position: absolute;\r\n    z-index: 4;\r\n}\r\n\r\n\r\n.mdc-data-table__table-container .table-loader .table-overlay {\r\n    position: absolute;\r\n    opacity: 0.5;\r\n    background-color: white;\r\n    width: 100%;\r\n    height: 100%;\r\n}\r\n\r\n.mdc-data-table__table-container .table-loader .table-spinner {\r\n    width: calc(100% + 2px);\r\n    position: absolute;\r\n    height: 4px;\r\n    z-index: 4;\r\n    left: -1px;\r\n    box-sizing: border-box;\r\n    border: 0;\r\n    background-color: white;\r\n\toverflow: hidden;\r\n    display: flex;\r\n    align-items: center;\r\n    align-content: center;\r\n    justify-content: flex-start;\r\n}\r\n\r\n.mdc-data-table__table-container .table-loader .table-spinner .spinner__element {\r\n\theight: 100%;\r\n\twidth: 100%;\r\n\tbackground: var(--mdc-theme-primary-outline);\r\n}\r\n\r\n.mdc-data-table__table-container .table-loader .table-spinner .spinner__element::before {\r\n\tcontent: '';\r\n\tdisplay: block;\r\n\tbackground-color: var(--mdc-theme-primary);\r\n\theight: 4px;\r\n\twidth: 0;\r\n    animation: tableSpinnerGetWidth 2s ease-in infinite;\r\n}\r\n\r\n@keyframes tableSpinnerGetWidth {\r\n\t100% { width: 100%; }\r\n}\r\n\r\n\r\n\r\n.mdc-data-table__pagination {\r\n    border-top: 0;\r\n}\r\n\r\n.mdc-data-table__cell {\r\n    height: 44px;\r\n    padding: 0 2px;\r\n}\r\n\r\n\r\n.mdc-data-table__header-cell {\r\n    height: 44px;\r\n    padding: 0 2px;\r\n}\r\n\r\n.mdc-data-table__cell:first-child, .mdc-data-table__header-cell:first-child {\r\n    padding-left: 12px;\r\n}\r\n\r\n.mdc-data-table__cell--checkbox {\r\n    padding: 0 !important;\r\n}\r\n\r\n.mdc-data-table__header-cell--checkbox {\r\n    width: 44px;\r\n    padding: 0 !important;\r\n}\r\n\r\n.mdc-data-table__row--selected {\r\n    background-color: var(--mdc-theme-primary-selected) !important;\r\n}\r\n\r\n\r\n/* custom style for special button with icon only */\r\n.mdc-button-icon {\r\n\tmin-width: 36px;\r\n}\r\n\r\n.mdc-button-icon  .mdc-button__ripple {\r\n\tborder-radius: 50%;\r\n    width: 36px;\r\n}\r\n\r\n\r\n/* custom style for split button (with dropdown) */\r\n.mdc-button-split_button {\r\n    margin-right: 0 !important;\r\n    border-top-right-radius: 0 !important;\r\n    border-bottom-right-radius: 0 !important;\r\n    box-shadow: rgb(0 0 0 / 20%) 4px 3px 1px -2px, rgb(0 0 0 / 14%) 0px 2px 2px 0px, rgb(0 0 0 / 12%) 0px 1px 5px 0px;\r\n}\r\n\r\n.mdc-button-split_button.mdc-button.mdc-ripple-upgraded--background-focused .mdc-button__ripple::before {\r\n    opacity: 0 !important;\r\n}\r\n\r\n.mdc-button-split_drop {\r\n    margin-left: 0 !important;\r\n    border-top-left-radius: 0 !important;\r\n    border-bottom-left-radius: 0 !important;\r\n    max-width: 30px;\r\n    min-width: 30px;\r\n    z-index: 2;\r\n}\r\n\r\n.mdc-button-split_drop .mdc-button__ripple {\r\n    border-top-left-radius: 0 !important;\r\n    border-bottom-left-radius: 0 !important;\r\n}\r\n\r\n.mdc-button-split_drop i.mdc-button__icon {\r\n    margin: 0;\r\n}\r\n\r\n.mdc-button-split_drop .mdc-menu {\r\n    left: unset !important;\r\n    right: 0 !important;\r\n    margin-top: 37px !important;\r\n    min-width: 100px !important;\r\n}\r\n\r\n\r\n.mdc-menu {\r\n    min-width: var(--mdc-menu-min-width, 200px) !important;\r\n    max-width: calc(100vw - 32px) !important;\r\n}\r\n\r\n.mdc-text-field:not(.mdc-text-field--disabled) .mdc-text-field__icon {\r\n    color: rgba(0,0,0,.54);\r\n    background-color: white;\r\n}\r\n\r\n.mdc-text-field--focused .mdc-text-field-helper-line .mdc-text-field-helper-text {\r\n    opacity: 1 !important;\r\n}\r\n\r\n.mdc-text-field--with-trailing-icon .mdc-text-field__icon {\r\n    left: initial;\r\n    right: 12px;\r\n}\r\n\r\n.mdc-text-field--with-leading-icon .mdc-text-field__icon, .mdc-text-field--with-trailing-icon .mdc-text-field__icon {\r\n    position: absolute;\r\n    top: 50%;\r\n    transform: translateY(-50%);\r\n    cursor: pointer;\r\n}\r\n\r\n.mdc-text-field--textarea {\r\n    outline: solid 1px rgba(0, 0,0,0.1);\r\n}\r\n\r\n.sb-view-layout.sb-view-layout-form .mdc-text-field--filled:not(.mdc-text-field--disabled), .mdc-select--filled:not(.mdc-select--disabled) .mdc-select__anchor {\r\n    background: transparent !important;\r\n}\r\n\r\n.sb-view-layout.sb-view-layout-form .sb-widget:hover .mdc-text-field-helper-text {\r\n    opacity: 1 !important;\r\n}\r\n\r\n.sb-view .sb-view-dialog .sb-widget:hover .mdc-text-field-helper-text {\r\n    opacity: 1 !important;\r\n}\r\n\r\n.mdc-layout-grid__cell {\r\n    position: relative;\r\n}\r\n\r\n.mdc-text-field-helper-line {\r\n    position: absolute;\r\n    width: 100%;\r\n    max-width: 100%;\r\n    padding-left: 0 !important;\r\n    padding-right: 0 !important;\r\n}\r\n\r\n\r\n.mdc-list-item .mdc-checkbox {\r\n    margin-left: -11px;\r\n}\r\n\r\n.mdc-list-item__graphic {\r\n    color: rgba(0,0,0,.54) !important;\r\n    margin-right: 12px;\r\n}\r\n\r\n.mdc-list-item__text {\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n.mdc-chip .mdc-chip__icon {\r\n    font-size: 22px;\r\n    height: 22px;\r\n}\r\n\r\n.mdc-list-item {\r\n    height: 44px;\r\n    align-items: center !important;\r\n}\r\n\r\n\r\n.mdc-text-field {\r\n    width: 100%;\r\n}\r\n\r\n.mdc-floating-label {\r\n    font-size: 16px !important;\r\n    /* color: rgba(0, 0, 0, 0.8) !important;*/\r\n}\r\n\r\n\r\n.mdc-text-field-helper-line .mdc-text-field-helper-text {\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n\r\n.mdc-text-field--invalid:not(.mdc-text-field--disabled) .mdc-text-field-helper-line .mdc-text-field-helper-text--validation-msg {\r\n    color: var(--mdc-theme-error, #b00020) !important;\r\n}\r\n\r\n.mdc-text-field--focused:not(.mdc-text-field--disabled) .mdc-floating-label {\r\n    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;\r\n}\r\n\r\n.mdc-select--focused:not(.mdc-text-field--disabled) .mdc-floating-label {\r\n    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;\r\n}\r\n\r\n.mdc-select {\r\n    width: 100%;\r\n}\r\n\r\n.mdc-select .mdc-text-field-helper-line {\r\n    position: absolute;\r\n    top: 100%;\r\n}\r\n\r\n.mdc-select--filled.mdc-select--disabled .mdc-select__anchor {\r\n    background-color: transparent !important;\r\n}\r\n\r\n.mdc-tab {\r\n    max-width: 280px;\r\n}\r\n\r\n.mdc-tab-bar {\r\n    border-bottom: 1px solid rgba(0, 0, 0, 0.12);\r\n}\r\n\r\n.mdc-tab__text-label {\r\n    user-select: none;\r\n}\r\n.mdc-tab.mdc-tab--active .mdc-tab__ripple {\r\n    background-color: var(--mdc-ripple-color, var(--mdc-theme-primary, #6200ee));\r\n    opacity: 0.1;\r\n}\r\n\r\n\r\n\r\n/* jqueryui datepicker material styling */\r\n\r\n\r\n.ui-datepicker {\r\n    /*z-index: 3 !important;*/\r\n    font-family: \"Roboto\";\r\n}\r\n\r\n.ui-datepicker {\r\n    padding: 0;\r\n    border: none;\r\n    width: 325px;\r\n    box-shadow: 4px 4px 10px 2px rgba(0, 0, 0, 0.24);\r\n    margin-left: -16px;\r\n    margin-top: 6px;\r\n    font-size: 14px;\r\n    z-index: 2 !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-title {\r\n    font-size: 17px;\r\n}\r\n\r\n.ui-datepicker-trigger {\r\n    position: absolute;\r\n    right: 12px;\r\n    top: 50%;\r\n    opacity: 0;\r\n    margin-top: -10px;\r\n    cursor: pointer;\r\n}\r\n\r\n.ui-corner-all {\r\n  border-radius: 0;\r\n}\r\n\r\n.ui-widget-header {\r\n  border: 0;\r\n}\r\n\r\n.ui-datepicker-header {\r\n  text-align: center;\r\n  background: white;\r\n  padding-bottom: 15px;\r\n  font-weight: 300;\r\n}\r\n.ui-datepicker-header .ui-datepicker-prev,\r\n.ui-datepicker-header .ui-datepicker-next,\r\n.ui-datepicker-header .ui-datepicker-title {\r\n  border: none;\r\n  outline: none;\r\n  margin: 5px;\r\n}\r\n\r\n.ui-datepicker-prev.ui-state-hover,\r\n.ui-datepicker-next.ui-state-hover {\r\n  border: none;\r\n  outline: none;\r\n  background: #b4cbe5;\r\n}\r\n\r\n.ui-datepicker .ui-state-default {\r\n  background: none;\r\n  border: none;\r\n  text-align: center;\r\n  height: 33px;\r\n  width: 33px;\r\n  line-height: 30px;\r\n  z-index: 1;\r\n}\r\n.ui-datepicker .ui-state-highlight {\r\n  color: var(--mdc-theme-primary);\r\n}\r\n.ui-datepicker .ui-state-active {\r\n  color: white;\r\n}\r\n\r\n\r\n\r\n.ui-datepicker-calendar thead th {\r\n    color: #999999;\r\n    font-weight: 200;\r\n}\r\n\r\n.ui-datepicker-buttonpane {\r\n  border: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-state-default {\r\n  background: white;\r\n  border: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-datepicker-close,\r\n.ui-datepicker-buttonpane .ui-datepicker-current {\r\n  background: white;\r\n  color: #284B72;\r\n  text-transform: uppercase;\r\n  border: none;\r\n  opacity: 1;\r\n  font-weight: 200;\r\n  outline: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-datepicker-close:hover,\r\n.ui-datepicker-buttonpane .ui-datepicker-current:hover {\r\n  background: #b4cbe5;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev {\r\n    text-decoration: none;\r\n    height: auto !important;\r\n    width: auto !important;\r\n\tleft: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-next {\r\n    text-decoration: none;\r\n    height: auto !important;\r\n    width: auto !important;\r\n\tright: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev .ui-icon, .ui-datepicker .ui-datepicker-next .ui-icon {\r\n    display: none !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev::after {\r\n    font-family: FontAwesome;\r\n\tcontent: \"\\f053\";\r\n\tdisplay: block;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-next::after {\r\n    font-family: FontAwesome;\r\n\tcontent: \"\\f054\";\r\n\tdisplay: block;\r\n}\r\n\r\n\r\n.ui-datepicker .ui-datepicker-prev.ui-state-hover, .ui-datepicker .ui-datepicker-next.ui-state-hover {\r\n    background: none;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev-hover {\r\n\tleft: 8px !important;\r\n    top: 8px !important;\r\n}\r\n.ui-datepicker .ui-datepicker-next-hover {\r\n\tright: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n\r\n\r\n\r\n\r\nbutton.ui-state-hover {\r\n    background: unset !important;\r\n    background-color: var(--mdc-theme-primary-hover) !important;\r\n    border: unset !important;\r\n    color: white !important;\r\n    box-shadow: 0px 3px 1px -2px rgb(0 0 0 / 20%), 0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%) !important;\r\n}\r\n\r\n\r\n\r\n/* jquery ui datepicker month year picker */\r\n.ui-datepicker .ui-datepicker-select-month td ,\r\n.ui-datepicker .ui-datepicker-select-year td {\r\n\theight: 33px;\r\n}\r\n.ui-datepicker .ui-datepicker-select-month td span,\r\n.ui-datepicker .ui-datepicker-select-month td a,\r\n.ui-datepicker .ui-datepicker-select-year td span,\r\n.ui-datepicker .ui-datepicker-select-year td a  {\r\n\ttext-align: center;\r\n}\r\n.ui-datepicker .ui-datepicker-select-year td.outoffocus {\r\n\topacity: 0.5;\r\n}\r\n\r\n.ui-datepicker-select-month .ui-state-default, .ui-datepicker-select-year .ui-state-default {\r\n    margin: auto;\r\n}\r\n\r\n.ui-datepicker td {\r\n    font-size: 14px !important;\r\n}\r\n\r\n.ui-datepicker .ui-state-default, .ui-datepicker .ui-state-active {\r\n    position: relative;\r\n    border: 0 !important;\r\n    background: none !important;\r\n}\r\n\r\n.ui-datepicker .ui-state-active::after {\r\n    position: absolute;\r\n    display: block;\r\n    content: '';\r\n    background-color:var(--mdc-theme-primary);\r\n    border-radius: 50%;\r\n    width: 34px;\r\n    height: 34px;\r\n    z-index: -1;\r\n    top: 0;\r\n    left: calc(50% - 16px)\r\n}\r\n\r\n\r\n.ui-datepicker .ui-state-default:not(.ui-state-active).ui-state-hover::after {\r\n    position: absolute;\r\n    display: block;\r\n    content: '';\r\n    background-color: rgba(0,0,0,0.05);\r\n    border-radius: 50%;\r\n    width: 34px;\r\n    height: 34px;\r\n    z-index: -1;\r\n    top: 0;\r\n    left: calc(50% - 16px)\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header {\r\n    display: flex;\r\n    align-items: center;\r\n    padding: 4px 24px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header .ui-datepicker-title {\r\n    flex: 1;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header-time-switch {\r\n    flex: 1;\r\n    line-height: 100%;\r\n    height: 100%;\r\n    align-self: center;\r\n}\r\n\r\n\r\n.timepicker{\r\n    display:block;\r\n    user-select:none;\r\n    margin:0 auto;\r\n    width:100%;\r\n    height:100%;\r\n    font-size:14px;\r\n}\r\n.timepicker__title{background-image:-webkit-linear-gradient(top,#fff 0,#f2f2f2 100%);position:relative;background:#f2f2f2;margin:0 auto;border-bottom:1px solid #e5e5e5;padding:12px 11px 10px 15px;color:#4C4C4C;font-size:inherit}\r\n.timepicker__close{-webkit-transform:translateY(-25%);-moz-transform:translateY(-25%);-ms-transform:translateY(-25%);-o-transform:translateY(-25%);transform:translateY(-25%);position:absolute;top:25%;right:10px;color:#34495e;cursor:pointer}\r\n.timepicker__close:before{content:'\\00d7'}\r\n.timepicker__controls{padding:10px 0;line-height:normal;margin:0}\r\n.timepicker__controls__control,.timepicker__controls__control--separator{vertical-align:middle;display:inline-block;font-size:inherit;margin:0 auto;width:35px;letter-spacing:1.3px}\r\n.timepicker__controls__control-down,.timepicker__controls__control-up{color:#34495e;position:relative;display:block;margin:3px auto;font-size:18px;cursor:pointer}\r\n.timepicker__controls__control-up:before{content:'\\f0d8'}\r\n.timepicker__controls__control-down:after{content:'\\f0d7'}\r\n.timepicker__controls__control--separator{width:5px}\r\n.text-center,.timepicker__controls,.timepicker__controls__control,.timepicker__controls__control--separator,.timepicker__controls__control-down,.timepicker__controls__control-up,.timepicker__title{text-align:center}\r\n.hover-state{color:#3498db}\r\n\r\n.fontello-after:after,.fontello:before,.timepicker__controls__control-down:after,.timepicker__controls__control-up:before{font-family:FontAwesome;font-style:normal;font-weight:400;display:inline-block;text-decoration:inherit;width:1em;margin-right:.2em;text-align:center;font-variant:normal;text-transform:none;line-height:1em;margin-left:.2em;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}\r\n.clearable-picker{position:relative;display:inline-block}\r\n.clearable-picker>.hastimepicker{padding-right:1em}\r\n.clearable-picker>.hastimepicker::-ms-clear{display:none}\r\n.clearable-picker>[data-clear-picker]{position:absolute;top:50%;right:0;transform:translateY(-50%);font-weight:700;font-size:.8em;padding:0 .3em .2em;line-height:1;color:#bababa;cursor:pointer}\r\n.clearable-picker>[data-clear-picker]:hover{color:#a1a1a1}\r\n.timepicker__controls__control span {\r\n    outline: none;\r\n}", "",{"version":3,"sources":["webpack://./css/equal.css"],"names":[],"mappings":"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","sourcesContent":[":root {\r\n    /* colored buttons */\r\n    --mdc-theme-primary: #3f51b5;\r\n    --mdc-theme-primary-hover: #4f61c5;\r\n\r\n    --mdc-theme-primary-selected: #f5f5ff;\r\n    --mdc-theme-primary-outline: #b1b1dc;\r\n\r\n\r\n\r\n    /* checkbox background */\r\n    /* --mdc-theme-secondary: #3f51b5; */\r\n    --mdc-theme-secondary: #ff4081;\r\n\r\n    /* menus */\r\n    --mdc-typography-subtitle1-font-size: 14px;\r\n    /* table headers */\r\n    --mdc-typography-subtitle2-font-weight: 600;\r\n\r\n\r\n    --mdc-layout-grid-margin-desktop: 12px;\r\n    --mdc-layout-grid-gutter-desktop: 24px;\r\n    --mdc-layout-grid-margin-tablet: 12px;\r\n    --mdc-layout-grid-gutter-tablet: 18px;\r\n    --mdc-layout-grid-margin-phone: 12px;\r\n    --mdc-layout-grid-gutter-phone: 16px;\r\n\r\n}\r\n\r\nbody, html {\r\n    margin: 0;\r\n    padding: 0;\r\n    height:100%;\r\n}\r\n\r\n#sb-root {\r\n    display: flex;\r\n    height: 100%;\r\n    flex-flow: column nowrap;\r\n}\r\n\r\n#sb-menu .sb-menu-button {\r\n    display: inline-block;\r\n}\r\n\r\n#sb-container, .sb-container {\r\n    width: 100%;\r\n    height: 100%;\r\n    overflow: hidden;\r\n    flex: 1 1 100%;\r\n    box-sizing: border-box;\r\n    display: none;\r\n    /* added for WP compliance */\r\n    background-color: white;\r\n    position: relative;\r\n    z-index: 2;\r\n}\r\n\r\n\r\n.sb-popup-wrapper {\r\n    position: absolute;\r\n    top: 0;\r\n    left: 0;\r\n    width: 100vw;\r\n    height: 100vh;\r\n    background-color: rgba(0,0,0,0.3);\r\n    z-index: 1000;\r\n}\r\n\r\n.sb-popup {\r\n    position: absolute;\r\n    left: 10%;\r\n    top: 10%;\r\n    width: 80%;\r\n    height: 80%;\r\n    background-color: white;\r\n    border: solid 1px #c8ced3;\r\n    border-radius: 10px;\r\n    padding: 10px;\r\n}\r\n\r\n.sb-popup-wrapper .sb-container-header .context-close {\r\n    display: block;\r\n    margin-left: auto;\r\n}\r\n\r\n.sb-popup-inner {\r\n    height: 100%;\r\n}\r\n\r\n.sb-container-header {\r\n    position: relative;\r\n    padding-left: 12px;\r\n    height: 48px;\r\n    border-bottom: solid 1px lightgrey;\r\n}\r\n\r\n.sb-container-header h3 {\r\n    line-height: 48px;\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n.sb-container-header a {\r\n    cursor: pointer;\r\n    text-decoration: none;\r\n    color: var(--mdc-theme-primary);\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n.sb-container-header .lang-selector {\r\n    height: 48px;\r\n    width: 150px;\r\n    position: absolute;\r\n    top: 0;\r\n    right: 0;\r\n}\r\n\r\n.sb-popup .sb-container-header .lang-selector {\r\n    right: 50px;\r\n}\r\n\r\n.sb-container-header .lang-selector .mdc-select__anchor {\r\n    height: 48px;\r\n}\r\n\r\n.sb-container-header .lang-selector .mdc-select__menu {\r\n    min-width: 150px !important;\r\n    max-width: 150px !important;\r\n}\r\n\r\n.sb-context {\r\n    /* container height minus the header */\r\n    height: calc(100% - 48px);\r\n}\r\n\r\n.sb-view {\r\n    position: relative;\r\n    height: 100%;\r\n}\r\n\r\n.sb-view .mdc-snackbar {\r\n    justify-content: left;\r\n}\r\n\r\n.sb-view .mdc-snackbar__action:not(:disabled) {\r\n    color: #ff4081;;\r\n}\r\n\r\n.sb-view-layout-list {\r\n    /* height must be decremented by height of other elements from parent (header and footer) */\r\n    height: calc(100% - 112px);\r\n    padding: 0 12px 6px 12px;\r\n}\r\n\r\n.sb-view-dashboard-row .sb-view-layout-list {\r\n    height: calc(100% - 66px) !important;\r\n    padding: 0 !important;\r\n}\r\n\r\n.sb-view-layout-form {\r\n    /* height must be decremented by height of other elements from parent (header and footer) */\r\n    height: calc(100% - 56px);\r\n    padding-bottom: 10px;\r\n}\r\n\r\n/* added for WP compliance */\r\n.sb-view-layout-form .sb-widget.sb-widget-mode-view input {\r\n    background: transparent;\r\n    border-color: transparent;\r\n}\r\n\r\n/* added for WP compliance */\r\n.sb-view .sb-widget input {\r\n    box-shadow: none;\r\n}\r\n\r\n.sb-view .sb-widget label {\r\n    user-select: none;\r\n}\r\n\r\n/* added for WP compliance */\r\n.sb-view-layout-form .sb-widget input {\r\n    border: 0;\r\n    padding: 0;\r\n}\r\n\r\n\r\n.sb-view-list-inline-actions-button {\r\n    transform: scale(0.7);\r\n}\r\n\r\n.sb-layout {\r\n    position: relative;\r\n    height: 100%;\r\n}\r\n\r\n\r\n.sb-view .sb-view-dialog .mdc-dialog__surface {\r\n    min-width: 450px;\r\n    width: 450px;\r\n    max-width: 450px;\r\n}\r\n\r\n.sb-view .sb-view-dialog .dialog-select {\r\n\tmargin-bottom: 12px;\r\n}\r\n\r\n.sb-view-layout-list table th {\r\n    cursor: pointer;\r\n    user-select: none;\r\n    position: sticky;\r\n    top: 0;\r\n    z-index: 3;\r\n}\r\n\r\n.sb-view-layout-list table th.sortable.hover {\r\n    background-color: #f0f0f0;\r\n}\r\n\r\n.sb-view-layout-list table th.sorted {\r\n    color: black;\r\n}\r\n\r\n.sb-view-layout-list table th.asc::after, .sb-view-layout-list table th.desc::after {\r\n    position: absolute;\r\n    margin-left: 6px;\r\n    font-family: FontAwesome;\r\n    opacity: 0.3;\r\n}\r\n\r\n.sb-view-layout-list table th.asc::after {\r\n    content: \"\\f0d7\";\r\n}\r\n\r\n.sb-view-layout-list table th.desc::after {\r\n    content: \"\\f0d8\";\r\n}\r\n\r\n.sb-view-layout-list table tr {\r\n    cursor: pointer;\r\n}\r\n\r\n.sb-view-layout-list .table-operations {\r\n    display: block;\r\n}\r\n\r\n.sb-view-layout-list .table-operations .operation {\r\n    min-height: 44px;\r\n}\r\n\r\n.sb-view-layout-list .table-operations .operation .operation-title {\r\n    text-transform: uppercase;\r\n    width: 100%;\r\n    text-align: left;\r\n    font-weight: 600;\r\n    padding: 0 12px 0 12px;\r\n}\r\n\r\n.sb-view-layout-list .table-operations .operation .operation-row {\r\n    display: flex;\r\n    width: 100%;\r\n    min-height: 44px;\r\n}\r\n\r\n.sb-view-layout-list .table-operations .operation .operation-row .operation-cell {\r\n    display: flex;\r\n    align-items: center;\r\n    padding: 0 2px;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n.sb-view-layout-list .table-operations .operation .operation-row .operation-cell input {\r\n    font-family: roboto;\r\n    font-size: 15px;\r\n    font-weight: 500;\r\n    border: 0;\r\n    width: 100%;\r\n}\r\n\r\n.sb-view-layout-list .table-operations .operation .operation-row .operation-cell:first-child {\r\n    padding-left: 12px;\r\n}\r\n\r\n\r\n.sb-view-header-list {\r\n    position: relative;\r\n    max-height: 112px;\r\n    /*\r\n    height: 112px;\r\n    line-height: 112px;\r\n    */\r\n}\r\n\r\n.sb-view-header-list.has-advanced-filters {\r\n    max-height: unset;\r\n}\r\n\r\n.sb-view-header-list-actions {\r\n    margin-left: 12px;\r\n    max-height: 56px;\r\n}\r\n\r\n.sb-view-header-list-actions button {\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-header-list-actions-selected {\r\n    position: relative;\r\n    display: flex;\r\n}\r\n\r\n/* todo: improve this (add a custom class)*/\r\n.sb-view-header-list-actions-selected .mdc-button__label {\r\n    padding-right: 10px;\r\n}\r\n\r\n.sb-view-header-list-actions-selected .mdc-button__label::after {\r\n    content: \"\\f0d7\";\r\n}\r\n\r\n.sb-view-header-list-actions-selected .mdc-button__label::after {\r\n    position: absolute;\r\n    margin-left: 6px;\r\n    font-family: FontAwesome;\r\n    opacity: 0.5;\r\n}\r\n\r\n.sb-view-header-list-navigation {\r\n    height: 56px;\r\n    line-height: 56px;\r\n    display: flex;\r\n    margin-left: 12px;\r\n}\r\n\r\n\r\n.sb-view-header-list .sb-view-header-advanced {\r\n    display: none;\r\n}\r\n\r\n.sb-view-header-list.has-advanced-filters .sb-view-header-advanced {\r\n    position: absolute;\r\n    display: block;    \r\n    left: 12px;\r\n    margin-top: 4px;    \r\n}\r\n\r\n.sb-view-header-list.has-advanced-filters .sb-view-header-advanced .sb-view-header-advanced-layout {\r\n    display: none;\r\n}\r\n\r\n.sb-view-header-list.is-advanced-open .sb-view-header-advanced .sb-view-header-advanced-layout {\r\n    display: block;\r\n    width: calc(100% - 60px);\r\n    margin-left: 48px;\r\n    margin-top: -12px;\r\n}\r\n\r\n.sb-view-header-list.is-advanced-open .sb-view-header-advanced {\r\n    position: relative;\r\n}\r\n\r\n.sb-view-header-list.is-advanced-open .sb-view-header-advanced .sb-view-header-list-advanced-filters-button {\r\n    transform: rotate(-90deg); \r\n    transform-origin: bottom left;\r\n    position: absolute;\r\n    left: 48px;\r\n    margin-top: 12px;\r\n}\r\n\r\n.sb-view-header-list-filters {\r\n    margin-top: 4px;\r\n}\r\n\r\n.sb-view-header-list.has-advanced-filters .sb-view-header-list-filters {\r\n    margin-left: 48px;\r\n}\r\n\r\n.sb-view-header-list-filters .sb-view-header-list-filters-menu {\r\n    min-width: 250px;\r\n}\r\n\r\n\r\n.sb-view-header-list-filters-search .mdc-text-field {\r\n    height: 36px;\r\n}\r\n\r\n.sb-view-header-list-filters-search .mdc-text-field__icon--trailing {\r\n    display: none;\r\n}\r\n\r\n.sb-view-header-list-filters-search .mdc-text-field--label-floating .mdc-text-field__icon--trailing {\r\n    display: block;\r\n    right: 0;\r\n}\r\n\r\n.sb-view-header-list-filters-search .mdc-floating-label--float-above {\r\n    display: none;\r\n}\r\n\r\n.sb-view-header-list-filters-set {\r\n    margin-top: 4px;\r\n}\r\n\r\n\r\n.sb-view-header-list-fields_toggle {\r\n    /* flex-grow: 1; */\r\n    margin-top: 4px;\r\n    margin-right: 10px;\r\n    text-align: right;\r\n}\r\n\r\n\r\n.sb-view-header-list-fields_toggle .sb-view-header-list-fields_toggle-menu {\r\n    min-width: 250px !important;\r\n    max-width: 250px !important;\r\n}\r\n\r\n.sb-view-header-list-pagination {\r\n    flex: 1;\r\n    flex-grow: 1;\r\n\r\n}\r\n\r\n.sb-view-header-list-pagination-limit_select {\r\n    margin-left: 12px;\r\n}\r\n\r\n.sb-view-header-list-pagination .pagination-navigation {\r\n    user-select: none;\r\n}\r\n\r\n\r\n.sb-widget-mode-view input {\r\n    color: black !important;\r\n    user-select: none;\r\n}\r\n\r\n.sb-widget-mode-view .mdc-text-field .mdc-floating-label,\r\n.sb-widget-mode-view.mdc-select .mdc-floating-label {\r\n    color: rgba(0,0,0,0.5) !important;\r\n    user-select: none;\r\n    font-size: 16px;\r\n    font-weight: 400;\r\n}\r\n\r\n.sb-widget-mode-edit .mdc-text-field .mdc-floating-label,\r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label {\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n}\r\n\r\n.sb-widget-mode-view .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above,\r\n.sb-widget-mode-view.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n}\r\n\r\n.sb-widget-mode-edit .mdc-text-field .mdc-floating-label.mdc-floating-label--float-above,\r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.6) !important;\r\n    font-weight: 400;\r\n}\r\n\r\n.sb-widget.sb-ui-textarea {\r\n    height: 200px;\r\n    margin-top: 20px;\r\n}\r\n\r\n.sb-widget.sb-ui-textarea .ql-toolbar {\r\n    background: white;\r\n}\r\n\r\n.sb-widget.sb-ui-textarea .ql-toolbar .ql-fullscreen {\r\n    position: relative;\r\n}\r\n\r\n.sb-widget.sb-ui-textarea .ql-toolbar .ql-fullscreen::after {\r\n  position: absolute;   \r\n  content: \"⛶\";\r\n  font-size: 18px;\r\n  font-weight: 600;\r\n  top: 0;\r\n}\r\n\r\n.sb-widget.sb-ui-textarea .ql-editor {\r\n    background-color: white;\r\n}\r\n\r\n.sb-widget-mode-view.sb-ui-textarea {\r\n    position: relative;\r\n    font-size: 14px;\r\n    border: solid 1px lightgrey;\r\n}\r\n\r\n.sb-widget.sb-ui-textarea .textarea-content {\r\n    height: 100%;\r\n    overflow-y: auto;\r\n}\r\n\r\n.sb-widget.sb-ui-textarea .textarea-content::-webkit-scrollbar {\r\n    width: 6px;\r\n    overflow-y: scroll;\r\n    background: transparent;\r\n}\r\n\r\n.sb-widget.sb-ui-textarea .textarea-content::-webkit-scrollbar-thumb {\r\n    background: var(--mdc-theme-primary, #6200ee);\r\n    border-radius: 10px;\r\n}\r\n\r\n.sb-widget.sb-ui-textarea .ql-editor::-webkit-scrollbar {\r\n    width: 6px;\r\n    overflow-y: scroll;\r\n    background: transparent;\r\n}\r\n\r\n.sb-widget.sb-ui-textarea .ql-editor::-webkit-scrollbar-thumb {\r\n    background: var(--mdc-theme-primary, #6200ee);\r\n    border-radius: 10px;\r\n}\r\n\r\n\r\n\r\n.sb-widget.sb-ui-textarea .textarea-title {\r\n    position: absolute;\r\n    top: -24px;\r\n    left: 4px;\r\n    color: rgba(0,0,0,0.8) !important;\r\n    font-weight: 600;\r\n    transform: scale(75%);\r\n    font-size: 16px;\r\n}\r\n\r\n.sb-widget-mode-view.sb-ui-textarea p {\r\n    margin: 0;\r\n}\r\n\r\n.sb-widget-mode-edit.mdc-select .mdc-floating-label.mdc-floating-label--float-above {\r\n    color: rgba(0,0,0,0.6) !important;\r\n    font-weight: 400;\r\n}\r\n\r\n\r\n.sb-view-header-form {\r\n    position: relative;\r\n    height: 56px;\r\n}\r\n\r\n.sb-view-header-actions {\r\n    display: flex;\r\n    margin-left: 12px;\r\n    max-height: 56px;\r\n    padding-top: 10px;\r\n}\r\n\r\n.sb-view-header-actions .sb-view-header-actions-std {\r\n    flex: 0 1 50%;\r\n    display: flex;\r\n}\r\n\r\n.sb-view-header-actions .sb-view-header-actions-std button {\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-header-actions .sb-view-header-actions-view {\r\n    margin-left: auto;\r\n}\r\n\r\n.sb-view-header-actions .sb-view-header-actions-view button {\r\n    margin-right: 12px;\r\n}\r\n\r\n.sb-view-dashboard-section {\r\n    padding: 0 24px;\r\n}\r\n\r\n.sb-view-dashboard-group {\r\n    padding: 0;\r\n}\r\n\r\n.sb-view-dashboard-row {\r\n    position: relative;\r\n    padding: 12px 0;\r\n    box-sizing: content-box;\r\n}\r\n\r\n.sb-view-dashboard-row .sb-view-dashboard-cell-title {\r\n    position: absolute;\r\n    font-weight: 500;\r\n    width: 100%;\r\n    text-align: left;\r\n}\r\n\r\n.sb-view-form-group {\r\n    padding: 12px;\r\n}\r\n\r\n.sb-view-form-row:not(:first-child) {\r\n    padding-top: 24px;\r\n}\r\n\r\n.sb-view-form-group-title {\r\n    font-size: 20px;\r\n    margin-bottom: 12px;\r\n}\r\n\r\n.sb-view-form-sections-tabbar {\r\n    margin-top: 24px;\r\n    margin-bottom: 6px;\r\n}\r\n\r\n.sb-view-layout-chart {\r\n    height: 100%;\r\n}\r\n\r\n.sb-view-layout-list .mdc-line-ripple::before, .sb-view-layout-list .mdc-line-ripple::after {\r\n  border: none !important;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget label.mdc-text-field .mdc-floating-label {\r\n    display: none !important;\r\n}\r\n.sb-view-layout-list .sb-widget.sb-widget-mode-view label.mdc-text-field::before {\r\n    display: none !important;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget.sb-widget-mode-view input {\r\n    height: 100%;\r\n    background: none;\r\n    border-color: transparent;\r\n    box-shadow: none;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget.sb-widget-type-many2one.sb-widget-mode-view:not(.is-first) input {\r\n    cursor: pointer;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget.sb-widget-type-many2one.sb-widget-mode-view:not(.is-first) input:hover {\r\n    text-decoration: underline;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget-mode-edit button.mdc-icon-button {\r\n    padding: 0 0 0 5px;\r\n    height: auto;\r\n    width: auto;\r\n    position: absolute;\r\n}\r\n\r\n.sb-view-layout-form-input-button {\r\n    width: 25px;\r\n    height: 30px;\r\n    position: absolute;\r\n    right: 12px;\r\n    top: calc(50% - 15px);\r\n}\r\n\r\n.sb-view-layout-form-input-decoy {\r\n    position: absolute;\r\n    left: 16px;\r\n    bottom: 10px;\r\n    z-index: -1;\r\n    opacity: 0;\r\n}\r\n\r\n\r\n.sb-widget {\r\n    position: relative;\r\n}\r\n\r\n.sb-widget .sb-ui-checkbox {\r\n    position: relative;\r\n}\r\n\r\n.sb-widget .sb-ui-switch {\r\n    height: 56px;\r\n    line-height: 56px;\r\n}\r\n\r\n/* Material Components customizations */\r\n\r\n/* fix for ripple not working on icon-button */\r\nbutton.mdc-icon-button:hover, button.mdc-icon-button:active, button.mdc-icon-button:focus {\r\n    border-radius: 50%;\r\n    background-color: rgba(0,0,0,0.10);\r\n}\r\n\r\n/* fix tooltip not hiding */\r\n.mdc-tooltip--hide {\r\n    opacity: 0;\r\n}\r\n\r\n.mdc-button--primary {\r\n    background-color: var(--mdc-theme-primary) !important;\r\n}\r\n\r\n.mdc-button--secondary {\r\n    background-color: var(--mdc-theme-secondary) !important;\r\n}\r\n\r\n@keyframes button_spinner {\r\n    to {transform: rotate(360deg);}\r\n}\r\n\r\n.mdc-button--spinner:before {\r\n    content: '';\r\n    box-sizing: border-box;\r\n    position: absolute;\r\n    top: 50%;\r\n    left: 50%;\r\n    width: 20px;\r\n    height: 20px;\r\n    margin-top: -10px;\r\n    margin-left: -10px;\r\n    border-radius: 50%;\r\n    border: 2px solid #ffffff;\r\n    border-top-color: #000000;\r\n    animation: button_spinner .8s linear infinite;\r\n}\r\n\r\n/* Special SB widgets customizations */\r\n\r\n/* support for title strings */\r\n.sb-widget.title {\r\n    margin-top: -14px;\r\n}\r\n\r\n.sb-widget.title span.mdc-floating-label--float-above {\r\n    transform: translateY(-166%) !important;\r\n}\r\n.sb-widget.title label.mdc-text-field, .sb-widget.title .mdc-select__anchor {\r\n  height: 70px;\r\n}\r\n.sb-widget.title input.mdc-text-field__input {\r\n  font-size: 30px;\r\n  margin-top: auto;\r\n  height: 60px;\r\n}\r\n\r\n.sb-widget.title .mdc-select__selected-text {\r\n    font-size: 30px;\r\n    margin-top: 27px;\r\n    height: 30px;\r\n}\r\n\r\n\r\n.sb-view-layout-form {\r\n    overflow-y: scroll;\r\n    overflow-x: hidden;\r\n}\r\n\r\n\r\n.sb-view-layout-form::-webkit-scrollbar {\r\n    width: 6px;\r\n    overflow-y: scroll;\r\n    background: transparent;\r\n}\r\n\r\n.sb-view-layout-form::-webkit-scrollbar-thumb {\r\n    background: var(--mdc-theme-primary, #6200ee);\r\n    border-radius: 10px;\r\n}\r\n\r\n\r\n.sb-view-layout-form .sb-widget.sb-widget-type-boolean {\r\n    height: 56px;\r\n    padding-left: 16px;\r\n    width: 100%;\r\n}\r\n\r\n.sb-view-layout-list .sb-widget.sb-widget-type-boolean {\r\n    height: 44px;\r\n    /* cannot identify the reason why this was necessary at some point */\r\n    /* padding-top: 14px; */\r\n}\r\n\r\n/* added for WP compliance */\r\n.sb-widget.sb-widget-type-boolean .mdc-switch__native-control {\r\n    opacity: 0 !important;\r\n}\r\n\r\n.sb-widget.sb-image-thumbnail {\r\n    height: 150px;\r\n    width: 150px;\r\n    background-size: cover;\r\n}\r\n\r\n.sb-widget-cell .sb-widget.sb-image-thumbnail {\r\n    height: 35px;\r\n    width: 35px;\r\n    border-radius: 0;\r\n}\r\n\r\n.sb-view-layout-list .sb-group-row {\r\n    background-color: rgba(0,0,0,0.03);\r\n}\r\n\r\n.sb-view-layout-list .sb-group-cell-label {\r\n    text-transform: uppercase;\r\n}\r\n\r\n.sb-view-layout-list .sb-group-cell-label span {\r\n    font-weight: 500;\r\n}\r\n\r\n.sb-view-layout-list .sb-group-row .sb-toggle-button, .sb-view-layout-list th.sb-group-cell .sb-toggle-button {\r\n    user-select: none;\r\n    transform: rotate(90deg);\r\n}\r\n\r\n.sb-view-layout-list .sb-group-row.folded .sb-toggle-button, .sb-view-layout-list th.sb-group-cell.folded .sb-toggle-button {\r\n    transform: rotate(0deg);\r\n}\r\n\r\n.sb-widget.sb-dropable {\r\n    outline: dashed 2px var(--mdc-theme-secondary);\r\n}\r\n\r\n.sb-widget.sb-dropable.highlight {\r\n    outline: solid 2px var(--mdc-theme-secondary);\r\n    opacity: 0.5;\r\n}\r\n\r\n/* adapt inputs for inline editing */\r\n.sb-widget-cell .mdc-text-field {\r\n  height: 100%;\r\n}\r\n\r\n.sb-widget-cell.allow-overflow {\r\n    overflow: visible !important;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field {\r\n    padding-left: 0;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-text-field {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    padding-left: 5px;\r\n    border-top-left-radius: 0;\r\n    border-top-right-radius: 0;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-select__anchor {\r\n    padding-left: 5px;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field-helper-line {\r\n  display: none;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--filled::before {\r\n  display: none;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--filled:not(.mdc-text-field--disabled) {\r\n    background-color: inherit;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .mdc-text-field--filled:not(.mdc-text-field--disabled) {\r\n    background-color: white;\r\n}\r\n\r\n.sb-widget-cell .mdc-text-field--invalid .mdc-text-field__input {\r\n    color: var(--mdc-theme-error, #b00020);\r\n}\r\n\r\n.sb-widget-cell .mdc-select {\r\n    outline: solid 1px var(--mdc-theme-primary-outline);\r\n    margin-top: -14px;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit.mdc-select {\r\n    margin-top: 0;\r\n}\r\n\r\n.sb-widget.sb-widget-mode-edit .sb-ui-menu.mdc-menu-surface--is-open-below {\r\n    margin-top: 80px !important;\r\n}\r\n\r\n.sb-widget.sb-widget-mode-edit input[type=number]::-webkit-outer-spin-button,\r\n.sb-widget.sb-widget-mode-edit input[type=number]::-webkit-inner-spin-button{\r\n    margin-left: 20px;\r\n}\r\n\r\n.sb-widget-cell .sb-widget-mode-edit .sb-ui-menu.mdc-menu-surface--is-open-below {\r\n    margin-top: 30px !important;\r\n}\r\n\r\n.sb-ui-menu.mdc-menu-surface--open {\r\n    margin-bottom: 60px !important;\r\n}\r\n\r\n.sb-ui-menu.mdc-menu-surface--is-open-below {\r\n    margin-top: 45px !important;\r\n}\r\n\r\n\r\n.sb-widget-cell .mdc-select__anchor {\r\n    height: 100%;\r\n}\r\n\r\n/* make mini-fab flat (mini save buttons) */\r\n.sb-view-layout-list-row-checkbox .mdc-fab--mini {\r\n    box-shadow: none !important;\r\n    margin: 2px 0;\r\n}\r\n\r\n\r\n/* mdc styling customizations */\r\n\r\n.mdc-data-table {\r\n    height: 100%;\r\n}\r\n\r\n.mdc-data-table__table-container::-webkit-scrollbar {\r\n    width: 6px;\r\n    overflow-y: scroll;\r\n    background: transparent;\r\n\r\n}\r\n\r\n.mdc-data-table__table-container::-webkit-scrollbar-thumb {\r\n    background: var(--mdc-theme-primary, #6200ee);\r\n    border-radius: 10px;\r\n}\r\n\r\n\r\n.mdc-data-table__table-container .table-loader {\r\n    display: none;\r\n    width: 100%;\r\n    height: calc(100% - 44px);\r\n    top: 44px;\r\n    position: absolute;\r\n    z-index: 4;\r\n}\r\n\r\n\r\n.mdc-data-table__table-container .table-loader .table-overlay {\r\n    position: absolute;\r\n    opacity: 0.5;\r\n    background-color: white;\r\n    width: 100%;\r\n    height: 100%;\r\n}\r\n\r\n.mdc-data-table__table-container .table-loader .table-spinner {\r\n    width: calc(100% + 2px);\r\n    position: absolute;\r\n    height: 4px;\r\n    z-index: 4;\r\n    left: -1px;\r\n    box-sizing: border-box;\r\n    border: 0;\r\n    background-color: white;\r\n\toverflow: hidden;\r\n    display: flex;\r\n    align-items: center;\r\n    align-content: center;\r\n    justify-content: flex-start;\r\n}\r\n\r\n.mdc-data-table__table-container .table-loader .table-spinner .spinner__element {\r\n\theight: 100%;\r\n\twidth: 100%;\r\n\tbackground: var(--mdc-theme-primary-outline);\r\n}\r\n\r\n.mdc-data-table__table-container .table-loader .table-spinner .spinner__element::before {\r\n\tcontent: '';\r\n\tdisplay: block;\r\n\tbackground-color: var(--mdc-theme-primary);\r\n\theight: 4px;\r\n\twidth: 0;\r\n    animation: tableSpinnerGetWidth 2s ease-in infinite;\r\n}\r\n\r\n@keyframes tableSpinnerGetWidth {\r\n\t100% { width: 100%; }\r\n}\r\n\r\n\r\n\r\n.mdc-data-table__pagination {\r\n    border-top: 0;\r\n}\r\n\r\n.mdc-data-table__cell {\r\n    height: 44px;\r\n    padding: 0 2px;\r\n}\r\n\r\n\r\n.mdc-data-table__header-cell {\r\n    height: 44px;\r\n    padding: 0 2px;\r\n}\r\n\r\n.mdc-data-table__cell:first-child, .mdc-data-table__header-cell:first-child {\r\n    padding-left: 12px;\r\n}\r\n\r\n.mdc-data-table__cell--checkbox {\r\n    padding: 0 !important;\r\n}\r\n\r\n.mdc-data-table__header-cell--checkbox {\r\n    width: 44px;\r\n    padding: 0 !important;\r\n}\r\n\r\n.mdc-data-table__row--selected {\r\n    background-color: var(--mdc-theme-primary-selected) !important;\r\n}\r\n\r\n\r\n/* custom style for special button with icon only */\r\n.mdc-button-icon {\r\n\tmin-width: 36px;\r\n}\r\n\r\n.mdc-button-icon  .mdc-button__ripple {\r\n\tborder-radius: 50%;\r\n    width: 36px;\r\n}\r\n\r\n\r\n/* custom style for split button (with dropdown) */\r\n.mdc-button-split_button {\r\n    margin-right: 0 !important;\r\n    border-top-right-radius: 0 !important;\r\n    border-bottom-right-radius: 0 !important;\r\n    box-shadow: rgb(0 0 0 / 20%) 4px 3px 1px -2px, rgb(0 0 0 / 14%) 0px 2px 2px 0px, rgb(0 0 0 / 12%) 0px 1px 5px 0px;\r\n}\r\n\r\n.mdc-button-split_button.mdc-button.mdc-ripple-upgraded--background-focused .mdc-button__ripple::before {\r\n    opacity: 0 !important;\r\n}\r\n\r\n.mdc-button-split_drop {\r\n    margin-left: 0 !important;\r\n    border-top-left-radius: 0 !important;\r\n    border-bottom-left-radius: 0 !important;\r\n    max-width: 30px;\r\n    min-width: 30px;\r\n    z-index: 2;\r\n}\r\n\r\n.mdc-button-split_drop .mdc-button__ripple {\r\n    border-top-left-radius: 0 !important;\r\n    border-bottom-left-radius: 0 !important;\r\n}\r\n\r\n.mdc-button-split_drop i.mdc-button__icon {\r\n    margin: 0;\r\n}\r\n\r\n.mdc-button-split_drop .mdc-menu {\r\n    left: unset !important;\r\n    right: 0 !important;\r\n    margin-top: 37px !important;\r\n    min-width: 100px !important;\r\n}\r\n\r\n\r\n.mdc-menu {\r\n    min-width: var(--mdc-menu-min-width, 200px) !important;\r\n    max-width: calc(100vw - 32px) !important;\r\n}\r\n\r\n.mdc-text-field:not(.mdc-text-field--disabled) .mdc-text-field__icon {\r\n    color: rgba(0,0,0,.54);\r\n    background-color: white;\r\n}\r\n\r\n.mdc-text-field--focused .mdc-text-field-helper-line .mdc-text-field-helper-text {\r\n    opacity: 1 !important;\r\n}\r\n\r\n.mdc-text-field--with-trailing-icon .mdc-text-field__icon {\r\n    left: initial;\r\n    right: 12px;\r\n}\r\n\r\n.mdc-text-field--with-leading-icon .mdc-text-field__icon, .mdc-text-field--with-trailing-icon .mdc-text-field__icon {\r\n    position: absolute;\r\n    top: 50%;\r\n    transform: translateY(-50%);\r\n    cursor: pointer;\r\n}\r\n\r\n.mdc-text-field--textarea {\r\n    outline: solid 1px rgba(0, 0,0,0.1);\r\n}\r\n\r\n.sb-view-layout.sb-view-layout-form .mdc-text-field--filled:not(.mdc-text-field--disabled), .mdc-select--filled:not(.mdc-select--disabled) .mdc-select__anchor {\r\n    background: transparent !important;\r\n}\r\n\r\n.sb-view-layout.sb-view-layout-form .sb-widget:hover .mdc-text-field-helper-text {\r\n    opacity: 1 !important;\r\n}\r\n\r\n.sb-view .sb-view-dialog .sb-widget:hover .mdc-text-field-helper-text {\r\n    opacity: 1 !important;\r\n}\r\n\r\n.mdc-layout-grid__cell {\r\n    position: relative;\r\n}\r\n\r\n.mdc-text-field-helper-line {\r\n    position: absolute;\r\n    width: 100%;\r\n    max-width: 100%;\r\n    padding-left: 0 !important;\r\n    padding-right: 0 !important;\r\n}\r\n\r\n\r\n.mdc-list-item .mdc-checkbox {\r\n    margin-left: -11px;\r\n}\r\n\r\n.mdc-list-item__graphic {\r\n    color: rgba(0,0,0,.54) !important;\r\n    margin-right: 12px;\r\n}\r\n\r\n.mdc-list-item__text {\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n.mdc-chip .mdc-chip__icon {\r\n    font-size: 22px;\r\n    height: 22px;\r\n}\r\n\r\n.mdc-list-item {\r\n    height: 44px;\r\n    align-items: center !important;\r\n}\r\n\r\n\r\n.mdc-text-field {\r\n    width: 100%;\r\n}\r\n\r\n.mdc-floating-label {\r\n    font-size: 16px !important;\r\n    /* color: rgba(0, 0, 0, 0.8) !important;*/\r\n}\r\n\r\n\r\n.mdc-text-field-helper-line .mdc-text-field-helper-text {\r\n    white-space: nowrap;\r\n    overflow: hidden;\r\n    text-overflow: ellipsis;\r\n}\r\n\r\n\r\n.mdc-text-field--invalid:not(.mdc-text-field--disabled) .mdc-text-field-helper-line .mdc-text-field-helper-text--validation-msg {\r\n    color: var(--mdc-theme-error, #b00020) !important;\r\n}\r\n\r\n.mdc-text-field--focused:not(.mdc-text-field--disabled) .mdc-floating-label {\r\n    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;\r\n}\r\n\r\n.mdc-select--focused:not(.mdc-text-field--disabled) .mdc-floating-label {\r\n    color: var(--mdc-theme-primary, rgba(98, 0, 238, 0.87)) !important;\r\n}\r\n\r\n.mdc-select {\r\n    width: 100%;\r\n}\r\n\r\n.mdc-select .mdc-text-field-helper-line {\r\n    position: absolute;\r\n    top: 100%;\r\n}\r\n\r\n.mdc-select--filled.mdc-select--disabled .mdc-select__anchor {\r\n    background-color: transparent !important;\r\n}\r\n\r\n.mdc-tab {\r\n    max-width: 280px;\r\n}\r\n\r\n.mdc-tab-bar {\r\n    border-bottom: 1px solid rgba(0, 0, 0, 0.12);\r\n}\r\n\r\n.mdc-tab__text-label {\r\n    user-select: none;\r\n}\r\n.mdc-tab.mdc-tab--active .mdc-tab__ripple {\r\n    background-color: var(--mdc-ripple-color, var(--mdc-theme-primary, #6200ee));\r\n    opacity: 0.1;\r\n}\r\n\r\n\r\n\r\n/* jqueryui datepicker material styling */\r\n\r\n\r\n.ui-datepicker {\r\n    /*z-index: 3 !important;*/\r\n    font-family: \"Roboto\";\r\n}\r\n\r\n.ui-datepicker {\r\n    padding: 0;\r\n    border: none;\r\n    width: 325px;\r\n    box-shadow: 4px 4px 10px 2px rgba(0, 0, 0, 0.24);\r\n    margin-left: -16px;\r\n    margin-top: 6px;\r\n    font-size: 14px;\r\n    z-index: 2 !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-title {\r\n    font-size: 17px;\r\n}\r\n\r\n.ui-datepicker-trigger {\r\n    position: absolute;\r\n    right: 12px;\r\n    top: 50%;\r\n    opacity: 0;\r\n    margin-top: -10px;\r\n    cursor: pointer;\r\n}\r\n\r\n.ui-corner-all {\r\n  border-radius: 0;\r\n}\r\n\r\n.ui-widget-header {\r\n  border: 0;\r\n}\r\n\r\n.ui-datepicker-header {\r\n  text-align: center;\r\n  background: white;\r\n  padding-bottom: 15px;\r\n  font-weight: 300;\r\n}\r\n.ui-datepicker-header .ui-datepicker-prev,\r\n.ui-datepicker-header .ui-datepicker-next,\r\n.ui-datepicker-header .ui-datepicker-title {\r\n  border: none;\r\n  outline: none;\r\n  margin: 5px;\r\n}\r\n\r\n.ui-datepicker-prev.ui-state-hover,\r\n.ui-datepicker-next.ui-state-hover {\r\n  border: none;\r\n  outline: none;\r\n  background: #b4cbe5;\r\n}\r\n\r\n.ui-datepicker .ui-state-default {\r\n  background: none;\r\n  border: none;\r\n  text-align: center;\r\n  height: 33px;\r\n  width: 33px;\r\n  line-height: 30px;\r\n  z-index: 1;\r\n}\r\n.ui-datepicker .ui-state-highlight {\r\n  color: var(--mdc-theme-primary);\r\n}\r\n.ui-datepicker .ui-state-active {\r\n  color: white;\r\n}\r\n\r\n\r\n\r\n.ui-datepicker-calendar thead th {\r\n    color: #999999;\r\n    font-weight: 200;\r\n}\r\n\r\n.ui-datepicker-buttonpane {\r\n  border: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-state-default {\r\n  background: white;\r\n  border: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-datepicker-close,\r\n.ui-datepicker-buttonpane .ui-datepicker-current {\r\n  background: white;\r\n  color: #284B72;\r\n  text-transform: uppercase;\r\n  border: none;\r\n  opacity: 1;\r\n  font-weight: 200;\r\n  outline: none;\r\n}\r\n.ui-datepicker-buttonpane .ui-datepicker-close:hover,\r\n.ui-datepicker-buttonpane .ui-datepicker-current:hover {\r\n  background: #b4cbe5;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev {\r\n    text-decoration: none;\r\n    height: auto !important;\r\n    width: auto !important;\r\n\tleft: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-next {\r\n    text-decoration: none;\r\n    height: auto !important;\r\n    width: auto !important;\r\n\tright: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev .ui-icon, .ui-datepicker .ui-datepicker-next .ui-icon {\r\n    display: none !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev::after {\r\n    font-family: FontAwesome;\r\n\tcontent: \"\\f053\";\r\n\tdisplay: block;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-next::after {\r\n    font-family: FontAwesome;\r\n\tcontent: \"\\f054\";\r\n\tdisplay: block;\r\n}\r\n\r\n\r\n.ui-datepicker .ui-datepicker-prev.ui-state-hover, .ui-datepicker .ui-datepicker-next.ui-state-hover {\r\n    background: none;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-prev-hover {\r\n\tleft: 8px !important;\r\n    top: 8px !important;\r\n}\r\n.ui-datepicker .ui-datepicker-next-hover {\r\n\tright: 8px !important;\r\n    top: 8px !important;\r\n}\r\n\r\n\r\n\r\n\r\n\r\nbutton.ui-state-hover {\r\n    background: unset !important;\r\n    background-color: var(--mdc-theme-primary-hover) !important;\r\n    border: unset !important;\r\n    color: white !important;\r\n    box-shadow: 0px 3px 1px -2px rgb(0 0 0 / 20%), 0px 2px 2px 0px rgb(0 0 0 / 14%), 0px 1px 5px 0px rgb(0 0 0 / 12%) !important;\r\n}\r\n\r\n\r\n\r\n/* jquery ui datepicker month year picker */\r\n.ui-datepicker .ui-datepicker-select-month td ,\r\n.ui-datepicker .ui-datepicker-select-year td {\r\n\theight: 33px;\r\n}\r\n.ui-datepicker .ui-datepicker-select-month td span,\r\n.ui-datepicker .ui-datepicker-select-month td a,\r\n.ui-datepicker .ui-datepicker-select-year td span,\r\n.ui-datepicker .ui-datepicker-select-year td a  {\r\n\ttext-align: center;\r\n}\r\n.ui-datepicker .ui-datepicker-select-year td.outoffocus {\r\n\topacity: 0.5;\r\n}\r\n\r\n.ui-datepicker-select-month .ui-state-default, .ui-datepicker-select-year .ui-state-default {\r\n    margin: auto;\r\n}\r\n\r\n.ui-datepicker td {\r\n    font-size: 14px !important;\r\n}\r\n\r\n.ui-datepicker .ui-state-default, .ui-datepicker .ui-state-active {\r\n    position: relative;\r\n    border: 0 !important;\r\n    background: none !important;\r\n}\r\n\r\n.ui-datepicker .ui-state-active::after {\r\n    position: absolute;\r\n    display: block;\r\n    content: '';\r\n    background-color:var(--mdc-theme-primary);\r\n    border-radius: 50%;\r\n    width: 34px;\r\n    height: 34px;\r\n    z-index: -1;\r\n    top: 0;\r\n    left: calc(50% - 16px)\r\n}\r\n\r\n\r\n.ui-datepicker .ui-state-default:not(.ui-state-active).ui-state-hover::after {\r\n    position: absolute;\r\n    display: block;\r\n    content: '';\r\n    background-color: rgba(0,0,0,0.05);\r\n    border-radius: 50%;\r\n    width: 34px;\r\n    height: 34px;\r\n    z-index: -1;\r\n    top: 0;\r\n    left: calc(50% - 16px)\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header {\r\n    display: flex;\r\n    align-items: center;\r\n    padding: 4px 24px !important;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header .ui-datepicker-title {\r\n    flex: 1;\r\n}\r\n\r\n.ui-datepicker .ui-datepicker-header-time-switch {\r\n    flex: 1;\r\n    line-height: 100%;\r\n    height: 100%;\r\n    align-self: center;\r\n}\r\n\r\n\r\n.timepicker{\r\n    display:block;\r\n    user-select:none;\r\n    margin:0 auto;\r\n    width:100%;\r\n    height:100%;\r\n    font-size:14px;\r\n}\r\n.timepicker__title{background-image:-webkit-linear-gradient(top,#fff 0,#f2f2f2 100%);position:relative;background:#f2f2f2;margin:0 auto;border-bottom:1px solid #e5e5e5;padding:12px 11px 10px 15px;color:#4C4C4C;font-size:inherit}\r\n.timepicker__close{-webkit-transform:translateY(-25%);-moz-transform:translateY(-25%);-ms-transform:translateY(-25%);-o-transform:translateY(-25%);transform:translateY(-25%);position:absolute;top:25%;right:10px;color:#34495e;cursor:pointer}\r\n.timepicker__close:before{content:'\\00d7'}\r\n.timepicker__controls{padding:10px 0;line-height:normal;margin:0}\r\n.timepicker__controls__control,.timepicker__controls__control--separator{vertical-align:middle;display:inline-block;font-size:inherit;margin:0 auto;width:35px;letter-spacing:1.3px}\r\n.timepicker__controls__control-down,.timepicker__controls__control-up{color:#34495e;position:relative;display:block;margin:3px auto;font-size:18px;cursor:pointer}\r\n.timepicker__controls__control-up:before{content:'\\f0d8'}\r\n.timepicker__controls__control-down:after{content:'\\f0d7'}\r\n.timepicker__controls__control--separator{width:5px}\r\n.text-center,.timepicker__controls,.timepicker__controls__control,.timepicker__controls__control--separator,.timepicker__controls__control-down,.timepicker__controls__control-up,.timepicker__title{text-align:center}\r\n.hover-state{color:#3498db}\r\n\r\n.fontello-after:after,.fontello:before,.timepicker__controls__control-down:after,.timepicker__controls__control-up:before{font-family:FontAwesome;font-style:normal;font-weight:400;display:inline-block;text-decoration:inherit;width:1em;margin-right:.2em;text-align:center;font-variant:normal;text-transform:none;line-height:1em;margin-left:.2em;-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}\r\n.clearable-picker{position:relative;display:inline-block}\r\n.clearable-picker>.hastimepicker{padding-right:1em}\r\n.clearable-picker>.hastimepicker::-ms-clear{display:none}\r\n.clearable-picker>[data-clear-picker]{position:absolute;top:50%;right:0;transform:translateY(-50%);font-weight:700;font-size:.8em;padding:0 .3em .2em;line-height:1;color:#bababa;cursor:pointer}\r\n.clearable-picker>[data-clear-picker]:hover{color:#a1a1a1}\r\n.timepicker__controls__control span {\r\n    outline: none;\r\n}"],"sourceRoot":""}]);
 // Exports
 /* harmony default export */ const __WEBPACK_DEFAULT_EXPORT__ = (___CSS_LOADER_EXPORT___);
 

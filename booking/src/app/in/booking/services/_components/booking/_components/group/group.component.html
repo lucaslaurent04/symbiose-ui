@@ -87,12 +87,11 @@
                         <mat-form-field>
                             <mat-label>Dates</mat-label>
                             <mat-date-range-input [rangePicker]="sojournDateRangePicker">
-                                <input matStartDate placeholder="dd/mm/yyyy" [formControl]="vm.daterange.start.formControl" (blur)="onchangeDateRange()">
+                                <input matStartDate placeholder="dd/mm/yyyy" [formControl]="vm.daterange.start.formControl">
                                 <input matEndDate placeholder="dd/mm/yyyy" [formControl]="vm.daterange.end.formControl" (blur)="onchangeDateRange()">
                             </mat-date-range-input>
                             <mat-datepicker-toggle matSuffix [for]="sojournDateRangePicker"></mat-datepicker-toggle>
-                            <mat-date-range-picker #sojournDateRangePicker (closed)="onchangeDateRange()">
-                            </mat-date-range-picker>
+                            <mat-date-range-picker #sojournDateRangePicker (closed)="onchangeDateRange()"></mat-date-range-picker>
                             <mat-hint [align]="'end'"><strong>{{vm.daterange.nights_count}} {{(vm.daterange.nights_count > 1)?'nuitées':'nuitée'}}</strong></mat-hint>
                         </mat-form-field>
                     </div>

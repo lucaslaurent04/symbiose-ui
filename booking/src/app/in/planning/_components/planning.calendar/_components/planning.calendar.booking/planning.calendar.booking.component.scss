@@ -10,14 +10,14 @@
  
     .reservedBox {
         position: relative;
-        height: 35px;
+        height: 30px;
 
         .background {
             position: absolute;
             font-size: 12px;
             height: 100%;
             width: 100%;
-            line-height: 35px;
+            line-height: 30px;
         }
 
         .background.invert {

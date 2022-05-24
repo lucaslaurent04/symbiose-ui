@@ -12,6 +12,8 @@ import { PlanningCalendarComponent } from './_components/planning.calendar/plann
 import { PlanningCalendarBookingComponent } from './_components/planning.calendar/_components/planning.calendar.booking/planning.calendar.booking.component';
 import { PlanningCalendarNavbarComponent } from './_components/planning.calendar/_components/planning.calendar.navbar/planning.calendar.navbar.component';
 
+import { ConsumptionCreationDialog } from './_components/planning.calendar/_components/consumption.dialog/consumption.component';
+
 import { LayoutModule } from '@angular/cdk/layout';
 import { OverlayModule } from '@angular/cdk/overlay';
 
@@ -26,7 +28,8 @@ import { OverlayModule } from '@angular/cdk/overlay';
     PlanningComponent,
     PlanningCalendarComponent,
     PlanningCalendarBookingComponent,
-    PlanningCalendarNavbarComponent
+    PlanningCalendarNavbarComponent,
+    ConsumptionCreationDialog
   ],
   providers: [
     { provide: DateAdapter, useClass: CustomDateAdapter, deps: [MAT_DATE_LOCALE, Platform] }

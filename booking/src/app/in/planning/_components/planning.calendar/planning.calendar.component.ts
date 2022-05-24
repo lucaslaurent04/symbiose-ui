@@ -1,12 +1,14 @@
-import { Component, ChangeDetectionStrategy, ChangeDetectorRef, Input, Output, EventEmitter, ViewChild, OnInit, AfterViewInit, ViewChildren, QueryList, ElementRef, AfterViewChecked, HostBinding } from '@angular/core';
+import { Component, ChangeDetectionStrategy, ChangeDetectorRef, Output, EventEmitter, ViewChild, OnInit, AfterViewInit, ViewChildren, QueryList, ElementRef, AfterViewChecked } from '@angular/core';
 
 import { ChangeReservationArg } from 'src/app/model/changereservationarg';
 import { HeaderDays } from 'src/app/model/headerdays';
 
 
 import { ApiService, AuthService } from 'sb-shared-lib';
-import {CalendarParamService} from '../../_services/calendar.param.service';
+import { CalendarParamService } from '../../_services/calendar.param.service';
+import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 
+import { ConsumptionCreationDialog } from './_components/consumption.dialog/consumption.component';
 
 class RentalUnit {
     constructor(
@@ -58,6 +60,7 @@ export class PlanningCalendarComponent implements OnInit, AfterViewInit, AfterVi
     constructor(
         private params: CalendarParamService,
         private api: ApiService,
+        private dialog: MatDialog,
         private cd: ChangeDetectorRef) {
             this.headers = {};
             this.rental_units = [];
@@ -374,15 +377,63 @@ hover_row_index = -1;
             }
             if(!valid){
                 this.selection.is_active = false;
-                this.selection.width = 0;        
+                this.selection.width = 0;
             }
             else {
                 console.log('selection is valid', from.rental_unit, from.date, to.date);
 
-                // open dialog for requesting action
+                // open dialog for requesting action dd
+
+                const dialogRef = this.dialog.open(ConsumptionCreationDialog, {
+                    width: '50vw',
+                    data: {
+                        rental_unit: from.rental_unit.name,
+                        rental_unit_id: from.rental_unit.id,
+                        date_from: from.date,
+                        date_to: to.date
+                    }
+                });
+
+                dialogRef.afterClosed().subscribe( async (values) => {
+                    if(values) {
+                        if(values.type && values.type == 'book') {
+                            try {
+                                const response:any = await this.api.call('?do=lodging_booking_plan-option', {
+                                    date_from: values.date_from.toISOString(),
+                                    date_to: values.date_to.toISOString(),
+                                    rental_unit_id: values.rental_unit_id,
+                                    customer_identity_id: values.customer_identity_id,
+                                    no_expiry: values.no_expiry,
+                                    free_rental_units: values.free_rental_units
+                                });
+
+                                // display feedback or reload
+                            }
+                            catch(response) {
+                                this.api.errorFeedback(response);
+                            }
+                        }
+                        else if(values.type && values.type == 'ooo') {
+                            try {
+                                const response:any = await this.api.call('?do=lodging_booking_plan-repair', {
+                                    date_from: values.date_from.toISOString(),
+                                    date_to: values.date_to.toISOString(),
+                                    rental_unit_id: values.rental_unit_id
+                                });
+
+                                // display feedback or reload
+                            }
+                            catch(response) {
+                                this.api.errorFeedback(response);
+                            }
+                        }
+
+                    }
+                });
+
 
                 this.selection.is_active = false;
-                this.selection.width = 0;        
+                this.selection.width = 0;
 
             }
         }

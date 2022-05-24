@@ -66,20 +66,6 @@ export class PlanningCalendarNavbarComponent implements OnInit, AfterViewInit, A
             Setup events listeners
         */
 
-        this.vm.date_range.get("date_to").valueChanges
-        .subscribe( (value:Date) => {
-            if(value) {
-                // wait for asynchronous changes
-                setTimeout( () => {
-                    //  update local members and relay to params service
-                    this.dateFrom = this.vm.date_range.get("date_from").value;
-                    this.dateTo = this.vm.date_range.get("date_to").value;
-                    this.params.date_from = this.dateFrom;
-                    this.params.date_to = this.dateTo;
-                });
-            }
-        });
-
         this.params.getObservable()
         .subscribe( async () => {
             console.log('received change from params');
@@ -114,11 +100,40 @@ export class PlanningCalendarNavbarComponent implements OnInit, AfterViewInit, A
                     console.warn(err) ;
                 }
             }
-
         });
+    }
 
 
-        // init
+    public async onchangeDateRange() {
+        console.log('##### onchangeDateRange');
+        let start = this.vm.date_range.get("date_from").value;
+        let end = this.vm.date_range.get("date_to").value;
+
+console.log(start, end);
+
+        if(!start || !end) return;
+
+        if(typeof start == 'string') {
+            start = new Date(start);
+        }
+
+        if(typeof end == 'string') {
+            end = new Date(end);
+        }
+
+        console.log(start, end);
+
+        if(start <= end) {
+
+            // relay change to parent component
+            if((start.getTime() != this.dateFrom.getTime() || end.getTime() != this.dateTo.getTime())) {
+                //  update local members and relay to params service
+                this.dateFrom = this.vm.date_range.get("date_from").value;
+                this.dateTo = this.vm.date_range.get("date_to").value;
+                this.params.date_from = this.dateFrom;
+                this.params.date_to = this.dateTo;
+            }
+        }
     }
 
     public onDurationChange(event: any) {

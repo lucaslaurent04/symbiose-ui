@@ -57,11 +57,6 @@
         }
 
         .date-selector {
-            mat-form-field {
-                position: absolute; 
-                visibility: hidden; 
-                margin-left: -260px;
-            }
             .mat-datepicker-popup {
                 position: relative;
                 top: 110px

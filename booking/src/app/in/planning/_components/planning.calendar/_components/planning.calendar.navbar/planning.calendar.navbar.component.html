@@ -23,17 +23,17 @@
                 <mat-optgroup [label]="'Sélection'">&nbsp;<a style="cursor: pointer;" (click)="onclickSelectAllCenters()">Tous</a> &nbsp; <a style="cursor: pointer;" (click)="onclickUnselectAllCenters()">Aucun</a> &nbsp; <a style="cursor: pointer;" (click)="onclickSelectGA()">GA</a> &nbsp; <a style="cursor: pointer;" (click)="onclickSelectGG()">GG</a></mat-optgroup>
                 <mat-optgroup [label]="'Filtrer'">&nbsp; 
                     <mat-checkbox type="checkbox"
-                    [indeterminate]="filters['has_children'] == 'crossed'" 
-                    [disabled]="'disabled'"
-                    [ngModel]="filters['has_children'] === 'checked'" 
-                    [color]="'accent'"
-                    (click)="toggleFilter($event, 'has_children')" >Unités parentes </mat-checkbox>&nbsp; 
+                        [indeterminate]="filters['has_children'] == 'crossed'" 
+                        [disabled]="'disabled'"
+                        [ngModel]="filters['has_children'] === 'checked'" 
+                        [color]="'accent'"
+                        (click)="toggleFilter($event, 'has_children')" >Unités parentes </mat-checkbox>&nbsp; 
                     <mat-checkbox type="checkbox"
-                    [indeterminate]="filters['is_accomodation'] == 'crossed'" 
-                    [disabled]="'disabled'"
-                    [ngModel]="filters['is_accomodation'] === 'checked'" 
-                    [color]="'accent'"
-                    (click)="toggleFilter($event, 'is_accomodation')" >Logements </mat-checkbox>&nbsp; 
+                        [indeterminate]="filters['is_accomodation'] == 'crossed'" 
+                        [disabled]="'disabled'"
+                        [ngModel]="filters['is_accomodation'] === 'checked'" 
+                        [color]="'accent'"
+                        (click)="toggleFilter($event, 'is_accomodation')" >Logements </mat-checkbox>&nbsp; 
                 </mat-optgroup>
                 <mat-option *ngFor="let center of centers" [value]="center.id" >{{center.name}}</mat-option>
             </mat-select>
@@ -44,17 +44,17 @@
 
 <div class="panelStatus">
 
-    <div class="date-display">{{dateFrom | date : 'd MMM y' }} - {{dateTo | date : 'd MMM y'}}</div>
+    <!-- <div class="date-display">{{dateFrom | date : 'd MMM y' }} - {{dateTo | date : 'd MMM y'}}</div> -->
 
     <div class="date-selector">
-        <mat-form-field>
+        <mat-form-field [floatLabel]="'never'">
 
-        <mat-date-range-picker #picker></mat-date-range-picker>
+            <mat-date-range-picker #picker (closed)="onchangeDateRange()"></mat-date-range-picker>
 
-        <mat-date-range-input [rangePicker]="picker" [formGroup]="vm.date_range">
-            <input matStartDate placeholder="Start date" formControlName="date_from">
-            <input matEndDate placeholder="End date" formControlName="date_to">
-        </mat-date-range-input>
+            <mat-date-range-input [rangePicker]="picker" [formGroup]="vm.date_range">
+                <input matStartDate placeholder="dd/mm/yyyy" formControlName="date_from">
+                <input matEndDate placeholder="dd/mm/yyyy" formControlName="date_to" (blur)="onchangeDateRange()">
+            </mat-date-range-input>
 
         </mat-form-field>
 
@@ -107,7 +107,7 @@
 
 <div class="overlay">
     <div class="rental-unit-details">
-        <span *ngIf="rental_unit">{{rental_unit.name}}</span>
+        <span *ngIf="rental_unit">{{rental_unit.name}} ({{rental_unit.capacity}})</span>
     </div>
     <div class="consumption-details">            
         <span *ngIf="consumption">
