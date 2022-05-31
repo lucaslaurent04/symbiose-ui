@@ -165,7 +165,7 @@
         </div>
 
         <!-- 3) auto-discounts (price adapters) -->
-        <div class="row row-first" *ngIf="!vProduct.identification.folded && !group.is_locked">
+        <div class="row row-first" *ngIf="!vProduct.identification.folded && !group.is_locked && instance.auto_discounts_ids.length">
             <div class="part cell" [class.hidden]="!ready">
                 <div class="part-toggle">
                     <button mat-icon-button *ngIf="!vProduct.adapters.folded"
@@ -178,22 +178,25 @@
                     </button>
                 </div>
                 <div class="part-container">
-                    <div class="row row-title row-thin">
-                        <span>Détail des avantages</span>
-                        <span *ngIf="instance.auto_discounts_ids.length">&nbsp; - &nbsp;{{instance.auto_discounts_ids[0].discount_list_id.name}} <small>(min:
-                                {{instance.auto_discounts_ids[0].discount_list_id.rate_min | percent}} max:
-                                {{instance.auto_discounts_ids[0].discount_list_id.rate_max | percent}})</small></span>
+                    <div class="row row-title row-thin" style="display: flex;">
+                        <div>Avantage ({{ (instance.fare_benefit/(instance.fare_benefit+instance.price)) | percent}}):&nbsp;<span>{{ instance.fare_benefit | number: '1.2-2'}} € </span></div>
+                        <div style="margin-left: auto;" *ngIf="!vProduct.adapters.folded">
+                            <small>                                
+                                {{instance.auto_discounts_ids[0].discount_list_id.name}} (min:{{instance.auto_discounts_ids[0].discount_list_id.rate_min | percent}} 
+                                max:{{instance.auto_discounts_ids[0].discount_list_id.rate_max | percent}})
+                            </small>
+                        </div>                        
                     </div>
                     <!-- auto discounts details -->
                     <div class="row row-thin" *ngIf="!vProduct.adapters.folded">
                         <div style="width: 100%;">
                             <div *ngFor="let adapter of instance.auto_discounts_ids; let index = index;" style="display: flex;">
-                                <span style="flex: 0 1 50%;"><span
+                                <span style="flex: 0 1 50%; text-transform: capitalize;"><span
                                         *ngIf="adapter.discount_id.name">{{adapter.discount_id.name}}</span><span
-                                        *ngIf="!adapter.discount_id.name">min </span>: </span>
-                                <span *ngIf="adapter.type == 'amount'">{{adapter.value | number: '1.2-2'}} €</span>
-                                <span *ngIf="adapter.type == 'percent'">{{adapter.value | percent}}</span>
-                                <span *ngIf="adapter.type == 'freebie'">{{adapter.value}}</span>
+                                        *ngIf="!adapter.discount_id.name">Garanti </span>: </span>
+                                <span style="margin-left: auto;" *ngIf="adapter.type == 'amount'">{{adapter.value | number: '1.2-2'}} €</span>
+                                <span style="margin-left: auto;" *ngIf="adapter.type == 'percent'">{{adapter.value | percent}}</span>
+                                <span style="margin-left: auto;" *ngIf="adapter.type == 'freebie'">{{adapter.value}} u.</span>
                             </div>
                         </div>
                     </div>

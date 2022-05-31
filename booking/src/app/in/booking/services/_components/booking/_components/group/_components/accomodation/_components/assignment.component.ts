@@ -7,7 +7,7 @@ import { MatAutocomplete, MatAutocompleteSelectedEvent } from '@angular/material
 
 import { BookingPriceAdapter } from '../../../../../_models/booking_price_adapter.model';
 import { BookingLineGroup } from '../../../../../_models/booking_line_group.model';
-import { BookingAccomodationAssignement } from '../../../../../_models/booking_accomodation_assignment.model';
+import { BookingAccomodationAssignment } from '../../../../../_models/booking_accomodation_assignment.model';
 import { BookingAccomodation } from '../../../../../_models/booking_accomodation.model';
 import { Booking } from '../../../../../_models/booking.model';
 
@@ -23,15 +23,14 @@ interface BookingGroupAccomodationAssignmentComponentsMap {
 };
 
 interface vmModel {
+    params: {
+        center_id: number,
+        date_from: string,
+        date_to: string,
+        product_id: number
+    },
     rental_unit: {
         name: string
-        inputClue: ReplaySubject < any > ,
-        filteredList: Observable < any > ,
-        inputChange: (event: any) => void,
-        focus: () => void,
-        restore: () => void,
-        reset: () => void,
-        display: (type: any) => string
     },
     qty: {
         formControl: FormControl
@@ -43,7 +42,7 @@ interface vmModel {
   templateUrl: 'assignment.component.html',
   styleUrls: ['assignment.component.scss']
 })
-export class BookingServicesBookingGroupAccomodationAssignmentComponent extends TreeComponent<BookingAccomodationAssignement, BookingGroupAccomodationAssignmentComponentsMap> implements OnInit, OnChanges, AfterViewInit  {
+export class BookingServicesBookingGroupAccomodationAssignmentComponent extends TreeComponent<BookingAccomodationAssignment, BookingGroupAccomodationAssignmentComponentsMap> implements OnInit, OnChanges, AfterViewInit  {
     // server-model relayed by parent
     @Input() set model(values: any) { this.update(values) }
     @Input() accomodation: BookingAccomodation;
@@ -51,7 +50,6 @@ export class BookingServicesBookingGroupAccomodationAssignmentComponent extends 
     @Input() booking: Booking;
     @Output() updated = new EventEmitter();
     @Output() deleted = new EventEmitter();
-    @ViewChild(MatAutocomplete) rentalUnitAutocomplete: MatAutocomplete;
 
     public ready: boolean = false;
 
@@ -64,18 +62,17 @@ export class BookingServicesBookingGroupAccomodationAssignmentComponent extends 
         private zone: NgZone,
         private snack: MatSnackBar
     ) {
-        super( new BookingAccomodationAssignement() );
+        super( new BookingAccomodationAssignment() );
 
         this.vm = {
+            params: {
+                center_id:      0,
+                date_from:      '',
+                date_to:        '',
+                product_id:     0
+            },
             rental_unit: {
-                name:           '',
-                inputClue:      new ReplaySubject(1),
-                filteredList:   new Observable(),
-                inputChange:    (event:any) => this.rentalUnitInputChange(event),
-                focus:          () => this.rentalUnitFocus(),
-                restore:        () => this.rentalUnitRestore(),
-                reset:          () => this.rentalUnitReset(),
-                display:        (type:any) => this.rentalUnitDisplay(type)
+                name:           ''
             },
             qty: {
                 formControl:    new FormControl('', [Validators.required, this.validateQty.bind(this)]),
@@ -104,15 +101,18 @@ export class BookingServicesBookingGroupAccomodationAssignmentComponent extends 
         let map:BookingGroupAccomodationAssignmentComponentsMap = {
         };
         this.componentsMap = map;
+
+        this.vm.params = {
+            center_id: this.booking.center_id.id,
+            date_from: this.group.date_from.toISOString(),
+            date_to: this.group.date_to.toISOString(),
+            product_id: this.accomodation.product_id.id
+        }
+
     }
 
 
     public ngOnInit() {
-        this.vm.rental_unit.filteredList = this.vm.rental_unit.inputClue.pipe(
-            debounceTime(300),
-            map( (value:any) => (typeof value === 'string' ? value : (value == null)?'':value.name) ),
-            mergeMap( async (name:string) => this.filterRentalUnits(name) )
-        );
 
         this.ready = true;
     }
@@ -122,36 +122,13 @@ export class BookingServicesBookingGroupAccomodationAssignmentComponent extends 
         super.update(values);
 
         // assign VM values
-        this.vm.rental_unit.name = (Object.keys(this.instance.rental_unit_id).length)?this.instance.rental_unit_id.name:'';
+        this.vm.rental_unit.name = (Object.keys(this.instance.rental_unit_id).length)?this.instance.rental_unit_id.name + ' ('+this.instance.rental_unit_id.capacity+')':'';
         this.vm.qty.formControl.setValue(this.instance.qty);
     }
 
 
-    private rentalUnitInputChange(event:any) {
-        this.vm.rental_unit.inputClue.next(event.target.value);
-    }
-
-    private rentalUnitFocus() {
-        this.vm.rental_unit.inputClue.next("");
-    }
-
-    private rentalUnitDisplay(rental_unit:any): string {
-        return rental_unit ? rental_unit.name + ' ('+ rental_unit.capacity +')': '';
-    }
-
-    private rentalUnitReset() {
-        setTimeout( () => {
-            this.vm.rental_unit.name = '';
-        }, 100);
-    }
-
-    private rentalUnitRestore() {
-        if(Object.keys(this.instance.rental_unit_id).length) {
-            this.vm.rental_unit.name = this.instance.rental_unit_id.name + ' ('+ this.instance.rental_unit_id.capacity +')';
-        }
-        else {
-            this.vm.rental_unit.name = '';
-        }
+    public displayRentalUnit(rental_unit: any): string {
+        return rental_unit.name + ' (' + rental_unit.capacity + ')';
     }
 
     public async onchangeRentalUnit(event:any) {
@@ -162,9 +139,9 @@ export class BookingServicesBookingGroupAccomodationAssignmentComponent extends 
 
         // notify back-end about the change
         try {
-            await this.api.update(this.instance.entity, [this.instance.id], {qty: this.vm.qty.formControl.value});
+            await this.api.update(this.instance.entity, [this.instance.id], {rental_unit_id: rental_unit.id});
             // relay change to parent component
-            this.updated.emit();
+            // this.updated.emit();
         }
         catch(response) {
             this.api.errorFeedback(response);
@@ -173,6 +150,7 @@ export class BookingServicesBookingGroupAccomodationAssignmentComponent extends 
 
     public async onchangeQty(event:any) {
         if(this.vm.qty.formControl.invalid) {
+            this.vm.qty.formControl.markAsTouched();
             return;
         }
         let qty = event.srcElement.value;
@@ -181,51 +159,11 @@ export class BookingServicesBookingGroupAccomodationAssignmentComponent extends 
         try {
             await this.api.update(this.instance.entity, [this.instance.id], {qty: this.vm.qty.formControl.value});
             // relay change to parent component
-            this.updated.emit();
+            // this.updated.emit();
         }
         catch(response) {
             this.api.errorFeedback(response);
         }
     }
-
-    private async filterRentalUnits(name: string) {
-        let filtered:any[] = [];
-
-        try {
-            const data:any = await this.api.fetch('/?get=lodging_booking_rentalunits', {
-                query: name,
-                center_id: this.booking.center_id.id,
-                date_from: this.group.date_from.toISOString(),
-                date_to: this.group.date_to.toISOString(),
-                product_id: this.accomodation.product_id.id
-            });
-
-            for(let unit of data) {
-                // exclude units assigned in other lines from the result
-                let found: boolean = false;
-                for(let sibling_accomodation of this.group.accomodations_ids) {                    
-                    if(sibling_accomodation.rental_unit_assignments_ids.findIndex( (a:any) => a.rental_unit_id.id == unit.id ) >= 0) {
-                        found = true;
-                        break;
-                    }
-                }
-
-                if(!found) {
-                    filtered.push(unit);
-                }
-            }
-
-            if(filtered.length == 1) {
-                // single result : wait for list update, then auto select
-                setTimeout( () => this.rentalUnitAutocomplete.options.first.select(), 100);
-            }
-
-        }
-        catch(response) {
-            console.log(response);
-        }
-        return filtered;
-    }
-
 
 }

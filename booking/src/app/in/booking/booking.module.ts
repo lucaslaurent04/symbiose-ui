@@ -14,6 +14,8 @@ import { BookingServicesBookingGroupComponent } from './services/_components/boo
 import { BookingServicesBookingGroupLineComponent } from './services/_components/booking/_components/group/_components/line/line.component';
 import { BookingServicesBookingGroupAccomodationComponent } from './services/_components/booking/_components/group/_components/accomodation/accomodation.component';
 import { BookingServicesBookingGroupAccomodationAssignmentComponent } from './services/_components/booking/_components/group/_components/accomodation/_components/assignment.component';
+import { BookingServicesBookingGroupMealPrefComponent } from './services/_components/booking/_components/group/_components/mealpref/mealpref.component';
+import { BookingServicesBookingGroupAgeRangeComponent } from './services/_components/booking/_components/group/_components/agerange/agerange.component';
 import { BookingServicesBookingGroupLineDiscountComponent } from './services/_components/booking/_components/group/_components/line/_components/discount/discount.component';
 
 import { BookingCompositionComponent, BookingCompositionDialogConfirm } from './composition/composition.component';
@@ -33,6 +35,7 @@ import { BookingInvoiceComponent } from './invoice/invoice.component';
     BookingComponent, BookingServicesComponent, BookingUpdateDialogConfirm, BookingDeletionDialogConfirm,
     BookingServicesBookingComponent, BookingServicesBookingGroupComponent, 
     BookingServicesBookingGroupLineComponent, BookingServicesBookingGroupAccomodationComponent, BookingServicesBookingGroupAccomodationAssignmentComponent,
+    BookingServicesBookingGroupMealPrefComponent, BookingServicesBookingGroupAgeRangeComponent,
     BookingServicesBookingGroupLineDiscountComponent,
     BookingCompositionComponent, BookingCompositionDialogConfirm,
     BookingCompositionLinesComponent,

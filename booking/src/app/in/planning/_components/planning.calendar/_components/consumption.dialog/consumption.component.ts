@@ -1,6 +1,7 @@
 import { Component, Inject, OnInit } from '@angular/core';
 import { FormControl, Validators } from '@angular/forms';
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { debounceTime } from 'rxjs/operators';
 
 interface vmModel {
     type: {
@@ -10,6 +11,9 @@ interface vmModel {
         formControl: FormControl
     },
     free_rental_units: {
+        formControl: FormControl
+    },
+    description: {
         formControl: FormControl
     }
 };
@@ -28,6 +32,7 @@ export class ConsumptionCreationDialog implements OnInit {
     private customer_identity_id: number = 0;
     private free_rental_units: boolean = false;
     private no_expiry: boolean = false;
+    private description: string = '';
 
     constructor(
         public dialogRef: MatDialogRef<ConsumptionCreationDialog>,
@@ -43,20 +48,27 @@ export class ConsumptionCreationDialog implements OnInit {
             },
             free_rental_units: {
                 formControl: new FormControl()
+            },
+            description: {
+                formControl: new FormControl()
             }
         }
     }
 
     public ngOnInit() {
-        this.vm.type.formControl.valueChanges.subscribe( (value:string) => {            
+        this.vm.type.formControl.valueChanges.subscribe( (value:string) => {
             this.type = value;
-        }) ;
-        this.vm.no_expiry.formControl.valueChanges.subscribe( (value:boolean) => {            
+        });
+        this.vm.no_expiry.formControl.valueChanges.subscribe( (value:boolean) => {
             this.no_expiry = value;
-        }) ;
-        this.vm.free_rental_units.formControl.valueChanges.subscribe( (value:boolean) => {            
+        });
+        this.vm.free_rental_units.formControl.valueChanges.subscribe( (value:boolean) => {
             this.free_rental_units = value;
-        }) ;
+        });
+        this.vm.description.formControl.valueChanges.pipe( debounceTime(300) ).subscribe( (value:string) => {
+            this.description = value;
+        });
+
     }
 
     public selectIdentity(identity:any) {
@@ -70,7 +82,7 @@ export class ConsumptionCreationDialog implements OnInit {
             return;
         }
 
-        if(!this.customer_identity_id) {
+        if(this.type == 'book' && !this.customer_identity_id) {
             return;
         }
         this.dialogRef.close({
@@ -80,7 +92,8 @@ export class ConsumptionCreationDialog implements OnInit {
             customer_identity_id: this.customer_identity_id,
             type: this.type,
             no_expiry: this.no_expiry,
-            free_rental_units: this.free_rental_units
+            free_rental_units: this.free_rental_units,
+            description: this.description
         });
     }
 }

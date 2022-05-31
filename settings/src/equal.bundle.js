@@ -459,72 +459,63 @@ var _ApiService = /*#__PURE__*/function () {
       }());
     }
   }, {
+    key: "call",
+    value: function call(route) {
+      var body = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+      return new Promise( /*#__PURE__*/function () {
+        var _ref2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7(resolve, reject) {
+          var environment, xhr, params;
+          return _regenerator.default.wrap(function _callee7$(_context7) {
+            while (1) {
+              switch (_context7.prev = _context7.next) {
+                case 0:
+                  _context7.prev = 0;
+                  _context7.next = 3;
+                  return _equalServices.EnvService.getEnv();
+
+                case 3:
+                  environment = _context7.sent;
+                  xhr = new XMLHttpRequest();
+                  xhr.open('POST', environment.backend_url + route, true);
+                  xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+                  params = jQuery.param(body);
+                  xhr.withCredentials = true;
+                  xhr.send(params);
+
+                  xhr.onload = function () {
+                    if (xhr.status < 200 || xhr.status > 299) {
+                      reject(xhr.response);
+                    } else {
+                      resolve(xhr.response);
+                    }
+                  };
+
+                  _context7.next = 16;
+                  break;
+
+                case 13:
+                  _context7.prev = 13;
+                  _context7.t0 = _context7["catch"](0);
+                  reject(_context7.t0);
+
+                case 16:
+                case "end":
+                  return _context7.stop();
+              }
+            }
+          }, _callee7, null, [[0, 13]]);
+        }));
+
+        return function (_x7, _x8) {
+          return _ref2.apply(this, arguments);
+        };
+      }());
+    }
+  }, {
     key: "create",
     value: function () {
-      var _create = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee7(entity) {
+      var _create = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee8(entity) {
         var fields,
-            result,
-            environment,
-            params,
-            response,
-            _args7 = arguments;
-        return _regenerator.default.wrap(function _callee7$(_context7) {
-          while (1) {
-            switch (_context7.prev = _context7.next) {
-              case 0:
-                fields = _args7.length > 1 && _args7[1] !== undefined ? _args7[1] : {};
-                _context7.prev = 1;
-                _context7.next = 4;
-                return _equalServices.EnvService.getEnv();
-
-              case 4:
-                environment = _context7.sent;
-                params = {
-                  entity: entity,
-                  fields: fields,
-                  lang: environment.lang
-                };
-                _context7.next = 8;
-                return _jqueryLib.$.get({
-                  url: environment.backend_url + '/?do=model_create',
-                  dataType: 'json',
-                  data: params,
-                  contentType: 'application/x-www-form-urlencoded; charset=utf-8'
-                });
-
-              case 8:
-                response = _context7.sent;
-                result = response;
-                _context7.next = 15;
-                break;
-
-              case 12:
-                _context7.prev = 12;
-                _context7.t0 = _context7["catch"](1);
-                throw _context7.t0.responseJSON;
-
-              case 15:
-                return _context7.abrupt("return", result);
-
-              case 16:
-              case "end":
-                return _context7.stop();
-            }
-          }
-        }, _callee7, null, [[1, 12]]);
-      }));
-
-      function create(_x7) {
-        return _create.apply(this, arguments);
-      }
-
-      return create;
-    }()
-  }, {
-    key: "read",
-    value: function () {
-      var _read = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee8(entity, ids, fields) {
-        var lang,
             result,
             environment,
             params,
@@ -534,7 +525,7 @@ var _ApiService = /*#__PURE__*/function () {
           while (1) {
             switch (_context8.prev = _context8.next) {
               case 0:
-                lang = _args8.length > 3 && _args8[3] !== undefined ? _args8[3] : '';
+                fields = _args8.length > 1 && _args8[1] !== undefined ? _args8[1] : {};
                 _context8.prev = 1;
                 _context8.next = 4;
                 return _equalServices.EnvService.getEnv();
@@ -543,13 +534,12 @@ var _ApiService = /*#__PURE__*/function () {
                 environment = _context8.sent;
                 params = {
                   entity: entity,
-                  ids: ids,
                   fields: fields,
-                  lang: lang.length ? lang : environment.lang
+                  lang: environment.lang
                 };
                 _context8.next = 8;
                 return _jqueryLib.$.get({
-                  url: environment.backend_url + '/?get=model_read',
+                  url: environment.backend_url + '/?do=model_create',
                   dataType: 'json',
                   data: params,
                   contentType: 'application/x-www-form-urlencoded; charset=utf-8'
@@ -577,17 +567,17 @@ var _ApiService = /*#__PURE__*/function () {
         }, _callee8, null, [[1, 12]]);
       }));
 
-      function read(_x8, _x9, _x10) {
-        return _read.apply(this, arguments);
+      function create(_x9) {
+        return _create.apply(this, arguments);
       }
 
-      return read;
+      return create;
     }()
   }, {
-    key: "delete",
+    key: "read",
     value: function () {
-      var _delete2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee9(entity, ids) {
-        var permanent,
+      var _read = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee9(entity, ids, fields) {
+        var lang,
             result,
             environment,
             params,
@@ -597,7 +587,7 @@ var _ApiService = /*#__PURE__*/function () {
           while (1) {
             switch (_context9.prev = _context9.next) {
               case 0:
-                permanent = _args9.length > 2 && _args9[2] !== undefined ? _args9[2] : false;
+                lang = _args9.length > 3 && _args9[3] !== undefined ? _args9[3] : '';
                 _context9.prev = 1;
                 _context9.next = 4;
                 return _equalServices.EnvService.getEnv();
@@ -607,11 +597,12 @@ var _ApiService = /*#__PURE__*/function () {
                 params = {
                   entity: entity,
                   ids: ids,
-                  permanent: permanent
+                  fields: fields,
+                  lang: lang.length ? lang : environment.lang
                 };
                 _context9.next = 8;
                 return _jqueryLib.$.get({
-                  url: environment.backend_url + '/?do=model_delete',
+                  url: environment.backend_url + '/?get=model_read',
                   dataType: 'json',
                   data: params,
                   contentType: 'application/x-www-form-urlencoded; charset=utf-8'
@@ -639,7 +630,69 @@ var _ApiService = /*#__PURE__*/function () {
         }, _callee9, null, [[1, 12]]);
       }));
 
-      function _delete(_x11, _x12) {
+      function read(_x10, _x11, _x12) {
+        return _read.apply(this, arguments);
+      }
+
+      return read;
+    }()
+  }, {
+    key: "delete",
+    value: function () {
+      var _delete2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee10(entity, ids) {
+        var permanent,
+            result,
+            environment,
+            params,
+            response,
+            _args10 = arguments;
+        return _regenerator.default.wrap(function _callee10$(_context10) {
+          while (1) {
+            switch (_context10.prev = _context10.next) {
+              case 0:
+                permanent = _args10.length > 2 && _args10[2] !== undefined ? _args10[2] : false;
+                _context10.prev = 1;
+                _context10.next = 4;
+                return _equalServices.EnvService.getEnv();
+
+              case 4:
+                environment = _context10.sent;
+                params = {
+                  entity: entity,
+                  ids: ids,
+                  permanent: permanent
+                };
+                _context10.next = 8;
+                return _jqueryLib.$.get({
+                  url: environment.backend_url + '/?do=model_delete',
+                  dataType: 'json',
+                  data: params,
+                  contentType: 'application/x-www-form-urlencoded; charset=utf-8'
+                });
+
+              case 8:
+                response = _context10.sent;
+                result = response;
+                _context10.next = 15;
+                break;
+
+              case 12:
+                _context10.prev = 12;
+                _context10.t0 = _context10["catch"](1);
+                throw _context10.t0.responseJSON;
+
+              case 15:
+                return _context10.abrupt("return", result);
+
+              case 16:
+              case "end":
+                return _context10.stop();
+            }
+          }
+        }, _callee10, null, [[1, 12]]);
+      }));
+
+      function _delete(_x13, _x14) {
         return _delete2.apply(this, arguments);
       }
 
@@ -648,23 +701,23 @@ var _ApiService = /*#__PURE__*/function () {
   }, {
     key: "archive",
     value: function () {
-      var _archive = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee10(entity, ids) {
+      var _archive = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee11(entity, ids) {
         var result, environment, params, response;
-        return _regenerator.default.wrap(function _callee10$(_context10) {
+        return _regenerator.default.wrap(function _callee11$(_context11) {
           while (1) {
-            switch (_context10.prev = _context10.next) {
+            switch (_context11.prev = _context11.next) {
               case 0:
-                _context10.prev = 0;
-                _context10.next = 3;
+                _context11.prev = 0;
+                _context11.next = 3;
                 return _equalServices.EnvService.getEnv();
 
               case 3:
-                environment = _context10.sent;
+                environment = _context11.sent;
                 params = {
                   entity: entity,
                   ids: ids
                 };
-                _context10.next = 7;
+                _context11.next = 7;
                 return _jqueryLib.$.get({
                   url: environment.backend_url + '/?do=model_archive',
                   dataType: 'json',
@@ -673,28 +726,28 @@ var _ApiService = /*#__PURE__*/function () {
                 });
 
               case 7:
-                response = _context10.sent;
+                response = _context11.sent;
                 result = response;
-                _context10.next = 14;
+                _context11.next = 14;
                 break;
 
               case 11:
-                _context10.prev = 11;
-                _context10.t0 = _context10["catch"](0);
-                throw _context10.t0.responseJSON;
+                _context11.prev = 11;
+                _context11.t0 = _context11["catch"](0);
+                throw _context11.t0.responseJSON;
 
               case 14:
-                return _context10.abrupt("return", result);
+                return _context11.abrupt("return", result);
 
               case 15:
               case "end":
-                return _context10.stop();
+                return _context11.stop();
             }
           }
-        }, _callee10, null, [[0, 11]]);
+        }, _callee11, null, [[0, 11]]);
       }));
 
-      function archive(_x13, _x14) {
+      function archive(_x15, _x16) {
         return _archive.apply(this, arguments);
       }
 
@@ -712,28 +765,28 @@ var _ApiService = /*#__PURE__*/function () {
   }, {
     key: "update",
     value: function () {
-      var _update = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee11(entity, ids, fields) {
+      var _update = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee12(entity, ids, fields) {
         var force,
             lang,
             result,
             environment,
             params,
             response,
-            _args11 = arguments;
-        return _regenerator.default.wrap(function _callee11$(_context11) {
+            _args12 = arguments;
+        return _regenerator.default.wrap(function _callee12$(_context12) {
           while (1) {
-            switch (_context11.prev = _context11.next) {
+            switch (_context12.prev = _context12.next) {
               case 0:
-                force = _args11.length > 3 && _args11[3] !== undefined ? _args11[3] : false;
-                lang = _args11.length > 4 && _args11[4] !== undefined ? _args11[4] : '';
+                force = _args12.length > 3 && _args12[3] !== undefined ? _args12[3] : false;
+                lang = _args12.length > 4 && _args12[4] !== undefined ? _args12[4] : '';
                 console.log('ApiService::update', entity, ids, fields);
                 result = true;
-                _context11.prev = 4;
-                _context11.next = 7;
+                _context12.prev = 4;
+                _context12.next = 7;
                 return _equalServices.EnvService.getEnv();
 
               case 7:
-                environment = _context11.sent;
+                environment = _context12.sent;
                 params = {
                   entity: entity,
                   ids: ids,
@@ -741,7 +794,7 @@ var _ApiService = /*#__PURE__*/function () {
                   lang: lang.length ? lang : environment.lang,
                   force: force
                 };
-                _context11.next = 11;
+                _context12.next = 11;
                 return _jqueryLib.$.post({
                   url: environment.backend_url + '/?do=model_update',
                   dataType: 'json',
@@ -750,28 +803,28 @@ var _ApiService = /*#__PURE__*/function () {
                 });
 
               case 11:
-                response = _context11.sent;
+                response = _context12.sent;
                 result = response;
-                _context11.next = 18;
+                _context12.next = 18;
                 break;
 
               case 15:
-                _context11.prev = 15;
-                _context11.t0 = _context11["catch"](4);
-                throw _context11.t0.responseJSON;
+                _context12.prev = 15;
+                _context12.t0 = _context12["catch"](4);
+                throw _context12.t0.responseJSON;
 
               case 18:
-                return _context11.abrupt("return", result);
+                return _context12.abrupt("return", result);
 
               case 19:
               case "end":
-                return _context11.stop();
+                return _context12.stop();
             }
           }
-        }, _callee11, null, [[4, 15]]);
+        }, _callee12, null, [[4, 15]]);
       }));
 
-      function update(_x15, _x16, _x17) {
+      function update(_x17, _x18, _x19) {
         return _update.apply(this, arguments);
       }
 
@@ -780,24 +833,24 @@ var _ApiService = /*#__PURE__*/function () {
   }, {
     key: "clone",
     value: function () {
-      var _clone = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee12(entity, ids) {
+      var _clone = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee13(entity, ids) {
         var result, environment, params, response;
-        return _regenerator.default.wrap(function _callee12$(_context12) {
+        return _regenerator.default.wrap(function _callee13$(_context13) {
           while (1) {
-            switch (_context12.prev = _context12.next) {
+            switch (_context13.prev = _context13.next) {
               case 0:
-                _context12.prev = 0;
-                _context12.next = 3;
+                _context13.prev = 0;
+                _context13.next = 3;
                 return _equalServices.EnvService.getEnv();
 
               case 3:
-                environment = _context12.sent;
+                environment = _context13.sent;
                 params = {
                   entity: entity,
                   ids: ids,
                   lang: environment.lang
                 };
-                _context12.next = 7;
+                _context13.next = 7;
                 return _jqueryLib.$.get({
                   url: environment.backend_url + '/?do=model_clone',
                   dataType: 'json',
@@ -806,28 +859,28 @@ var _ApiService = /*#__PURE__*/function () {
                 });
 
               case 7:
-                response = _context12.sent;
+                response = _context13.sent;
                 result = response;
-                _context12.next = 14;
+                _context13.next = 14;
                 break;
 
               case 11:
-                _context12.prev = 11;
-                _context12.t0 = _context12["catch"](0);
-                throw _context12.t0.responseJSON;
+                _context13.prev = 11;
+                _context13.t0 = _context13["catch"](0);
+                throw _context13.t0.responseJSON;
 
               case 14:
-                return _context12.abrupt("return", result);
+                return _context13.abrupt("return", result);
 
               case 15:
               case "end":
-                return _context12.stop();
+                return _context13.stop();
             }
           }
-        }, _callee12, null, [[0, 11]]);
+        }, _callee13, null, [[0, 11]]);
       }));
 
-      function clone(_x18, _x19) {
+      function clone(_x20, _x21) {
         return _clone.apply(this, arguments);
       }
 
@@ -850,7 +903,7 @@ var _ApiService = /*#__PURE__*/function () {
   }, {
     key: "collect",
     value: function () {
-      var _collect = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee13(entity, domain, fields, order, sort, start, limit) {
+      var _collect = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee14(entity, domain, fields, order, sort, start, limit) {
         var _this5 = this;
 
         var lang,
@@ -858,20 +911,20 @@ var _ApiService = /*#__PURE__*/function () {
             environment,
             params,
             response,
-            _args13 = arguments;
-        return _regenerator.default.wrap(function _callee13$(_context13) {
+            _args14 = arguments;
+        return _regenerator.default.wrap(function _callee14$(_context14) {
           while (1) {
-            switch (_context13.prev = _context13.next) {
+            switch (_context14.prev = _context14.next) {
               case 0:
-                lang = _args13.length > 7 && _args13[7] !== undefined ? _args13[7] : '';
+                lang = _args14.length > 7 && _args14[7] !== undefined ? _args14[7] : '';
                 console.log('ApiService::collect', entity, domain, fields, order, sort, start, limit);
                 result = [];
-                _context13.prev = 3;
-                _context13.next = 6;
+                _context14.prev = 3;
+                _context14.next = 6;
                 return _equalServices.EnvService.getEnv();
 
               case 6:
-                environment = _context13.sent;
+                environment = _context14.sent;
                 params = {
                   entity: entity,
                   domain: domain,
@@ -882,7 +935,7 @@ var _ApiService = /*#__PURE__*/function () {
                   start: start,
                   limit: limit
                 };
-                _context13.next = 10;
+                _context14.next = 10;
                 return _jqueryLib.$.get({
                   url: environment.backend_url + '/?get=model_collect',
                   dataType: 'json',
@@ -893,28 +946,28 @@ var _ApiService = /*#__PURE__*/function () {
                 });
 
               case 10:
-                response = _context13.sent;
+                response = _context14.sent;
                 result = response;
-                _context13.next = 17;
+                _context14.next = 17;
                 break;
 
               case 14:
-                _context13.prev = 14;
-                _context13.t0 = _context13["catch"](3);
-                throw _context13.t0.responseJSON;
+                _context14.prev = 14;
+                _context14.t0 = _context14["catch"](3);
+                throw _context14.t0.responseJSON;
 
               case 17:
-                return _context13.abrupt("return", result);
+                return _context14.abrupt("return", result);
 
               case 18:
               case "end":
-                return _context13.stop();
+                return _context14.stop();
             }
           }
-        }, _callee13, null, [[3, 14]]);
+        }, _callee14, null, [[3, 14]]);
       }));
 
-      function collect(_x20, _x21, _x22, _x23, _x24, _x25, _x26) {
+      function collect(_x22, _x23, _x24, _x25, _x26, _x27, _x28) {
         return _collect.apply(this, arguments);
       }
 
@@ -935,19 +988,19 @@ var _ApiService = /*#__PURE__*/function () {
   }, {
     key: "search",
     value: function () {
-      var _search = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee14(entity, domain, order, sort, start, limit) {
+      var _search = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee15(entity, domain, order, sort, start, limit) {
         var result, environment, params, response;
-        return _regenerator.default.wrap(function _callee14$(_context14) {
+        return _regenerator.default.wrap(function _callee15$(_context15) {
           while (1) {
-            switch (_context14.prev = _context14.next) {
+            switch (_context15.prev = _context15.next) {
               case 0:
                 result = [];
-                _context14.prev = 1;
-                _context14.next = 4;
+                _context15.prev = 1;
+                _context15.next = 4;
                 return _equalServices.EnvService.getEnv();
 
               case 4:
-                environment = _context14.sent;
+                environment = _context15.sent;
                 params = {
                   entity: entity,
                   domain: domain,
@@ -956,7 +1009,7 @@ var _ApiService = /*#__PURE__*/function () {
                   start: start,
                   limit: limit
                 };
-                _context14.next = 8;
+                _context15.next = 8;
                 return _jqueryLib.$.get({
                   url: environment.backend_url + '/?get=model_search',
                   dataType: 'json',
@@ -965,29 +1018,29 @@ var _ApiService = /*#__PURE__*/function () {
                 });
 
               case 8:
-                response = _context14.sent;
+                response = _context15.sent;
                 // reponse should be an array of ids
                 result = response;
-                _context14.next = 15;
+                _context15.next = 15;
                 break;
 
               case 12:
-                _context14.prev = 12;
-                _context14.t0 = _context14["catch"](1);
-                throw _context14.t0.responseJSON;
+                _context15.prev = 12;
+                _context15.t0 = _context15["catch"](1);
+                throw _context15.t0.responseJSON;
 
               case 15:
-                return _context14.abrupt("return", result);
+                return _context15.abrupt("return", result);
 
               case 16:
               case "end":
-                return _context14.stop();
+                return _context15.stop();
             }
           }
-        }, _callee14, null, [[1, 12]]);
+        }, _callee15, null, [[1, 12]]);
       }));
 
-      function search(_x27, _x28, _x29, _x30, _x31, _x32) {
+      function search(_x29, _x30, _x31, _x32, _x33, _x34) {
         return _search.apply(this, arguments);
       }
 
@@ -3707,7 +3760,7 @@ var Frame = /*#__PURE__*/function () {
                   }).appendTo($elem).addClass('context-close').on('click', function () {
                     var validation = true;
 
-                    if (_this2.context.hasChanged()) {
+                    if (Object.keys(_this2.context).length && _this2.context.hasChanged()) {
                       validation = confirm(_equalServices.TranslationService.instant('SB_ACTIONS_MESSAGE_ABANDON_CHANGE'));
                     }
 
@@ -4321,6 +4374,10 @@ function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o =
 
 function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) { arr2[i] = arr[i]; } return arr2; }
 
+function ownKeys(object, enumerableOnly) { var keys = Object.keys(object); if (Object.getOwnPropertySymbols) { var symbols = Object.getOwnPropertySymbols(object); if (enumerableOnly) { symbols = symbols.filter(function (sym) { return Object.getOwnPropertyDescriptor(object, sym).enumerable; }); } keys.push.apply(keys, symbols); } return keys; }
+
+function _objectSpread(target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i] != null ? arguments[i] : {}; if (i % 2) { ownKeys(Object(source), true).forEach(function (key) { (0, _defineProperty2.default)(target, key, source[key]); }); } else if (Object.getOwnPropertyDescriptors) { Object.defineProperties(target, Object.getOwnPropertyDescriptors(source)); } else { ownKeys(Object(source)).forEach(function (key) { Object.defineProperty(target, key, Object.getOwnPropertyDescriptor(source, key)); }); } } return target; }
+
 /**
  * Class for Model intercations
  * Acts like server-side Collection.class.php
@@ -4513,6 +4570,7 @@ var Model = /*#__PURE__*/function () {
             fields,
             i,
             field,
+            body,
             response,
             _args2 = arguments;
         return _regenerator.default.wrap(function _callee2$(_context2) {
@@ -4560,46 +4618,43 @@ var Model = /*#__PURE__*/function () {
 
               case 15:
                 _context2.prev = 15;
-                _context2.next = 18;
-                return _equalServices.ApiService.fetch('/', {
+                body = _objectSpread({
                   get: this.view.getController(),
                   entity: this.view.getEntity(),
-                  domain: this.view.getDomain(),
                   fields: fields,
-                  lang: this.view.getLang(),
-                  order: this.view.getOrder(),
-                  sort: this.view.getSort(),
-                  start: this.view.getStart(),
-                  limit: this.view.getLimit()
-                });
+                  domain: this.view.getDomain()
+                }, this.view.getParams()); // fetch objects using controller given by View (default is core_model_collect)
 
-              case 18:
+                _context2.next = 19;
+                return _equalServices.ApiService.fetch('/', body);
+
+              case 19:
                 response = _context2.sent;
                 // let response = await ApiService.collect(this.view.getEntity(), this.view.getDomain(), fields, this.view.getOrder(), this.view.getSort(), this.view.getStart(), this.view.getLimit(), this.view.getLang());
                 this.objects = response;
                 this.loaded_promise.resolve();
                 this.total = _equalServices.ApiService.getLastCount();
-                _context2.next = 30;
+                _context2.next = 31;
                 break;
 
-              case 24:
-                _context2.prev = 24;
+              case 25:
+                _context2.prev = 25;
                 _context2.t2 = _context2["catch"](15);
                 console.log('Unable to fetch Collection from server', _context2.t2);
                 this.objects = [];
                 this.loaded_promise.resolve();
                 this.total = 0;
 
-              case 30:
-                _context2.next = 32;
+              case 31:
+                _context2.next = 33;
                 return this.view.onchangeModel(full);
 
-              case 32:
+              case 33:
               case "end":
                 return _context2.stop();
             }
           }
-        }, _callee2, this, [[15, 24]]);
+        }, _callee2, this, [[15, 25]]);
       }));
 
       function refresh() {
@@ -5162,6 +5217,7 @@ var View = /*#__PURE__*/function () {
   // Mode under which the view is to be displayed ('View' [default], or 'edit')
   // Purpose for which the view is to be displayed (this impacts the action buttons in the header)
   // View holds the params for search requests performed by Model
+  // associative array mapping additional params with their values (relayed to controller)
   // Map of fields mapping their View definitions
   // Map of fields mapping their Model definitions
   // Map of available filters from View definition mapping filters id with their definition
@@ -5176,8 +5232,8 @@ var View = /*#__PURE__*/function () {
    * @param entity    entity (package\Class) to be loaded: should be set only once (depend on the related view)
    * @param type      type of the view ('list', 'form', ...)
    * @param name      name of the view (eg. 'default')
-   * @param domain    Array of conditions (disjunctions clauses of conjonctions conditions).
-   * @param mode
+   * @param domain    Array of conditions (disjunctions clauses of conjonctions conditions): predefined domain from the Context.
+   * @param mode      ('view', 'edit')
    * @param purpose   ('view', 'select', 'add', 'create', 'update', 'widget')
    * @param lang
    * @param config    extra parameters related to contexts communications
@@ -5201,6 +5257,7 @@ var View = /*#__PURE__*/function () {
     (0, _defineProperty2.default)(this, "limit", void 0);
     (0, _defineProperty2.default)(this, "group_by", void 0);
     (0, _defineProperty2.default)(this, "controller", void 0);
+    (0, _defineProperty2.default)(this, "params", void 0);
     (0, _defineProperty2.default)(this, "lang", void 0);
     (0, _defineProperty2.default)(this, "layout", void 0);
     (0, _defineProperty2.default)(this, "model", void 0);
@@ -5215,6 +5272,7 @@ var View = /*#__PURE__*/function () {
     (0, _defineProperty2.default)(this, "config", void 0);
     (0, _defineProperty2.default)(this, "applied_filters_ids", void 0);
     (0, _defineProperty2.default)(this, "selected_ids", void 0);
+    (0, _defineProperty2.default)(this, "subscribers", {});
     (0, _defineProperty2.default)(this, "is_ready_promise", void 0);
     (0, _defineProperty2.default)(this, "$container", void 0);
     (0, _defineProperty2.default)(this, "$headerContainer", void 0);
@@ -5222,6 +5280,7 @@ var View = /*#__PURE__*/function () {
     (0, _defineProperty2.default)(this, "$footerContainer", void 0);
     // generate a random UUID
     this.uuid = _materialLib.UIHelper.getUUID();
+    this.params = {};
     this.context = context;
     this.entity = entity;
     this.type = type;
@@ -5539,7 +5598,7 @@ var View = /*#__PURE__*/function () {
     key: "init",
     value: function () {
       var _init = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6() {
-        var translation, model, view, _iterator, _step, item, _iterator2, _step2, _item, _i, _Object$entries, _Object$entries$_i, id, _item2, _i2, _Object$entries2, _Object$entries2$_i, _id, _item3, domain, tmpDomain;
+        var translation, model, view, _iterator, _step, item, _iterator2, _step2, _item, _i, _Object$entries, _Object$entries$_i, id, _item2, _i2, _Object$entries2, _Object$entries2$_i, _id, _item3, i, tmpDomain, _iterator3, _step3, clause, description, filter, domain, viewDomain, _tmpDomain;
 
         return _regenerator.default.wrap(function _callee6$(_context6) {
           while (1) {
@@ -5606,22 +5665,29 @@ var View = /*#__PURE__*/function () {
 
                 if (this.view_schema.hasOwnProperty("group_by")) {
                   this.group_by = this.view_schema.group_by;
-                }
+                } // predefined filters
+
 
                 if (this.view_schema.hasOwnProperty("filters")) {
-                  _iterator = _createForOfIteratorHelper(this.view_schema.filters);
+                  if (Array.isArray(this.view_schema.filters)) {
+                    _iterator = _createForOfIteratorHelper(this.view_schema.filters);
 
-                  try {
-                    for (_iterator.s(); !(_step = _iterator.n()).done;) {
-                      item = _step.value;
-                      this.filters[item.id] = item;
+                    try {
+                      for (_iterator.s(); !(_step = _iterator.n()).done;) {
+                        item = _step.value;
+                        this.filters[item.id] = item;
+                      }
+                    } catch (err) {
+                      _iterator.e(err);
+                    } finally {
+                      _iterator.f();
                     }
-                  } catch (err) {
-                    _iterator.e(err);
-                  } finally {
-                    _iterator.f();
+                  } else {
+                    // 'filters' is set and is not an array (expected to be false)
+                    this.config.show_filter = false;
                   }
-                }
+                } // override of default controller
+
 
                 if (this.view_schema.hasOwnProperty("controller")) {
                   this.controller = this.view_schema.controller;
@@ -5656,16 +5722,86 @@ var View = /*#__PURE__*/function () {
                     _Object$entries2$_i = (0, _slicedToArray2.default)(_Object$entries2[_i2], 2), _id = _Object$entries2$_i[0], _item3 = _Object$entries2$_i[1];
                     this.custom_actions[_id] = _item3;
                   }
-                } // if view schema specifies a domain, merge it with domain given in constructor
+                } // domain member is given by the context
+                // if purpose is a non-widget list view then context domain is visible and can be changed by user
+                // (otherwise, context domain is merged to view domain and cannot be changed by user)
 
 
+                if (!(this.type == 'list' && this.purpose == 'view' && this.domain && Array.isArray(this.domain))) {
+                  _context6.next = 60;
+                  break;
+                }
+
+                i = 0;
+                tmpDomain = new _equalLib.Domain(this.domain);
+                _iterator3 = _createForOfIteratorHelper(tmpDomain.getClauses());
+                _context6.prev = 37;
+
+                _iterator3.s();
+
+              case 39:
+                if ((_step3 = _iterator3.n()).done) {
+                  _context6.next = 51;
+                  break;
+                }
+
+                clause = _step3.value;
+                ++i;
+                _context6.next = 44;
+                return this.translateFilterClause(clause);
+
+              case 44:
+                description = _context6.sent;
+                filter = {
+                  "id": "filter_domain_" + i,
+                  "label": "search",
+                  "description": description,
+                  "clause": clause.toArray()
+                };
+                console.log('###', filter); // add filter to applied filters
+
+                this.filters[filter.id] = filter;
+                this.applied_filters_ids.push(filter.id);
+
+              case 49:
+                _context6.next = 39;
+                break;
+
+              case 51:
+                _context6.next = 56;
+                break;
+
+              case 53:
+                _context6.prev = 53;
+                _context6.t0 = _context6["catch"](37);
+
+                _iterator3.e(_context6.t0);
+
+              case 56:
+                _context6.prev = 56;
+
+                _iterator3.f();
+
+                return _context6.finish(56);
+
+              case 59:
+                this.domain = [];
+
+              case 60:
+                // view schema specifies a domain
+                // domain from the view is fixed, not visible, and cannot be changed by user
                 if (this.view_schema.hasOwnProperty("domain")) {
                   // domain attribute is either a string or an array
-                  domain = eval(this.view_schema.domain); // merge domains
+                  domain = eval(this.view_schema.domain);
+                  viewDomain = new _equalLib.Domain(domain); // assign domain to the view
 
-                  tmpDomain = new _equalLib.Domain(this.domain);
-                  tmpDomain.merge(new _equalLib.Domain(domain));
-                  this.domain = tmpDomain.toArray();
+                  if (this.purpose == 'view') {
+                    this.domain = viewDomain.toArray();
+                  } else {
+                    // merge domains
+                    _tmpDomain = new _equalLib.Domain(this.domain);
+                    this.domain = _tmpDomain.merge(viewDomain).toArray();
+                  }
                 }
 
                 if (['list', 'cards'].indexOf(this.type) >= 0) {
@@ -5683,33 +5819,33 @@ var View = /*#__PURE__*/function () {
                   this.$layoutContainer.addClass('sb-view-layout-chart');
                 }
 
-                _context6.next = 39;
+                _context6.next = 66;
                 return this.layout.init();
 
-              case 39:
-                _context6.next = 41;
+              case 66:
+                _context6.next = 68;
                 return this.model.init();
 
-              case 41:
-                _context6.next = 46;
+              case 68:
+                _context6.next = 73;
                 break;
 
-              case 43:
-                _context6.prev = 43;
-                _context6.t0 = _context6["catch"](1);
-                console.log('Unable to init view (' + this.entity + '.' + this.getId() + ')', _context6.t0);
+              case 70:
+                _context6.prev = 70;
+                _context6.t1 = _context6["catch"](1);
+                console.log('Unable to init view (' + this.entity + '.' + this.getId() + ')', _context6.t1);
 
-              case 46:
+              case 73:
                 this.is_ready_promise.resolve();
                 this.$container.show();
                 console.log('View::init - end');
 
-              case 49:
+              case 76:
               case "end":
                 return _context6.stop();
             }
           }
-        }, _callee6, this, [[1, 43]]);
+        }, _callee6, this, [[1, 70], [37, 53, 56, 59]]);
       }));
 
       function init() {
@@ -5759,6 +5895,29 @@ var View = /*#__PURE__*/function () {
     key: "hasAdvancedFilters",
     value: function hasAdvancedFilters() {
       return ['core_model_collect', 'model_collect'].indexOf(this.controller) < 0;
+    }
+  }, {
+    key: "addSubscriber",
+    value: function addSubscriber(events, callback) {
+      var _iterator4 = _createForOfIteratorHelper(events),
+          _step4;
+
+      try {
+        for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
+          var event = _step4.value;
+
+          // if(!['open', 'close', 'updated', 'navigate'].includes(event)) continue;
+          if (!this.subscribers.hasOwnProperty(event)) {
+            this.subscribers[event] = [];
+          }
+
+          this.subscribers[event].push(callback);
+        }
+      } catch (err) {
+        _iterator4.e(err);
+      } finally {
+        _iterator4.f();
+      }
     }
   }, {
     key: "isReady",
@@ -5982,25 +6141,35 @@ var View = /*#__PURE__*/function () {
     key: "getDomain",
     value: function getDomain() {
       console.log('View::getDomain', this.domain, this.applied_filters_ids);
-      var domain = new _equalLib.Domain(this.domain);
-      var filters_domain = [];
+      var filters_domain = new _equalLib.Domain([]);
 
-      var _iterator3 = _createForOfIteratorHelper(this.applied_filters_ids),
-          _step3;
+      var _iterator5 = _createForOfIteratorHelper(this.applied_filters_ids),
+          _step5;
 
       try {
-        for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
-          var filter_id = _step3.value;
-          filters_domain.push(this.filters[filter_id].clause);
+        for (_iterator5.s(); !(_step5 = _iterator5.n()).done;) {
+          var filter_id = _step5.value;
+          // filters clauses are cumulatives (conjunctions conditions)
+          filters_domain.merge(new _equalLib.Domain(this.filters[filter_id].clause));
         }
       } catch (err) {
-        _iterator3.e(err);
+        _iterator5.e(err);
       } finally {
-        _iterator3.f();
+        _iterator5.f();
       }
 
-      domain.merge(new _equalLib.Domain(filters_domain));
-      return domain.parse({}, this.getUser()).toArray();
+      return new _equalLib.Domain(this.domain).merge(filters_domain).parse({}, this.getUser()).toArray();
+    }
+  }, {
+    key: "getParams",
+    value: function getParams() {
+      return _objectSpread({
+        lang: this.getLang(),
+        order: this.getOrder(),
+        sort: this.getSort(),
+        start: this.getStart(),
+        limit: this.getLimit()
+      }, this.params);
     }
   }, {
     key: "getController",
@@ -6105,50 +6274,50 @@ var View = /*#__PURE__*/function () {
           var elem = stack.pop();
 
           if (elem.hasOwnProperty('items')) {
-            var _iterator4 = _createForOfIteratorHelper(elem['items']),
-                _step4;
+            var _iterator6 = _createForOfIteratorHelper(elem['items']),
+                _step6;
 
             try {
-              for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
-                var item = _step4.value;
+              for (_iterator6.s(); !(_step6 = _iterator6.n()).done;) {
+                var item = _step6.value;
 
                 if (item.type == 'field' && item.hasOwnProperty('value')) {
                   this.view_fields[item.value] = item;
                 }
               }
             } catch (err) {
-              _iterator4.e(err);
+              _iterator6.e(err);
             } finally {
-              _iterator4.f();
+              _iterator6.f();
             }
           } else {
-            var _iterator5 = _createForOfIteratorHelper(path),
-                _step5;
+            var _iterator7 = _createForOfIteratorHelper(path),
+                _step7;
 
             try {
-              for (_iterator5.s(); !(_step5 = _iterator5.n()).done;) {
-                var step = _step5.value;
+              for (_iterator7.s(); !(_step7 = _iterator7.n()).done;) {
+                var step = _step7.value;
 
                 if (elem.hasOwnProperty(step)) {
-                  var _iterator6 = _createForOfIteratorHelper(elem[step]),
-                      _step6;
+                  var _iterator8 = _createForOfIteratorHelper(elem[step]),
+                      _step8;
 
                   try {
-                    for (_iterator6.s(); !(_step6 = _iterator6.n()).done;) {
-                      var obj = _step6.value;
+                    for (_iterator8.s(); !(_step8 = _iterator8.n()).done;) {
+                      var obj = _step8.value;
                       stack.push(obj);
                     }
                   } catch (err) {
-                    _iterator6.e(err);
+                    _iterator8.e(err);
                   } finally {
-                    _iterator6.f();
+                    _iterator8.f();
                   }
                 }
               }
             } catch (err) {
-              _iterator5.e(err);
+              _iterator7.e(err);
             } finally {
-              _iterator5.f();
+              _iterator7.f();
             }
           }
         }
@@ -6215,7 +6384,7 @@ var View = /*#__PURE__*/function () {
                         _context10.prev = 0;
                         view_type = 'form';
                         view_name = _this2.name;
-                        domain = _this2.domain;
+                        domain = _this2.getDomain();
 
                         if (_this2.custom_actions.hasOwnProperty('ACTION.CREATE')) {
                           if (Array.isArray(_this2.custom_actions['ACTION.CREATE']) && _this2.custom_actions['ACTION.CREATE'].length) {
@@ -6289,7 +6458,7 @@ var View = /*#__PURE__*/function () {
                           entity: _this2.entity,
                           type: 'form',
                           name: _this2.name,
-                          domain: _this2.domain,
+                          domain: _this2.getDomain(),
                           mode: 'edit',
                           purpose: 'create'
                         });
@@ -6364,7 +6533,7 @@ var View = /*#__PURE__*/function () {
                           entity: _this2.entity,
                           type: 'form',
                           name: _this2.name,
-                          domain: _this2.domain,
+                          domain: _this2.getDomain(),
                           mode: 'edit',
                           purpose: 'create'
                         });
@@ -6440,7 +6609,43 @@ var View = /*#__PURE__*/function () {
         var view = new View(this.getContext(), this.controller.replace(/_/g, '\\'), 'search', 'default', [], 'edit', 'widget', this.lang, {});
         view.isReady().then(function () {
           var $container = view.getContainer();
-          $layout.append($container);
+          $layout.append($container); // detect view submission / change
+
+          view.addSubscriber(['change'], /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee15() {
+            var model, objects, object, field, value;
+            return _regenerator.default.wrap(function _callee15$(_context15) {
+              while (1) {
+                switch (_context15.prev = _context15.next) {
+                  case 0:
+                    // retrieve model of the viewFget
+                    model = view.getModel();
+                    _context15.next = 3;
+                    return model.get();
+
+                  case 3:
+                    objects = _context15.sent;
+                    object = objects[0]; // inject object as part of the body for the Model service
+
+                    for (field in object) {
+                      value = object[field];
+
+                      if (typeof value == 'object' && value !== null) {
+                        value = value.id;
+                      }
+
+                      _this2.params[field] = value;
+                    } // trigger a refresh of the current view
+
+
+                    _this2.onchangeView();
+
+                  case 7:
+                  case "end":
+                    return _context15.stop();
+                }
+              }
+            }, _callee15);
+          })));
         });
       } //  bulk assign action
 
@@ -6458,27 +6663,27 @@ var View = /*#__PURE__*/function () {
       var $search_input = _materialLib.UIHelper.createInput('sb-view-header-search', _equalServices.TranslationService.instant('SB_FILTERS_SEARCH'), '', '', '', false, 'outlined', 'close').appendTo($filters_search);
 
       $search_input.addClass('dialog-select').find('.mdc-text-field__icon').on('click', /*#__PURE__*/function () {
-        var _ref8 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee15(e) {
-          return _regenerator.default.wrap(function _callee15$(_context15) {
+        var _ref9 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee16(e) {
+          return _regenerator.default.wrap(function _callee16$(_context16) {
             while (1) {
-              switch (_context15.prev = _context15.next) {
+              switch (_context16.prev = _context16.next) {
                 case 0:
                   // reset input value
                   $search_input.find('input').val('').trigger('focus').trigger('blur'); // unapply related filter
 
-                  _context15.next = 3;
+                  _context16.next = 3;
                   return _this2.unapplyFilter('filter_search_on_name');
 
                 case 3:
                 case "end":
-                  return _context15.stop();
+                  return _context16.stop();
               }
             }
-          }, _callee15);
+          }, _callee16);
         }));
 
         return function (_x9) {
-          return _ref8.apply(this, arguments);
+          return _ref9.apply(this, arguments);
         };
       }());
       $search_input.on('keypress', function (e) {
@@ -6533,7 +6738,7 @@ var View = /*#__PURE__*/function () {
       } // append additional option for custom filter
 
 
-      if (this.filters.length) {
+      if (Object.keys(this.filters).length) {
         _materialLib.UIHelper.createListDivider().appendTo($filters_list);
       }
 
@@ -6560,12 +6765,12 @@ var View = /*#__PURE__*/function () {
       var $fields_toggle_list = _materialLib.UIHelper.createList('fields-list').appendTo($fields_toggle_menu); // #todo : translate fields names
 
 
-      var _iterator7 = _createForOfIteratorHelper(this.getViewSchema().layout.items),
-          _step7;
+      var _iterator9 = _createForOfIteratorHelper(this.getViewSchema().layout.items),
+          _step9;
 
       try {
         var _loop2 = function _loop2() {
-          var item = _step7.value;
+          var item = _step9.value;
           var label = item.hasOwnProperty('label') ? item.label : item.value.charAt(0).toUpperCase() + item.value.slice(1);
           var visible = item.hasOwnProperty('visible') ? item.visible : true;
 
@@ -6582,13 +6787,13 @@ var View = /*#__PURE__*/function () {
           }).prop('checked', visible);
         };
 
-        for (_iterator7.s(); !(_step7 = _iterator7.n()).done;) {
+        for (_iterator9.s(); !(_step9 = _iterator9.n()).done;) {
           _loop2();
         }
       } catch (err) {
-        _iterator7.e(err);
+        _iterator9.e(err);
       } finally {
-        _iterator7.f();
+        _iterator9.f();
       }
 
       _materialLib.UIHelper.decorateMenu($fields_toggle_menu);
@@ -6639,9 +6844,27 @@ var View = /*#__PURE__*/function () {
 
         _this2.onchangeView();
       });
-      $level2.append($filters_button);
-      $level2.append($filters_search);
-      $level2.append($filters_set);
+
+      if (this.config.show_filter) {
+        $level2.append($filters_button);
+        $level2.append($filters_search);
+        $level2.append($filters_set); // show pre-applied filters (@see init())
+
+        var _iterator10 = _createForOfIteratorHelper(this.applied_filters_ids),
+            _step10;
+
+        try {
+          for (_iterator10.s(); !(_step10 = _iterator10.n()).done;) {
+            var _filter_id = _step10.value;
+            this.showFilter(_filter_id);
+          }
+        } catch (err) {
+          _iterator10.e(err);
+        } finally {
+          _iterator10.f();
+        }
+      }
+
       $level2.append($pagination);
       $level2.append($fields_toggle_button);
       this.$headerContainer.append($elem);
@@ -6735,12 +6958,12 @@ var View = /*#__PURE__*/function () {
           $menu.append($list);
           $fields_toggle_button.append($menu); // add actions defined in view
 
-          var _iterator8 = _createForOfIteratorHelper(this.config.selection_actions),
-              _step8;
+          var _iterator11 = _createForOfIteratorHelper(this.config.selection_actions),
+              _step11;
 
           try {
             var _loop4 = function _loop4() {
-              var item = _step8.value;
+              var item = _step11.value;
 
               var $list_item = _materialLib.UIHelper.createListItem('SB_ACTION_ITEM-' + item.title, _equalServices.TranslationService.instant(item.title), item.icon).on('click', function (event) {
                 return item.handler(_this3.selected_ids);
@@ -6765,13 +6988,13 @@ var View = /*#__PURE__*/function () {
               }
             };
 
-            for (_iterator8.s(); !(_step8 = _iterator8.n()).done;) {
+            for (_iterator11.s(); !(_step11 = _iterator11.n()).done;) {
               _loop4();
             }
           } catch (err) {
-            _iterator8.e(err);
+            _iterator11.e(err);
           } finally {
-            _iterator8.f();
+            _iterator11.f();
           }
 
           _materialLib.UIHelper.decorateMenu($menu);
@@ -6800,7 +7023,7 @@ var View = /*#__PURE__*/function () {
 
       /*
           "ACTION.CREATE":   [],
-          "ACTION.SELECT":   [],            
+          "ACTION.SELECT":   [],
           "ACTION.EDIT":     [],
           "ACTION.SAVE":     [
               {"id": "SAVE_AND_CLOSE"},       // save and go back to list [edit] or parent context [create] (default)
@@ -6852,17 +7075,17 @@ var View = /*#__PURE__*/function () {
       switch (this.mode) {
         case 'view':
           if (has_action_update) {
-            $std_actions.append(_materialLib.UIHelper.createButton(this.uuid + '_action-edit', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_UPDATE'), 'raised').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee16() {
-              return _regenerator.default.wrap(function _callee16$(_context16) {
+            $std_actions.append(_materialLib.UIHelper.createButton(this.uuid + '_action-edit', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_UPDATE'), 'raised').on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee17() {
+              return _regenerator.default.wrap(function _callee17$(_context17) {
                 while (1) {
-                  switch (_context16.prev = _context16.next) {
+                  switch (_context17.prev = _context17.next) {
                     case 0:
-                      _context16.next = 2;
+                      _context17.next = 2;
                       return _this4.openContext({
                         entity: _this4.entity,
                         type: _this4.type,
                         name: _this4.name,
-                        domain: _this4.domain,
+                        domain: _this4.getDomain(),
                         mode: 'edit',
                         purpose: 'update',
                         // for UX consistency, inject current view widget context (currently selected tabs, ...)
@@ -6871,10 +7094,10 @@ var View = /*#__PURE__*/function () {
 
                     case 2:
                     case "end":
-                      return _context16.stop();
+                      return _context17.stop();
                   }
                 }
-              }, _callee16);
+              }, _callee17);
             }))));
           }
 
@@ -6882,23 +7105,23 @@ var View = /*#__PURE__*/function () {
 
         case 'edit':
           var save_method = /*#__PURE__*/function () {
-            var _ref10 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee17() {
+            var _ref11 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee18() {
               var objects, object, response, res;
-              return _regenerator.default.wrap(function _callee17$(_context17) {
+              return _regenerator.default.wrap(function _callee18$(_context18) {
                 while (1) {
-                  switch (_context17.prev = _context17.next) {
+                  switch (_context18.prev = _context18.next) {
                     case 0:
                       if (!(_this4.purpose == 'create')) {
-                        _context17.next = 6;
+                        _context18.next = 6;
                         break;
                       }
 
-                      _context17.next = 3;
+                      _context18.next = 3;
                       return _this4.model.get();
 
                     case 3:
-                      objects = _context17.sent;
-                      _context17.next = 7;
+                      objects = _context18.sent;
+                      _context18.next = 7;
                       break;
 
                     case 6:
@@ -6907,89 +7130,89 @@ var View = /*#__PURE__*/function () {
 
                     case 7:
                       if (objects.length) {
-                        _context17.next = 11;
+                        _context18.next = 11;
                         break;
                       }
 
-                      return _context17.abrupt("return", {});
+                      return _context18.abrupt("return", {});
 
                     case 11:
                       // we're in edit mode for single object (form)
                       object = objects[0];
-                      _context17.prev = 12;
-                      _context17.next = 15;
+                      _context18.prev = 12;
+                      _context18.next = 15;
                       return _equalServices.ApiService.update(_this4.entity, [object['id']], _this4.model.export(object), false, _this4.getLang());
 
                     case 15:
-                      response = _context17.sent;
+                      response = _context18.sent;
 
                       if (response && response.length) {
                         // merge object with response (state and name fields might have changed)
                         object = _objectSpread(_objectSpread({}, object), response[0]);
                       }
 
-                      return _context17.abrupt("return", {
+                      return _context18.abrupt("return", {
                         selection: [object.id],
                         objects: [object]
                       });
 
                     case 20:
-                      _context17.prev = 20;
-                      _context17.t0 = _context17["catch"](12);
-                      _context17.prev = 22;
-                      _context17.next = 25;
-                      return _this4.displayErrorFeedback(_this4.translation, _context17.t0, object, true);
+                      _context18.prev = 20;
+                      _context18.t0 = _context18["catch"](12);
+                      _context18.prev = 22;
+                      _context18.next = 25;
+                      return _this4.displayErrorFeedback(_this4.translation, _context18.t0, object, true);
 
                     case 25:
-                      res = _context17.sent;
+                      res = _context18.sent;
 
                       if (!(res !== false)) {
-                        _context17.next = 28;
+                        _context18.next = 28;
                         break;
                       }
 
-                      return _context17.abrupt("return", {
+                      return _context18.abrupt("return", {
                         selection: [object.id],
                         objects: [object]
                       });
 
                     case 28:
-                      _context17.next = 32;
+                      _context18.next = 32;
                       break;
 
                     case 30:
-                      _context17.prev = 30;
-                      _context17.t1 = _context17["catch"](22);
+                      _context18.prev = 30;
+                      _context18.t1 = _context18["catch"](22);
 
                     case 32:
-                      return _context17.abrupt("return", null);
+                      return _context18.abrupt("return", null);
 
                     case 33:
                     case "end":
-                      return _context17.stop();
+                      return _context18.stop();
                   }
                 }
-              }, _callee17, null, [[12, 20], [22, 30]]);
+              }, _callee18, null, [[12, 20], [22, 30]]);
             }));
 
             return function save_method() {
-              return _ref10.apply(this, arguments);
+              return _ref11.apply(this, arguments);
             };
           }();
 
           var save_actions = {
             "SAVE_AND_CONTINUE": function () {
-              var _SAVE_AND_CONTINUE = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee18(action) {
+              var _SAVE_AND_CONTINUE = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee19(action) {
                 var res, object_id, tmpDomain, $snack;
-                return _regenerator.default.wrap(function _callee18$(_context18) {
+                return _regenerator.default.wrap(function _callee19$(_context19) {
                   while (1) {
-                    switch (_context18.prev = _context18.next) {
+                    switch (_context19.prev = _context19.next) {
                       case 0:
-                        _context18.next = 2;
+                        _context19.next = 2;
                         return save_method();
 
                       case 2:
-                        res = _context18.sent;
+                        res = _context19.sent;
 
                         if (res && res.selection) {
                           object_id = res.selection.pop(); // reset domain (drop state=draft condition)
@@ -7006,10 +7229,10 @@ var View = /*#__PURE__*/function () {
 
                       case 4:
                       case "end":
-                        return _context18.stop();
+                        return _context19.stop();
                     }
                   }
-                }, _callee18);
+                }, _callee19);
               }));
 
               function SAVE_AND_CONTINUE(_x10) {
@@ -7019,79 +7242,8 @@ var View = /*#__PURE__*/function () {
               return SAVE_AND_CONTINUE;
             }(),
             "SAVE_AND_VIEW": function () {
-              var _SAVE_AND_VIEW = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee19(action) {
+              var _SAVE_AND_VIEW = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee20(action) {
                 var res, parent, object_id, view_name, view_type, parts;
-                return _regenerator.default.wrap(function _callee19$(_context19) {
-                  while (1) {
-                    switch (_context19.prev = _context19.next) {
-                      case 0:
-                        _context19.next = 2;
-                        return save_method();
-
-                      case 2:
-                        res = _context19.sent;
-
-                        if (!res) {
-                          _context19.next = 18;
-                          break;
-                        }
-
-                        parent = _this4.context.getParent(); // if context has a parent, close and relay new object_id to parent view
-
-                        if (!Object.keys(parent).length) {
-                          _context19.next = 10;
-                          break;
-                        }
-
-                        _context19.next = 8;
-                        return _this4.closeContext(res);
-
-                      case 8:
-                        _context19.next = 18;
-                        break;
-
-                      case 10:
-                        _context19.next = 12;
-                        return _this4.closeContext(null, true);
-
-                      case 12:
-                        object_id = res.selection[0];
-                        view_name = _this4.name;
-                        view_type = _this4.type;
-
-                        if (action.hasOwnProperty('view')) {
-                          parts = action.view.split('.');
-                          if (parts.length) view_type = parts.shift();
-                          if (parts.length) view_name = parts.shift();
-                        }
-
-                        _context19.next = 18;
-                        return _this4.openContext({
-                          entity: _this4.entity,
-                          type: view_type,
-                          name: view_name,
-                          domain: ['id', '=', object_id],
-                          mode: 'view',
-                          purpose: 'view'
-                        });
-
-                      case 18:
-                      case "end":
-                        return _context19.stop();
-                    }
-                  }
-                }, _callee19);
-              }));
-
-              function SAVE_AND_VIEW(_x11) {
-                return _SAVE_AND_VIEW.apply(this, arguments);
-              }
-
-              return SAVE_AND_VIEW;
-            }(),
-            "SAVE_AND_EDIT": function () {
-              var _SAVE_AND_EDIT = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee20(action) {
-                var res, object_id, view_name, view_type, parts;
                 return _regenerator.default.wrap(function _callee20$(_context20) {
                   while (1) {
                     switch (_context20.prev = _context20.next) {
@@ -7103,11 +7255,82 @@ var View = /*#__PURE__*/function () {
                         res = _context20.sent;
 
                         if (!res) {
-                          _context20.next = 12;
+                          _context20.next = 18;
                           break;
                         }
 
-                        _context20.next = 6;
+                        parent = _this4.context.getParent(); // if context has a parent, close and relay new object_id to parent view
+
+                        if (!Object.keys(parent).length) {
+                          _context20.next = 10;
+                          break;
+                        }
+
+                        _context20.next = 8;
+                        return _this4.closeContext(res);
+
+                      case 8:
+                        _context20.next = 18;
+                        break;
+
+                      case 10:
+                        _context20.next = 12;
+                        return _this4.closeContext(null, true);
+
+                      case 12:
+                        object_id = res.selection[0];
+                        view_name = _this4.name;
+                        view_type = _this4.type;
+
+                        if (action.hasOwnProperty('view')) {
+                          parts = action.view.split('.');
+                          if (parts.length) view_type = parts.shift();
+                          if (parts.length) view_name = parts.shift();
+                        }
+
+                        _context20.next = 18;
+                        return _this4.openContext({
+                          entity: _this4.entity,
+                          type: view_type,
+                          name: view_name,
+                          domain: ['id', '=', object_id],
+                          mode: 'view',
+                          purpose: 'view'
+                        });
+
+                      case 18:
+                      case "end":
+                        return _context20.stop();
+                    }
+                  }
+                }, _callee20);
+              }));
+
+              function SAVE_AND_VIEW(_x11) {
+                return _SAVE_AND_VIEW.apply(this, arguments);
+              }
+
+              return SAVE_AND_VIEW;
+            }(),
+            "SAVE_AND_EDIT": function () {
+              var _SAVE_AND_EDIT = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee21(action) {
+                var res, object_id, view_name, view_type, parts;
+                return _regenerator.default.wrap(function _callee21$(_context21) {
+                  while (1) {
+                    switch (_context21.prev = _context21.next) {
+                      case 0:
+                        _context21.next = 2;
+                        return save_method();
+
+                      case 2:
+                        res = _context21.sent;
+
+                        if (!res) {
+                          _context21.next = 12;
+                          break;
+                        }
+
+                        _context21.next = 6;
                         return _this4.closeContext(null, true);
 
                       case 6:
@@ -7121,7 +7344,7 @@ var View = /*#__PURE__*/function () {
                           if (parts.length) view_name = parts.shift();
                         }
 
-                        _context20.next = 12;
+                        _context21.next = 12;
                         return _this4.openContext({
                           entity: _this4.entity,
                           type: view_type,
@@ -7133,10 +7356,10 @@ var View = /*#__PURE__*/function () {
 
                       case 12:
                       case "end":
-                        return _context20.stop();
+                        return _context21.stop();
                     }
                   }
-                }, _callee20);
+                }, _callee21);
               }));
 
               function SAVE_AND_EDIT(_x12) {
@@ -7146,44 +7369,44 @@ var View = /*#__PURE__*/function () {
               return SAVE_AND_EDIT;
             }(),
             "SAVE_AND_CLOSE": function () {
-              var _SAVE_AND_CLOSE = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee21(action) {
+              var _SAVE_AND_CLOSE = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee22(action) {
                 var res, parent;
-                return _regenerator.default.wrap(function _callee21$(_context21) {
+                return _regenerator.default.wrap(function _callee22$(_context22) {
                   while (1) {
-                    switch (_context21.prev = _context21.next) {
+                    switch (_context22.prev = _context22.next) {
                       case 0:
-                        _context21.next = 2;
+                        _context22.next = 2;
                         return save_method();
 
                       case 2:
-                        res = _context21.sent;
+                        res = _context22.sent;
 
                         if (!res) {
-                          _context21.next = 10;
+                          _context22.next = 10;
                           break;
                         }
 
-                        _context21.next = 6;
+                        _context22.next = 6;
                         return _this4.closeContext(res);
 
                       case 6:
-                        // close parent as well if current view was the edit mode of parent view 
+                        // close parent as well if current view was the edit mode of parent view
                         parent = _this4.context.getParent();
 
                         if (!(typeof parent.getView === 'function' && parent.getView().getMode() == "view" && _this4.purpose == 'update')) {
-                          _context21.next = 10;
+                          _context22.next = 10;
                           break;
                         }
 
-                        _context21.next = 10;
+                        _context22.next = 10;
                         return _this4.closeContext();
 
                       case 10:
                       case "end":
-                        return _context21.stop();
+                        return _context22.stop();
                     }
                   }
-                }, _callee21);
+                }, _callee22);
               }));
 
               function SAVE_AND_CLOSE(_x13) {
@@ -7196,40 +7419,40 @@ var View = /*#__PURE__*/function () {
 
           var $cancel_button = _materialLib.UIHelper.createButton(this.uuid + '_action-cancel', _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_CANCEL'), 'outlined');
 
-          $cancel_button.on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee22() {
+          $cancel_button.on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee23() {
             var validation;
-            return _regenerator.default.wrap(function _callee22$(_context22) {
+            return _regenerator.default.wrap(function _callee23$(_context23) {
               while (1) {
-                switch (_context22.prev = _context22.next) {
+                switch (_context23.prev = _context23.next) {
                   case 0:
                     validation = true;
 
                     if (!_this4.hasChanged()) {
-                      _context22.next = 5;
+                      _context23.next = 5;
                       break;
                     }
 
-                    _context22.next = 4;
+                    _context23.next = 4;
                     return confirm(_equalServices.TranslationService.instant('SB_ACTIONS_MESSAGE_ABANDON_CHANGE'));
 
                   case 4:
-                    validation = _context22.sent;
+                    validation = _context23.sent;
 
                   case 5:
                     if (!validation) {
-                      _context22.next = 8;
+                      _context23.next = 8;
                       break;
                     }
 
-                    _context22.next = 8;
+                    _context23.next = 8;
                     return _this4.closeContext();
 
                   case 8:
                   case "end":
-                    return _context22.stop();
+                    return _context23.stop();
                 }
               }
-            }, _callee22);
+            }, _callee23);
           })));
           var $save_button = (0, _jqueryLib.$)();
 
@@ -7251,31 +7474,34 @@ var View = /*#__PURE__*/function () {
               if (!save_actions.hasOwnProperty(header_action)) return "continue";
               var save_action = save_actions[header_action];
               $save_button.find('.menu-list').append(_materialLib.UIHelper.createListItem(_this4.uuid + '_action-' + header_action, _equalServices.TranslationService.instant('SB_ACTIONS_BUTTON_' + header_action)) // onclick, save and stay in edit mode (save and go back to list)
-              .on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee23() {
-                return _regenerator.default.wrap(function _callee23$(_context23) {
-                  while (1) {
-                    switch (_context23.prev = _context23.next) {
-                      case 0:
-                        _context23.prev = 0;
-                        _context23.next = 3;
-                        return save_action(header_actions["ACTION.SAVE"][i]);
+              .on('click', function () {
+                // #fix for slow systems - delay action so that onchange handlers are processed
+                setTimeout( /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee24() {
+                  return _regenerator.default.wrap(function _callee24$(_context24) {
+                    while (1) {
+                      switch (_context24.prev = _context24.next) {
+                        case 0:
+                          _context24.prev = 0;
+                          _context24.next = 3;
+                          return save_action(header_actions["ACTION.SAVE"][i]);
 
-                      case 3:
-                        _context23.next = 8;
-                        break;
+                        case 3:
+                          _context24.next = 8;
+                          break;
 
-                      case 5:
-                        _context23.prev = 5;
-                        _context23.t0 = _context23["catch"](0);
-                        console.log(_context23.t0);
+                        case 5:
+                          _context24.prev = 5;
+                          _context24.t0 = _context24["catch"](0);
+                          console.log(_context24.t0);
 
-                      case 8:
-                      case "end":
-                        return _context23.stop();
+                        case 8:
+                        case "end":
+                          return _context24.stop();
+                      }
                     }
-                  }
-                }, _callee23, null, [[0, 5]]);
-              }))));
+                  }, _callee24, null, [[0, 5]]);
+                })), 100);
+              }));
             };
 
             for (var i = 1, n = header_actions["ACTION.SAVE"].length; i < n; ++i) {
@@ -7290,30 +7516,30 @@ var View = /*#__PURE__*/function () {
 
           if (save_actions.hasOwnProperty(header_action)) {
             var save_action = save_actions[header_action];
-            $save_button.on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee24() {
-              return _regenerator.default.wrap(function _callee24$(_context24) {
+            $save_button.on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee25() {
+              return _regenerator.default.wrap(function _callee25$(_context25) {
                 while (1) {
-                  switch (_context24.prev = _context24.next) {
+                  switch (_context25.prev = _context25.next) {
                     case 0:
-                      _context24.prev = 0;
-                      _context24.next = 3;
+                      _context25.prev = 0;
+                      _context25.next = 3;
                       return save_action(header_actions["ACTION.SAVE"][0]);
 
                     case 3:
-                      _context24.next = 8;
+                      _context25.next = 8;
                       break;
 
                     case 5:
-                      _context24.prev = 5;
-                      _context24.t0 = _context24["catch"](0);
-                      console.log(_context24.t0);
+                      _context25.prev = 5;
+                      _context25.t0 = _context25["catch"](0);
+                      console.log(_context25.t0);
 
                     case 8:
                     case "end":
-                      return _context24.stop();
+                      return _context25.stop();
                   }
                 }
-              }, _callee24, null, [[0, 5]]);
+              }, _callee25, null, [[0, 5]]);
             })));
           }
 
@@ -7327,15 +7553,15 @@ var View = /*#__PURE__*/function () {
   }, {
     key: "layoutRefresh",
     value: function () {
-      var _layoutRefresh = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee25() {
+      var _layoutRefresh = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee26() {
         var full,
-            _args25 = arguments;
-        return _regenerator.default.wrap(function _callee25$(_context25) {
+            _args26 = arguments;
+        return _regenerator.default.wrap(function _callee26$(_context26) {
           while (1) {
-            switch (_context25.prev = _context25.next) {
+            switch (_context26.prev = _context26.next) {
               case 0:
-                full = _args25.length > 0 && _args25[0] !== undefined ? _args25[0] : false;
-                _context25.next = 3;
+                full = _args26.length > 0 && _args26[0] !== undefined ? _args26[0] : false;
+                _context26.next = 3;
                 return this.layout.refresh(full);
 
               case 3:
@@ -7345,10 +7571,10 @@ var View = /*#__PURE__*/function () {
 
               case 4:
               case "end":
-                return _context25.stop();
+                return _context26.stop();
             }
           }
-        }, _callee25, this);
+        }, _callee26, this);
       }));
 
       function layoutRefresh() {
@@ -7372,19 +7598,19 @@ var View = /*#__PURE__*/function () {
       });
       var fields = {};
 
-      var _iterator9 = _createForOfIteratorHelper(this.view_schema.layout.items),
-          _step9;
+      var _iterator12 = _createForOfIteratorHelper(this.view_schema.layout.items),
+          _step12;
 
       try {
-        for (_iterator9.s(); !(_step9 = _iterator9.n()).done;) {
-          var item = _step9.value;
+        for (_iterator12.s(); !(_step12 = _iterator12.n()).done;) {
+          var item = _step12.value;
           var label = item.hasOwnProperty('label') ? item.label : item.value;
           fields[item.value] = _equalServices.TranslationService.resolve(this.translation, 'model', [], item.value, label, 'label');
         }
       } catch (err) {
-        _iterator9.e(err);
+        _iterator12.e(err);
       } finally {
-        _iterator9.f();
+        _iterator12.f();
       }
 
       $select_field = _materialLib.UIHelper.createSelect('bulk_assign_select_field', _equalServices.TranslationService.instant('SB_FILTERS_DIALOG_FIELD'), fields, Object.keys(fields)[0]).appendTo($elem); // setup handler for relaying value update to parent layout
@@ -7441,19 +7667,19 @@ var View = /*#__PURE__*/function () {
       $dialog.find('.mdc-dialog__content').append($elem);
       $dialog.on('_accept', function () {
         // assign value to currently selected items
-        var _iterator10 = _createForOfIteratorHelper(_this5.selected_ids),
-            _step10;
+        var _iterator13 = _createForOfIteratorHelper(_this5.selected_ids),
+            _step13;
 
         try {
-          for (_iterator10.s(); !(_step10 = _iterator10.n()).done;) {
-            var object_id = _step10.value;
+          for (_iterator13.s(); !(_step13 = _iterator13.n()).done;) {
+            var object_id = _step13.value;
 
             _this5.$layoutContainer.find('tr[data-id="' + object_id + '"]').trigger('_setValue', [selected_field, selected_value]);
           }
         } catch (err) {
-          _iterator10.e(err);
+          _iterator13.e(err);
         } finally {
-          _iterator10.f();
+          _iterator13.f();
         }
       });
     }
@@ -7474,12 +7700,12 @@ var View = /*#__PURE__*/function () {
       });
       var fields = {};
 
-      var _iterator11 = _createForOfIteratorHelper(this.view_schema.layout.items),
-          _step11;
+      var _iterator14 = _createForOfIteratorHelper(this.view_schema.layout.items),
+          _step14;
 
       try {
-        for (_iterator11.s(); !(_step11 = _iterator11.n()).done;) {
-          var item = _step11.value;
+        for (_iterator14.s(); !(_step14 = _iterator14.n()).done;) {
+          var item = _step14.value;
 
           if (this.model_schema.fields.hasOwnProperty(item.value) && ['integer', 'float', 'boolean', 'string', 'date', 'time', 'datetime', 'many2one'].indexOf(this.model_schema.fields[item.value].type) >= 0) {
             var label = item.hasOwnProperty('label') ? item.label : item.value;
@@ -7487,9 +7713,9 @@ var View = /*#__PURE__*/function () {
           }
         }
       } catch (err) {
-        _iterator11.e(err);
+        _iterator14.e(err);
       } finally {
-        _iterator11.f();
+        _iterator14.f();
       }
 
       $select_field = _materialLib.UIHelper.createSelect(this.uuid + '_custom-filter-select-field', _equalServices.TranslationService.instant('SB_FILTERS_DIALOG_FIELD'), fields, Object.keys(fields)[0]).appendTo($elem); // setup handler for relaying value update to parent layout
@@ -7540,57 +7766,57 @@ var View = /*#__PURE__*/function () {
       $dialog.find('.mdc-dialog__content').append($elem); // init
 
       $select_field.trigger('change');
-      $dialog.on('_accept', function () {
-        var operand = selected_field;
-        var operator = selected_operator;
-        var value = selected_value;
+      $dialog.on('_accept', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee27() {
+        var operand, operator, value, tmpDomain, clause, description, filter, $filters_list;
+        return _regenerator.default.wrap(function _callee27$(_context27) {
+          while (1) {
+            switch (_context27.prev = _context27.next) {
+              case 0:
+                operand = selected_field;
+                operator = selected_operator;
+                value = selected_value;
 
-        var operand_descr = _equalServices.TranslationService.resolve(_this6.translation, 'model', [], selected_field, selected_field, 'label');
+                if (_this6.model_schema.fields[selected_field].type == 'many2one') {
+                  value = selected_value.id;
+                }
 
-        var selected_value_descr = selected_value;
+                if (selected_operator == 'like') {
+                  operator = 'ilike';
+                  value = '%' + value + '%';
+                } else if (selected_operator == 'in' || selected_operator == 'not in') {
+                  value = '[' + value + ']';
+                }
 
-        switch (_this6.model_schema.fields[selected_field].type) {
-          case 'string':
-            selected_value_descr = "'" + selected_value + "'";
-            break;
+                tmpDomain = new _equalLib.Domain([operand, operator, value]);
+                clause = tmpDomain.getClauses()[0];
+                _context27.next = 9;
+                return _this6.translateFilterClause(clause);
 
-          case 'date':
-            selected_value_descr = selected_value.substring(0, 10);
-            break;
+              case 9:
+                description = _context27.sent;
+                filter = {
+                  "id": "custom_filter_" + (Math.random() + 1).toString(36).substring(2, 9),
+                  "label": "custom filter",
+                  "description": description,
+                  "clause": clause.toArray()
+                }; // add filter to View available filters
 
-          case 'many2many':
-          case 'many2one':
-            value = selected_value.id;
-            selected_value_descr = selected_value.name;
-            break;
+                _this6.filters[filter.id] = filter;
+                $filters_list = _this6.$headerContainer.find('#filters-list');
 
-          default:
-        }
+                _materialLib.UIHelper.createListItem(filter.id, filter.description).prependTo($filters_list).on('click', function (event) {
+                  _this6.applyFilter(filter.id);
+                });
 
-        if (selected_operator == 'like') {
-          operator = 'ilike';
-          value = '%' + value + '%';
-        } else if (selected_operator == 'in' || selected_operator == 'not in') {
-          value = '[' + value + ']';
-        }
+                _this6.applyFilter(filter.id);
 
-        var filter = {
-          "id": "custom_filter_" + (Math.random() + 1).toString(36).substring(2, 9),
-          "label": "custom filter",
-          "description": operand_descr + ' ' + selected_operator + ' ' + selected_value_descr,
-          "clause": [operand, operator, value]
-        }; // add filter to View available filters
-
-        _this6.filters[filter.id] = filter;
-
-        var $filters_list = _this6.$headerContainer.find('#filters-list');
-
-        _materialLib.UIHelper.createListItem(filter.id, filter.description).appendTo($filters_list).on('click', function (event) {
-          _this6.applyFilter(filter.id);
-        });
-
-        _this6.applyFilter(filter.id);
-      });
+              case 15:
+              case "end":
+                return _context27.stop();
+            }
+          }
+        }, _callee27);
+      })));
     }
   }, {
     key: "decorateDialogDeletionConfirm",
@@ -7626,30 +7852,53 @@ var View = /*#__PURE__*/function () {
   }, {
     key: "onchangeViewModel",
     value: function () {
-      var _onchangeViewModel = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee26(ids, values) {
+      var _onchangeViewModel = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee28(ids, values) {
         var refresh,
-            _args26 = arguments;
-        return _regenerator.default.wrap(function _callee26$(_context26) {
+            _iterator15,
+            _step15,
+            callback,
+            _args28 = arguments;
+
+        return _regenerator.default.wrap(function _callee28$(_context28) {
           while (1) {
-            switch (_context26.prev = _context26.next) {
+            switch (_context28.prev = _context28.next) {
               case 0:
-                refresh = _args26.length > 2 && _args26[2] !== undefined ? _args26[2] : true;
+                refresh = _args28.length > 2 && _args28[2] !== undefined ? _args28[2] : true;
+                console.log('View::onchangeViewModel', ids, values, refresh);
                 this.model.change(ids, values); // model has changed : forms need to re-check the visibility attributes
 
                 if (!refresh) {
-                  _context26.next = 5;
+                  _context28.next = 8;
                   break;
                 }
 
-                _context26.next = 5;
+                _context28.next = 6;
                 return this.onchangeModel();
 
-              case 5:
+              case 6:
+                // notify subscribers
+                _iterator15 = _createForOfIteratorHelper(this.subscribers['change']);
+
+                try {
+                  for (_iterator15.s(); !(_step15 = _iterator15.n()).done;) {
+                    callback = _step15.value;
+
+                    if ({}.toString.call(callback) === '[object Function]') {
+                      callback();
+                    }
+                  }
+                } catch (err) {
+                  _iterator15.e(err);
+                } finally {
+                  _iterator15.f();
+                }
+
+              case 8:
               case "end":
-                return _context26.stop();
+                return _context28.stop();
             }
           }
-        }, _callee26, this);
+        }, _callee28, this);
       }));
 
       function onchangeViewModel(_x14, _x15) {
@@ -7668,24 +7917,24 @@ var View = /*#__PURE__*/function () {
   }, {
     key: "onchangeModel",
     value: function () {
-      var _onchangeModel = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee27() {
+      var _onchangeModel = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee29() {
         var full,
-            _args27 = arguments;
-        return _regenerator.default.wrap(function _callee27$(_context27) {
+            _args29 = arguments;
+        return _regenerator.default.wrap(function _callee29$(_context29) {
           while (1) {
-            switch (_context27.prev = _context27.next) {
+            switch (_context29.prev = _context29.next) {
               case 0:
-                full = _args27.length > 0 && _args27[0] !== undefined ? _args27[0] : false;
+                full = _args29.length > 0 && _args29[0] !== undefined ? _args29[0] : false;
                 console.log('View::onchangeModel', full);
-                _context27.next = 4;
+                _context29.next = 4;
                 return this.layoutRefresh(full);
 
               case 4:
               case "end":
-                return _context27.stop();
+                return _context29.stop();
             }
           }
-        }, _callee27, this);
+        }, _callee29, this);
       }));
 
       function onchangeModel() {
@@ -7703,14 +7952,14 @@ var View = /*#__PURE__*/function () {
   }, {
     key: "onchangeView",
     value: function () {
-      var _onchangeView = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee28() {
+      var _onchangeView = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee30() {
         var full,
-            _args28 = arguments;
-        return _regenerator.default.wrap(function _callee28$(_context28) {
+            _args30 = arguments;
+        return _regenerator.default.wrap(function _callee30$(_context30) {
           while (1) {
-            switch (_context28.prev = _context28.next) {
+            switch (_context30.prev = _context30.next) {
               case 0:
-                full = _args28.length > 0 && _args28[0] !== undefined ? _args28[0] : false;
+                full = _args30.length > 0 && _args30[0] !== undefined ? _args30[0] : false;
                 console.log('View::onchangeView'); // notify about context update
 
                 this.context.updatedContext(); // reset selection
@@ -7721,15 +7970,15 @@ var View = /*#__PURE__*/function () {
                   this.layout.loading(true);
                 }
 
-                _context28.next = 7;
+                _context30.next = 7;
                 return this.model.refresh(full);
 
               case 7:
               case "end":
-                return _context28.stop();
+                return _context30.stop();
             }
           }
-        }, _callee28, this);
+        }, _callee30, this);
       }));
 
       function onchangeView() {
@@ -7751,6 +8000,41 @@ var View = /*#__PURE__*/function () {
       this.selected_ids = selection;
       this.layoutListRefresh();
     }
+  }, {
+    key: "showFilter",
+    value: function showFilter(filter_id) {
+      var _this7 = this;
+
+      console.log('showFilter', this.filters, this.applied_filters_ids);
+      var filter = this.filters[filter_id];
+      var $filters_set = this.$headerContainer.find('.sb-view-header-list-filters-set'); // make sure not to append a chip for same filter twice
+
+      $filters_set.find('#' + filter_id).remove();
+      $filters_set.append(_materialLib.UIHelper.createChip(filter.description).attr('id', filter_id).on('click', /*#__PURE__*/function () {
+        var _ref16 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee31(event) {
+          var $this;
+          return _regenerator.default.wrap(function _callee31$(_context31) {
+            while (1) {
+              switch (_context31.prev = _context31.next) {
+                case 0:
+                  // unapply filter
+                  $this = (0, _jqueryLib.$)(event.currentTarget);
+                  _context31.next = 3;
+                  return _this7.unapplyFilter($this.attr('id'));
+
+                case 3:
+                case "end":
+                  return _context31.stop();
+              }
+            }
+          }, _callee31);
+        }));
+
+        return function (_x16) {
+          return _ref16.apply(this, arguments);
+        };
+      }()));
+    }
     /**
      * Apply a filter on the current view, and reload the Collection with the new resulting domain.
      *
@@ -7764,55 +8048,25 @@ var View = /*#__PURE__*/function () {
   }, {
     key: "applyFilter",
     value: function () {
-      var _applyFilter = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee30(filter_id) {
-        var _this7 = this;
-
-        var filter, $filters_set;
-        return _regenerator.default.wrap(function _callee30$(_context30) {
+      var _applyFilter = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee32(filter_id) {
+        return _regenerator.default.wrap(function _callee32$(_context32) {
           while (1) {
-            switch (_context30.prev = _context30.next) {
+            switch (_context32.prev = _context32.next) {
               case 0:
-                filter = this.filters[filter_id];
-                $filters_set = this.$headerContainer.find('.sb-view-header-list-filters-set'); // make sure not to append a chip for same filter twice
-
-                $filters_set.find('#' + filter_id).remove();
-                $filters_set.append(_materialLib.UIHelper.createChip(filter.description).attr('id', filter.id).on('click', /*#__PURE__*/function () {
-                  var _ref14 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee29(event) {
-                    var $this;
-                    return _regenerator.default.wrap(function _callee29$(_context29) {
-                      while (1) {
-                        switch (_context29.prev = _context29.next) {
-                          case 0:
-                            // unapply filter
-                            $this = (0, _jqueryLib.$)(event.currentTarget);
-                            _context29.next = 3;
-                            return _this7.unapplyFilter($this.attr('id'));
-
-                          case 3:
-                          case "end":
-                            return _context29.stop();
-                        }
-                      }
-                    }, _callee29);
-                  }));
-
-                  return function (_x17) {
-                    return _ref14.apply(this, arguments);
-                  };
-                }()));
-                this.applied_filters_ids.push(filter.id);
+                this.applied_filters_ids.push(filter_id);
+                this.showFilter(filter_id);
                 this.setStart(0);
                 this.onchangeView();
 
-              case 7:
+              case 4:
               case "end":
-                return _context30.stop();
+                return _context32.stop();
             }
           }
-        }, _callee30, this);
+        }, _callee32, this);
       }));
 
-      function applyFilter(_x16) {
+      function applyFilter(_x17) {
         return _applyFilter.apply(this, arguments);
       }
 
@@ -7821,17 +8075,18 @@ var View = /*#__PURE__*/function () {
   }, {
     key: "unapplyFilter",
     value: function () {
-      var _unapplyFilter = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee31(filter_id) {
+      var _unapplyFilter = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee33(filter_id) {
         var index, $filters_set;
-        return _regenerator.default.wrap(function _callee31$(_context31) {
+        return _regenerator.default.wrap(function _callee33$(_context33) {
           while (1) {
-            switch (_context31.prev = _context31.next) {
+            switch (_context33.prev = _context33.next) {
               case 0:
                 index = this.applied_filters_ids.indexOf(filter_id);
 
                 if (index > -1) {
-                  this.applied_filters_ids.splice(index, 1);
-                  delete this.filters[filter_id];
+                  this.applied_filters_ids.splice(index, 1); // #memo - keep filters to allow re-apply while current view is active
+                  // delete this.filters[filter_id];
+
                   $filters_set = this.$headerContainer.find('.sb-view-header-list-filters-set');
                   $filters_set.find('#' + filter_id).remove();
 
@@ -7846,10 +8101,10 @@ var View = /*#__PURE__*/function () {
 
               case 2:
               case "end":
-                return _context31.stop();
+                return _context33.stop();
             }
           }
-        }, _callee31, this);
+        }, _callee33, this);
       }));
 
       function unapplyFilter(_x18) {
@@ -7861,20 +8116,20 @@ var View = /*#__PURE__*/function () {
   }, {
     key: "actionBulkAssign",
     value: function () {
-      var _actionBulkAssign = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee32(selection) {
-        return _regenerator.default.wrap(function _callee32$(_context32) {
+      var _actionBulkAssign = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee34(selection) {
+        return _regenerator.default.wrap(function _callee34$(_context34) {
           while (1) {
-            switch (_context32.prev = _context32.next) {
+            switch (_context34.prev = _context34.next) {
               case 0:
                 console.log('opening bulk assign dialog');
                 this.$container.find('#' + this.uuid + '_bulk-assign-dialog').trigger('_open');
 
               case 2:
               case "end":
-                return _context32.stop();
+                return _context34.stop();
             }
           }
-        }, _callee32, this);
+        }, _callee34, this);
       }));
 
       function actionBulkAssign(_x19) {
@@ -7886,14 +8141,14 @@ var View = /*#__PURE__*/function () {
   }, {
     key: "actionListInlineEdit",
     value: function () {
-      var _actionListInlineEdit = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee38(selection) {
+      var _actionListInlineEdit = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee40(selection) {
         var _this8 = this;
 
-        var $action_set, $action_set_selected_edit_actions, $button_save, $button_cancel, _iterator14, _step14, _loop8;
+        var $action_set, $action_set_selected_edit_actions, $button_save, $button_cancel, _iterator18, _step18, _loop8;
 
-        return _regenerator.default.wrap(function _callee38$(_context38) {
+        return _regenerator.default.wrap(function _callee40$(_context40) {
           while (1) {
-            switch (_context38.prev = _context38.next) {
+            switch (_context40.prev = _context40.next) {
               case 0:
                 if (selection.length && !this.$container.find('.sb-view-header-list-actions-selected-edit').length) {
                   this.$headerContainer.find('#' + 'SB_ACTION_ITEM-' + 'SB_ACTIONS_BUTTON_INLINE_UPDATE').hide();
@@ -7909,50 +8164,50 @@ var View = /*#__PURE__*/function () {
 
                     var promises = [];
 
-                    var _iterator12 = _createForOfIteratorHelper(selection),
-                        _step12;
+                    var _iterator16 = _createForOfIteratorHelper(selection),
+                        _step16;
 
                     try {
                       var _loop6 = function _loop6() {
-                        var object_id = _step12.value;
+                        var object_id = _step16.value;
                         var promise = new Promise( /*#__PURE__*/function () {
-                          var _ref15 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee34(resolve, reject) {
+                          var _ref17 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee36(resolve, reject) {
                             var object;
-                            return _regenerator.default.wrap(function _callee34$(_context34) {
+                            return _regenerator.default.wrap(function _callee36$(_context36) {
                               while (1) {
-                                switch (_context34.prev = _context34.next) {
+                                switch (_context36.prev = _context36.next) {
                                   case 0:
                                     object = objects.find(function (o) {
                                       return o.id == object_id;
                                     });
 
                                     _this8.$layoutContainer.find('tr[data-id="' + object_id + '"]').each( /*#__PURE__*/function () {
-                                      var _ref16 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee33(i, tr) {
+                                      var _ref18 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee35(i, tr) {
                                         var $tr, response, res;
-                                        return _regenerator.default.wrap(function _callee33$(_context33) {
+                                        return _regenerator.default.wrap(function _callee35$(_context35) {
                                           while (1) {
-                                            switch (_context33.prev = _context33.next) {
+                                            switch (_context35.prev = _context35.next) {
                                               case 0:
                                                 $tr = (0, _jqueryLib.$)(tr);
 
                                                 if (object) {
-                                                  _context33.next = 7;
+                                                  _context35.next = 7;
                                                   break;
                                                 }
 
                                                 $tr.trigger('_toggle_mode', 'view');
                                                 $tr.attr('data-edit', '0');
                                                 resolve(true);
-                                                _context33.next = 29;
+                                                _context35.next = 29;
                                                 break;
 
                                               case 7:
-                                                _context33.prev = 7;
-                                                _context33.next = 10;
+                                                _context35.prev = 7;
+                                                _context35.next = 10;
                                                 return _equalServices.ApiService.update(_this8.entity, [object_id], _this8.model.export(object), false, _this8.getLang());
 
                                               case 10:
-                                                response = _context33.sent;
+                                                response = _context35.sent;
                                                 $tr.trigger('_toggle_mode', 'view');
                                                 $tr.attr('data-edit', '0'); // update the modfied field otherwise a confirmation will be displayed at next update
 
@@ -7961,18 +8216,18 @@ var View = /*#__PURE__*/function () {
                                                 }
 
                                                 resolve(true);
-                                                _context33.next = 29;
+                                                _context35.next = 29;
                                                 break;
 
                                               case 17:
-                                                _context33.prev = 17;
-                                                _context33.t0 = _context33["catch"](7);
-                                                _context33.prev = 19;
-                                                _context33.next = 22;
-                                                return _this8.displayErrorFeedback(_this8.translation, _context33.t0, object, true);
+                                                _context35.prev = 17;
+                                                _context35.t0 = _context35["catch"](7);
+                                                _context35.prev = 19;
+                                                _context35.next = 22;
+                                                return _this8.displayErrorFeedback(_this8.translation, _context35.t0, object, true);
 
                                               case 22:
-                                                res = _context33.sent;
+                                                res = _context35.sent;
 
                                                 if (res === false) {
                                                   reject();
@@ -7980,49 +8235,49 @@ var View = /*#__PURE__*/function () {
                                                   resolve(true);
                                                 }
 
-                                                _context33.next = 29;
+                                                _context35.next = 29;
                                                 break;
 
                                               case 26:
-                                                _context33.prev = 26;
-                                                _context33.t1 = _context33["catch"](19);
+                                                _context35.prev = 26;
+                                                _context35.t1 = _context35["catch"](19);
                                                 reject();
 
                                               case 29:
                                               case "end":
-                                                return _context33.stop();
+                                                return _context35.stop();
                                             }
                                           }
-                                        }, _callee33, null, [[7, 17], [19, 26]]);
+                                        }, _callee35, null, [[7, 17], [19, 26]]);
                                       }));
 
                                       return function (_x23, _x24) {
-                                        return _ref16.apply(this, arguments);
+                                        return _ref18.apply(this, arguments);
                                       };
                                     }());
 
                                   case 2:
                                   case "end":
-                                    return _context34.stop();
+                                    return _context36.stop();
                                 }
                               }
-                            }, _callee34);
+                            }, _callee36);
                           }));
 
                           return function (_x21, _x22) {
-                            return _ref15.apply(this, arguments);
+                            return _ref17.apply(this, arguments);
                           };
                         }());
                         promises.push(promise);
                       };
 
-                      for (_iterator12.s(); !(_step12 = _iterator12.n()).done;) {
+                      for (_iterator16.s(); !(_step16 = _iterator16.n()).done;) {
                         _loop6();
                       }
                     } catch (err) {
-                      _iterator12.e(err);
+                      _iterator16.e(err);
                     } finally {
-                      _iterator12.f();
+                      _iterator16.f();
                     }
 
                     Promise.all(promises).then(function () {
@@ -8037,21 +8292,21 @@ var View = /*#__PURE__*/function () {
                     // restore original values for changed objects
                     var objects = _this8.model.getChanges(selection);
 
-                    var _iterator13 = _createForOfIteratorHelper(objects),
-                        _step13;
+                    var _iterator17 = _createForOfIteratorHelper(objects),
+                        _step17;
 
                     try {
                       var _loop7 = function _loop7() {
-                        var object = _step13.value;
+                        var object = _step17.value;
                         var object_id = object.id;
 
                         _this8.$layoutContainer.find('tr[data-id="' + object_id + '"]').each( /*#__PURE__*/function () {
-                          var _ref18 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee36(i, tr) {
+                          var _ref20 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee38(i, tr) {
                             var $tr, original, _i3, _Object$keys, field;
 
-                            return _regenerator.default.wrap(function _callee36$(_context36) {
+                            return _regenerator.default.wrap(function _callee38$(_context38) {
                               while (1) {
-                                switch (_context36.prev = _context36.next) {
+                                switch (_context38.prev = _context38.next) {
                                   case 0:
                                     $tr = (0, _jqueryLib.$)(tr);
                                     original = $tr.data('original');
@@ -8064,33 +8319,33 @@ var View = /*#__PURE__*/function () {
 
                                   case 3:
                                   case "end":
-                                    return _context36.stop();
+                                    return _context38.stop();
                                 }
                               }
-                            }, _callee36);
+                            }, _callee38);
                           }));
 
                           return function (_x27, _x28) {
-                            return _ref18.apply(this, arguments);
+                            return _ref20.apply(this, arguments);
                           };
                         }());
                       };
 
-                      for (_iterator13.s(); !(_step13 = _iterator13.n()).done;) {
+                      for (_iterator17.s(); !(_step17 = _iterator17.n()).done;) {
                         _loop7();
                       }
                     } catch (err) {
-                      _iterator13.e(err);
+                      _iterator17.e(err);
                     } finally {
-                      _iterator13.f();
+                      _iterator17.f();
                     }
 
                     _this8.$layoutContainer.find('tr.sb-view-layout-list-row').each( /*#__PURE__*/function () {
-                      var _ref17 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee35(i, tr) {
+                      var _ref19 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee37(i, tr) {
                         var $tr;
-                        return _regenerator.default.wrap(function _callee35$(_context35) {
+                        return _regenerator.default.wrap(function _callee37$(_context37) {
                           while (1) {
-                            switch (_context35.prev = _context35.next) {
+                            switch (_context37.prev = _context37.next) {
                               case 0:
                                 $tr = (0, _jqueryLib.$)(tr);
                                 $tr.trigger('_toggle_mode', 'view');
@@ -8098,14 +8353,14 @@ var View = /*#__PURE__*/function () {
 
                               case 3:
                               case "end":
-                                return _context35.stop();
+                                return _context37.stop();
                             }
                           }
-                        }, _callee35);
+                        }, _callee37);
                       }));
 
                       return function (_x25, _x26) {
-                        return _ref17.apply(this, arguments);
+                        return _ref19.apply(this, arguments);
                       };
                     }());
 
@@ -8123,33 +8378,33 @@ var View = /*#__PURE__*/function () {
                   });
                 }
 
-                _iterator14 = _createForOfIteratorHelper(selection);
+                _iterator18 = _createForOfIteratorHelper(selection);
 
                 try {
                   _loop8 = function _loop8() {
-                    var object_id = _step14.value;
+                    var object_id = _step18.value;
 
                     _this8.$layoutContainer.find('tr[data-id="' + object_id + '"]').each( /*#__PURE__*/function () {
-                      var _ref19 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee37(i, tr) {
+                      var _ref21 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee39(i, tr) {
                         var $tr, $td, collection, object;
-                        return _regenerator.default.wrap(function _callee37$(_context37) {
+                        return _regenerator.default.wrap(function _callee39$(_context39) {
                           while (1) {
-                            switch (_context37.prev = _context37.next) {
+                            switch (_context39.prev = _context39.next) {
                               case 0:
                                 $tr = (0, _jqueryLib.$)(tr);
                                 $tr.addClass('sb-widget'); // not already in edit mode
 
                                 if (!($tr.attr('data-edit') != '1')) {
-                                  _context37.next = 11;
+                                  _context39.next = 11;
                                   break;
                                 }
 
                                 $td = $tr.children().first();
-                                _context37.next = 6;
+                                _context39.next = 6;
                                 return _this8.model.get([object_id]);
 
                               case 6:
-                                collection = _context37.sent;
+                                collection = _context39.sent;
                                 object = collection[0]; // save original object in the row
 
                                 $tr.data('original', _this8.deepCopy(object)); // mark row as being edited (prevent click handling)
@@ -8160,33 +8415,33 @@ var View = /*#__PURE__*/function () {
 
                               case 11:
                               case "end":
-                                return _context37.stop();
+                                return _context39.stop();
                             }
                           }
-                        }, _callee37);
+                        }, _callee39);
                       }));
 
                       return function (_x29, _x30) {
-                        return _ref19.apply(this, arguments);
+                        return _ref21.apply(this, arguments);
                       };
                     }());
                   };
 
-                  for (_iterator14.s(); !(_step14 = _iterator14.n()).done;) {
+                  for (_iterator18.s(); !(_step18 = _iterator18.n()).done;) {
                     _loop8();
                   }
                 } catch (err) {
-                  _iterator14.e(err);
+                  _iterator18.e(err);
                 } finally {
-                  _iterator14.f();
+                  _iterator18.f();
                 }
 
               case 3:
               case "end":
-                return _context38.stop();
+                return _context40.stop();
             }
           }
-        }, _callee38, this);
+        }, _callee40, this);
       }));
 
       function actionListInlineEdit(_x20) {
@@ -8210,7 +8465,7 @@ var View = /*#__PURE__*/function () {
   }, {
     key: "displayErrorFeedback",
     value: function () {
-      var _displayErrorFeedback = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee39(translation, response) {
+      var _displayErrorFeedback = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee41(translation, response) {
         var _this9 = this;
 
         var object,
@@ -8239,26 +8494,26 @@ var View = /*#__PURE__*/function () {
             title,
             _msg3,
             _$snack3,
-            _args39 = arguments;
+            _args41 = arguments;
 
-        return _regenerator.default.wrap(function _callee39$(_context39) {
+        return _regenerator.default.wrap(function _callee41$(_context41) {
           while (1) {
-            switch (_context39.prev = _context39.next) {
+            switch (_context41.prev = _context41.next) {
               case 0:
-                object = _args39.length > 2 && _args39[2] !== undefined ? _args39[2] : null;
-                snack = _args39.length > 3 && _args39[3] !== undefined ? _args39[3] : true;
+                object = _args41.length > 2 && _args41[2] !== undefined ? _args41[2] : null;
+                snack = _args41.length > 3 && _args41[3] !== undefined ? _args41[3] : true;
                 console.log('displayErrorFeedback', translation, response, object, snack);
                 delay = 4000;
 
                 if (!(response && response.hasOwnProperty('errors'))) {
-                  _context39.next = 45;
+                  _context41.next = 45;
                   break;
                 }
 
                 errors = response['errors'];
 
                 if (!errors.hasOwnProperty('INVALID_PARAM')) {
-                  _context39.next = 10;
+                  _context41.next = 10;
                   break;
                 }
 
@@ -8325,24 +8580,24 @@ var View = /*#__PURE__*/function () {
                     }
                   }
 
-                _context39.next = 45;
+                _context41.next = 45;
                 break;
 
               case 10:
                 if (!errors.hasOwnProperty('MISSING_PARAM')) {
-                  _context39.next = 16;
+                  _context41.next = 16;
                   break;
                 }
 
                 _msg = _equalServices.TranslationService.instant('SB_ERROR_CONFIG_MISSING_PARAM');
                 _$snack = _materialLib.UIHelper.createSnackbar(_msg + ' \'' + errors['MISSING_PARAM'] + '\'', _equalServices.TranslationService.instant('SB_ERROR_ERROR'), '', delay);
                 this.$container.append(_$snack);
-                _context39.next = 45;
+                _context41.next = 45;
                 break;
 
               case 16:
                 if (!errors.hasOwnProperty('NOT_ALLOWED')) {
-                  _context39.next = 22;
+                  _context41.next = 22;
                   break;
                 }
 
@@ -8370,17 +8625,17 @@ var View = /*#__PURE__*/function () {
                   this.$container.append(_$snack2);
                 }
 
-                _context39.next = 45;
+                _context41.next = 45;
                 break;
 
               case 22:
                 if (!errors.hasOwnProperty('CONFLICT_OBJECT')) {
-                  _context39.next = 45;
+                  _context41.next = 45;
                   break;
                 }
 
                 if (!(typeof errors['CONFLICT_OBJECT'] == 'object')) {
-                  _context39.next = 29;
+                  _context41.next = 29;
                   break;
                 }
 
@@ -8410,37 +8665,37 @@ var View = /*#__PURE__*/function () {
                   _loop10(_field);
                 }
 
-                _context39.next = 45;
+                _context41.next = 45;
                 break;
 
               case 29:
                 if (!(errors['CONFLICT_OBJECT'] == 'concurrent_change')) {
-                  _context39.next = 44;
+                  _context41.next = 44;
                   break;
                 }
 
-                _context39.prev = 30;
-                _context39.next = 33;
+                _context41.prev = 30;
+                _context41.next = 33;
                 return new Promise(function (resolve, reject) {
                   var confirmed = confirm(_equalServices.TranslationService.instant('SB_ACTIONS_MESSAGE_ERASE_CONUCRRENT_CHANGES'));
                   return confirmed ? resolve(true) : reject(false);
                 });
 
               case 33:
-                _context39.next = 35;
+                _context41.next = 35;
                 return _equalServices.ApiService.update(this.entity, [object['id']], this.model.export(object), true, this.getLang());
 
               case 35:
-                _response = _context39.sent;
-                return _context39.abrupt("return", _response);
+                _response = _context41.sent;
+                return _context41.abrupt("return", _response);
 
               case 39:
-                _context39.prev = 39;
-                _context39.t0 = _context39["catch"](30);
-                throw _context39.t0;
+                _context41.prev = 39;
+                _context41.t0 = _context41["catch"](30);
+                throw _context41.t0;
 
               case 42:
-                _context39.next = 45;
+                _context41.next = 45;
                 break;
 
               case 44:
@@ -8453,14 +8708,14 @@ var View = /*#__PURE__*/function () {
                 }
 
               case 45:
-                return _context39.abrupt("return", false);
+                return _context41.abrupt("return", false);
 
               case 46:
               case "end":
-                return _context39.stop();
+                return _context41.stop();
             }
           }
-        }, _callee39, this, [[30, 39]]);
+        }, _callee41, this, [[30, 39]]);
       }));
 
       function displayErrorFeedback(_x31, _x32) {
@@ -8468,6 +8723,193 @@ var View = /*#__PURE__*/function () {
       }
 
       return displayErrorFeedback;
+    }()
+  }, {
+    key: "translateFilterClause",
+    value: function () {
+      var _translateFilterClause = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee42(clause) {
+        var result, _iterator19, _step19, conditionObj, condition, translation, model_fields, operand, operator, value, field, res_operand, res_operator, res_value, type, translated, values, _i5, n, entity, response, _object;
+
+        return _regenerator.default.wrap(function _callee42$(_context42) {
+          while (1) {
+            switch (_context42.prev = _context42.next) {
+              case 0:
+                result = '';
+                console.log('translateFilterClause', clause);
+                _iterator19 = _createForOfIteratorHelper(clause.getConditions());
+                _context42.prev = 3;
+
+                _iterator19.s();
+
+              case 5:
+                if ((_step19 = _iterator19.n()).done) {
+                  _context42.next = 59;
+                  break;
+                }
+
+                conditionObj = _step19.value;
+                condition = conditionObj.toArray();
+
+                if (!(condition.length == 3)) {
+                  _context42.next = 57;
+                  break;
+                }
+
+                translation = this.getTranslation();
+                model_fields = this.getModelFields();
+                operand = condition[0];
+                operator = condition[1];
+                value = condition[2];
+                console.log('#######################', operand, operator, value);
+                field = operand; // assign default resulting values
+
+                res_operand = operand;
+                res_operator = operator;
+                res_value = value;
+                /*
+                    Translate field
+                */
+
+                res_operand = _equalServices.TranslationService.resolve(translation, 'model', [], field, field, 'label');
+                /*
+                    Translate operator
+                */
+
+                _context42.t0 = operator;
+                _context42.next = _context42.t0 === 'like' ? 23 : _context42.t0 === 'in' ? 24 : _context42.t0 === 'is' ? 24 : _context42.t0 === '=' ? 24 : _context42.t0 === 'not in' ? 26 : _context42.t0 === '<>' ? 26 : _context42.t0 === '!=' ? 26 : 28;
+                break;
+
+              case 23:
+                res_value = res_value.replace(/%/g, '');
+
+              case 24:
+                res_operator = '=';
+                return _context42.abrupt("break", 28);
+
+              case 26:
+                res_operator = '<>';
+                return _context42.abrupt("break", 28);
+
+              case 28:
+                if (!model_fields.hasOwnProperty(field)) {
+                  _context42.next = 55;
+                  break;
+                }
+
+                // get field type
+                type = this.model.getFinalType(field); // handle translation by type
+
+                if (!(type == 'string' && model_fields[field].selection)) {
+                  _context42.next = 37;
+                  break;
+                }
+
+                translated = _equalServices.TranslationService.resolve(translation, 'model', [], field, model_fields[field].selection, 'selection'); // assign translation map
+
+                values = translated; // normalize translation map
+
+                if (Array.isArray(translated)) {
+                  values = {};
+
+                  for (_i5 = 0, n = model_fields[field].selection.length; _i5 < n; ++_i5) {
+                    values[model_fields[field].selection[_i5]] = translated[_i5];
+                  }
+                }
+
+                if (values.hasOwnProperty(value)) {
+                  res_value = values[value];
+                }
+
+                _context42.next = 55;
+                break;
+
+              case 37:
+                if (!(['date', 'datetime'].indexOf(type) >= 0)) {
+                  _context42.next = 42;
+                  break;
+                }
+
+                if (value instanceof Date) {
+                  res_value = value.toISOString();
+                }
+
+                res_value = res_value.substring(0, 10);
+                _context42.next = 55;
+                break;
+
+              case 42:
+                if (!(type == 'many2one')) {
+                  _context42.next = 55;
+                  break;
+                }
+
+                if (!model_fields[field].hasOwnProperty('foreign_object')) {
+                  _context42.next = 55;
+                  break;
+                }
+
+                entity = model_fields[field].foreign_object; // value should be an ID
+                // read name field of targeted entity
+
+                _context42.prev = 45;
+                _context42.next = 48;
+                return _equalServices.ApiService.read(entity, [value], ['name'], this.getLang());
+
+              case 48:
+                response = _context42.sent;
+                _object = response[0];
+                res_value = _object['name'];
+                _context42.next = 55;
+                break;
+
+              case 53:
+                _context42.prev = 53;
+                _context42.t1 = _context42["catch"](45);
+
+              case 55:
+                if (result.length) {
+                  result = result + ' & ';
+                }
+
+                result = res_operand + ' ' + res_operator + ' ' + res_value;
+
+              case 57:
+                _context42.next = 5;
+                break;
+
+              case 59:
+                _context42.next = 64;
+                break;
+
+              case 61:
+                _context42.prev = 61;
+                _context42.t2 = _context42["catch"](3);
+
+                _iterator19.e(_context42.t2);
+
+              case 64:
+                _context42.prev = 64;
+
+                _iterator19.f();
+
+                return _context42.finish(64);
+
+              case 67:
+                return _context42.abrupt("return", result);
+
+              case 68:
+              case "end":
+                return _context42.stop();
+            }
+          }
+        }, _callee42, this, [[3, 61, 64, 67], [45, 53]]);
+      }));
+
+      function translateFilterClause(_x33) {
+        return _translateFilterClause.apply(this, arguments);
+      }
+
+      return translateFilterClause;
     }()
   }]);
   return View;
@@ -9480,25 +9922,29 @@ var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_
 
             year--; //last year of the previous decade
 
-            for (var i = 1; i <= 12; i++) {
-              unselectable = minYear !== 'undefined' && year < minYear || maxYear !== 'undefined' && year > maxYear; //html += '<span class="year'+(i == -1 || i == 10 ? ' old' : '')+(currentYear == year ? ' active' : '')+'">'+year+'</span>';
+            try {
+              for (var i = 1; i <= 12; i++) {
+                var unselectable = minYear && year < minYear || maxYear && year > maxYear; //html += '<span class="year'+(i == -1 || i == 10 ? ' old' : '')+(currentYear == year ? ' active' : '')+'">'+year+'</span>';
 
-              yearPicker += '<td class="' + (unselectable ? ' ' + this._unselectableClass + ' ui-state-disabled' : '') + ( // highlight unselectable months
-              !unselectable && (i == 1 || i == 12) ? ' outoffocus' : '') + (year == drawYear ? ' ui-datepicker-today' : '') + '"' + (unselectable ? '' : ' onclick="$.datepicker._pickMonthYear_MonthYearPicker(\'#' + inst.id + '\', ' + year + ', \'Y\');return false;"') + '>' + ( // actions
-              unselectable ? '<span class="ui-state-default">' + year + '</span>' : '<a class="ui-state-default ' + ( //(month == drawMonth ? ' ui-state-highlight' : '') +
-              year == drawYear ? ' ui-state-active' : '') + // highlight selected day
-              //(otherMonth ? ' ui-priority-secondary' : '') + // distinguish dates from other months
-              '" href="#">' + year + '</a>') + '</td>'; // display selectable date
+                yearPicker += '<td class="' + (unselectable ? ' ' + this._unselectableClass + ' ui-state-disabled' : '') + ( // highlight unselectable months
+                !unselectable && (i == 1 || i == 12) ? ' outoffocus' : '') + (year == drawYear ? ' ui-datepicker-today' : '') + '"' + (unselectable ? '' : ' onclick="$.datepicker._pickMonthYear_MonthYearPicker(\'#' + inst.id + '\', ' + year + ', \'Y\');return false;"') + '>' + ( // actions
+                unselectable ? '<span class="ui-state-default">' + year + '</span>' : '<a class="ui-state-default ' + ( //(month == drawMonth ? ' ui-state-highlight' : '') +
+                year == drawYear ? ' ui-state-active' : '') + // highlight selected day
+                //(otherMonth ? ' ui-priority-secondary' : '') + // distinguish dates from other months
+                '" href="#">' + year + '</a>') + '</td>'; // display selectable date
 
-              if (i % 4 == 0) {
-                yearPicker += '</tr>';
+                if (i % 4 == 0) {
+                  yearPicker += '</tr>';
 
-                if (i != 12) {
-                  yearPicker += '<tr>';
+                  if (i != 12) {
+                    yearPicker += '<tr>';
+                  }
                 }
-              }
 
-              year++;
+                year++;
+              }
+            } catch (error) {
+              console.log(error);
             }
 
             yearPicker += '</tbody></table>';
@@ -9634,9 +10080,11 @@ var Layout = /*#__PURE__*/function () {
    */
   function Layout(view) {
     (0, _classCallCheck2.default)(this, Layout);
+    (0, _defineProperty2.default)(this, "uuid", void 0);
     (0, _defineProperty2.default)(this, "view", void 0);
     (0, _defineProperty2.default)(this, "$layout", void 0);
     (0, _defineProperty2.default)(this, "model_widgets", void 0);
+    this.uuid = _materialLib.UIHelper.getUUID();
     this.view = view;
     this.$layout = (0, _jqueryLib.$)('<div />').addClass('sb-layout');
     this.model_widgets = {};
@@ -9865,6 +10313,7 @@ var Layout = /*#__PURE__*/function () {
                     while (1) {
                       switch (_context2.prev = _context2.next) {
                         case 0:
+                          _context2.prev = 0;
                           console.log("click action button ", object); // mark action button as loading
 
                           $button.addClass('mdc-button--spinner').attr('disabled', 'disabled');
@@ -9888,13 +10337,13 @@ var Layout = /*#__PURE__*/function () {
                           } // 2) retrieve announcement from the target action controller
 
 
-                          _context2.next = 10;
+                          _context2.next = 11;
                           return _equalServices.ApiService.fetch("/", {
                             do: action.controller,
                             announce: true
                           });
 
-                        case 10:
+                        case 11:
                           result = _context2.sent;
                           params = {};
                           response_descr = {};
@@ -9923,10 +10372,10 @@ var Layout = /*#__PURE__*/function () {
                           } // 3) retrieve translation related to action, if any
 
 
-                          _context2.next = 17;
+                          _context2.next = 18;
                           return _equalServices.ApiService.getTranslation(action.controller.replaceAll('_', '\\'), _this3.view.getLocale());
 
-                        case 17:
+                        case 18:
                           translation = _context2.sent;
                           // restore action button
                           $button.removeClass('mdc-button--spinner').removeAttr('disabled'); // check presence of description and fallback to controller description
@@ -9948,21 +10397,21 @@ var Layout = /*#__PURE__*/function () {
                           $description = (0, _jqueryLib.$)('<p />').text(description);
 
                           if (!(action.hasOwnProperty('confirm') && action.confirm)) {
-                            _context2.next = 42;
+                            _context2.next = 43;
                             break;
                           }
 
                           if (!Object.keys(missing_params).length) {
-                            _context2.next = 35;
+                            _context2.next = 36;
                             break;
                           }
 
                           $dialog = _materialLib.UIHelper.createDialog(_this3.view.getUUID() + '_' + action.id + '_custom_action_dialog', _equalServices.TranslationService.instant('SB_ACTIONS_PROVIDE_PARAMS'), _equalServices.TranslationService.instant('SB_DIALOG_SEND'), _equalServices.TranslationService.instant('SB_DIALOG_CANCEL'));
                           $dialog.find('.mdc-dialog__content').append($description);
-                          _context2.next = 30;
+                          _context2.next = 31;
                           return _this3.decorateViewActionDialog($dialog, action, missing_params);
 
-                        case 30:
+                        case 31:
                           $dialog.addClass('sb-view-dialog').appendTo(_this3.view.getContainer());
                           $dialog.on('_accept', function () {
                             return defer.resolve($dialog.data('result'));
@@ -9970,10 +10419,10 @@ var Layout = /*#__PURE__*/function () {
                             return defer.reject();
                           });
                           $dialog.trigger('_open');
-                          _context2.next = 40;
+                          _context2.next = 41;
                           break;
 
-                        case 35:
+                        case 36:
                           // display confirmation dialog with checkbox for archive
                           _$dialog = _materialLib.UIHelper.createDialog(_this3.view.getUUID() + '_' + action.id + '_confirm-action-dialog', _equalServices.TranslationService.instant('SB_ACTIONS_CONFIRM'), _equalServices.TranslationService.instant('SB_DIALOG_ACCEPT'), _equalServices.TranslationService.instant('SB_DIALOG_CANCEL'));
 
@@ -9989,13 +10438,13 @@ var Layout = /*#__PURE__*/function () {
 
                           _$dialog.trigger('_open');
 
-                        case 40:
-                          _context2.next = 53;
+                        case 41:
+                          _context2.next = 54;
                           break;
 
-                        case 42:
+                        case 43:
                           if (!Object.keys(missing_params).length) {
-                            _context2.next = 52;
+                            _context2.next = 53;
                             break;
                           }
 
@@ -10003,10 +10452,10 @@ var Layout = /*#__PURE__*/function () {
 
                           _$dialog2.find('.mdc-dialog__content').append($description);
 
-                          _context2.next = 47;
+                          _context2.next = 48;
                           return _this3.decorateViewActionDialog(_$dialog2, action, missing_params);
 
-                        case 47:
+                        case 48:
                           _$dialog2.addClass('sb-view-dialog').appendTo(_this3.view.getContainer());
 
                           _$dialog2.on('_accept', function () {
@@ -10017,13 +10466,13 @@ var Layout = /*#__PURE__*/function () {
 
                           _$dialog2.trigger('_open');
 
-                          _context2.next = 53;
+                          _context2.next = 54;
                           break;
 
-                        case 52:
+                        case 53:
                           defer.resolve();
 
-                        case 53:
+                        case 54:
                           defer.promise().then( /*#__PURE__*/function () {
                             var _ref2 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee(result) {
                               return _regenerator.default.wrap(function _callee$(_context) {
@@ -10051,13 +10500,24 @@ var Layout = /*#__PURE__*/function () {
                               return _ref2.apply(this, arguments);
                             };
                           }());
+                          _context2.next = 63;
+                          break;
 
-                        case 54:
+                        case 57:
+                          _context2.prev = 57;
+                          _context2.t0 = _context2["catch"](0);
+                          console.log('unknown error', _context2.t0); // restore action button
+
+                          $button.removeClass('mdc-button--spinner').removeAttr('disabled');
+                          _context2.next = 63;
+                          return _this3.view.displayErrorFeedback(_this3.view.getTranslation(), _context2.t0);
+
+                        case 63:
                         case "end":
                           return _context2.stop();
                       }
                     }
-                  }, _callee2);
+                  }, _callee2, null, [[0, 57]]);
                 })));
 
               case 2:
@@ -10199,20 +10659,21 @@ var Layout = /*#__PURE__*/function () {
                 return this.view.onchangeView();
 
               case 11:
-                _context5.next = 19;
+                _context5.next = 20;
                 break;
 
               case 13:
                 _context5.prev = 13;
                 _context5.t0 = _context5["catch"](2);
-                _context5.next = 17;
+                console.log('################# error', _context5.t0);
+                _context5.next = 18;
                 return this.view.updatedContext();
 
-              case 17:
-                _context5.next = 19;
+              case 18:
+                _context5.next = 20;
                 return this.view.displayErrorFeedback(translation, _context5.t0);
 
-              case 19:
+              case 20:
               case "end":
                 return _context5.stop();
             }
@@ -10400,7 +10861,8 @@ var LayoutChart = /*#__PURE__*/function (_Layout) {
                   range_interval: 'month',
                   range_from: 'date.this.year.first',
                   range_to: 'date.this.year.last'
-                }, layout);
+                }, layout); // parse schema to get the operations (datasets), relative dates : range_from, range_to
+
                 parsed_datasets = layout.datasets.map(function (a, index) {
                   var dataset = _objectSpread({
                     label: 'label',
@@ -10417,13 +10879,10 @@ var LayoutChart = /*#__PURE__*/function (_Layout) {
 
                   return dataset;
                 });
-                /*
-                // parse schema to get the operations (datasets), relative dates : range_from, range_tp
-                */
-
                 $elem = (0, _jqueryLib.$)('<canvas/>').css({
                   "width": "100%",
-                  "height": "100%"
+                  "height": "calc(100% - 20px)",
+                  "margin-top": "20px"
                 });
                 this.$layout.append($elem);
                 _context3.next = 9;
@@ -11334,19 +11793,24 @@ var LayoutForm = /*#__PURE__*/function (_Layout) {
                             console.log("Layout::feedForm : received _updatedWidget", field, widget.getValue(), refresh); // update object with new value
 
                             values = {};
-                            values[field] = widget.getValue(); // relay the change to back-end through onupdate
+                            values[field] = widget.getValue(); // if value is less than 1k, relay onchange to server
+                            // #todo - choose an objective limit
 
-                            _context3.prev = 4;
-                            _context3.next = 7;
-                            return _equalServices.ApiService.fetch("/", {
-                              do: 'model_onchange',
+                            if (!(String(widget.getValue()).length < 1000)) {
+                              _context3.next = 15;
+                              break;
+                            }
+
+                            _context3.prev = 5;
+                            _context3.next = 8;
+                            return _equalServices.ApiService.call("/?do=model_onchange", {
                               entity: _this2.view.getEntity(),
                               changes: _this2.view.getModel().export(values),
                               values: _this2.view.getModel().export(object),
                               lang: _this2.view.getLang()
                             });
 
-                          case 7:
+                          case 8:
                             result = _context3.sent;
 
                             for (_i3 = 0, _Object$keys2 = Object.keys(result); _i3 < _Object$keys2.length; _i3++) {
@@ -11355,24 +11819,24 @@ var LayoutForm = /*#__PURE__*/function (_Layout) {
                               values[_field] = result[_field];
                             }
 
-                            _context3.next = 14;
+                            _context3.next = 15;
                             break;
 
-                          case 11:
-                            _context3.prev = 11;
-                            _context3.t0 = _context3["catch"](4);
+                          case 12:
+                            _context3.prev = 12;
+                            _context3.t0 = _context3["catch"](5);
                             // ignore faulty responses
                             console.warn('unable to send onupdate request', _context3.t0);
 
-                          case 14:
+                          case 15:
                             _this2.view.onchangeViewModel([object.id], values, refresh);
 
-                          case 15:
+                          case 16:
                           case "end":
                             return _context3.stop();
                         }
                       }
-                    }, _callee3, null, [[4, 11]]);
+                    }, _callee3, null, [[5, 12]]);
                   }));
 
                   return function (_x) {
@@ -12658,7 +13122,7 @@ var LayoutSearch = /*#__PURE__*/function (_Layout) {
                       widget.setMode(_this.view.getMode()); // store widget in widgets Map, using field name as key
 
                       _this.model_widgets[0][item.value] = widget;
-                      $cell.append(widget.render());
+                      $cell.append(widget.attach());
                     }
                   } else if (item.type == 'label') {
                     var label_title = _equalServices.TranslationService.resolve(translation, 'view', [_this.view.getId(), 'layout'], item.id, item.value);
@@ -12858,9 +13322,9 @@ var LayoutSearch = /*#__PURE__*/function (_Layout) {
                             console.log("Layout::feedForm : received _updatedWidget", field, widget.getValue(), refresh); // update object with new value
 
                             values = {};
-                            values[field] = widget.getValue();
+                            values[field] = widget.getValue(); // update model without refreshing the view
 
-                            _this2.view.onchangeViewModel([object.id], values, refresh);
+                            _this2.view.onchangeViewModel([object.id], values, true);
 
                           case 5:
                           case "end":
@@ -13563,32 +14027,41 @@ var UIHelper = /*#__PURE__*/function () {
     key: "decorateMenu",
     value: function decorateMenu($elem) {
       if (!$elem.length) return;
-      var fields_toggle_menu = new _menu.MDCMenu($elem[0]);
-      fields_toggle_menu.setDefaultFocusState(0);
+      var fields_toggle_menu = new _menu.MDCMenu($elem[0]); // prevent menu from getting the focus
+
+      fields_toggle_menu.setDefaultFocusState(_menu.DefaultFocusState.NONE);
       $elem.on('_toggle', function () {
         fields_toggle_menu.open = !$elem.hasClass('mdc-menu-surface--open');
       });
       $elem.on('_open', function (event) {
+        console.log('MDCMenu _open');
         event.stopPropagation();
 
         if (!fields_toggle_menu.open) {
-          fields_toggle_menu.selectedIndex = 0;
-          fields_toggle_menu.open = true; // force preventing tab capture
+          fields_toggle_menu.open = true;
+          fields_toggle_menu.selectedIndex = 0; // prevent tab capture
 
           $elem.find('.mdc-list-item').attr('tabindex', -1);
         }
       });
       $elem.on('_close', function (event) {
+        console.log('MDCMenu _close');
         event.stopPropagation();
         fields_toggle_menu.open = false;
       });
-      $elem.on('_moveup', function () {
+      $elem.on('_moveup', function (event) {
+        event.stopPropagation();
         var index = fields_toggle_menu.selectedIndex;
-        fields_toggle_menu.selectedIndex = index > 0 ? index - 1 : 0;
+        fields_toggle_menu.selectedIndex = index > 0 ? index - 1 : 0; // prevent tab capture
+
+        $elem.find('.mdc-list-item').attr('tabindex', -1);
       });
-      $elem.on('_movedown', function () {
+      $elem.on('_movedown', function (event) {
+        event.stopPropagation();
         var index = fields_toggle_menu.selectedIndex;
-        fields_toggle_menu.selectedIndex = index + 1;
+        fields_toggle_menu.selectedIndex = index + 1; // prevent tab capture
+
+        $elem.find('.mdc-list-item').attr('tabindex', -1);
       });
       $elem.on('_select', function (event) {
         event.stopPropagation();
@@ -14141,7 +14614,7 @@ var WidgetDate = /*#__PURE__*/function (_Widget) {
       switch (this.mode) {
         case 'edit':
           value = (0, _moment.default)(date).format('L');
-          this.$elem = _materialLib.UIHelper.createInput('', this.label, value, this.config.description, 'calendar_today', this.readonly);
+          this.$elem = _materialLib.UIHelper.createInput('date_' + this.id, this.label, value, this.config.description, 'calendar_today', this.readonly);
 
           if (this.config.layout == 'list') {
             this.$elem.css({
@@ -14263,7 +14736,7 @@ var WidgetDateTime = /*#__PURE__*/function (_Widget) {
           var format = _moment.default.localeData().longDateFormat('L') + ' ' + _moment.default.localeData().longDateFormat('LT');
 
           value = (0, _moment.default)(date).format(format);
-          this.$elem = _materialLib.UIHelper.createInput('', this.label, value, this.config.description, 'calendar_today', this.readonly); // setup handler for relaying value update to parent layout
+          this.$elem = _materialLib.UIHelper.createInput('date_' + this.id, this.label, value, this.config.description, 'calendar_today', this.readonly); // setup handler for relaying value update to parent layout
 
           if (this.config.layout == 'list') {
             this.$elem.css({
@@ -14564,7 +15037,6 @@ var WidgetFloat = /*#__PURE__*/function (_WidgetString) {
   (0, _createClass2.default)(WidgetFloat, [{
     key: "setValue",
     value: function setValue(value) {
-      console.log('WidgetFloat::setValue', value);
       this.value = Number.parseFloat(value);
       return this;
     }
@@ -14931,7 +15403,6 @@ var WidgetLabel = /*#__PURE__*/function (_Widget) {
   (0, _createClass2.default)(WidgetLabel, [{
     key: "render",
     value: function render() {
-      console.log('################################ rendering label', this);
       var value = typeof this.value != undefined && this.value != undefined ? this.value : '';
 
       if (typeof value == 'string') {
@@ -15686,17 +16157,15 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
                       return _context3.abrupt("return");
 
                     case 3:
+                      console.log('feedobjects');
                       val = $input.val();
                       parts = val.split(" ");
 
-                      if (!(val == query && objects.length)) {
-                        _context3.next = 7;
+                      if (!(val != query || !objects.length)) {
+                        _context3.next = 30;
                         break;
                       }
 
-                      return _context3.abrupt("return");
-
-                    case 7:
                       query = val;
                       domainArray = [];
                       _iterator = _createForOfIteratorHelper(parts);
@@ -15771,7 +16240,8 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
                       console.log('request failed', _context3.t0);
 
                     case 30:
-                      ;
+                      // make the menu sync with its parent width (menu is 'fixed')
+                      $select.find('.mdc-menu-surface').width($select.width());
 
                     case 31:
                     case "end":
@@ -15808,63 +16278,101 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
               });
             }
 
-            $button_reset.on('click', function () {
+            var has_focus = false;
+            var dblclick_timeout = false;
+            $button_reset.on('click', function (event) {
+              console.log('button reset onclick');
               _this.value = {
                 id: 0,
                 name: ''
               };
               $select.attr('data-selected', 0);
 
-              _this.$elem.trigger('_updatedWidget'); // give back the focus to the input after refreshing the view
+              _this.$elem.trigger('_updatedWidget'); // if keyboard, give back the focus to the input after refreshing the view (other object, same ID)
 
 
-              setTimeout(function () {
-                $('#m2o-input-' + _this.id).trigger('click');
-              }, 500);
-            });
-            $select.on('click', function () {
-              if (!$select.find('input').is(":focus")) {
-                $select.find('input').trigger('focus');
+              if (event.screenX == 0 && event.screenY == 0) {
+                setTimeout(function () {
+                  $('#m2o-input-' + _this.id).find('input').trigger('focus');
+                  $('#m2o-input-' + _this.id).trigger('click');
+                }, 500);
               }
             });
-            $select.find('input').on('blur', function () {
-              // wait for the focus be given at next widget AND change to be relayed, if any
+            $select.find('input').on('blur', function (event) {
+              event.stopPropagation();
+
+              if (dblclick_timeout) {
+                return;
+              }
+
+              if (!has_focus) {
+                return;
+              } // wait for the focus be given at next widget AND change to be relayed, if any
+
+
               setTimeout(function () {
+                has_focus = false;
+                console.log('closing menu');
                 $menu.trigger('_close');
-              }, 100);
+              }, 150);
             });
-            $select.find('input').on('focus', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
-              return _regenerator.default.wrap(function _callee4$(_context4) {
-                while (1) {
-                  switch (_context4.prev = _context4.next) {
-                    case 0:
-                      if (!$select.attr('data-selected')) {
-                        _context4.next = 2;
-                        break;
-                      }
+            $select.on('click', function (event) {
+              event.stopPropagation();
 
-                      return _context4.abrupt("return");
+              if (dblclick_timeout) {
+                return;
+              }
 
-                    case 2:
-                      _context4.next = 4;
-                      return feedObjects();
+              console.log('widget on click', has_focus); // click on a focused input blurs (workaround for disapearing menu)
 
-                    case 4:
-                      // make the menu sync with its parent width (menu is 'fixed')
-                      $select.find('.mdc-menu-surface').width($select.width());
-                      $menu.trigger('_open');
-
-                    case 6:
-                    case "end":
-                      return _context4.stop();
-                  }
+              if (has_focus) {
+                has_focus = false;
+                dblclick_timeout = true;
+                console.log('bluring');
+                $select.find('input').blur();
+                setTimeout(function () {
+                  dblclick_timeout = false; // $menu.trigger('_close');
+                }, 500);
+              } else {
+                if (!value.length) {
+                  $menu.trigger('_open');
                 }
-              }, _callee4);
-            })));
+              }
+            });
+            $select.find('input').on('focus', function (event) {
+              event.stopPropagation();
+              console.log('input focus');
+
+              if ($select.attr('data-selected')) {
+                return;
+              }
+
+              if (dblclick_timeout) {
+                $select.find('input').blur();
+                return;
+              }
+
+              if (has_focus) {
+                return;
+              }
+
+              has_focus = false;
+              feedObjects(); // delay has_focus to distinguish first focus and later
+
+              setTimeout(function () {
+                console.log('has focus');
+                has_focus = true;
+              }, 250);
+            });
             var timeout = null;
             $select.find('input').on('keyup', function (event) {
+              console.log('input on keyup');
+
               if (event.which == 9) {
-                // prevent double handling tab
+                console.log('tab', _this.getLabel()); // if clicked ok, if tab only not
+
+                $select.trigger('click'); // prevent double handling tab
+
                 return;
               } else if (event.which == 13) {
                 // enter
@@ -15936,10 +16444,10 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
               this.$elem.append($input);
               this.$elem.append($button_open); // open targeted object in new context
 
-              $button_open.on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5() {
-                return _regenerator.default.wrap(function _callee5$(_context5) {
+              $button_open.on('click', /*#__PURE__*/(0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee4() {
+                return _regenerator.default.wrap(function _callee4$(_context4) {
                   while (1) {
-                    switch (_context5.prev = _context5.next) {
+                    switch (_context4.prev = _context4.next) {
                       case 0:
                         if (_this.config.hasOwnProperty('object_id') && _this.config.object_id && _this.config.object_id > 0) {
                           _this.getLayout().openContext({
@@ -15952,10 +16460,10 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
 
                       case 1:
                       case "end":
-                        return _context5.stop();
+                        return _context4.stop();
                     }
                   }
-                }, _callee5);
+                }, _callee4);
               })));
               break;
 
@@ -15967,10 +16475,10 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
               } else {
                 // open targeted object in new context
                 $input.on('click', /*#__PURE__*/function () {
-                  var _ref6 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee6(event) {
-                    return _regenerator.default.wrap(function _callee6$(_context6) {
+                  var _ref5 = (0, _asyncToGenerator2.default)( /*#__PURE__*/_regenerator.default.mark(function _callee5(event) {
+                    return _regenerator.default.wrap(function _callee5$(_context5) {
                       while (1) {
-                        switch (_context6.prev = _context6.next) {
+                        switch (_context5.prev = _context5.next) {
                           case 0:
                             _this.getLayout().openContext({
                               entity: _this.config.foreign_object,
@@ -15983,14 +16491,14 @@ var WidgetMany2One = /*#__PURE__*/function (_Widget) {
 
                           case 2:
                           case "end":
-                            return _context6.stop();
+                            return _context5.stop();
                         }
                       }
-                    }, _callee6);
+                    }, _callee5);
                   }));
 
                   return function (_x) {
-                    return _ref6.apply(this, arguments);
+                    return _ref5.apply(this, arguments);
                   };
                 }());
               }
@@ -16238,13 +16746,23 @@ var WidgetString = /*#__PURE__*/function (_Widget) {
           } // setup handler for relaying value update to parent layout
 
 
-          this.$elem.find('input').on('change', function (event) {
+          var timeout;
+          this.$elem.find('input').on('keyup', function (event) {
+            if (event.which == 9) {
+              // prevent double handling tab
+              return;
+            }
+
+            if (timeout) {
+              clearTimeout(timeout);
+            }
+
             var $this = $(event.currentTarget);
             _this.value = $this.val();
+            timeout = setTimeout(function () {
+              _this.$elem.trigger('_updatedWidget', [false]); // we set timeout to 1s because there is no hurry here and we want to minimize requests
 
-            if (_this.value != value) {
-              _this.$elem.trigger('_updatedWidget', [false]);
-            }
+            }, 1000);
           });
           break;
 

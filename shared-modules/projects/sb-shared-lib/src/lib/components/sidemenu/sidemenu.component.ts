@@ -137,16 +137,37 @@ export class AppSideMenuComponent implements OnInit {
 
                     // id in domain prevails over route
                     if (descriptor.context.hasOwnProperty('domain')) {
-                        // domain is expected to be single ID filter (ex. ['id', '=', 3])
+                        // domain is expected to hold a single ID condition (ex. ['id', '=', 3])
                         let domain: any[] = [];
                         if(Array.isArray(descriptor.context.domain) && descriptor.context.domain.length) {
-                            // make sure we deal with an array of arrays (list of clauses)
-                            if(!Array.isArray(descriptor.context.domain[0])) {
-                                domain.push(descriptor.context.domain);
-                            }
-                            for(let clause of domain) {
-                                if(clause[0] == 'id') {
-                                    let candidate = parseInt(clause[2], 10);
+
+                            // 1) linearize domain
+                            for(let item of descriptor.context.domain) {
+                                if(Array.isArray(item)) {
+                                    for(let subitem of item) {
+                                        if(Array.isArray(subitem)) {
+                                            domain.push([...subitem]);
+                                        }
+                                        else {
+                                            if(item.length == 3) {
+                                                domain.push([...item]);
+                                            }
+                                            break;
+                                        }
+                                    }
+                                }
+                                else {
+                                    if(descriptor.context.domain.length == 3) {
+                                        domain.push([...descriptor.context.domain]);
+                                    }
+                                    break;
+                                }
+                            }                            
+
+                            // 2) look for an object ID
+                            for(let condition of domain) {                                                            
+                                if(condition[0] == 'id') {
+                                    let candidate = parseInt(condition[2], 10);
                                     if (!isNaN(candidate)) {
                                         object_id = candidate;
                                     }
@@ -228,9 +249,11 @@ export class AppSideMenuComponent implements OnInit {
                                 if (route.hasOwnProperty('route')) {
                                     const parts = route.route.split('/');
                                     for (let part of parts) {
-                                        let object_field = part.replace('object.', '');
-                                        if (object_field.length && !object_fields.includes(object_field)) {
-                                            object_fields.push(object_field);
+                                        if(part.indexOf('object.') >= 0) {
+                                            let object_field = part.replace('object.', '');
+                                            if (object_field.length && !object_fields.includes(object_field)) {
+                                                object_fields.push(object_field);
+                                            }
                                         }
                                     }
                                 }

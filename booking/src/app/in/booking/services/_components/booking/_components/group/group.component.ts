@@ -8,14 +8,23 @@ import { BookingLine } from '../../_models/booking_line.model';
 import { Booking } from '../../_models/booking.model';
 
 import { BookingServicesBookingGroupLineComponent } from './_components/line/line.component';
+import { BookingServicesBookingGroupAccomodationComponent } from './_components/accomodation/accomodation.component';
+import { BookingServicesBookingGroupMealPrefComponent } from './_components/mealpref/mealpref.component';
+import { BookingServicesBookingGroupAgeRangeComponent } from './_components/agerange/agerange.component';
+
 import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 import { Observable, ReplaySubject } from 'rxjs';
 import { debounceTime, map, mergeMap } from 'rxjs/operators';
+import { BookingMealPref } from '../../_models/booking_mealpref.model';
+import { BookingAgeRangeAssignment } from '../../_models/booking_agerange_assignment.model';
 
 
 // declaration of the interface for the map associating relational Model fields with their components
 interface BookingLineGroupComponentsMap {
     booking_lines_ids: QueryList<BookingServicesBookingGroupLineComponent>
+    accomodations_ids: QueryList<BookingServicesBookingGroupAccomodationComponent>,
+    meal_preferences_ids: QueryList<BookingServicesBookingGroupMealPrefComponent>,
+    age_ranges_ids: QueryList<BookingServicesBookingGroupAgeRangeComponent>
 };
 
 
@@ -35,7 +44,18 @@ interface vmModel {
         end: {
             formControl: FormControl
         },
+        single: {
+            formControl: FormControl
+        },
         nights_count: number
+    },
+    timerange: {
+        checkin: {
+            formControl: FormControl
+        },
+        checkout: {
+            formControl: FormControl
+        }
     },
     participants_count: {
         formControl: FormControl
@@ -83,6 +103,9 @@ export class BookingServicesBookingGroupComponent extends TreeComponent<BookingL
     public folded:boolean = true;
 
     @ViewChildren(BookingServicesBookingGroupLineComponent) BookingServicesBookingLineComponents: QueryList<BookingServicesBookingGroupLineComponent>;
+    @ViewChildren(BookingServicesBookingGroupAccomodationComponent) BookingServicesBookingGroupAccomodationComponents: QueryList<BookingServicesBookingGroupAccomodationComponent>;
+    @ViewChildren(BookingServicesBookingGroupMealPrefComponent) BookingServicesBookingGroupMealPrefComponents: QueryList<BookingServicesBookingGroupMealPrefComponent>;
+    @ViewChildren(BookingServicesBookingGroupAgeRangeComponent) BookingServicesBookingGroupAgeRangeComponents: QueryList<BookingServicesBookingGroupAgeRangeComponent>;
 
     public ready: boolean = false;
 
@@ -111,7 +134,18 @@ export class BookingServicesBookingGroupComponent extends TreeComponent<BookingL
                 end: {
                     formControl: new FormControl()
                 },
+                single: {
+                    formControl: new FormControl()
+                },
                 nights_count: 0
+            },
+            timerange: {
+                checkin: {
+                    formControl: new FormControl()
+                },
+                checkout: {
+                    formControl: new FormControl()
+                }
             },
             participants_count: {
                 formControl: new FormControl('', Validators.required)
@@ -149,7 +183,10 @@ export class BookingServicesBookingGroupComponent extends TreeComponent<BookingL
     public ngAfterViewInit() {
         // init local componentsMap
         let map:BookingLineGroupComponentsMap = {
-            booking_lines_ids: this.BookingServicesBookingLineComponents
+            booking_lines_ids: this.BookingServicesBookingLineComponents,
+            accomodations_ids: this.BookingServicesBookingGroupAccomodationComponents,
+            meal_preferences_ids: this.BookingServicesBookingGroupMealPrefComponents,
+            age_ranges_ids: this.BookingServicesBookingGroupAgeRangeComponents
         };
         this.componentsMap = map;
     }
@@ -172,6 +209,22 @@ export class BookingServicesBookingGroupComponent extends TreeComponent<BookingL
             this.vm.name.value = value;
         });
 
+        this.vm.daterange.single.formControl.valueChanges.subscribe( () => {
+            if(this.instance.is_event) {
+                this.vm.daterange.start.formControl.setValue(this.vm.daterange.single.formControl.value);
+                this.vm.daterange.end.formControl.setValue(this.vm.daterange.single.formControl.value);
+                this.onchangeDateRange();
+            }
+        });
+
+        this.vm.timerange.checkin.formControl.valueChanges.subscribe( () => {
+            this.onchangeTimeFrom();
+        });
+
+        this.vm.timerange.checkout.formControl.valueChanges.subscribe( () => {
+            this.onchangeTimeTo();
+        });
+
         this.ready = true;
     }
 
@@ -185,11 +238,14 @@ export class BookingServicesBookingGroupComponent extends TreeComponent<BookingL
         this.vm.rate_class.name = this.instance.rate_class_id.name;
         this.vm.daterange.start.formControl.setValue(this.instance.date_from);
         this.vm.daterange.end.formControl.setValue(this.instance.date_to);
+        this.vm.daterange.single.formControl.setValue(this.instance.date_from);
         this.vm.daterange.nights_count = this.instance.nb_nights;
+        this.vm.timerange.checkin.formControl.setValue(this.instance.time_from.substring(0, 5));
+        this.vm.timerange.checkout.formControl.setValue(this.instance.time_to.substring(0, 5));
         this.vm.participants_count.formControl.setValue(this.instance.nb_pers);
         this.vm.price.value = this.instance.price;
-
     }
+
     public calcRateClass() {
         return this.instance.rate_class_id.name + ' - ' + this.instance.rate_class_id.description;
     }
@@ -198,6 +254,35 @@ export class BookingServicesBookingGroupComponent extends TreeComponent<BookingL
         return (pack) ? pack.name: '';
     }
 
+    public async oncreateMealPref() {
+        try {
+            const new_pref:any = await this.api.create("sale\\booking\\MealPreference", {
+                booking_line_group_id: this.instance.id
+            });
+
+            this.instance.meal_preferences_ids.push(new BookingMealPref(new_pref.id));
+        }
+        catch(response) {
+            this.api.errorFeedback(response);
+        }
+    }
+
+    public async ondeleteMealPref(pref_id:number) {
+        try {
+            this.instance.meal_preferences_ids.splice(this.instance.meal_preferences_ids.findIndex((e:any)=>e.id == pref_id),1);
+            await this.api.update(this.instance.entity, [this.instance.id], {meal_preferences_ids: [-pref_id]});
+            // no not relay to parent
+        }
+        catch(response) {
+            this.api.errorFeedback(response);
+        }
+    }
+
+
+    public async onupdateMealPref() {
+        // relay to parent
+        // this.updated.emit();
+    }
 
     public async oncreateLine() {
         try {
@@ -209,8 +294,8 @@ export class BookingServicesBookingGroupComponent extends TreeComponent<BookingL
 
             this.instance.booking_lines_ids.push(new BookingLine(new_line.id));
         }
-        catch(error) {
-            console.log(error);
+        catch(response) {
+            this.api.errorFeedback(response);
         }
     }
 
@@ -255,16 +340,43 @@ export class BookingServicesBookingGroupComponent extends TreeComponent<BookingL
 
 
 
+    public async onchangeTimeFrom() {        
+        if(this.instance.time_from.substring(0, 5) != this.vm.timerange.checkin.formControl.value) {
+            console.log('BookingEditCustomerComponent::onchangeTimeFrom');            
+            try {
+                await this.api.update(this.instance.entity, [this.instance.id], {time_from: this.vm.timerange.checkin.formControl.value});
+                // do not relay change to parent component
+            }
+            catch(response) {
+                this.api.errorFeedback(response);
+            }
+        }
+    }
+
+    public async onchangeTimeTo() {
+        if(this.instance.time_to.substring(0, 5) != this.vm.timerange.checkout.formControl.value) {
+            console.log('BookingEditCustomerComponent::onchangeTimeTo');            
+            try {
+                await this.api.update(this.instance.entity, [this.instance.id], {time_to: this.vm.timerange.checkout.formControl.value});
+                // do not relay change to parent component
+            }
+            catch(response) {
+                this.api.errorFeedback(response);
+            }
+        }        
+    }
 
     public async onchangeNbPers() {
         console.log('BookingEditCustomerComponent::nbPersChange');
-        try {
-            await this.api.update(this.instance.entity, [this.instance.id], {nb_pers: this.vm.participants_count.formControl.value});
-            // relay change to parent component
-            this.updated.emit();
-        }
-        catch(response) {
-            this.api.errorFeedback(response);
+        if(this.vm.participants_count.formControl.value != this.instance.nb_pers) {
+            try {
+                await this.api.update(this.instance.entity, [this.instance.id], {nb_pers: this.vm.participants_count.formControl.value});
+                // relay change to parent component
+                this.updated.emit();
+            }
+            catch(response) {
+                this.api.errorFeedback(response);
+            }
         }
     }
 
@@ -314,52 +426,78 @@ export class BookingServicesBookingGroupComponent extends TreeComponent<BookingL
     }
 
     public async onchangeIsSojourn(is_sojourn:any) {
-        try {
-            this.instance.is_sojourn = is_sojourn;
-            await this.api.update(this.instance.entity, [this.instance.id], {is_sojourn: is_sojourn});
-            // do not relay change 
+        if(this.instance.is_sojourn != is_sojourn) {        
+            try {
+                this.instance.is_sojourn = is_sojourn;
+                if(is_sojourn) {
+                    this.instance.is_event = false;
+                }
+
+                await this.api.update(this.instance.entity, [this.instance.id], {is_sojourn: is_sojourn, is_event: this.instance.is_event});
+                // do not relay change
+            }
+            catch(response) {
+                this.api.errorFeedback(response);
+            }
         }
-        catch(response) {
-            this.api.errorFeedback(response);
-        }        
+    }
+
+    public async onchangeIsEvent(is_event:any) {
+        if(this.instance.is_event != is_event) {
+            try {
+                this.instance.is_event = is_event;
+                await this.api.update(this.instance.entity, [this.instance.id], {is_event: is_event});
+                // do not relay change
+            }
+            catch(response) {
+                this.api.errorFeedback(response);
+            }
+        }
     }
 
     public async onchangeHasPack(has_pack:any) {
-        try {
-            let fields: any = {has_pack: has_pack};
-            if(has_pack === false) {
-                this.vm.pack.name = '';
-                fields['pack_id'] = null;
+        if(this.instance.has_pack != has_pack) {
+            try {
+                let fields: any = {has_pack: has_pack};
+                if(has_pack === false) {
+                    this.vm.pack.name = '';
+                    fields['pack_id'] = null;
+                }
+                await this.api.update(this.instance.entity, [this.instance.id], fields);
+                // relay change to parent component
+                this.updated.emit();
             }
-            await this.api.update(this.instance.entity, [this.instance.id], fields);
-            // relay change to parent component
-            this.updated.emit();
-        }
-        catch(response) {
-            this.api.errorFeedback(response);
+            catch(response) {
+                this.api.errorFeedback(response);
+            }
         }
     }
 
     public async onchangePackId(pack:any) {
-        this.vm.pack.name = pack.name;
-        try {
-            await this.api.update(this.instance.entity, [this.instance.id], {pack_id: pack.id});
-            // relay change to parent component
-            this.updated.emit();
-        }
-        catch(response) {
-            this.api.errorFeedback(response);
+        if(this.instance.pack_id.id != pack.id) {
+            this.vm.pack.name = pack.name;
+            try {
+                await this.api.update(this.instance.entity, [this.instance.id], {pack_id: pack.id});
+                // relay change to parent component
+                this.updated.emit();
+            }
+            catch(response) {
+                this.api.errorFeedback(response);
+            }
         }
     }
+
     public async onchangeIsLocked(is_locked: any) {
-        this.vm.pack.is_locked = is_locked;
-        try {
-            await this.api.update(this.instance.entity, [this.instance.id], {is_locked: is_locked});
-            // relay change to parent component
-            this.updated.emit();
-        }
-        catch(response) {
-            this.api.errorFeedback(response);
+        if(this.instance.is_locked != is_locked) {
+            this.vm.pack.is_locked = is_locked;
+            try {
+                await this.api.update(this.instance.entity, [this.instance.id], {is_locked: is_locked});
+                // relay change to parent component
+                this.updated.emit();
+            }
+            catch(response) {
+                this.api.errorFeedback(response);
+            }
         }
     }
 
@@ -385,6 +523,32 @@ export class BookingServicesBookingGroupComponent extends TreeComponent<BookingL
             this.vm.pack.name = '';
         }
     }
+
+    public async oncreateAgeRange() {
+        try {
+            const new_range_assignment:any = await this.api.create("lodging\\sale\\booking\\BookingLineGroupAgeRangeAssignment", {
+                booking_id: this.instance.booking_id,
+                booking_line_group_id: this.instance.id
+            });
+
+            this.instance.age_range_assignments_ids.push(new BookingAgeRangeAssignment(new_range_assignment.id));
+        }
+        catch(response) {
+            this.api.errorFeedback(response);
+        }
+    }
+
+    public async ondeleteAgeRange(age_range_id:number) {
+        try {
+            this.instance.age_range_assignments_ids.splice(this.instance.age_range_assignments_ids.findIndex((e:any)=>e.id == age_range_id),1);
+            await this.api.update(this.instance.entity, [this.instance.id], {age_range_assignments_ids: [-age_range_id]});
+            // no not relay to parent
+        }
+        catch(response) {
+            this.api.errorFeedback(response);
+        }
+    }
+
 
     public async onchangeSojournType(event:any) {
         this.vm.sojourn_type.value = event.value;

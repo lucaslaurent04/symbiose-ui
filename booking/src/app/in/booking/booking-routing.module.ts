@@ -14,7 +14,7 @@ const routes: Routes = [
         component: BookingServicesComponent
     },
     {
-        path: 'contract',
+        path: 'contract/:contract_id',
         component: BookingContractComponent
     },
     {

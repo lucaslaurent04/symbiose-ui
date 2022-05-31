@@ -37,6 +37,13 @@
             <mat-slide-toggle [formControl]="vm.free_rental_units.formControl">Libérer les unités locatives</mat-slide-toggle>
             <mat-hint>Si oui, à l'expiration, les unités locatives seront libérées.</mat-hint>
         </div>
+        <div class="cell-option" [class.hidden]="vm.type.formControl.value != 'ooo'">
+            <mat-form-field appearance="standard" style="width: 100%;">
+                <mat-label>Description</mat-label>
+                <input matInput [formControl]="vm.description.formControl">
+                <mat-hint>Raison du blocage de l'unité locative.</mat-hint>
+            </mat-form-field>
+        </div>
     </div>
 
 </div>

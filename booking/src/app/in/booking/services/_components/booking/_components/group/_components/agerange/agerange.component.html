@@ -1,23 +1,20 @@
 <div class="cell">
 
     <sb-m2o-select
-        [entity]="'lodging\\realestate\\RentalUnit'"
-        [id]="instance.rental_unit_id.id"
-        [fields]="['capacity']"
-        [controller]="'lodging_booking_rentalunits'"
-        [params]="vm.params"
+        [entity]="'sale\\customer\\AgeRange'"
+        [id]="instance.age_range_id"
         [placeholder]="'Commencez à taper le nom'"
         [noResult]="'rien trouvé'"
         [required]="true"
-        [displayWith]="displayRentalUnit"
-        (itemSelected)="onchangeRentalUnit($event)">Unité locative
+        (itemSelected)="selectAgeRange($event)">Tranche d'âge
     </sb-m2o-select>
 
 </div>
+
 <div class="cell">
     <mat-form-field style="max-width: 100px;">
         <mat-label>Quantité</mat-label>
-        <input type="number" min="1" matInput (blur)="onchangeQty($event)" [formControl]="vm.qty.formControl">
+        <input type="number" min="1" matInput [formControl]="vm.qty.formControl">
         <mat-error *ngIf="vm.qty.formControl.hasError('valid')">
             Quantité incompatible.
         </mat-error>

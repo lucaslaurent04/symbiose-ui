@@ -211,7 +211,6 @@ export class BookingInvoiceComponent implements OnInit, AfterContentInit {
         // fetch the booking ID from the route
         this.route.params.subscribe( async (params) => {
             if(params) {
-
                 try {
 
                     if(params.hasOwnProperty('booking_id')){

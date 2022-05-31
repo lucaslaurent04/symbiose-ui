@@ -5,6 +5,7 @@ import { Observable, ReplaySubject } from 'rxjs';
 import { map, mergeMap, debounceTime } from 'rxjs/operators';
 
 import { ApiService } from '../../services/api.service';
+import { Domain } from '../../classes/domain.class';
 
 @Component({
   selector: 'sb-m2o-select',
@@ -12,14 +13,30 @@ import { ApiService } from '../../services/api.service';
   styleUrls: ['./sb-m2o-select.component.scss']
 })
 export class SbMany2OneSelectComponent implements OnInit, OnChanges {
+    // full name of the entity to load
     @Input() entity: string = '';
+    // id of the object to load as preset value
     @Input() id: number = 0;
+    // extra fields to load (in addition to 'id', 'name')
+    @Input() fields?: string[] = [];  
+    // additional domain for filtering result set
     @Input() domain?: [] = [];
+    // specific controller to use for fetching data
+    @Input() controller?: string = '';
+    // extra parameter specific to the chosen controller
+    @Input() params?: any = {};
+    // mark the field as mandatory
     @Input() required?: boolean = false;
+    // specific placeholder of the widget
     @Input() placeholder?: string = '';
+    // specific hint/helper for the widget
     @Input() hint?: string = '';
+    // message to diisplay in case no match was found
     @Input() noResult?: string = '';
+    // mark the field as readonly
     @Input() disabled?: boolean = false;
+    // custom method for rendering the items
+    @Input() displayWith?: (a:any) => string;
 
     @Output() itemSelected:EventEmitter<number> = new EventEmitter<number>();
 
@@ -31,9 +48,9 @@ export class SbMany2OneSelectComponent implements OnInit, OnChanges {
 
     private inputQuery: ReplaySubject<any>;
 
-    constructor(private api: ApiService) { 
+    constructor(private api: ApiService) {
         this.inputFormControl = new FormControl();
-        this.inputQuery = new ReplaySubject(1);        
+        this.inputQuery = new ReplaySubject(1);
     }
 
 
@@ -95,24 +112,46 @@ export class SbMany2OneSelectComponent implements OnInit, OnChanges {
     private async load() {
         if(this.id && this.id > 0 && this.entity && this.entity.length) {
             try {
-                const result:Array<any> = <Array<any>> await this.api.read(this.entity, [this.id], ['id', 'name']);
+                const result:Array<any> = <Array<any>> await this.api.read(this.entity, [this.id], ['id', 'name', ...this.fields]);
                 if(result && result.length) {
                     this.item = result[0];
                     this.inputFormControl.setValue(this.item);
                 }
             }
             catch(error:any) {
-
+                console.log('an unexpected error occured');
             }
         }
     }
-
 
     private async filterResults(name: string) {
         let filtered:any[] = [];
         if(this.entity.length && (!this.item || this.item.name != name) ) {
             try {
-                let data:any[] = await this.api.collect(this.entity, [["name", "ilike", '%'+name+'%']], ["id", "name"], 'name', 'asc', 0, 25);
+                let tmpDomain = new Domain([]);
+                if(name.length) {
+                    tmpDomain = new Domain(["name", "ilike", '%'+name+'%']);
+                }
+                let domain = (new Domain(this.domain)).merge(tmpDomain).toArray();
+
+                let data:any[];
+
+                if(this.controller && this.controller.length) {
+                    let body:any = {
+                        get: this.controller,
+                        entity: this.entity,
+                        fields: ["id", "name", ...this.fields],
+                        domain: JSON.stringify(domain),
+                        ...this.params
+                    };
+
+                    // fetch objects using controller given by View (default is core_model_collect)
+                    data = await this.api.fetch('/', body);
+                }
+                else {
+                    data = await this.api.collect(this.entity, domain, ["id", "name", ...this.fields], 'name', 'asc', 0, 25);
+                }
+
                 filtered = data;
             }
             catch(error:any) {
@@ -122,10 +161,12 @@ export class SbMany2OneSelectComponent implements OnInit, OnChanges {
         return filtered;
     }
 
-
     public itemDisplay = (item:any): string => {
-        if(item != this.item) return '';
-        return (item)?item.name:'';
+        if(!item) return '';
+        if(this.displayWith) {
+            return this.displayWith(item);
+        }
+        return item.name;
     }
 
     public onChange(event:any) {
@@ -137,7 +178,8 @@ export class SbMany2OneSelectComponent implements OnInit, OnChanges {
     }
 
     public onFocus() {
-        /* this.inputFormControl.setValue(''); */
+        // force triggering a list refresh
+        this.inputFormControl.setValue('');
     }
 
     public onReset() {

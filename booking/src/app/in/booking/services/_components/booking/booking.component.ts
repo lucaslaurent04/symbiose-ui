@@ -88,7 +88,6 @@ export class BookingServicesBookingComponent extends TreeComponent<Booking, Book
 
     public async oncreateGroup() {
         try {
-            console.log('################', this.instance);
             let rate_class_id = 4;
             // default rate class is the rate_class of the customer of the booking
             if(this.instance.customer_id.rate_class_id) {

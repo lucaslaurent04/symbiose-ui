@@ -382,6 +382,10 @@ hover_row_index = -1;
             else {
                 console.log('selection is valid', from.rental_unit, from.date, to.date);
 
+                if(!from.rental_unit) {
+                    return;                    
+                }
+
                 // open dialog for requesting action dd
 
                 const dialogRef = this.dialog.open(ConsumptionCreationDialog, {
@@ -396,9 +400,10 @@ hover_row_index = -1;
 
                 dialogRef.afterClosed().subscribe( async (values) => {
                     if(values) {
+                        console.log('########### received values', values);
                         if(values.type && values.type == 'book') {
                             try {
-                                const response:any = await this.api.call('?do=lodging_booking_plan-option', {
+                                await this.api.call('?do=lodging_booking_plan-option', {
                                     date_from: values.date_from.toISOString(),
                                     date_to: values.date_to.toISOString(),
                                     rental_unit_id: values.rental_unit_id,
@@ -407,7 +412,7 @@ hover_row_index = -1;
                                     free_rental_units: values.free_rental_units
                                 });
 
-                                // display feedback or reload
+                                this.onRefresh();
                             }
                             catch(response) {
                                 this.api.errorFeedback(response);
@@ -415,13 +420,14 @@ hover_row_index = -1;
                         }
                         else if(values.type && values.type == 'ooo') {
                             try {
-                                const response:any = await this.api.call('?do=lodging_booking_plan-repair', {
+                                await this.api.call('?do=lodging_booking_plan-repair', {
                                     date_from: values.date_from.toISOString(),
                                     date_to: values.date_to.toISOString(),
-                                    rental_unit_id: values.rental_unit_id
+                                    rental_unit_id: values.rental_unit_id,
+                                    description: values.description
                                 });
 
-                                // display feedback or reload
+                                this.onRefresh();
                             }
                             catch(response) {
                                 this.api.errorFeedback(response);

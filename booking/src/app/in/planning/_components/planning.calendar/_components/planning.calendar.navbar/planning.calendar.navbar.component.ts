@@ -104,12 +104,9 @@ export class PlanningCalendarNavbarComponent implements OnInit, AfterViewInit, A
     }
 
 
-    public async onchangeDateRange() {
-        console.log('##### onchangeDateRange');
+    public async onchangeDateRange() {    
         let start = this.vm.date_range.get("date_from").value;
         let end = this.vm.date_range.get("date_to").value;
-
-console.log(start, end);
 
         if(!start || !end) return;
 
@@ -120,8 +117,6 @@ console.log(start, end);
         if(typeof end == 'string') {
             end = new Date(end);
         }
-
-        console.log(start, end);
 
         if(start <= end) {
 

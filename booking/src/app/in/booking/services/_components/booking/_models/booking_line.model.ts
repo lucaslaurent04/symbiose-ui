@@ -17,14 +17,15 @@ export class BookingLine {
         public order: number = 0,
         public qty: number = 0,
         public free_qty: number = 0,
-        public discount: number = 0,                
+        public discount: number = 0,
         public unit_price: number = 0,
-        public is_rental_unit: boolean = false,        
+        public fare_benefit: number = 0,
+        public is_rental_unit: boolean = false,
         public is_accomodation: boolean = false,
         public is_meal: boolean = false,
         public qty_accounting_method: string = '',
         public qty_vars: string = '',
-        public product_id: any = {},        
+        public product_id: any = {},
         public auto_discounts_ids: any[] = [],
         public manual_discounts_ids: any[] = []
     ) {}

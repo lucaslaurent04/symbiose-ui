@@ -92,7 +92,7 @@ export class BookingServicesBookingGroupAccomodationComponent extends TreeCompon
 
 
     /**
-     * Add a manual discount
+     * Add a rental unit assignment
      */
     public async oncreateAssignment() {
         try {
@@ -110,9 +110,14 @@ export class BookingServicesBookingGroupAccomodationComponent extends TreeCompon
     }
 
     public async ondeleteAssignment(assignment_id: any) {
-        await this.api.update(this.instance.entity, [this.instance.id], {rental_unit_assignments_ids: [-assignment_id]});
-        this.instance.rental_unit_assignments_ids.splice(this.instance.rental_unit_assignments_ids.findIndex((e:any)=>e.id == assignment_id),1);
-        // do not relay to parent
+        try {
+            await this.api.update(this.instance.entity, [this.instance.id], {rental_unit_assignments_ids: [-assignment_id]});
+            this.instance.rental_unit_assignments_ids.splice(this.instance.rental_unit_assignments_ids.findIndex((e:any)=>e.id == assignment_id),1);
+            // do not relay to parent
+        }
+        catch(response) {
+            this.api.errorFeedback(response);
+        }
     }
 
     public async onupdateAssignement(discount_id:any) {

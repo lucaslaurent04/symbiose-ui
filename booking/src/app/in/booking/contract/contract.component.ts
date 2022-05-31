@@ -105,6 +105,7 @@ export class BookingContractComponent implements OnInit, AfterContentInit {
 
     public user: UserClass = null;
     public booking_id: number;
+    public contract_id: number;
 
     public organisation: any = new Organisation();
     public center: any = new Center();
@@ -215,6 +216,10 @@ export class BookingContractComponent implements OnInit, AfterContentInit {
                     if(params.hasOwnProperty('booking_id')){
                         this.booking_id = <number> parseInt(params['booking_id'], 10);
                         await this.loadBooking();
+                    }
+
+                    if(params.hasOwnProperty('contract_id')){
+                        this.contract_id = <number> parseInt(params['contract_id'], 10);
                     }
 
                     // #memo - this is only necessary when directly browsing to the URL /booking/:id/contract
