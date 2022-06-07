@@ -34,7 +34,7 @@ export class BookingServicesBookingComponent extends TreeComponent<Booking, Book
     }
 
     async ngOnChanges(changes: SimpleChanges) {
-        if(changes.booking_id) {
+        if(changes.booking_id && this.booking_id > 0) {
             try {
                 await this.load(this.booking_id);
                 this.ready = true;
@@ -123,7 +123,6 @@ export class BookingServicesBookingComponent extends TreeComponent<Booking, Book
 
     public async ondeleteGroup(group_id:number) {
         try {
-            this.instance.booking_lines_groups_ids.splice(this.instance.booking_lines_groups_ids.findIndex((e:any)=>e.id == group_id),1);
             await this.api.update(this.instance.entity, [this.instance.id], {booking_lines_groups_ids: [-group_id]});
             // reload booking tree
             this.load(this.instance.id);

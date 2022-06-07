@@ -217,7 +217,7 @@ hover_row_index = -1;
 
         try {
 
-            this.consumptions = await this.api.fetch('/?get=lodging_booking_consumptions', {
+            this.consumptions = await this.api.fetch('/?get=lodging_consumption_map', {
                 date_from: this.params.date_from.toISOString(),
                 date_to: this.params.date_to.toISOString(),
                 centers_ids: JSON.stringify(this.params.centers_ids)

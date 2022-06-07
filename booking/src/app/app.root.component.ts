@@ -41,17 +41,14 @@ export class AppRootComponent implements OnInit {
     public async ngOnInit() {
 
         this.lower_screen_resolution = window.innerWidth < 1152;
-        /*
+
         window.onresize = () => {
-
-
             this.lower_screen_resolution = window.innerWidth < 1152;
-
             // if lower than 1280 : hide right pane
             // if lower than 1152 : hide both panes
             // if lower than 1024 : show too low resolution notice
         }
-        */
+
 
         try {
             await this.auth.authenticate();

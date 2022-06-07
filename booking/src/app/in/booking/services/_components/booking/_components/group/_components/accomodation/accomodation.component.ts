@@ -75,13 +75,13 @@ export class BookingServicesBookingGroupAccomodationComponent extends TreeCompon
     }
 
     public async update(values:any) {
-        console.log('line update', values);
+        console.log('accomodation update', values);
         super.update(values);
 
         // assign VM values
 
         this.vm.assignments.total = 0;
-        for(let assignment of this.instance.rental_unit_assignments_ids) {
+        for(let assignment of values.rental_unit_assignments_ids) {
             // add new lines (indexes from this.lines and this._lineOutput are synced)
             this.vm.assignments.total += assignment.qty;
         }
@@ -113,14 +113,15 @@ export class BookingServicesBookingGroupAccomodationComponent extends TreeCompon
         try {
             await this.api.update(this.instance.entity, [this.instance.id], {rental_unit_assignments_ids: [-assignment_id]});
             this.instance.rental_unit_assignments_ids.splice(this.instance.rental_unit_assignments_ids.findIndex((e:any)=>e.id == assignment_id),1);
-            // do not relay to parent
+            // relay to parent
+            this.updated.emit();
         }
         catch(response) {
             this.api.errorFeedback(response);
         }
     }
 
-    public async onupdateAssignement(discount_id:any) {
+    public async onupdateAssignement(assignment_id:any) {
         this.updated.emit();
     }
 

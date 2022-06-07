@@ -22,7 +22,7 @@
     .part-container {
       flex: 1;
       display: inline-block;
-      width: 100%;
+      width: calc(100% - 60px);
       min-height: 45px;
 
       .row {
@@ -30,6 +30,7 @@
         display: flex;
         padding: 5px 0;
         flex: 1;
+        overflow: hidden;
 
         &.row-identification {
             height: 80px;
@@ -47,10 +48,12 @@
           margin-left: auto;
           text-align: right;
           margin-right: 65px;
+          white-space: nowrap;
         }
 
         .cell {
-          flex: 1; 
+            flex: 1; 
+            overflow: hidden;
         }    
      }
     }
@@ -59,7 +62,11 @@
   mat-form-field {
     width: 100%;
     padding: 0px 12px;
-
+    mat-hint {
+        overflow: hidden;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+    }
   }
 
   mat-form-field.header {

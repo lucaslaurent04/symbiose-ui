@@ -133,38 +133,45 @@ export class PlanningCalendarNavbarComponent implements OnInit, AfterViewInit, A
 
     public onDurationChange(event: any) {
         console.log('onDurationChange');
-
         // update local values
         this.duration = parseInt(event.value, 10);
         this.dateTo = new Date(this.dateFrom.getTime());
         this.dateTo.setDate(this.dateTo.getDate() + this.duration);
-
         this.vm.date_range.get("date_to").setValue(this.dateTo);
+
+        this.params.date_from = this.dateFrom;
+        this.params.date_to = this.dateTo;
     }
 
     public onToday() {
         this.dateFrom = new Date();
         this.dateTo = new Date(this.dateFrom.getTime());
         this.dateTo.setDate(this.dateTo.getDate() + this.params.duration);
-
         this.vm.date_range.get("date_from").setValue(this.dateFrom);
         this.vm.date_range.get("date_to").setValue(this.dateTo);
+
+        this.params.date_from = this.dateFrom;
+        this.params.date_to = this.dateTo;
     }
 
     public onPrev(duration: number) {
         this.dateFrom.setDate(this.dateFrom.getDate() - duration);
         this.dateTo.setDate(this.dateTo.getDate() - duration);
-
         this.vm.date_range.get("date_from").setValue(this.dateFrom);
         this.vm.date_range.get("date_to").setValue(this.dateTo);
+
+        this.params.date_from = this.dateFrom;
+        this.params.date_to = this.dateTo;
     }
 
     public onNext(duration: number) {
         this.dateFrom.setDate(this.dateFrom.getDate() + duration);
         this.dateTo.setDate(this.dateTo.getDate() + duration);
-
         this.vm.date_range.get("date_from").setValue(this.dateFrom);
         this.vm.date_range.get("date_to").setValue(this.dateTo);
+
+        this.params.date_from = this.dateFrom;
+        this.params.date_to = this.dateTo;
     }
 
     public onRefresh() {

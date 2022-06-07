@@ -169,10 +169,11 @@ export class TreeComponent<I, T> implements TreeComponentInterface {
                     // pass-1 - remove items not present anymore
                     // check items in local-model against server-model
                     if(Object.keys(this.instance[field]).length) {
+                        // empty array or object
                         if(Object.keys(values[field]).length == 0) {
-                            // empty array or object
                             this.instance[field] = values[field];
                         }
+                        // existing array or object
                         else {
                             for(let i = this.instance[field].length-1; i >= 0; --i) {
                                 let line = this.instance[field][i];
@@ -189,15 +190,17 @@ export class TreeComponent<I, T> implements TreeComponentInterface {
                     // check items in server-model against local-model
                     for(let i = 0; i < Object.keys(values[field]).length; ++i) {
                         let value = values[field][i];
-                        const found = this.instance[field].find( (item:any) => item.id == value.id);
+                        const found_index = this.instance[field].findIndex( (item:any) => item.id == value.id);
                         // item not in local-model
-                        if(!found) {
+                        if(found_index < 0) {
                             // add item to local-model
                             this.instance[field].splice(i, 0, value);
                         }
                         // item is already in local-model: relay sub-object
                         else if(this.componentsMap.hasOwnProperty(field)) {
-                            const subitem:any = this.componentsMap[field].find( (item:any) => item.getId() == found.id);
+                            // #memo - no update of the instance's field here, to prevent refreshing the view
+                            // relay to child object
+                            const subitem:any = this.componentsMap[field].find( (item:any) => item.getId() == this.instance[field][found_index].id);
                             if(subitem) {
                                 subitem.update(value);
                             }

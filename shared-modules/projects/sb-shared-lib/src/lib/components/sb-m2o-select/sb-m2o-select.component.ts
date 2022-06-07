@@ -20,7 +20,7 @@ export class SbMany2OneSelectComponent implements OnInit, OnChanges {
     // extra fields to load (in addition to 'id', 'name')
     @Input() fields?: string[] = [];  
     // additional domain for filtering result set
-    @Input() domain?: [] = [];
+    @Input() domain?: any[] = [];
     // specific controller to use for fetching data
     @Input() controller?: string = '';
     // extra parameter specific to the chosen controller

@@ -7,7 +7,7 @@ import { SharedLibModule, CustomDateAdapter } from 'sb-shared-lib';
 import { BookingRoutingModule } from './booking-routing.module';
 
 import { BookingComponent } from './booking.component';
-import { BookingServicesComponent, BookingUpdateDialogConfirm, BookingDeletionDialogConfirm } from './services/services.component';
+import { BookingServicesComponent } from './services/services.component';
 
 import { BookingServicesBookingComponent } from './services/_components/booking/booking.component';
 import { BookingServicesBookingGroupComponent } from './services/_components/booking/_components/group/group.component';
@@ -32,7 +32,7 @@ import { BookingInvoiceComponent } from './invoice/invoice.component';
     BookingRoutingModule
   ],
   declarations: [
-    BookingComponent, BookingServicesComponent, BookingUpdateDialogConfirm, BookingDeletionDialogConfirm,
+    BookingComponent, BookingServicesComponent,
     BookingServicesBookingComponent, BookingServicesBookingGroupComponent, 
     BookingServicesBookingGroupLineComponent, BookingServicesBookingGroupAccomodationComponent, BookingServicesBookingGroupAccomodationAssignmentComponent,
     BookingServicesBookingGroupMealPrefComponent, BookingServicesBookingGroupAgeRangeComponent,

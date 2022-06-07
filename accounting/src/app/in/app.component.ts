@@ -9,132 +9,34 @@ import { ContextService } from 'sb-shared-lib';
 export class AppComponent implements OnInit  {
 
 
-  public ready: boolean = false;
-  public context_open: boolean = false;
+public ready: boolean = false;
+public context_open: boolean = false;
 
-  constructor(
-    private context: ContextService,
-    private zone: NgZone
-  ) {}
+constructor(
+  private context: ContextService,
+  private zone: NgZone
+) {}
 
+private getDescriptor() {
+  return {
+      context: {
+          "entity": "finance\\accounting\\Invoice",
+          "view": "dashboard.default"
+      }
+  };
+}
 
-  public ngOnInit() {
-
-    this.context.getObservable().subscribe( (descriptor:any) => {
-      this.context_open = (Object.keys(descriptor.context).length != 0);
+public ngOnInit() {
+    this.context.ready.subscribe( (ready:boolean) => {
+        this.ready = ready;
     });
-  }
+}
 
+public ngAfterViewInit() {
+    console.log('AppComponent::ngAfterViewInit');
 
-  public createCustomer() {
+    this.context.setTarget('#sb-container-finance');
 
-    let descriptor = {
-      context: {
-        entity:     'sale\\customer\\Customer',
-        type:       'form',
-        name:       'create',
-        domain:     [ ['owner_identity_id', '=', 1] ],
-        mode:       'edit',
-        purpose:    'create',
-        target:     '#sb-container',
-        callback:   (data:any) => {
-          if(data && data.objects && data.objects.length) {
-            console.log('received value from create customer', data);
-          }
-        }
-      }
-    };
-
-    this.context.change(descriptor);
-  }
-
-
-  public searchCustomer() {
-
-    let descriptor = {
-      context: {
-        entity:     'sale\\customer\\Customer',
-        type:       'list',
-        name:       'default',
-        domain:     [ ['owner_identity_id', '=', 1] ],
-        mode:       'view',
-        purpose:    'view',
-        target:     '#sb-container'
-      }
-    };
-
-    this.context.change(descriptor);
-  }
-
-
-  public createBooking() {
-
-    let descriptor = {
-      route: '/bookings',
-      context: {
-        entity:     'lodging\\sale\\booking\\Booking',
-        type:       'form',
-        name:       'create',
-        mode:       'edit',
-        purpose:    'create',
-        target:     '#sb-container',
-        callback:   (data:any) => {
-          if(data && data.objects && data.objects.length) {
-            console.log('received value from create booking', data);
-            // new_id =  data.objects[0].id
-            let descriptor = {
-              context: {
-                entity:     'lodging\\sale\\booking\\Booking',
-                type:       'list',
-                name:       'default',                
-                mode:       'view',
-                purpose:    'view',                
-                target:     '#sb-container'
-              }
-            };        
-            setTimeout( () => {
-              this.context.change(descriptor);
-            });            
-          }
-        }
-      }
-    };
-
-    this.context.change(descriptor);
-  }
-
-
-  public searchBooking() {
-    let descriptor = {
-      route: '/bookings',
-      context: {
-        entity:     'lodging\\sale\\booking\\Booking',
-        type:       'list',
-        name:       'default',
-        mode:       'view',
-        purpose:    'view',
-        target:     '#sb-container'
-      }
-    };
-
-    this.context.change(descriptor);
-  }
-
-
-  public searchContact() {
-
-    let descriptor = {
-      context: {
-        entity:     'sale\\booking\\Contact',
-        type:       'list',
-        name:       'default',
-        domain:     [ ['relationship', '=', 'contact'] ],
-        mode:       'view',
-        purpose:    'view',
-        target:     '#sb-container'
-      }
-    };
-
-    this.context.change(descriptor);
-  }  
+    this.context.change(this.getDescriptor());
+}
 }

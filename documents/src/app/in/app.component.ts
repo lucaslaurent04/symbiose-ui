@@ -12,41 +12,33 @@ import { Router } from '@angular/router';
 export class AppComponent implements OnInit, AfterViewInit  {
 
 
-  public ready: boolean = false;
+public ready: boolean = false;
 
-  constructor(
-    private auth: AuthService,
-    private api: ApiService,
-    private router: Router,
+constructor(
+  private context: ContextService,
+  private zone: NgZone
+) {}
 
-    private context: ContextService,
-    private zone: NgZone
-  ) {}
+private getDescriptor() {
+  return {
+      context: {
+          "entity": "documents\\Document",
+          "view": "dashboard.default"
+      }
+  };
+}
 
-
-  public ngAfterViewInit() {
-
-    $('#sb-container').on('_close', (event, data) => {
-      this.zone.run( () => {
-        console.log("sb-container closed");
-
-      });
+public ngOnInit() {
+    this.context.ready.subscribe( (ready:boolean) => {
+        this.ready = ready;
     });
+}
 
-    $('#sb-container').on('_open', (event, data) => {
-      this.zone.run( () => {
-        console.log("sb-container opened");
+public ngAfterViewInit() {
+    console.log('AppComponent::ngAfterViewInit');
 
-      });
-    });
+    this.context.setTarget('#sb-container-document');
 
-    setTimeout( () => {
-      this.ready = true;
-    }, 500);
-
-  }
-
-  public ngOnInit() {
-  }
-
+    this.context.change(this.getDescriptor());
+}
 }

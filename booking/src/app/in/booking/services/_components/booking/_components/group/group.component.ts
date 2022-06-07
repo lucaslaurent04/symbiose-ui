@@ -269,9 +269,9 @@ export class BookingServicesBookingGroupComponent extends TreeComponent<BookingL
 
     public async ondeleteMealPref(pref_id:number) {
         try {
+            await this.api.update(this.instance.entity, [this.instance.id], {meal_preferences_ids: [-pref_id]});            
             this.instance.meal_preferences_ids.splice(this.instance.meal_preferences_ids.findIndex((e:any)=>e.id == pref_id),1);
-            await this.api.update(this.instance.entity, [this.instance.id], {meal_preferences_ids: [-pref_id]});
-            // no not relay to parent
+            // no relay to parent            
         }
         catch(response) {
             this.api.errorFeedback(response);
@@ -301,7 +301,6 @@ export class BookingServicesBookingGroupComponent extends TreeComponent<BookingL
 
     public async ondeleteLine(line_id:number) {
         try {
-            this.instance.booking_lines_ids.splice(this.instance.booking_lines_ids.findIndex((e:any)=>e.id == line_id),1);
             await this.api.update(this.instance.entity, [this.instance.id], {booking_lines_ids: [-line_id]});
             // relay to parent
             this.updated.emit();
@@ -342,7 +341,7 @@ export class BookingServicesBookingGroupComponent extends TreeComponent<BookingL
 
     public async onchangeTimeFrom() {        
         if(this.instance.time_from.substring(0, 5) != this.vm.timerange.checkin.formControl.value) {
-            console.log('BookingEditCustomerComponent::onchangeTimeFrom');            
+            console.log('BookingEditCustomerComponent::onchangeTimeFrom', this.vm.timerange.checkin.formControl.value);
             try {
                 await this.api.update(this.instance.entity, [this.instance.id], {time_from: this.vm.timerange.checkin.formControl.value});
                 // do not relay change to parent component
@@ -432,7 +431,6 @@ export class BookingServicesBookingGroupComponent extends TreeComponent<BookingL
                 if(is_sojourn) {
                     this.instance.is_event = false;
                 }
-
                 await this.api.update(this.instance.entity, [this.instance.id], {is_sojourn: is_sojourn, is_event: this.instance.is_event});
                 // do not relay change
             }
@@ -446,6 +444,9 @@ export class BookingServicesBookingGroupComponent extends TreeComponent<BookingL
         if(this.instance.is_event != is_event) {
             try {
                 this.instance.is_event = is_event;
+                if(is_event) {
+                    this.instance.is_sojourn = false;
+                }
                 await this.api.update(this.instance.entity, [this.instance.id], {is_event: is_event});
                 // do not relay change
             }
@@ -539,10 +540,10 @@ export class BookingServicesBookingGroupComponent extends TreeComponent<BookingL
     }
 
     public async ondeleteAgeRange(age_range_id:number) {
-        try {
-            this.instance.age_range_assignments_ids.splice(this.instance.age_range_assignments_ids.findIndex((e:any)=>e.id == age_range_id),1);
+        try {            
             await this.api.update(this.instance.entity, [this.instance.id], {age_range_assignments_ids: [-age_range_id]});
-            // no not relay to parent
+            this.instance.age_range_assignments_ids.splice(this.instance.age_range_assignments_ids.findIndex((e:any)=>e.id == age_range_id),1);            
+            // no relay to parent
         }
         catch(response) {
             this.api.errorFeedback(response);

@@ -56,7 +56,6 @@ export class AppRootComponent implements OnInit {
     const top_menu:any = await this.api.getMenu('documents', 'documents.top');
     this.topMenuItems = top_menu.items;
     this.translationsMenuTop = top_menu.translation;
-
   }
 
   public onToggleItem(item:any) {
@@ -82,6 +81,41 @@ export class AppRootComponent implements OnInit {
     }
   }
 
+public onAction() {
+  let descriptor = {
+      route: '/documents',
+      context: {
+          entity:     'documents\\Document',
+          type:       'form',
+          name:       'create',
+          mode:       'edit',
+          purpose:    'create',
+          target:     '#sb-container',
+          callback:   (data:any) => {
+              if(data && data.objects && data.objects.length) {
+                  console.log('received value from create booking', data);
+                  // new_id =  data.objects[0].id
+                  let descriptor = {
+                      context: {
+                      entity:     'documents\\Document',
+                      type:       'list',
+                      name:       'default',
+                      mode:       'view',
+                      purpose:    'view',
+                      target:     '#sb-container'
+                      }
+                  };
+                  setTimeout( () => {
+                      this.context.change(descriptor);
+                  });
+              }
+          }
+      }
+  };
+
+this.context.change(descriptor);
+}
+
   /**
    * Items are handled as descriptors.
    * They always have a `route` property (if not, it is added and set to '/').
@@ -105,7 +139,7 @@ export class AppRootComponent implements OnInit {
           name:    'default',
           mode:    'view',
           purpose: 'view',
-          target:  '#sb-container',
+          // target:  '#sb-container',
           reset:    true
         },
         ...item.context
@@ -126,6 +160,10 @@ export class AppRootComponent implements OnInit {
 
     this.context.change(descriptor);
   }
+
+  public onUpdateSideMenu(show: boolean) {
+    this.show_side_menu = show;
+}
 
 
   public toggleSideMenu() {

@@ -504,7 +504,6 @@ export class BookingContractComponent implements OnInit, AfterContentInit {
     }
 
     public getLangName(lang_id:number) {
-        console.log('{{{{{{{{{{{{{{{{{{{{{ getlang', lang_id, this.languages);
         const found = this.languages.find(elem => elem.id == lang_id);
         return (found)?found.name:'';
     }

@@ -1,4 +1,4 @@
-import { Component, Inject, OnInit, OnChanges, NgZone, Output, Input, EventEmitter, SimpleChanges, AfterViewInit, ViewChild } from '@angular/core';
+import { Component, Inject, OnInit, OnChanges, NgZone, Output, Input, EventEmitter, SimpleChanges, AfterViewInit, ViewChild, AfterContentInit } from '@angular/core';
 import { AuthService, ApiService, ContextService, TreeComponent } from 'sb-shared-lib';
 
 import { FormControl, Validators } from '@angular/forms';
@@ -29,9 +29,6 @@ interface vmModel {
         date_to: string,
         product_id: number
     },
-    rental_unit: {
-        name: string
-    },
     qty: {
         formControl: FormControl
     }
@@ -42,7 +39,7 @@ interface vmModel {
   templateUrl: 'assignment.component.html',
   styleUrls: ['assignment.component.scss']
 })
-export class BookingServicesBookingGroupAccomodationAssignmentComponent extends TreeComponent<BookingAccomodationAssignment, BookingGroupAccomodationAssignmentComponentsMap> implements OnInit, OnChanges, AfterViewInit  {
+export class BookingServicesBookingGroupAccomodationAssignmentComponent extends TreeComponent<BookingAccomodationAssignment, BookingGroupAccomodationAssignmentComponentsMap> implements OnInit, OnChanges, AfterContentInit, AfterViewInit  {
     // server-model relayed by parent
     @Input() set model(values: any) { this.update(values) }
     @Input() accomodation: BookingAccomodation;
@@ -52,6 +49,8 @@ export class BookingServicesBookingGroupAccomodationAssignmentComponent extends 
     @Output() deleted = new EventEmitter();
 
     public ready: boolean = false;
+
+    public assigned_rental_units_ids: number[] = [];
 
     public vm: vmModel;
 
@@ -71,9 +70,6 @@ export class BookingServicesBookingGroupAccomodationAssignmentComponent extends 
                 date_to:        '',
                 product_id:     0
             },
-            rental_unit: {
-                name:           ''
-            },
             qty: {
                 formControl:    new FormControl('', [Validators.required, this.validateQty.bind(this)]),
             }
@@ -81,8 +77,8 @@ export class BookingServicesBookingGroupAccomodationAssignmentComponent extends 
     }
 
     private validateQty(c: FormControl) {
-        // qty cannot be bigger thant the rental unit capacity
-        // qty cannot be bigger thant the number of persons
+        // qty cannot be bigger than the rental unit capacity
+        // qty cannot be bigger than the number of persons
         return (this.instance && this.group && 
             c.value <= this.instance.rental_unit_id.capacity && c.value <= this.group.nb_pers ) ? null : {
             validateQty: {
@@ -93,6 +89,17 @@ export class BookingServicesBookingGroupAccomodationAssignmentComponent extends 
 
     public ngOnChanges(changes: SimpleChanges) {
         if(changes.model) {
+        }
+    }
+
+    public ngAfterContentInit() {
+        this.assigned_rental_units_ids = [];
+        for(let accomodation of this.group.accomodations_ids) {
+            for(let assignment of accomodation.rental_unit_assignments_ids) {
+                if(assignment.id != this.instance.id) {
+                    this.assigned_rental_units_ids.push(assignment.rental_unit_id.id);
+                }                    
+            }
         }
     }
 
@@ -108,7 +115,6 @@ export class BookingServicesBookingGroupAccomodationAssignmentComponent extends 
             date_to: this.group.date_to.toISOString(),
             product_id: this.accomodation.product_id.id
         }
-
     }
 
 
@@ -122,8 +128,9 @@ export class BookingServicesBookingGroupAccomodationAssignmentComponent extends 
         super.update(values);
 
         // assign VM values
-        this.vm.rental_unit.name = (Object.keys(this.instance.rental_unit_id).length)?this.instance.rental_unit_id.name + ' ('+this.instance.rental_unit_id.capacity+')':'';
+        
         this.vm.qty.formControl.setValue(this.instance.qty);
+
     }
 
 
@@ -131,20 +138,22 @@ export class BookingServicesBookingGroupAccomodationAssignmentComponent extends 
         return rental_unit.name + ' (' + rental_unit.capacity + ')';
     }
 
-    public async onchangeRentalUnit(event:any) {
-        let rental_unit = event.option.value;
-        let qty = Math.min(rental_unit.capacity, this.group.nb_pers);
-        this.vm.rental_unit.name = rental_unit.name + ' ('+ rental_unit.capacity +')';
-        this.vm.qty.formControl.setValue(qty);
+    public async onchangeRentalUnit(rental_unit:any) {
+        if(rental_unit.id != this.instance.rental_unit_id.id) {
+            let qty = Math.min(rental_unit.capacity, this.group.nb_pers);
 
-        // notify back-end about the change
-        try {
-            await this.api.update(this.instance.entity, [this.instance.id], {rental_unit_id: rental_unit.id});
-            // relay change to parent component
-            // this.updated.emit();
-        }
-        catch(response) {
-            this.api.errorFeedback(response);
+            this.vm.qty.formControl.setValue(qty);
+
+            // notify back-end about the change
+            try {
+                await this.api.update(this.instance.entity, [this.instance.id], {rental_unit_id: rental_unit.id});
+                // relay change to parent component
+                this.updated.emit();
+                // this.instance.rental_unit_id = {...rental_unit};
+            }
+            catch(response) {
+                this.api.errorFeedback(response);
+            }
         }
     }
 
@@ -159,7 +168,7 @@ export class BookingServicesBookingGroupAccomodationAssignmentComponent extends 
         try {
             await this.api.update(this.instance.entity, [this.instance.id], {qty: this.vm.qty.formControl.value});
             // relay change to parent component
-            // this.updated.emit();
+            this.updated.emit();
         }
         catch(response) {
             this.api.errorFeedback(response);

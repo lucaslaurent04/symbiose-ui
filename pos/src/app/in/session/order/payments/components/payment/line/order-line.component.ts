@@ -45,15 +45,13 @@ export class SessionOrderPaymentsOrderLineComponent extends TreeComponent<OrderL
     public ngOnInit() {
     }
 
-   
-
     public update(values:any) {
-        console.log('line item update', values);
         super.update(values);
     }
 
     public async onclickDelete() {
         await this.api.update((new OrderPayment()).entity, [this.instance.order_payment_id], {order_lines_ids: [-this.instance.id]});
+        await this.api.remove(this.instance.entity, [this.instance.id]);
         this.deleted.emit();
     }
 

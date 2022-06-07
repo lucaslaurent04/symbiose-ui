@@ -54,7 +54,6 @@ export class AppRootComponent implements OnInit {
     const top_menu:any = await this.api.getMenu('finance', 'accounting.top');
     this.topMenuItems = top_menu.items;
     this.translationsMenuTop = top_menu.translation;
-
   }
 
     public onToggleItem(item:any) {

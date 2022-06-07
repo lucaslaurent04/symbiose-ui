@@ -107,25 +107,26 @@ export class BookingServicesBookingGroupLineComponent extends TreeComponent<Book
         };
     }
 
-
+    /**
+     * 
+     * We need to perform some processing here, in addition with update(), because some inputs are only available here?
+     * @param changes 
+     */
     public ngOnChanges(changes: SimpleChanges) {
         if(changes.model) {
-            let factor:number = this.group.nb_nights;
-
-            if(this.instance.product_id.product_model_id.has_duration) {
-                factor = this.instance.product_id.product_model_id.duration;
-            }
-
-            let values = new Array(factor);
-
-            values.fill(0);
-            if(this.instance.qty_vars.length) {
-                values = JSON.parse(this.instance.qty_vars);
-            }
-            let i = 0;
-            for(let val of values) {
-                this.vm.qty_vars.values[i] = val;
-                ++i;
+            if(!this.instance.qty_vars.length) {                
+                let factor:number = this.group.nb_nights;
+                if(this.instance.product_id.product_model_id.has_duration) {
+                    factor = this.instance.product_id.product_model_id.duration;
+                }
+                let values = new Array(factor);
+                values.fill(0);
+                let i = 0;
+                this.vm.qty_vars.values = [];
+                for(let val of values) {
+                    this.vm.qty_vars.values[i] = val;
+                    ++i;
+                }
             }
         }
     }
@@ -161,8 +162,11 @@ export class BookingServicesBookingGroupLineComponent extends TreeComponent<Book
         // unit_price
         this.vm.unit_price.formControl.setValue(this.instance.unit_price);
         // vat
-
-        this.vm.vat.formControl.setValue(this.instance.vat_rate);
+        this.vm.vat.formControl.setValue(this.instance.vat_rate);  
+        // qty_vars
+        if(this.instance.qty_vars.length) {
+            this.vm.qty_vars.values = JSON.parse(this.instance.qty_vars);
+        }
     }
 
     public async ondeleteLine(line_id:number) {
@@ -218,14 +222,16 @@ export class BookingServicesBookingGroupLineComponent extends TreeComponent<Book
     }
 
     private async qtyChange() {
-        // notify back-end about the change
-        try {
-            await this.api.update(this.instance.entity, [this.instance.id], {qty: this.vm.qty.formControl.value});
-            // relay change to parent component
-            this.updated.emit();
-        }
-        catch(response) {
-            this.api.errorFeedback(response);
+        if(this.instance.qty != this.vm.qty.formControl.value) {
+            // notify back-end about the change
+            try {
+                await this.api.update(this.instance.entity, [this.instance.id], {qty: this.vm.qty.formControl.value});
+                // relay change to parent component
+                this.updated.emit();
+            }
+            catch(response) {
+                this.api.errorFeedback(response);
+            }
         }
     }
 
@@ -262,25 +268,33 @@ export class BookingServicesBookingGroupLineComponent extends TreeComponent<Book
 
     public async onchangeUnitPrice() {
         // notify back-end about the change
-        try {
-            await this.api.update(this.instance.entity, [this.instance.id], {unit_price: this.vm.unit_price.formControl.value});
-            // relay change to parent component
-            this.updated.emit();
-        }
-        catch(response) {
-            this.api.errorFeedback(response);
+        if(this.instance.unit_price != this.vm.unit_price.formControl.value) {
+            try {
+                await this.api.update(this.instance.entity, [this.instance.id], {unit_price: this.vm.unit_price.formControl.value});
+                // relay change to parent component
+                this.updated.emit();
+            }
+            catch(response) {
+                this.api.errorFeedback(response);
+            }
         }
     }
 
     private async vatChange() {
-        // notify back-end about the change
-        try {
-            await this.api.update(this.instance.entity, [this.instance.id], {vat_rate: this.vm.vat.formControl.value});
-            // relay change to parent component
-            this.updated.emit();
+        let vat_rate = this.vm.vat.formControl.value;
+        if(vat_rate >= 1) {
+            vat_rate = vat_rate / 100;
         }
-        catch(response) {
-            this.api.errorFeedback(response);
+        if(this.instance.vat_rate != vat_rate) {
+            // notify back-end about the change
+            try {                
+                await this.api.update(this.instance.entity, [this.instance.id], {vat_rate: vat_rate});
+                // relay change to parent component
+                this.updated.emit();
+            }
+            catch(response) {
+                this.api.errorFeedback(response);
+            }
         }
     }
 

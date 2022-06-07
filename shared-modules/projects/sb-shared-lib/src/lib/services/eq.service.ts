@@ -34,6 +34,16 @@ export class EqualUIService {
     }
 
     /**
+     * Retrieve a JQuery object for action button (if any) from a given view 
+     * @param entity 
+     * @param view_id 
+     * @returns JQuery
+     */
+    public async getActionButton(entity: string, view_id: string, domain: any[]) {
+        return await this.eq.getActionButton(entity, view_id, domain);
+    }
+
+    /**
      * Provide ApiService to allow sharing the Views and Translations cache.
      * @returns The instance of eQ ApiService.
      */

@@ -70,6 +70,7 @@ export class SessionOrderPaymentsPaymentPartComponent extends TreeComponent<Orde
 
     public async onclickDelete() {
         await this.api.update((new OrderPayment()).entity, [this.instance.order_payment_id], {order_payment_parts_ids: [-this.instance.id]});
+        await this.api.remove(this.instance.entity, [this.instance.id]);
         this.deleted.emit();
     }
 
