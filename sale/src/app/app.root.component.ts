@@ -87,44 +87,48 @@ export class AppRootComponent implements OnInit {
    * And might have an additional `context` property.
    * @param item 
    */
-  public onSelectItem(item:any) {
-    let descriptor:any = {};
+    public onSelectItem(item:any) {
+        let descriptor:any = {};
 
-    if(item.hasOwnProperty('route')) {
-      descriptor.route = item.route;
+        if(!item.hasOwnProperty('route') && !item.hasOwnProperty('context')) {
+            return;
+        }
+
+        if(item.hasOwnProperty('route')) {
+            descriptor.route = item.route;
+        }
+        else {
+            descriptor.route = '/';
+        }
+
+        if(item.hasOwnProperty('context')) {
+            descriptor.context = { 
+                ...{
+                    type:    'list',
+                    name:    'default',
+                    mode:    'view',
+                    purpose: 'view',
+                    target:  '#sb-container',
+                    reset:    true
+                },
+                ...item.context
+            };
+            
+            if( item.context.hasOwnProperty('view') ) {
+                let parts = item.context.view.split('.');
+                if(parts.length) descriptor.context.type = <string>parts.shift();
+                if(parts.length) descriptor.context.name = <string>parts.shift();
+            }
+
+            if( item.context.hasOwnProperty('purpose') && item.context.purpose == 'create') {
+                // descriptor.context.type = 'form';
+                descriptor.context.mode = 'edit';
+            } 
+
+        }    
+
+        this.context.change(descriptor);
     }
-    else {
-      descriptor.route = '/';
-    }
-
-    if(item.hasOwnProperty('context')) {
-      descriptor.context = { 
-        ...{
-          type:    'list',
-          name:    'default',
-          mode:    'view',
-          purpose: 'view',
-          target:  '#sb-container',
-          reset:    true
-        },
-        ...item.context
-      };
-      
-      if( item.context.hasOwnProperty('view') ) {
-        let parts = item.context.view.split('.');
-        if(parts.length) descriptor.context.type = <string>parts.shift();
-        if(parts.length) descriptor.context.name = <string>parts.shift();
-      }
-  
-      if( item.context.hasOwnProperty('purpose') && item.context.purpose == 'create') {
-        // descriptor.context.type = 'form';
-        descriptor.context.mode = 'edit';
-      } 
-
-    }    
-    
-    this.context.change(descriptor);
-  }
 
 
   public toggleSideMenu() {

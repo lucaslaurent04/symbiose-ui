@@ -13,129 +13,138 @@ This is the component that is bootstrapped by app.module.ts
 */
 
 declare global {
-  interface Window { context: any; }
+    interface Window { context: any; }
 }
 
 @Component({
-  selector: 'app-root',
-  templateUrl: './app.root.component.html',
-  styleUrls: ['./app.root.component.scss']
+    selector: 'app-root',
+    templateUrl: './app.root.component.html',
+    styleUrls: ['./app.root.component.scss']
 })
 export class AppRootComponent implements OnInit {
 
-  public show_side_menu: boolean = false;
-  public show_side_bar: boolean = true;
+    public show_side_menu: boolean = false;
+    public show_side_bar: boolean = true;
 
-  public topMenuItems = [{name: 'Dashboard'}, {name: 'Users'}, {name: 'Settings'}];
-  public navMenuItems: any = [];
+    public topMenuItems = [{name: 'Dashboard'}, {name: 'Users'}, {name: 'Settings'}];
+    public navMenuItems: any = [];
 
-  public translationsMenuLeft: any = {};
-  public translationsMenuTop: any = {};
+    public translationsMenuLeft: any = {};
+    public translationsMenuTop: any = {};
 
-  constructor(
-    private router: Router,
-    private context:ContextService,
-    private api:ApiService,
-    private auth:AuthService
+    constructor(
+        private router: Router,
+        private context:ContextService,
+        private api:ApiService,
+        private auth:AuthService
     ) {}
 
 
-  public async ngOnInit() {
+    public async ngOnInit() {
 
-    try {
-      await this.auth.authenticate();
-    }
-    catch(err) {
-      window.location.href = '/apps';
-      return;
-    }
-
-    // load menus from server
-    const left_menu:any = await this.api.getMenu('symbiose', 'settings.left');
-    this.navMenuItems = left_menu.items;
-    this.translationsMenuLeft = left_menu.translation;
-
-    const top_menu:any = await this.api.getMenu('symbiose', 'settings.top');
-    this.topMenuItems = top_menu.items;
-    this.translationsMenuTop = top_menu.translation;
-
-  }
-
-  public onToggleItem(item:any) {
-    // if item is expanded, fold siblings, if any
-    if(item.expanded) {
-      for(let sibling of this.navMenuItems) {
-        if(item!= sibling) {
-          sibling.expanded = false;
-          sibling.hidden = true;
+        try {
+            await this.auth.authenticate();
         }
-      }
-    }
-    else {
-      for(let sibling of this.navMenuItems) {
-        sibling.hidden = false;
-        if(sibling.children) {
-          for(let subitem of sibling.children) {
-            subitem.expanded = false;
-            subitem.hidden = false;
-          }
+        catch(err) {
+            window.location.href = '/apps';
+            return;
         }
-      }
-    }
-  }
 
-  /**
-   * Items are handled as descriptors.
-   * They always have a `route` property (if not, it is added and set to '/').
-   * And might have an additional `context` property.
-   * @param item
-   */
-   public onSelectItem(item:any) {
-    let descriptor:any = {};
+        // load menus from server
+        const left_menu:any = await this.api.getMenu('symbiose', 'settings.left');
+        this.navMenuItems = left_menu.items;
+        this.translationsMenuLeft = left_menu.translation;
 
-    if(item.hasOwnProperty('route')) {
-      descriptor.route = item.route;
-    }
-    else {
-      descriptor.route = '/';
-    }
-
-    if(item.hasOwnProperty('context')) {
-      descriptor.context = {
-        ...{
-          type:    'list',
-          name:    'default',
-          mode:    'view',
-          purpose: 'view',
-          target:  '#sb-container',
-          reset:    true
-        },
-        ...item.context
-      };
-
-      if( item.context.hasOwnProperty('view') ) {
-        let parts = item.context.view.split('.');
-        if(parts.length) descriptor.context.type = <string>parts.shift();
-        if(parts.length) descriptor.context.name = <string>parts.shift();
-      }
-
-      if( item.context.hasOwnProperty('purpose') && item.context.purpose == 'create') {
-        // descriptor.context.type = 'form';
-        descriptor.context.mode = 'edit';
-      }
+        const top_menu:any = await this.api.getMenu('symbiose', 'settings.top');
+        this.topMenuItems = top_menu.items;
+        this.translationsMenuTop = top_menu.translation;
 
     }
 
-    this.context.change(descriptor);
-  }
+    public onToggleItem(item:any) {
+        console.log('SettingsAppRoot::onToggleItem', item);
+        
+        // check item for route and context details
+        this.onSelectItem(item);
+
+        // if item is expanded, fold siblings, if any
+        if(item.expanded) {
+            for(let sibling of this.navMenuItems) {
+                if(item != sibling) {
+                    sibling.expanded = false;
+                    sibling.hidden = true;
+                }
+            }
+        }
+        else {
+            for(let sibling of this.navMenuItems) {
+                sibling.hidden = false;
+                if(sibling.children) {
+                    for(let subitem of sibling.children) {
+                        subitem.expanded = false;
+                        subitem.hidden = false;
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Items are handled as descriptors.
+     * They always have a `route` property (if not, it is added and set to '/').
+     * And might have an additional `context` property.
+     * @param item
+     */
+    public onSelectItem(item:any) {
+        console.log('SettingsAppRoot::onSelectItem', item);
+        let descriptor:any = {
+            route: '/'
+        };
+
+        if(!item.hasOwnProperty('route') && !item.hasOwnProperty('context')) {
+            return;
+        }
+
+        if(item.hasOwnProperty('route')) {
+            descriptor.route = item.route;
+        }
+
+        if(item.hasOwnProperty('context')) {
+            descriptor.context = {
+                ...{
+                    type:    'list',
+                    name:    'default',
+                    mode:    'view',
+                    purpose: 'view',
+                    // target:  '#sb-container',
+                    reset:    true
+                },
+                ...item.context
+            };
+
+            if( item.context.hasOwnProperty('view') ) {
+                let parts = item.context.view.split('.');
+                if(parts.length) descriptor.context.type = <string>parts.shift();
+                if(parts.length) descriptor.context.name = <string>parts.shift();
+            }
+
+            if( item.context.hasOwnProperty('purpose') && item.context.purpose == 'create') {
+                // descriptor.context.type = 'form';
+                descriptor.context.mode = 'edit';
+            }
+
+        }
+
+        this.context.change(descriptor);
+    }
 
 
-  public toggleSideMenu() {
-    this.show_side_menu = !this.show_side_menu;
-  }
+    public toggleSideMenu() {
+        this.show_side_menu = !this.show_side_menu;
+    }
 
 
-  public toggleSideBar() {
-    this.show_side_bar = !this.show_side_bar;
-  }
+    public toggleSideBar() {
+        this.show_side_bar = !this.show_side_bar;
+    }
 }

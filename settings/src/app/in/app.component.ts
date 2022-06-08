@@ -1,45 +1,36 @@
-import { Component, OnInit, AfterViewInit, ElementRef, QueryList, ViewChild, ViewChildren  } from '@angular/core';
-import { AuthService, ApiService } from 'sb-shared-lib';
-import { Router } from '@angular/router';
-
-
-import { FormGroup, FormControl, Validators } from '@angular/forms';
-import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { CdkTextareaAutosize } from '@angular/cdk/text-field';
-
-import { Observable, BehaviorSubject } from 'rxjs';
-import { find, map, startWith, debounceTime } from 'rxjs/operators';
-
-import { CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
-
-
+import { Component, OnInit, NgZone  } from '@angular/core';
+import { ContextService } from 'sb-shared-lib';
 
 @Component({
-  selector: 'app',
-  templateUrl: 'app.component.html',
-  styleUrls: ['app.component.scss']
+    selector: 'app',
+    templateUrl: 'app.component.html',
+    styleUrls: ['app.component.scss']
 })
-export class AppComponent implements OnInit, AfterViewInit  {
+export class AppComponent implements OnInit  {
 
+    public ready: boolean = false;
 
-  constructor(
-              private auth: AuthService,
-              private api: ApiService,
-              private router: Router,
-              private dialog: MatDialog
-              ) {
-  }
+    constructor(
+        private context: ContextService,
+        private zone: NgZone
+    ) {}
 
+    private getDescriptor() {
+        return {
+            route: "/settings/core"
+        };
+    }
 
+    public ngOnInit() {
+        this.context.ready.subscribe( (ready:boolean) => {
+            this.ready = ready;
+        });
+    }
 
+    public ngAfterViewInit() {
+        console.log('AppComponent::ngAfterViewInit');
 
-  public ngAfterViewInit() {
-
-  }
-
-  public ngOnInit() {
-
-  }
-
+        // this.context.change(this.getDescriptor());
+    }
 
 }

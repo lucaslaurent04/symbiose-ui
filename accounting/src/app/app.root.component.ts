@@ -87,6 +87,10 @@ export class AppRootComponent implements OnInit {
    */
     public onSelectItem(item:any) {
         let descriptor:any = {};
+        
+        if(!item.hasOwnProperty('route') && !item.hasOwnProperty('context')) {
+            return;
+        }
 
         if(item.hasOwnProperty('route')) {
             descriptor.route = item.route;

@@ -1,4 +1,4 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, Input, OnInit, AfterViewInit } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { SettingService } from 'src/app/settingService';
 
@@ -7,7 +7,7 @@ import { SettingService } from 'src/app/settingService';
   templateUrl: './widget-input.component.html',
   styleUrls: ['./widget-input.component.scss']
 })
-export class WidgetInputComponent implements OnInit {
+export class WidgetInputComponent implements OnInit, AfterViewInit {
   @Input() setting: any;
 
   public settingValue: any;
@@ -23,10 +23,15 @@ export class WidgetInputComponent implements OnInit {
   constructor(public save: SettingService) { }
 
   ngOnInit(): void {
-    this.settingValue = this.setting.setting_values_ids[0].value;
-    this.settingName = this.setting.code;
-    // preset the value of formControl
-    this.formControl.setValue(this.settingValue);
+  }
+
+  ngAfterViewInit() {
+      if(this.setting.setting_values_ids && this.setting.setting_values_ids.length) {
+        this.settingValue = this.setting.setting_values_ids[0].value;
+        this.settingName = this.setting.code;
+        // preset the value of formControl
+        this.formControl.setValue(this.settingValue);
+      }
   }
 
   /**

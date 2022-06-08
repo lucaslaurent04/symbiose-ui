@@ -2,16 +2,11 @@ import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 
 import { InvoiceComponent } from './invoice.component';
-import { BookingServicesComponent } from './services/services.component';
 import { BookingContractComponent } from './contract/contract.component';
 import { BookingQuoteComponent } from './quote/quote.component';
 import { BookingInvoiceComponent } from './invoice/invoice.component';
 
 const routes: Routes = [
-    {
-        path: 'services',
-        component: BookingServicesComponent
-    },
     {
         path: 'contract',
         component: BookingContractComponent

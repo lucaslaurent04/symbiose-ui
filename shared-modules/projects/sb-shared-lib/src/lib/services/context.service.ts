@@ -85,8 +85,9 @@ export class ContextService {
             if (event instanceof NavigationEnd) {
                 console.log('ContextService : route change', event);
                 this.route = event.url;
-                this.context = {};
-                this.observable.next(this.getDescriptor());
+                // this.context = {};
+                // this.observable.next(this.getDescriptor());
+                this.observable.next({route: this.route, context: {}});
                 // if no controller requests a change within 500ms, change to current context
                 this.timeout = setTimeout( () => {
                     this.timeout = undefined;

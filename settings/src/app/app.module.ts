@@ -11,6 +11,7 @@ import { NgxMaterialTimepickerModule } from 'ngx-material-timepicker';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppRootComponent } from './app.root.component';
+import { AppComponent } from './in/app.component';
 
 import { MatTableModule} from '@angular/material/table'
 /* HTTP requests interception dependencies */
@@ -32,8 +33,9 @@ import { PermissionClassNameComponent } from './in/settings/permissions/componen
 registerLocaleData(localeFr);
 
 @NgModule({
-  declarations: [
+  declarations: [    
     AppRootComponent,
+    AppComponent,
     SettingsComponent,
     WidgetToggleComponent,
     WidgetSelectComponent,

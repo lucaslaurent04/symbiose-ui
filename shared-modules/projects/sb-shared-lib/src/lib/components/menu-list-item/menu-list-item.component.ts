@@ -34,6 +34,7 @@ export class MenuListItemComponent implements OnInit {
     }
 
     public onItemToggle(item: any) {
+        console.log('onItemToggle', item);
         // if item is expanded, fold siblings, if any
         if(item.expanded) {
             // make sure item is visible
@@ -73,22 +74,25 @@ export class MenuListItemComponent implements OnInit {
     }
 
     public onItemSelected(item: any) {
+        console.log('onItemSelected', item);
         if (item.type == 'entry') {
             this.select.emit(item);
         }
-        else if (item.children && item.children.length) {
-            let is_child_open = false;
-            for(let child of item.children) {
-                if(child.expanded) {
-                    is_child_open = true;
+        else {
+            if (item.children && item.children.length) {
+                let is_child_open = false;
+                for(let child of item.children) {
+                    if(child.expanded) {
+                        is_child_open = true;
+                    }
                 }
-            }
-            if(!is_child_open) {
-                item.expanded = !item.expanded;
-                this.toggle.emit(item);            
-            }
-            else {
-                this.onItemToggle(item);
+                if(!is_child_open) {
+                    item.expanded = !item.expanded;
+                    this.toggle.emit(item);
+                }
+                else {
+                    this.onItemToggle(item);
+                }
             }
         }
     }

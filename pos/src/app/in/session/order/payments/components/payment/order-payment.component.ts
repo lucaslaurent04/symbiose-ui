@@ -67,12 +67,7 @@ export class SessionOrderPaymentsOrderPaymentComponent extends TreeComponent<Ord
     }
 
     public ngOnInit() {
-        // init componentsMap
-        // ??
-        /*
-        this.componentsMap = {
-        };
-        */
+
         this.qty.valueChanges.subscribe( (value:number)  => this.instance.qty = value );
         this.unit_price.valueChanges.subscribe( (value:number)  => this.instance.unit_price = value );
     }
