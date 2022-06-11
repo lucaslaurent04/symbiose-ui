@@ -28,7 +28,7 @@ export class PosComponent implements OnInit {
   public total = 0;
   public taxes = 0;
   public myTimeout : any;
-  // public posLineDisplay : string = "main";
+  public posLineDisplay : string = "main";
   // public discountValue : any = "";
   public operator : string = '+';
   public paymentValue : string;
@@ -55,6 +55,7 @@ export class PosComponent implements OnInit {
   }
 
   getPosLineDisplay(value: string){
+    this.onDisplayDetails.emit(value);
     // this.discountValue = "0";
     // this.posLineDisplay = value;
   }

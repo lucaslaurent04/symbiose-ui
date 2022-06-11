@@ -26,8 +26,8 @@ import { DiscountComponent } from '../components/pos/discount/discount.component
 import { InfoComponent } from '../components/pos/info/info.component';
 import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { PosArbitraryNumbersComponent } from '../components/pos-arbitrary-numbers/pos-arbitrary-numbers.component';
-import { ProductsComponent } from './lines/components/products/products.component';
 import { TicketComponent } from './payments/components/ticket/ticket.component';
+import { OrderItemsComponent } from './lines/components/order-items/order-items.component';
 
 
 @NgModule({
@@ -57,12 +57,12 @@ import { TicketComponent } from './payments/components/ticket/ticket.component';
     DiscountComponent,
     InfoComponent,
     PosArbitraryNumbersComponent,
-    ProductsComponent,
     TicketComponent,
+    OrderItemsComponent
     
   ],
   providers: [
-    { provide: DateAdapter, useClass: CustomDateAdapter, deps: [MAT_DATE_LOCALE, Platform] }
+    { provide: DateAdapter, useClass: CustomDateAdapter, deps: [MAT_DATE_LOCALE, Platform] },
   ]
 })
 export class AppInSessionOrderModule { }
