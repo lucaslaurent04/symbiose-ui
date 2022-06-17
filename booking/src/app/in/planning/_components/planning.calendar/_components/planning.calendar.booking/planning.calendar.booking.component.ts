@@ -82,7 +82,8 @@ export class PlanningCalendarBookingComponent implements OnInit, OnChanges  {
             green: '#0FA200',
             blue: '#0288d1',
             violet: '#9575cd',
-            red: '#C80651'
+            red: '#C80651',
+            grey: '#988a7d',
         };
 
         if(this.consumption.type == 'ooo') {
@@ -91,12 +92,16 @@ export class PlanningCalendarBookingComponent implements OnInit, OnChanges  {
         if(this.consumption.booking_id?.status == 'option') {
             return colors['blue'];
         }
-        else {
-            if(this.consumption.booking_id?.payment_status == 'paid') {
-                return colors['green'];
-            }
+        if(this.consumption.booking_id?.status == 'confirmed') {
             return colors['yellow'];
         }
+        if(this.consumption.booking_id?.status == 'validated') {
+            return colors['green'];
+        }
+        if(this.consumption.booking_id?.status == 'checkedin') {
+            return colors['turquoise'];
+        }        
+        return colors['grey'];
     }
 
 }

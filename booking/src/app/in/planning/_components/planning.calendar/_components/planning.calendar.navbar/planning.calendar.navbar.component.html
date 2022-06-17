@@ -29,6 +29,12 @@
                         [color]="'accent'"
                         (click)="toggleFilter($event, 'has_children')" >Unités parentes </mat-checkbox>&nbsp; 
                     <mat-checkbox type="checkbox"
+                        [indeterminate]="filters['has_parent'] == 'crossed'" 
+                        [disabled]="'disabled'"
+                        [ngModel]="filters['has_parent'] === 'checked'" 
+                        [color]="'accent'"
+                        (click)="toggleFilter($event, 'has_parent')" >Unités enftants </mat-checkbox>&nbsp; 
+                    <mat-checkbox type="checkbox"
                         [indeterminate]="filters['is_accomodation'] == 'crossed'" 
                         [disabled]="'disabled'"
                         [ngModel]="filters['is_accomodation'] === 'checked'" 

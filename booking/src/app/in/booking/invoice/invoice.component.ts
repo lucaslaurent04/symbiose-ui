@@ -461,6 +461,10 @@ export class BookingInvoiceComponent implements OnInit, AfterContentInit {
         this.vm.recipient.addresses = [];
         this.vm.recipient.formControl.reset();
 
+// #todo - temp tests
+this.vm.recipient.addresses.push(this.user.login);
+
+/*
         // customer address
         if(this.customer && this.customer.email && this.customer.email.length) {
             if(!this.vm.recipient.addresses.includes(this.customer.email)) {
@@ -482,7 +486,7 @@ export class BookingInvoiceComponent implements OnInit, AfterContentInit {
             // for testing
             this.vm.recipient.addresses.push(this.user.login);
         }
-
+*/
         if(this.vm.recipient.addresses.length == 1) {
             this.vm.recipient.formControl.setValue(this.vm.recipient.addresses[0]);
         }

@@ -30,6 +30,10 @@ interface vmModel {
         formControl: FormControl,
         change: () => void
     },
+    description: {
+        formControl: FormControl,
+        change: () => void
+    },
     qty_vars: {
         values: any,
         change: (index: number, event: any) => void,
@@ -88,6 +92,10 @@ export class BookingServicesBookingGroupLineComponent extends TreeComponent<Book
             qty: {
                 formControl:    new FormControl('', Validators.required),
                 change:         () => this.qtyChange()
+            },
+            description: {
+                formControl:    new FormControl(),
+                change:         () => this.descriptionChange()
             },
             qty_vars: {
                 values:         {},
@@ -159,6 +167,8 @@ export class BookingServicesBookingGroupLineComponent extends TreeComponent<Book
         this.vm.total_price.value = this.instance.price;
         // qty
         this.vm.qty.formControl.setValue(this.instance.qty);
+        // description
+        this.vm.description.formControl.setValue(this.instance.description);
         // unit_price
         this.vm.unit_price.formControl.setValue(this.instance.unit_price);
         // vat
@@ -214,6 +224,21 @@ export class BookingServicesBookingGroupLineComponent extends TreeComponent<Book
                 await this.api.update(this.instance.entity, [this.instance.id], {product_id: product.id});
                 // relay change to parent component
                 this.updated.emit();
+            }
+            catch(response) {
+                this.api.errorFeedback(response);
+            }
+        }
+    }
+
+
+    private async descriptionChange() {
+        if(this.instance.description != this.vm.description.formControl.value) {
+            // notify back-end about the change
+            try {
+                await this.api.update(this.instance.entity, [this.instance.id], {description: this.vm.description.formControl.value});
+                // do not relay change to parent component
+                this.instance.description = this.vm.description.formControl.value;
             }
             catch(response) {
                 this.api.errorFeedback(response);
@@ -362,6 +387,12 @@ export class BookingServicesBookingGroupLineComponent extends TreeComponent<Book
 
     public async onupdateDiscount(discount_id:any) {
         this.updated.emit();
+    }
+
+    public getOffsetDate(offset:number) {
+        let date = new Date(this.group.date_from.getTime());
+        date.setDate(date.getDate() + offset + 90);
+        return date;
     }
 
 }

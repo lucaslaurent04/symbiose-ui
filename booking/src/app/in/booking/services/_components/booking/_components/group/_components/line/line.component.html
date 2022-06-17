@@ -121,9 +121,19 @@
 
         </div>
 
+        <div class="row row-first" *ngIf="!vProduct.identification.folded" style="margin-top: -10px;">
+            <div class="part cell" [class.hidden]="!ready">
+                <mat-form-field >
+                    <mat-label>Description</mat-label>
+                    <input #unitPriceInput type="text" matInput [formControl]="vm.description.formControl" (blur)="vm.description.change()">
+                    <mat-hint>Texte de remplacement (facultatif)</mat-hint>
+                </mat-form-field>
+            </div>
+        </div>
+
         <!-- 2) quantity variations -->
         <div class="row row-first"
-            *ngIf="!vProduct.identification.folded && !group.is_locked && instance.qty_accounting_method == 'person' && (instance.is_meal || instance.is_accomodation)">
+            *ngIf="!vProduct.identification.folded && !group.is_locked && instance.qty_accounting_method == 'person'">
             <div class="part cell" [class.hidden]="!ready">
                 <div class="part-toggle">
                     <button mat-icon-button *ngIf="!vProduct.variations.folded"
@@ -137,26 +147,32 @@
                 </div>
                 <div class="part-container">
                     <div class="row row-title row-thin">
-                        <span>Variations des quantités <button *ngIf="!vProduct.variations.folded" mat-mini-fab color="primary"
+                        <span>
+                            Variations des quantités 
+                            <button *ngIf="!vProduct.variations.folded" mat-mini-fab color="primary"
                                 style="transform: scale(0.66);"
-                                (click)="vm.qty_vars.reset(); vProduct.variations.folded = true">
-                                <mat-icon>remove</mat-icon>
-                            </button></span>
+                                (click)="vm.qty_vars.reset(); vProduct.variations.folded = true"
+                                title="Réinitialiser">
+                                <mat-icon>delete</mat-icon>
+                            </button>
+                        </span>
                     </div>
                     <!-- variation details -->
                     <div class="row row-thin" *ngIf="!vProduct.variations.folded">
                         <div style="width: 100%;">
                             <div *ngFor="let delta of vm.qty_vars.values | keyvalue; let index = index;"
                                 style="display: flex; align-items: center; height: 38px;">
-                                <span style="flex: 0 1 25%;"><span style="text-decoration: underline"> Jour {{index+1}} </span>
-                                </span>
-                                <span style="width: 65px;">
+                                <div style="flex: 0 1 35%; display: flex;">
+                                    <span style="text-decoration: underline"> Jour {{index+1}}</span>
+                                    <span style="margin-left: 12px; width: 100px;">({{getOffsetDate(index+1) | date : 'EEE d LLL'}})</span>
+                                </div>                                
+                                <div style="width: 65px; margin-left: 24px;">
                                     <mat-form-field>
-                                        <input matInput type="number" min="0"
+                                        <input style="text-align: right;" matInput type="number" min="0"
                                             [value]="group.nb_pers + vm.qty_vars.values[index]"
                                             (blur)="vm.qty_vars.change(index, $event)">
                                     </mat-form-field>
-                                </span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -219,10 +235,14 @@
                 </div>
                 <div class="part-container">
                     <div class="row row-title row-thin">
-                        <span>Réductions <button mat-mini-fab color="primary" style="transform: scale(0.66);"
-                                (click)="oncreateDiscount(); vProduct.discounts.folded = false">
+                        <span>
+                            Réductions 
+                            <button mat-mini-fab color="primary" style="transform: scale(0.66);"
+                                (click)="oncreateDiscount(); vProduct.discounts.folded = false"
+                                title="Ajouter une réduction">
                                 <mat-icon>add</mat-icon>
-                            </button></span>
+                            </button>
+                        </span>
                     </div>
                     <!-- manual discounts details -->
                     <div class="row row-thin" *ngIf="!vProduct.discounts.folded">

@@ -24,7 +24,7 @@ interface BookingLineGroupComponentsMap {
     booking_lines_ids: QueryList<BookingServicesBookingGroupLineComponent>
     accomodations_ids: QueryList<BookingServicesBookingGroupAccomodationComponent>,
     meal_preferences_ids: QueryList<BookingServicesBookingGroupMealPrefComponent>,
-    age_ranges_ids: QueryList<BookingServicesBookingGroupAgeRangeComponent>
+    age_range_assignments_ids: QueryList<BookingServicesBookingGroupAgeRangeComponent>
 };
 
 
@@ -186,7 +186,7 @@ export class BookingServicesBookingGroupComponent extends TreeComponent<BookingL
             booking_lines_ids: this.BookingServicesBookingLineComponents,
             accomodations_ids: this.BookingServicesBookingGroupAccomodationComponents,
             meal_preferences_ids: this.BookingServicesBookingGroupMealPrefComponents,
-            age_ranges_ids: this.BookingServicesBookingGroupAgeRangeComponents
+            age_range_assignments_ids: this.BookingServicesBookingGroupAgeRangeComponents
         };
         this.componentsMap = map;
     }
@@ -244,6 +244,7 @@ export class BookingServicesBookingGroupComponent extends TreeComponent<BookingL
         this.vm.timerange.checkout.formControl.setValue(this.instance.time_to.substring(0, 5));
         this.vm.participants_count.formControl.setValue(this.instance.nb_pers);
         this.vm.price.value = this.instance.price;
+        this.vm.sojourn_type.value = (this.instance.sojourn_type_id == 1)?'GA':'GG';
     }
 
     public calcRateClass() {
@@ -432,7 +433,7 @@ export class BookingServicesBookingGroupComponent extends TreeComponent<BookingL
                     this.instance.is_event = false;
                 }
                 await this.api.update(this.instance.entity, [this.instance.id], {is_sojourn: is_sojourn, is_event: this.instance.is_event});
-                // do not relay change
+                this.updated.emit();
             }
             catch(response) {
                 this.api.errorFeedback(response);

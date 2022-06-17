@@ -33,6 +33,12 @@ export class PlanningCalendarNavbarComponent implements OnInit, AfterViewInit, A
 
     private rental_untis_filter_default: any[] = [['can_rent', '=', true]];
 
+    public filters: any = {
+        has_children: 'crossed',
+        has_parent: 'crossed',        
+        is_accomodation: 'crossed'
+    };
+
     vm: any = {
         duration:   '31',
         date_range: new FormGroup({
@@ -183,12 +189,6 @@ export class PlanningCalendarNavbarComponent implements OnInit, AfterViewInit, A
         this.params.centers_ids = this.selected_centers_ids;
     }
 
-
-    filters: any = {
-        has_children: 'crossed',
-        is_accomodation: 'crossed'
-    };
-
     public onclickUnselectAllCenters() {
         // this.centerSelector.close();
         this.centerSelector.options.forEach((item: MatOption) => item.deselect());
@@ -225,20 +225,28 @@ export class PlanningCalendarNavbarComponent implements OnInit, AfterViewInit, A
 
     public toggleFilter($event: any, filter:string) {
         $event.stopPropagation();
-        
-        let domain: any[] = [...this.rental_untis_filter_default];
+            
         if(this.filters[filter] === 'crossed') {
            this.filters[filter] = 'unchecked'; 
-            domain.push([filter, '=', false]);
         }
         else if(this.filters[filter] === 'unchecked') {
             this.filters[filter] = 'checked'; 
-            domain.push([filter, '=', true]);
         }
         else if(this.filters[filter] == 'checked') {
             this.filters[filter] = 'crossed'; 
         }
 
+        // re-generate domain
+        let domain: any[] = [...this.rental_untis_filter_default];
+        for(let filter of Object.keys(this.filters)) {
+            let value  = this.filters[filter];
+            if(value == 'checked') {
+                domain.push([filter, '=', true]);
+            }
+            else if(value == 'unchecked') {
+                domain.push([filter, '=', false]);
+            }
+        }
         this.params.rental_units_filter = domain;
     }
 

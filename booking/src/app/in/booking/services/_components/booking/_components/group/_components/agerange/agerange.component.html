@@ -14,7 +14,7 @@
 <div class="cell">
     <mat-form-field style="max-width: 100px;">
         <mat-label>Quantité</mat-label>
-        <input type="number" min="1" matInput [formControl]="vm.qty.formControl">
+        <input type="number" min="1" matInput (blur)="vm.qty.change()" [formControl]="vm.qty.formControl">
         <mat-error *ngIf="vm.qty.formControl.hasError('valid')">
             Quantité incompatible.
         </mat-error>
