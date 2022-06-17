@@ -23,6 +23,7 @@ import localeFr from '@angular/common/locales/fr';
 import { MAT_SNACK_BAR_DEFAULT_OPTIONS } from '@angular/material/snack-bar';
 
 import {MatButtonToggleModule} from '@angular/material/button-toggle';
+import { OrderService } from './in/orderService';
 
 
 
@@ -48,7 +49,8 @@ registerLocaleData(localeFr);
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptorService, multi: true },
     { provide: MAT_SNACK_BAR_DEFAULT_OPTIONS, useValue: { duration: 4000, horizontalPosition: 'start' } },
     { provide: MAT_DATE_LOCALE, useValue: 'fr-BE' },
-    { provide: LOCALE_ID, useValue: 'fr-BE' }
+    { provide: LOCALE_ID, useValue: 'fr-BE' },
+    OrderService
     /* remeber to provide CustomDateAdapter in modules with children components using dates */
   ],
   bootstrap: [AppRootComponent]

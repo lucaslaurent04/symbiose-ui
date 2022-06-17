@@ -15,6 +15,7 @@ export class SessionOrdersNewComponent implements OnInit, AfterViewInit {
     public ready: boolean = false;
 
     public session: CashdeskSession = new CashdeskSession();
+    public order: Order = new Order();
 
     private customer_id: number = 0;
 
@@ -72,7 +73,11 @@ export class SessionOrdersNewComponent implements OnInit, AfterViewInit {
     public async onclickCreateOrder() {
         // create a new order for the current session
         try {
-            const result:any = await this.api.create(CashdeskSession.entity, {'session_id': this.session.id});
+            const result:any = await this.api.create(Order.entity, {
+                'session_id': this.session.id,
+                'customer_id': this.customer_id,
+                'amount': 0
+            });
             // after creation, go to the order lines detail
             this.router.navigate(['/session/'+this.session.id+'/order/'+result[0].id]);
         }

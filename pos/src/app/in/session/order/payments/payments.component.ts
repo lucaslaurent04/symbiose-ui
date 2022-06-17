@@ -4,7 +4,10 @@ import { ApiService, ContextService, TreeComponent, RootTreeComponent } from 'sb
 import { CashdeskSession } from './../../session.model';
 import { Order, OrderPayment, OrderPaymentPart} from './payments.model';
 import { SessionOrderPaymentsOrderPaymentComponent } from './components/payment/order-payment.component';
+import { OrderService } from 'src/app/in/orderService';
 import { BookingLineClass } from 'src/app/model';
+
+
 
 
 // declaration of the interface for the map associating relational Model fields with their components
@@ -40,7 +43,8 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
         private router: Router,
         private route: ActivatedRoute,
         private api: ApiService,
-        private context: ContextService
+        private context: ContextService,
+        public orderservice : OrderService
     ) {
         super( new Order() );
     }
@@ -145,7 +149,7 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
     }
     
     public async onDigitTyped(value:any){
-        
+      console.log(value);
       let children = this.componentsMap.order_payments_ids.toArray();        
       let child = children[this.index];
 
@@ -173,10 +177,8 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
           this.digits = parseFloat(this.digits);
           this.digits += value;
         }else if(value == "," && this.focus != "voucher_ref"){
-            console.log(value, "kommmmaaaaa")
             if (!this.digits.includes('.')) {
                 this.digits += "."; 
-                
             } 
         }else if (value == 'backspace') {
           let test = this.digits.slice(0, -1);
@@ -185,7 +187,6 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
           this.digits += value;
         } 
         this.change = this.digits;
-        console.log(this.digits, "vegetaaa") 
         child.update({payment_method: payment_method});
         if(child.focused == "amount"){
             child.update({amount: parseFloat(this.digits)});
@@ -207,7 +208,6 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
     }
 
     public onPrint(){
-
     }
 
     public onTypeMode(value:any){
@@ -215,6 +215,11 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
     }
     public getDiscountValue(event:any){
 
+    }
+
+    public makePayment(){
+        let queue = this.orderservice.getQueue();
+        console.log(queue);
     }
 
 }

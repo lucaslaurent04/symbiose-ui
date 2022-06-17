@@ -4,6 +4,7 @@ import { ApiService, ContextService, TreeComponent, RootTreeComponent } from 'sb
 import { CashdeskSession } from './../../session.model';
 import { Order, OrderLine } from './lines.model';
 import { SessionOrderLinesOrderLineComponent } from './components/line/order-line.component';
+import { OrderService } from 'src/app/in/orderService';
 
 
 // declaration of the interface for the map associating relational Model fields with their components
@@ -19,6 +20,8 @@ interface OrderComponentsMap {
 export class SessionOrderLinesComponent extends TreeComponent<Order, OrderComponentsMap> implements RootTreeComponent, OnInit, AfterViewInit {
 
     @ViewChildren(SessionOrderLinesOrderLineComponent) SessionOrderLinesOrderLineComponents: QueryList<SessionOrderLinesOrderLineComponent>;
+
+    
 
     public ready: boolean = false;
 
@@ -42,12 +45,14 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
 
     private debounce:any;
 
+    public orderLine : any;
     constructor(
         private router: Router,
         private route: ActivatedRoute,
         private api: ApiService,
         private context: ContextService,
-        private cdRef:ChangeDetectorRef
+        private cdRef:ChangeDetectorRef,
+        public orderservice : OrderService
     ) {
         super( new Order() );
     }
@@ -317,15 +322,26 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
     }
 
     public onDisplayDetails(value:any){
-        this.posLineDisplay = value;
+        // this.posLineDisplay = value;
+        let newRoute = this.router.url.replace('lines','payments');
+        this.router.navigateByUrl(newRoute);
     }
 
     public onTypeMode(value:any){
 
     }
     public getDiscountValue(event:any){
-        console.log('eventtt', event)
         this.discountField = event;
         this.discountValue = "";
+    }
+
+    public async addOrderLine(funding:any){
+
+        await this.api.create( (new OrderLine()).entity, {order_id: this.instance.id, unit_price: funding.due_amount, qty: 1});
+        await this.load(this.instance.id);
+        this.orderservice.toQueue(funding.id, this.instance.id);
+        
+
+        // Changement temporaire pour reload le composant
     }
 }
