@@ -3,6 +3,7 @@ import { NgModule } from '@angular/core';
 import { PreloadAllModules, RouterModule, Routes } from '@angular/router';
 
 import { AppComponent } from './in/app.component';
+import { SessionsNewComponent } from './in/sessions/new/new.component';
 
 
 const routes: Routes = [
@@ -15,6 +16,10 @@ const routes: Routes = [
     path: 'session/:session_id',
     loadChildren: () => import(`./in/session/session.module`).then(m => m.AppInSessionModule) 
   },
+  {
+    path: 'sessions/new',
+    component: SessionsNewComponent
+},
   {
     /*
      default route, for bootstrapping the App

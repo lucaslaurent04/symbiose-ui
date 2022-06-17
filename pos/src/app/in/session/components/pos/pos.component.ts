@@ -19,6 +19,7 @@ export class PosComponent implements OnInit {
   public selectedProduct = 0;
   public invoice = false;
   public actionType : any = "quantity";
+  public displayClient = true;
   // public index : number;
   public quantityTest = "";
   public priceTest = "";
@@ -29,6 +30,7 @@ export class PosComponent implements OnInit {
   public taxes = 0;
   public myTimeout : any;
   public posLineDisplay : string = "main";
+  public customer_name :string;
   // public discountValue : any = "";
   public operator : string = '+';
   public paymentValue : string;
@@ -103,6 +105,11 @@ export class PosComponent implements OnInit {
     // this.actionType = event;
     // this.quantityTest = "";
     // this.priceTest = "";
+  }
+
+  onselectCustomer(customer:any){
+    this.customer_name = customer.name;
+    this.displayClient = true;
   }
 
   checkNumberPassed(event: any) {
@@ -352,7 +359,7 @@ export class PosOpening {
 @Component({
   selector: 'pos-closing',
   template: `
-  <h2 mat-dialog-title style="text-align:center">Contrôle de fermeture</h2>
+  <!-- <h2 mat-dialog-title style="text-align:center">Contrôle de fermeture</h2>
   <div mat-dialog-content style="background-color:#F5F5F5; padding: 3rem">
     <div style="display: flex; justify-content: space-between; align-items:center; border-bottom: 1px solid lightgray">
       <div style="display: flex; flex-direction:column">
@@ -386,8 +393,7 @@ export class PosOpening {
       </div> 
       <div style="display: flex; justify-content:center">
         <div *ngIf= displayTablet style="display: flex; justify-content:center">
-          <!-- <app-pad ></app-pad>
-          <app-pad-arbitrary-numbers></app-pad-arbitrary-numbers> -->
+          
         </div>
         <textarea style="width: 100%;" name="" id="" cols="30" rows="10" placeholder="Notes">
           
@@ -401,7 +407,7 @@ export class PosOpening {
     <div mat-dialog-actions style="display: flex; justify-content: flex-end;">
     <button mat-raised-button color="primary" (click)="closeDialog()" >Fermer</button>
     </div>
-  </div>
+  </div> -->
   `
 })
 
@@ -454,7 +460,7 @@ export class PosClosing {
                     grid-template-columns: repeat(2, 1fr);
                     grid-template-rows: repeat(8, 1fr); height: 100%">
             <div *ngFor="let coin of coins; index as i" style="margin: 0.2rem;">
-              <input style="font-size: 1.2rem" type="number" [value]="coin.number" (focus)="onGetFocusedInput(i)"> <mat-label style="font-size: 1.2rem; font-weight: bold; padding: 0.2rem">{{coin.value}}€</mat-label>
+              <!-- <input style="font-size: 1.2rem" type="number" [value]="coin.number" (focus)="onGetFocusedInput(i)"> <mat-label style="font-size: 1.2rem; font-weight: bold; padding: 0.2rem">{{coin.value}}€</mat-label> -->
             </div>
         </div>
         <!-- <div style="display: flex; border-bottom: 1px solid black;" *ngIf = "!displayTablet">
@@ -462,8 +468,8 @@ export class PosClosing {
             <button  (click)="displayTablet = !displayTablet" ><mat-icon>tablet_android</mat-icon></button>
         </div> -->
         <div style="display: flex; border: 1px solid lightgreen">
-          <app-pad (newNumberPassed)="onCheckNumberPassed($event)"></app-pad>
-          <app-pad-arbitrary-numbers (OnaddedNumber)="checkActionType($event)" (OnBackspace)="onBackSpace($event)"></app-pad-arbitrary-numbers>
+          <!-- <app-pad (newNumberPassed)="onCheckNumberPassed($event)"></app-pad>
+          <app-pad-arbitrary-numbers (OnaddedNumber)="checkActionType($event)" (OnBackspace)="onBackSpace($event)"></app-pad-arbitrary-numbers> -->
         </div>
       </div>    
     </div>

@@ -15,6 +15,7 @@ import {MatButtonToggleModule} from '@angular/material/button-toggle';
 
 
 
+
 @NgModule({
   imports: [
     SharedLibModule,
@@ -23,6 +24,7 @@ import {MatButtonToggleModule} from '@angular/material/button-toggle';
   ],
   declarations: [
     SessionComponent,
+  
     
   ],
   providers: [

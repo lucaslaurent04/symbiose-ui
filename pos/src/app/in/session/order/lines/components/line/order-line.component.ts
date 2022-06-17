@@ -63,7 +63,6 @@ export class SessionOrderLinesOrderLineComponent extends TreeComponent<OrderLine
     }
 
     public update(values:any) {
-        console.log(values)
         super.update(values);
         // update widgets and sub-components, if necessary
     }

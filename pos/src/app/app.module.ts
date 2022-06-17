@@ -24,6 +24,8 @@ import { MAT_SNACK_BAR_DEFAULT_OPTIONS } from '@angular/material/snack-bar';
 
 import {MatButtonToggleModule} from '@angular/material/button-toggle';
 import { OrderService } from './in/orderService';
+import { AppInSessionOrderModule } from './in/session/order/order.module';
+
 
 
 
@@ -32,7 +34,7 @@ registerLocaleData(localeFr);
 @NgModule({
   declarations: [
     AppRootComponent,
-    AppComponent,
+    AppComponent
   ],
   imports: [
     AppRoutingModule,
@@ -41,7 +43,7 @@ registerLocaleData(localeFr);
     SharedLibModule,
     PlatformModule,
     NgxMaterialTimepickerModule.setLocale('fr-BE'),
-    MatButtonToggleModule,
+    MatButtonToggleModule
     
   ],
   providers: [

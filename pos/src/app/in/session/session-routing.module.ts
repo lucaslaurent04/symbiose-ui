@@ -5,10 +5,6 @@ import { SessionComponent } from './session.component';
 
 const routes: Routes = [
     {
-        path: 'close',
-        loadChildren: () => import(`./close/close.module`).then(m => m.AppInSessionCloseModule)
-    },
-    {
         path: 'moves',
         loadChildren: () => import(`./moves/moves.module`).then(m => m.AppInSessionMovesModule)
     },

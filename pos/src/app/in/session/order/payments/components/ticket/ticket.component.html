@@ -31,7 +31,7 @@
         <span class="dotts">------</span>
     </ul>
     <div>
-        <div style="display: flex; justify-content: space-between; width: 100%;"> <span style="font-weight: bolder; font-size: 1.1rem;"> CHANGE</span> <span>{{totalPaid - item?.price}} €</span></div>
+        <div style="display: flex; justify-content: space-between; width: 100%;"> <span style="font-weight: bolder; font-size: 1.1rem;"> CHANGE</span> <span>{{(totalPaid - item?.price).toFixed(2)}} €</span></div>
     </div> 
     <div style="text-align: center; margin-top: 1.5rem;">
         - - - - - - - - - - - - - - - - - - -  - -

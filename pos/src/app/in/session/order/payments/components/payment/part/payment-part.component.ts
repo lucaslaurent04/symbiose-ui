@@ -21,9 +21,11 @@ export class SessionOrderPaymentsPaymentPartComponent extends TreeComponent<Orde
     @Input() set model(values: any) { this.update(values) }
     @Output() updated = new EventEmitter();
     @Output() deleted = new EventEmitter();
+    @Output() validated = new EventEmitter();
 
 
     public ready: boolean = false;
+    public hasValidated = false;
     
     public focused : string;
     public myToggle : string;
@@ -59,13 +61,12 @@ export class SessionOrderPaymentsPaymentPartComponent extends TreeComponent<Orde
 
     public update(values:any) {
         super.update(values);
-
         // update widgets and sub-components, if necessary
         this.amount.setValue(this.instance.amount);
         this.payment_method.setValue(this.instance.payment_method);
-        this.voucher_ref.setValue(this.instance.voucher_ref)
-        this.booking_id.setValue(this.instance.booking_id)
-        // this.cd.detectChanges();
+        this.voucher_ref.setValue(this.instance.voucher_ref);
+        this.booking_id.setValue(this.instance.booking_id);
+        this.cd.detectChanges();
     }
 
     public async onclickDelete() {
@@ -94,4 +95,8 @@ export class SessionOrderPaymentsPaymentPartComponent extends TreeComponent<Orde
         // no change in the tree - no reload needed
     }
 
+    public async validate(){
+        this.validated.emit(this.instance);
+        this.hasValidated = true;
+    }
 }

@@ -6,14 +6,20 @@ import { Platform } from '@angular/cdk/platform';
 import { SharedLibModule, AuthInterceptorService, CustomDateAdapter } from 'sb-shared-lib';
 
 import { SessionsComponent } from './sessions.component';
+import { PosClosingCoins, SessionsNewComponent } from './new/new.component';
+import { PadComponent } from '../session/components/pos/pad/pad.component';
+import { AppInSessionOrderModule } from '../session/order/order.module';
 
 
 @NgModule({
   imports: [
-    SharedLibModule
+    SharedLibModule,
+    AppInSessionOrderModule
   ],
   declarations: [
-    SessionsComponent
+    SessionsComponent,
+    SessionsNewComponent,
+    PosClosingCoins
   ],
   providers: [
     { provide: DateAdapter, useClass: CustomDateAdapter, deps: [MAT_DATE_LOCALE, Platform] }

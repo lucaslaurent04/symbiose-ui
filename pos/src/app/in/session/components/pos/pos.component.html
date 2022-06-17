@@ -1,25 +1,17 @@
-<!-- <section class="pos">
-    <div class="pos-lines">
-        
-        <app-paiement [paymentAmount]="discountValue" *ngIf="posLineDisplay == 'payment'" (posLineDisplay)="getPosLineDisplay($event)" (paymentSelection)="getPaymentSelection($event)" (paymentValue)="getPaymentValue($event)"></app-paiement>
-        <app-info *ngIf="posLineDisplay == 'info'" (posLineDisplay)="getPosLineDisplay($event)"></app-info>
-        <app-discount [item]="discountValue" (discountValue)="getDiscountValue($event)" (posLineDisplay)="getPosLineDisplay($event)" *ngIf="posLineDisplay == 'discount'"></app-discount>
-        <mat-selection-list *ngIf="posLineDisplay == 'main'"  #productsList [multiple] = "false" (click)="onSelectedProductChange(productsList.selectedOptions.selected)">
-            <mat-list-option *ngFor="let product of products"  [value]="product">
-                <p class="productName">{{product.name}}</p> 
-                <p>{{product.quantity}}<span *ngIf="!product.quantity.includes('.')">.00</span> unités à {{product.price}}<span *ngIf="!product.price.includes('.')">.00€</span> / Unités</p>
-               
-                <hr>
-            </mat-list-option>
-        </mat-selection-list>
-        <div class="total" *ngIf="posLineDisplay == 'main'">
-            <span class="totalNumber"> Total : {{total}} </span> 
-            <span> Taxes : {{taxes}} </span>   
-        </div>
-    </div> -->
+
     <div class="pos-pad">
         <div class="client">
-            <span>Client: xxx</span> <button mat-mini-fab color="primary" style="box-shadow: none;"><mat-icon>add</mat-icon></button>
+            <div *ngIf="displayClient == true" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                <span>Client: {{customer_name}}</span> <button (click)="displayClient = false" mat-mini-fab color="primary" style="box-shadow: none;"><mat-icon *ngIf="!customer_name">add</mat-icon><mat-icon *ngIf="customer_name?.length > 1">cancel</mat-icon></button>
+            </div>
+            <div *ngIf="displayClient == false">
+                <sb-m2o-select
+                                [entity]="'sale\\customer\\Customer'"
+                                [placeholder]="'Commencez à taper le nom'"
+                                [hint]="'Client pour la commande'"
+                                [noResult]="'rien trouvé'"
+                                (itemSelected)="onselectCustomer($event)">Client</sb-m2o-select>
+            </div>
         </div>
         <div class="pos-lowerPart">
             <div class="details-paiement">
@@ -39,7 +31,7 @@
             </div>
         </div>  
     </div>
-<!-- </section> -->
+
 
 
 

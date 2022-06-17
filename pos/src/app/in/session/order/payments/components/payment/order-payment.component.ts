@@ -24,6 +24,7 @@ export class SessionOrderPaymentsOrderPaymentComponent extends TreeComponent<Ord
     @Input() set model(values: any) { this.update(values) }
     @Output() updated = new EventEmitter();
     @Output() deleted = new EventEmitter();
+    @Output() validated = new EventEmitter();
     @Output() selectedPaymentPart = new EventEmitter();
     @Output() selectedOrderLine = new EventEmitter();
 
@@ -32,7 +33,7 @@ export class SessionOrderPaymentsOrderPaymentComponent extends TreeComponent<Ord
 
 
     public ready: boolean = false;
-
+    public paymentPart : any;
 
     public qty:FormControl = new FormControl();
     public unit_price:FormControl = new FormControl();
@@ -73,7 +74,8 @@ export class SessionOrderPaymentsOrderPaymentComponent extends TreeComponent<Ord
     }
 
     public update(values:any) {
-        console.log('line item update', values);
+        console.log('line item update', values.order_lines_ids[0]);
+        
         super.update(values);
 
         // update widgets and sub-components, if necessary
@@ -98,6 +100,12 @@ export class SessionOrderPaymentsOrderPaymentComponent extends TreeComponent<Ord
         this.updated.emit();
     }
 
+    public async onvalidate(paymentPart : any) {
+        this.paymentPart = paymentPart;
+        // relay to parent component
+        this.validated.emit(paymentPart);
+    }
+
     public async ondeleteLine(line_id:number) {
         await this.api.update(this.instance.entity, [this.instance.id], {order_lines_ids: [-line_id]});
         this.instance.order_lines_ids.splice(this.instance.order_lines_ids.findIndex((e:any)=>e.id == line_id),1);
@@ -105,20 +113,20 @@ export class SessionOrderPaymentsOrderPaymentComponent extends TreeComponent<Ord
     }
 
     public async onclickCreateNewPart() {
+        console.log(this.componentsMap.order_lines_ids)
         await this.api.create((new OrderPaymentPart()).entity, {order_payment_id: this.instance.id});
         this.updated.emit();
     }
 
     public onDisplayProducts() {
-        if(this.display != "products"){
-            this.display = "products";
-        }else{
-            this.display = "";
-        } 
-        
+        // if(this.display != "products"){
+        //     this.display = "products";
+        // }else{
+        //     this.display = "";
+        // } 
+
         console.log(this.componentsMap.order_lines_ids)
-        console.log(this.componentsMap.order_lines_ids.toArray())
-        
+        console.log(this.componentsMap.order_lines_ids.toArray())    
     }
 
     public onSelectedOrderLine(index : number){   

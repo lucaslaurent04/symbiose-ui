@@ -22,6 +22,5 @@ export class TicketComponent implements OnInit {
     this.payments = await this.api.collect("sale\\pos\\OrderPayment", ['order_id', '=', this.item?.id], ['order_payment_parts_ids', 'total_due', 'total_paid']);
     if(this.payments.length > 0)this.payments.forEach((element:any)=>this.totalPaid += element.total_paid);
     this.paymentsParts = await this.api.collect("sale\\pos\\OrderPaymentPart", ['order_id', '=', this.item?.id], ['order_payment_parts_ids', 'payment_method', 'amount', 'order_id']);
-    
   }
 }

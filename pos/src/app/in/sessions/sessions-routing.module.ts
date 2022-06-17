@@ -1,9 +1,11 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
+import { SessionsNewComponent } from './new/new.component';
 
 import { SessionsComponent } from './sessions.component';
 
 const routes: Routes = [
+      
     {
         path: '',
         component: SessionsComponent

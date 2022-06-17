@@ -16,23 +16,15 @@
     <div *ngIf="display !='products'">
         <div style="display: flex; margin: 0.25rem; display: flex; align-items: center;"><h3 style="max-height: fit-content;">Encaissements</h3> <button mat-mini-fab color="accent" (click)="onclickCreateNewPart()"><mat-icon>add</mat-icon> </button></div>
         <ng-container *ngFor="let part of instance.order_payment_parts_ids; index as i">
-            <mat-accordion>
-                <mat-expansion-panel >
-                    <mat-expansion-panel-header>
-                    <mat-panel-title>
-                    </mat-panel-title>
-                    <mat-panel-description>
-                      <b>Montant: {{part.amount}}</b>
-                    </mat-panel-description>
-                    </mat-expansion-panel-header>
+            
             <session-order-payments-payment-part
                 [model]="part"
                 (updated)="onupdatePart(part.id)"
                 (deleted)="ondeletePart(part.id)"
+                (validated)="onvalidate(part)"
                 (click)="onSelectedPaymentPart(i)"
             ></session-order-payments-payment-part>
-            </mat-expansion-panel>
-        </mat-accordion>
+            
         </ng-container>
     </div>
     <div class="row" *ngIf="display =='products'">

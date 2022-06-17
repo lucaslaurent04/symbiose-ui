@@ -13,7 +13,8 @@ export class Order {
         public price: number = 0,
         public customer_id: any = 0,
         public has_invoice: boolean = false,
-        public order_payments_ids: any[] = []
+        public order_payments_ids: any[] = [],
+        public order_lines_ids: any[] = []
     ) {}
 }
 
@@ -35,7 +36,9 @@ export class OrderLine {
         public qty: number = 0,
         public free_qty: number = 0,
         public total: number = 0,
-        public price: number = 0
+        public price: number = 0,
+        public funding_id: number = 0,
+        public has_funding: boolean = false
     ) {}
 }
 
@@ -51,7 +54,9 @@ export class OrderPayment {
         public total_due: number = 0.0,
         public total_paid: number = 0.0,
         public order_lines_ids: any[] = [],
-        public order_payment_parts_ids: any[] = []
+        public order_payment_parts_ids: any[] = [],
+        public funding_id: number = 0,
+        public has_funding: boolean = false
     ) {}
 }
 

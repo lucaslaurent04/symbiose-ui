@@ -2,8 +2,9 @@ import { Component, OnInit, AfterViewInit, ChangeDetectorRef, ViewChildren, Quer
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService, ContextService, TreeComponent, RootTreeComponent } from 'sb-shared-lib';
 import { CashdeskSession } from './../../session.model';
-import { Order, OrderPayment, OrderPaymentPart} from './payments.model';
+import { Order, OrderPayment, OrderPaymentPart } from './payments.model';
 import { SessionOrderPaymentsOrderPaymentComponent } from './components/payment/order-payment.component';
+import { SessionOrderLinesComponent } from '../../order/lines/lines.component';
 import { OrderService } from 'src/app/in/orderService';
 import { BookingLineClass } from 'src/app/model';
 
@@ -17,24 +18,25 @@ interface OrderComponentsMap {
 
 
 @Component({
-  selector: 'session-order-payments',
-  templateUrl: 'payments.component.html',
-  styleUrls: ['payments.component.scss']
+    selector: 'session-order-payments',
+    templateUrl: 'payments.component.html',
+    styleUrls: ['payments.component.scss']
 })
 export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderComponentsMap> implements RootTreeComponent, OnInit, AfterViewInit {
-    @ViewChildren(SessionOrderPaymentsOrderPaymentComponent) SessionOrderPaymentsOrderPaymentComponents: QueryList<SessionOrderPaymentsOrderPaymentComponent>; 
+    @ViewChildren(SessionOrderPaymentsOrderPaymentComponent) SessionOrderPaymentsOrderPaymentComponents: QueryList<SessionOrderPaymentsOrderPaymentComponent>;
+    // @ViewChildren(SessionOrderLinesComponent) SessionOrderLinesComponents: QueryList<SessionOrderLinesComponent>; 
 
+    public item: number;
     public ready: boolean = false;
-
-    public posLineDisplay :any;
-    public typeMode : any;
-    public amount : any;
-    public digits : any;
-    public index : number;
-    public selectedPaymentPart : number;
-    public selectedOrderLine : number;
-    public currentOrder : any;
-    public focus: string;    
+    public posLineDisplay: any;
+    public typeMode: any;
+    public amount: any;
+    public digits: any;
+    public index: number;
+    public selectedPaymentPart: number;
+    public selectedOrderLine: number;
+    public currentOrder: any;
+    public focus: string;
     public due: number;
     public change: any;
     public session: CashdeskSession = new CashdeskSession();
@@ -44,33 +46,32 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
         private route: ActivatedRoute,
         private api: ApiService,
         private context: ContextService,
-        public orderservice : OrderService
+        public orderservice: OrderService
     ) {
-        super( new Order() );
+        super(new Order());
     }
 
     public ngAfterViewInit() {
         // init local componentsMap
-        let map:OrderComponentsMap = {
-            order_payments_ids: this.SessionOrderPaymentsOrderPaymentComponents
+        let map: OrderComponentsMap = {
+            order_payments_ids: this.SessionOrderPaymentsOrderPaymentComponents,
+            // order_lines_ids: this.SessionOrderLinesComponents
         };
         this.componentsMap = map;
-
-        
     }
 
     public ngOnInit() {
         // fetch the ID from the route
-        this.route.params.subscribe( async (params) => {
-            if(params && params.hasOwnProperty('session_id') && params.hasOwnProperty('order_id')) {
+
+        this.route.params.subscribe(async (params) => {
+            if (params && params.hasOwnProperty('session_id') && params.hasOwnProperty('order_id')) {
                 try {
-                    await this.loadSession(<number> params['session_id']);
-                    await this.load(<number> params['order_id']);
+                    await this.loadSession(<number>params['session_id']);
+                    await this.load(<number>params['order_id']);
                     this.ready = true;
-                    console.log(this.instance)
                     this.currentOrder = this.instance;
                 }
-                catch(error) {
+                catch (error) {
                     console.warn(error);
                 }
             }
@@ -78,19 +79,18 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
     }
 
     private async loadSession(session_id: number) {
-        
-        if(session_id > 0) {
+
+        if (session_id > 0) {
             try {
-                const result:any = await this.api.read(CashdeskSession.entity, [session_id], Object.getOwnPropertyNames(new CashdeskSession()));
-                if(result && result.length) {
-                    this.session = <CashdeskSession> result[0];
+                const result: any = await this.api.read(CashdeskSession.entity, [session_id], Object.getOwnPropertyNames(new CashdeskSession()));
+                if (result && result.length) {
+                    this.session = <CashdeskSession>result[0];
                 }
             }
-            catch(response) {
+            catch (response) {
                 throw 'unable to retrieve given session';
             }
         }
-        
     }
 
 
@@ -99,14 +99,14 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
      * @param order_id
      */
     async load(order_id: number) {
-        if(order_id > 0) {
+        if (order_id > 0) {
             try {
-                const result:any = await this.api.fetch('/?get=sale_pos_order_tree', {id:order_id, variant: 'payments'});
-                if(result) {
+                const result: any = await this.api.fetch('/?get=sale_pos_order_tree', { id: order_id, variant: 'payments' });
+                if (result) {
                     this.update(result);
                 }
             }
-            catch(response) {
+            catch (response) {
                 console.log(response);
                 throw 'unable to retrieve given order';
             }
@@ -118,108 +118,119 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
      * 
      * @param values 
      */
-    public update(values:any) {
+    public update(values: any) {
         this.currentOrder = this.instance;
         super.update(values);
     }
 
-    public onupdatePayment(line_id:any) {
+    public onupdatePayment(line_id: any) {
         console.log('onupdatePayment');
         // a line has been updated: reload tree
         this.load(this.instance.id);
     }
 
-    public async ondeletePayment(line_id:number) {
+    public async ondeletePayment(line_id: number) {
         // a line has been removed: reload tree
         this.load(this.instance.id);
     }
 
     public async onclickCreateNewPayment() {
-        await this.api.create((new OrderPayment()).entity, {order_id: this.instance.id});
+        console.log(this.instance)
+        let fundings = await this.api.collect('sale\\pos\\OrderLine', [['order_id', '=', this.instance.id], ['has_funding', '=', 'true']], ['funding_id', 'has_funding']);
+        
+        await this.api.create((new OrderPayment()).entity, { order_id: this.instance.id, funding_id: fundings[0]?.funding_id, has_funding : true });
         this.load(this.instance.id);
     }
 
 
-    public onClickLine(index:number){
-      this.index = index;
-      // this.price = this.componentsMap.order_lines_ids._results[this.index].instance.unit_price;
-      // this.quantity = this.componentsMap.order_lines_ids._results[this.index].instance.qty;
-      // this.discountValue = this.componentsMap.order_lines_ids._results[this.index].instance.free_qty;
-      // this.instanceElement = {...this.instance.order_lines_ids[this.index]};
+    public onClickLine(index: number) {
+        this.index = index;
+        // this.price = this.componentsMap.order_lines_ids._results[this.index].instance.unit_price;
+        // this.quantity = this.componentsMap.order_lines_ids._results[this.index].instance.qty;
+        // this.discountValue = this.componentsMap.order_lines_ids._results[this.index].instance.free_qty;
+        // this.instanceElement = {...this.instance.order_lines_ids[this.index]};
     }
-    
-    public async onDigitTyped(value:any){
-      console.log(value);
-      let children = this.componentsMap.order_payments_ids.toArray();        
-      let child = children[this.index];
 
-      console.log(child)
-      
-      if(child.display != "products"){   
-      
-        child = child?.SessionOrderPaymentsPaymentPartComponents.toArray()[this.selectedPaymentPart];
-        
-        let payment_method = child.payment_method.value;
-        
-        this.focus = child.focused;
-            if(this.digits?.toString()?.includes('.') && this.digits[this.digits.length-1] == "."){
-            this.digits = child.instance[child.focused] + ".";
-        }else{
-            this.digits = child.instance[child.focused]
+    public async onDigitTyped(value: any) {
+        console.log(value);
+        let children = this.componentsMap.order_payments_ids.toArray();
+        let child = children[this.index];
+
+        if (child.display != "products") {
+
+            child = child?.SessionOrderPaymentsPaymentPartComponents.toArray()[this.selectedPaymentPart];
+
+            let payment_method = child.payment_method.value;
+
+            // Find out the paymentMethod
+            this.focus = child.focused;
+            if (this.digits?.toString()?.includes('.') && this.digits[this.digits.length - 1] == ".") {
+                this.digits = child.instance[child.focused] + ".";
+            } else {
+                this.digits = child.instance[child.focused]
+            }
+
+            value = value.toString();
+            this.digits = this.digits.toString();
+            if (value == "50" || value == "10" || value == "20") {
+                value = parseInt(value);
+                this.digits = parseFloat(this.digits);
+                this.digits += value;
+            } else if (value == "," && this.focus != "voucher_ref") {
+                if (!this.digits.includes('.')) {
+                    this.digits += ".";
+                    console.log(this.digits)
+                }
+            } else if (value == 'backspace') {
+                // On enlève deux éléments (chiffre et virgule) si la valeur est une virgule
+                let test = this.digits.slice(0, -1);
+                if (test.slice(-1) == '.') test = test.slice(0, -1);
+                this.digits = test;
+                // On met la valeur à 0, lorsqu'il n'y a plus de chiffre
+                if (this.digits == "") this.digits = 0;
+            } else if (value != 'backspace' && value != ',' && value != '+/-') {
+                this.digits += value;
+            }
+            this.change = this.digits;
+            child.update({ payment_method: payment_method });
+            if (child.focused == "amount") {
+                child.update({ amount: parseFloat(this.digits) });
+                // .toFixed(2)
+                await child.onchangeAmount();
+            } else if (child.focused == "booking_id") {
+                // child.update({booking_id: this.digits});
+                // await child.onchangeBookingId();
+            } else if (child.focused == "voucher_ref") {
+                child.update({ voucher_ref: parseFloat(this.digits) })
+                await child.onchangeVoucherRef();
+            }
+
+            this.currentOrder = this.instance;
         }
-        
-        
+    }
 
-        value = value.toString(); 
-        this.digits = this.digits.toString(); 
-        if ( value == "50" || value =="10" || value == "20") {
-          value = parseInt(value);
-          this.digits = parseFloat(this.digits);
-          this.digits += value;
-        }else if(value == "," && this.focus != "voucher_ref"){
-            if (!this.digits.includes('.')) {
-                this.digits += "."; 
-            } 
-        }else if (value == 'backspace') {
-          let test = this.digits.slice(0, -1);
-          this.digits = test;
-        }else if(value != 'backspace' && value != ',' && value != '+/-'){
-          this.digits += value;
-        } 
-        this.change = this.digits;
-        child.update({payment_method: payment_method});
-        if(child.focused == "amount"){
-            child.update({amount: parseFloat(this.digits)});
-            await child.onchangeAmount();
-        }else if(child.focused == "booking_id"){
-            // child.update({booking_id: this.digits});
-            // await child.onchangeBookingId();
-        }else if(child.focused == "voucher_ref"){
-            child.update({voucher_ref : parseFloat(this.digits)})
-            await child.onchangeVoucherRef();
-        }
-        this.currentOrder = this.instance;
-      }
-     
-  }
-
-    public onDisplayDetails(value:any){
+    public onDisplayDetails(value: any) {
         this.posLineDisplay = value;
     }
 
-    public onPrint(){
-    }
-
-    public onTypeMode(value:any){
-
-    }
-    public getDiscountValue(event:any){
+    public onPrint() {
 
     }
 
-    public makePayment(){
-        let queue = this.orderservice.getQueue();
-        console.log(queue);
+    public onTypeMode(value: any) {
+    }
+    public getDiscountValue(event: any) {
+    }
+
+    public async makePayment(paymentPart : any) {
+
+
+
+        let orderPayments = await this.api.collect('sale\\pos\\OrderPayment', [['order_id', '=', this.instance.id]], ['funding_id', 'has_funding']);
+        if(orderPayments[0].funding_id != null || 0){
+            await this.api.update('sale\\pos\\OrderPaymentPart',[paymentPart.id], {  funding_id: orderPayments[0].funding_id, has_funding : true });
+        }
+        // this.load(this.instance.id)
     }
 
 }

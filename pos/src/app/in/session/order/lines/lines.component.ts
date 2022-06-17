@@ -335,13 +335,30 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
         this.discountValue = "";
     }
 
-    public async addOrderLine(funding:any){
+    public async addBookingOrderLine(funding:any){
 
-        await this.api.create( (new OrderLine()).entity, {order_id: this.instance.id, unit_price: funding.due_amount, qty: 1});
-        await this.load(this.instance.id);
-        this.orderservice.toQueue(funding.id, this.instance.id);
-        
-
+        if(this.instance.order_lines_ids.length < 1){
+            const line = await this.api.create( (new OrderLine()).entity, {order_id: this.instance.id, unit_price: funding.due_amount, qty: 1, has_funding : true, funding_id: funding.id, name:funding.name });
+            await this.api.update(this.instance.entity,  [this.instance.id], {order_lines_ids : [line.id]});
+            await this.load(this.instance.id);
+        }
         // Changement temporaire pour reload le composant
     }
+
+    public async addedProduct(product:any){
+        console.log(product)
+        let has_funding = false;
+        this.instance.order_lines_ids.forEach((element:any) => {
+            if(element.has_funding == true){
+                has_funding = true;
+            }
+        });
+        if(!has_funding){
+            const line = await this.api.create( (new OrderLine()).entity, {order_id: this.instance.id, unit_price: product.due_amount, qty: 1, name:product.sku });
+            await this.api.update(this.instance.entity,  [this.instance.id], {order_lines_ids : [line.id]});
+            await this.load(this.instance.id);
+        }
+        
+    }
+
 }

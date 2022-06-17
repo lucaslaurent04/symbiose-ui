@@ -18,6 +18,8 @@ export class SessionOrdersNewComponent implements OnInit, AfterViewInit {
     public order: Order = new Order();
 
     private customer_id: number = 0;
+    public deleteConfirmation = false;
+    
 
     constructor(
         private router: Router,
@@ -79,7 +81,7 @@ export class SessionOrdersNewComponent implements OnInit, AfterViewInit {
                 'amount': 0
             });
             // after creation, go to the order lines detail
-            this.router.navigate(['/session/'+this.session.id+'/order/'+result[0].id]);
+            this.router.navigate(['/session/'+this.session.id+'/orders/']);
         }
         catch(response) {
 

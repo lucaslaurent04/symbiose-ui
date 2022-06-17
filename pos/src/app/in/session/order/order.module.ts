@@ -16,7 +16,9 @@ import { SessionOrderPaymentsComponent } from './payments/payments.component';
 import { SessionOrderPaymentsOrderPaymentComponent } from './payments/components/payment/order-payment.component';
 import { SessionOrderPaymentsOrderLineComponent } from './payments/components/payment/line/order-line.component';
 import { SessionOrderPaymentsPaymentPartComponent } from './payments/components/payment/part/payment-part.component';
-import { PosClosing, PosClosingCoins, PosComponent, PosOpening, ProductInfo } from '../components/pos/pos.component';
+import { PosComponent, PosOpening, ProductInfo } from '../components/pos/pos.component';
+import { PosClosingCoins, PosClosing } from '../close/close.component';
+
 import { AppInSessionModule } from '../session.module';
 import { PadComponent } from '../components/pos/pad/pad.component';
 import { TypeToggleComponent } from '../components/pos/pad/type-toggle/type-toggle.component';
@@ -28,6 +30,9 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { PosArbitraryNumbersComponent } from '../components/pos-arbitrary-numbers/pos-arbitrary-numbers.component';
 import { TicketComponent } from './payments/components/ticket/ticket.component';
 import { OrderItemsComponent } from './lines/components/order-items/order-items.component';
+import {MatPaginatorModule} from '@angular/material/paginator';
+import { CloseComponent } from '../close/close.component';
+
 
 
 @NgModule({
@@ -35,7 +40,8 @@ import { OrderItemsComponent } from './lines/components/order-items/order-items.
     SharedLibModule,
     SessionOrderRoutingModule,
     MatButtonToggleModule,
-    MatButtonToggleModule
+    MatButtonToggleModule,
+    MatPaginatorModule
   ],
   declarations: [
     SessionOrderComponent,
@@ -58,9 +64,10 @@ import { OrderItemsComponent } from './lines/components/order-items/order-items.
     InfoComponent,
     PosArbitraryNumbersComponent,
     TicketComponent,
-    OrderItemsComponent
-    
+    OrderItemsComponent,
+    CloseComponent
   ],
+  exports: [PadComponent, PadArbitraryNumbersComponent, PosArbitraryNumbersComponent],
   providers: [
     { provide: DateAdapter, useClass: CustomDateAdapter, deps: [MAT_DATE_LOCALE, Platform] },
   ]

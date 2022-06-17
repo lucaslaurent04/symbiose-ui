@@ -34,6 +34,8 @@ export class OrderLine {
         public qty: number = 0,
         public free_qty: number = 0,
         public total: number = 0,
-        public price: number = 0
+        public price: number = 0,
+        public funding_id: number = 0,
+        public has_funding : boolean = false
     ) {}
 }
