@@ -226,6 +226,29 @@
 
     }
 
+    tr td {
+        .cell-hint{
+            display: none;
+            position: fixed;
+            z-index:100;
+            transform: translateX(16px) translateY(12px);
+
+            span {
+                display: block;
+                border:1px;
+                background-color:white;
+                border-style:solid;
+                border-width:1px;
+                font-size: 15px;
+                border-color:grey;
+                box-shadow: 0 3px 5px 0 rgb(0 0 0 / 10%) !important;
+                padding: 3px 10px;
+                border-radius: 4px;
+                color:black;
+            }
+        }
+    }
+
     tr td.cell-room {
         /*
         width: 40px;
@@ -248,22 +271,7 @@
             color: crimson;
         }
 
-        .cell-hint{
-            display: none;
-            position: fixed;
-            z-index:100;
-            border:1px;
-            background-color:white;
-            border-style:solid;
-            border-width:1px;
-            font-size: 15px;
-            border-color:grey;
-            box-shadow: 0 3px 5px 0 rgb(0 0 0 / 10%) !important;
-            padding: 3px 10px;
-            border-radius: 4px;
-            color:black;
-            transform: translateX(16px) translateY(20px);
-        }
+
     }
 
     tr td.cell-room:first-child {
@@ -272,12 +280,16 @@
     }
 
     tr td.cell-room:hover {
-        .cell-hint{
+        .cell-hint {
             display: block;
         }
     }
 
-
+    tr td.cell-days:hover {
+        .cell-hint {
+            display: block;
+        }
+    }
 
     tr.rows {
         height: 30px;

@@ -54,6 +54,25 @@ export class PlanningCalendarComponent implements OnInit, AfterViewInit, AfterVi
     public hovered_rental_unit: any;
     public hovered_holidays: any;
 
+    public hover_row_index = -1;
+
+    public selection =  {
+        is_active: false,
+        left: 0,
+        top: 0,
+        width: 0,
+        height: 0,
+        cell_from: {
+            left: 0,
+            width: 0,
+            rental_unit: {},
+            date: {}
+        },
+        cell_to: {
+            date: new Date()
+        }
+    };
+
     // duration history as hint for refreshing cell width
     private previous_duration: number;
 
@@ -134,7 +153,7 @@ export class PlanningCalendarComponent implements OnInit, AfterViewInit, AfterVi
         return (this.consumptions.hasOwnProperty(rentalUnit.id) && this.consumptions[rentalUnit.id].hasOwnProperty(date_index));
     }
 
-    public getConsumption(rentalUnit:RentalUnit, day: Date):any {
+    public getConsumption(rentalUnit:RentalUnit, day: Date): any {
         let result = {};
 
         let date_index:string = day.toISOString().substring(0, 10);
@@ -146,6 +165,20 @@ export class PlanningCalendarComponent implements OnInit, AfterViewInit, AfterVi
         return result;
     }
 
+    public getDescription(rentalUnit:RentalUnit, day: Date): string {
+        let result:string = '';
+
+        let date_index:string = day.toISOString().substring(0, 10);
+
+        if(this.consumptions.hasOwnProperty(rentalUnit.id) && this.consumptions[rentalUnit.id].hasOwnProperty(date_index)) {
+            if(this.consumptions[rentalUnit.id][date_index].hasOwnProperty('booking_id')
+            && this.consumptions[rentalUnit.id][date_index]['booking_id'].hasOwnProperty('description')) {
+                result = this.consumptions[rentalUnit.id][date_index].booking_id.description;
+            }        
+        }
+        return result;
+    }
+
     public getHolidayClasses(day: Date): string[] {
         let result = [];
         let date_index:string = day.toISOString().substring(0, 10);
@@ -154,7 +187,9 @@ export class PlanningCalendarComponent implements OnInit, AfterViewInit, AfterVi
         }
         return result.map( (o:any) => o.type);
     }
-hover_row_index = -1;
+
+    
+
     private async onFiltersChange() {
         this.createHeaderDays();
 
@@ -331,24 +366,6 @@ hover_row_index = -1;
     }
 
 
-
-    public selection =  {
-        is_active: false,
-        left: 0,
-        top: 0,
-        width: 0,
-        height: 0,
-        cell_from: {
-            left: 0,
-            width: 0,
-            rental_unit: {},
-            date: {}
-        },
-        cell_to: {
-            date: new Date()
-        }
-    };
-
     public onmouseup() {
 
         if(this.selection.is_active) {
@@ -497,3 +514,18 @@ hover_row_index = -1;
         $event.preventDefault();
     }
 }
+
+
+/*
+
+LEGEND :
+
+    rouge : hors service (unité bloquée manuellement)
+    bleu : en option (avec '?')
+    orange : confirmée (paiement ok si '/$', paiement en attente si '$')
+    vert : validée  (avec 'v')
+    turquoise : en cours d'occupation
+    gris : terminée / client parti
+    couleur transparente : unité parente partiellement louée (non disponible entièrement) - une ou plusieurs sous-unités sont louées
+
+*/

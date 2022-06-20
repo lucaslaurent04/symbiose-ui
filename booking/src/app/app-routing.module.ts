@@ -19,6 +19,10 @@ const routes: Routes = [
         loadChildren: () => import(`./in/booking/booking.module`).then(m => m.AppInBookingModule) 
     },
     {
+        path: 'identity/:identity_id',
+        loadChildren: () => import(`./in/identity/identity.module`).then(m => m.AppInIdentityModule) 
+    },
+    {
         path: 'consumptions',
         loadChildren: () => import(`./in/consumptions/consumptions.module`).then(m => m.AppInConsumptionsModule) 
     },

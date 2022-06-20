@@ -34,9 +34,9 @@
             <!-- body -->
             <tr class="rows cdk-drag-disabled" (dragstart)="preventDrag($event)"  *ngFor="let rental_unit of rental_units; let index = index;" [class.highlight]="(index == hover_row_index)">
                 <td class="cell-room rental-unit" 
-                        (mouseenter)="onhoverRentalUnit(rental_unit);hover_row_index = index" 
+                        (mouseenter)="onhoverRentalUnit(rental_unit); hover_row_index = index" 
                         (mouseleave)="onhoverRentalUnit(null); hover_row_index = -1" 
-                        (click)="onSelectedRentalUnit(rental_unit)">{{ rental_unit.code }} ({{ rental_unit.capacity }})<span class="cell-hint">{{ rental_unit.name }} ({{ rental_unit.capacity }})</span>
+                        (click)="onSelectedRentalUnit(rental_unit)">{{ rental_unit.code }} ({{ rental_unit.capacity }})<span class="cell-hint"><span>{{ rental_unit.name }} ({{ rental_unit.capacity }})</span></span>
                 </td>
                 <td class="cell-room status">
                     <i *ngIf="rental_unit.status == 'ready'" class="material-icons" style="font-size: 20px; color: green;">check</i>
@@ -57,10 +57,13 @@
                         [width]="cells_width"
                         [day]="day"
                         [consumption]="getConsumption(rental_unit, day)"
-                        (hover)="onhoverBooking($event);onhoverDay(rental_unit, day)"
+                        (hover)="onhoverBooking($event); onhoverDay(rental_unit, day)"
                         (mouseleave)="onhoverDay(null, null)"
                         (selected)="onSelectedBooking($event)">
                     </planning-calendar-booking>
+                    <span *ngIf="hasConsumption(rental_unit, day)" class="cell-hint" #vDescription="var" [var]="{value: getDescription(rental_unit, day)}">
+                        <span *ngIf="vDescription.value.length" [innerHTML]="vDescription.value"></span>
+                    </span>
                 </td>
 
             </tr>

@@ -110,7 +110,6 @@ export class BookingServicesBookingComponent extends TreeComponent<Booking, Book
                 values.is_extra = true;
                 values.date_from = new Date().toISOString();
                 values.date_to =  new Date().toISOString();
-
             }            
             const group = await this.api.create("lodging\\sale\\booking\\BookingLineGroup", values);
             // reload booking tree

@@ -352,7 +352,7 @@ export class ApiService {
     return data;
   }
 
-  // #todo : move this to equal-ui or replicate equal translation svc
+  // #todo : move this to equal-ui OR replicate equal translation svc
   public async errorFeedback(response: any) {
     if(response && response.hasOwnProperty('error') && response['error'].hasOwnProperty('errors') && Object.keys(response['error']['errors']).length) {
         const errors: string[] = ['INVALID_STATUS', 'INVALID_PARAM', 'NOT_ALLOWED', 'CONFLICT_OBJECT'];        

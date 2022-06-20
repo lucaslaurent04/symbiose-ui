@@ -25,7 +25,8 @@ interface vmModel {
         value: any
     },
     qty: {
-        formControl: FormControl
+        formControl: FormControl,
+        change:      () => void
     }
 };
 
@@ -62,6 +63,7 @@ export class BookingServicesBookingGroupAgeRangeComponent extends TreeComponent<
             },
             qty: {
                 formControl:    new FormControl('', [Validators.required, this.validateQty.bind(this)]),
+                change:         () => this.onchange()
             }
         };
     }
@@ -94,19 +96,15 @@ export class BookingServicesBookingGroupAgeRangeComponent extends TreeComponent<
 
 
     public ngOnInit() {
-
+        this.ready = true;
 
         this.vm.qty.formControl.valueChanges.pipe(debounceTime(500)).subscribe( () => {
             if(this.vm.qty.formControl.invalid) {
                 this.vm.qty.formControl.markAsTouched();
                 return;
             }
-
-            this.onchange();
         });
 
-
-        this.ready = true;
     }
 
 

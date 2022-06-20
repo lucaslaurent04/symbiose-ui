@@ -279,7 +279,7 @@
                 </div>
 
                 <!-- participants ages details -->
-                <div class="row" *ngIf="!vGroup.identification.folded">
+                <div class="row" [class.hidden]="vGroup.identification.folded">
                     <div>
                         <div style="padding-left: 12px;">
                             Âges des participants
