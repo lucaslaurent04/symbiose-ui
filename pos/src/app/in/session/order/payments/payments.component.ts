@@ -79,7 +79,6 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
     }
 
     private async loadSession(session_id: number) {
-
         if (session_id > 0) {
             try {
                 const result: any = await this.api.read(CashdeskSession.entity, [session_id], Object.getOwnPropertyNames(new CashdeskSession()));
@@ -223,9 +222,6 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
     }
 
     public async makePayment(paymentPart : any) {
-
-
-
         let orderPayments = await this.api.collect('sale\\pos\\OrderPayment', [['order_id', '=', this.instance.id]], ['funding_id', 'has_funding']);
         if(orderPayments[0].funding_id != null || 0){
             await this.api.update('sale\\pos\\OrderPaymentPart',[paymentPart.id], {  funding_id: orderPayments[0].funding_id, has_funding : true });

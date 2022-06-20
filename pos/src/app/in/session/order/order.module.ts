@@ -16,7 +16,7 @@ import { SessionOrderPaymentsComponent } from './payments/payments.component';
 import { SessionOrderPaymentsOrderPaymentComponent } from './payments/components/payment/order-payment.component';
 import { SessionOrderPaymentsOrderLineComponent } from './payments/components/payment/line/order-line.component';
 import { SessionOrderPaymentsPaymentPartComponent } from './payments/components/payment/part/payment-part.component';
-import { PosComponent, PosOpening, ProductInfo } from '../components/pos/pos.component';
+import { PosComponent, PosOpening } from '../components/pos/pos.component';
 import { PosClosingCoins, PosClosing } from '../close/close.component';
 
 import { AppInSessionModule } from '../session.module';
@@ -55,7 +55,7 @@ import { CloseComponent } from '../close/close.component';
     PadComponent,
     TypeToggleComponent,
     PosOpening,
-    ProductInfo,
+    // ProductInfo,
     PosClosing,
     PadArbitraryNumbersComponent,
     PaiementComponent,

@@ -76,13 +76,13 @@ export class PosComponent implements OnInit {
   }
 
   onDisplayProductInfo() {
-    if (this.selectedProduct != 0) {
-      const dialogRef = this.dialog.open(ProductInfo, {
-        data: this.selectedProduct
-      });
-      dialogRef.afterClosed().subscribe(
-      )
-    }
+    // if (this.selectedProduct != 0) {
+    //   const dialogRef = this.dialog.open(ProductInfo, {
+    //     data: this.selectedProduct
+    //   });
+    //   dialogRef.afterClosed().subscribe(
+    //   )
+    // }
   }
 
   onSelectedProductChange(element: any) {
@@ -221,73 +221,73 @@ export class PosComponent implements OnInit {
 // Infos Produits
 
 
-@Component({
-  selector: 'product-info',
-  template: `
-  <h2 style="background-color: white; text-align: center" mat-dialog-title>Informations de l'article</h2>
-  <div style="background-color: #F5F5F5; width: 40rem; padding:0.5rem" mat-dialog-content>
-    <div style="display: flex; justify-content:space-between; padding: 0.5rem; font-weight:bolder; padding:0.2rem;">
-      <div>
-        {{data.name}}
-      </div>
-      <div style="display: flex; flex-direction:column">
-        <span>
-          {{data.price}}
-        </span>
-        <span>
-          Taxe
-        </span>
-      </div>
-    </div>
+// @Component({
+//   selector: 'product-info',
+//   template: `
+//   <h2 style="background-color: white; text-align: center" mat-dialog-title>Informations de l'article</h2>
+//   <div style="background-color: #F5F5F5; width: 40rem; padding:0.5rem" mat-dialog-content>
+//     <div style="display: flex; justify-content:space-between; padding: 0.5rem; font-weight:bolder; padding:0.2rem;">
+//       <div>
+//         {{data.name}}
+//       </div>
+//       <div style="display: flex; flex-direction:column">
+//         <span>
+//           {{data.price}}
+//         </span>
+//         <span>
+//           Taxe
+//         </span>
+//       </div>
+//     </div>
 
-    <div style="margin-top: 0.25rem;">
-      <h4 style="border-bottom: 1px solid black; font-weight:bolder; padding:0.2rem;">Éléments comptables</h4>
-      <div>
-        <span>Prix HT</span> <span></span>
-      </div>
-      <div>
-        <span>Coût</span> <span></span>
-      </div>
-      <div>
-        <span>Marge</span> <span></span>
-      </div>
-    </div>
+//     <div style="margin-top: 0.25rem;">
+//       <h4 style="border-bottom: 1px solid black; font-weight:bolder; padding:0.2rem;">Éléments comptables</h4>
+//       <div>
+//         <span>Prix HT</span> <span></span>
+//       </div>
+//       <div>
+//         <span>Coût</span> <span></span>
+//       </div>
+//       <div>
+//         <span>Marge</span> <span></span>
+//       </div>
+//     </div>
 
-    <div style="margin-top: 0.25rem;">
-      <h4 style="border-bottom: 1px solid black; font-weight:bolder; padding:0.2rem;">Stock</h4>
-      <div>
-        <span>Restant</span> <span></span>
-      </div>
-    </div>
+//     <div style="margin-top: 0.25rem;">
+//       <h4 style="border-bottom: 1px solid black; font-weight:bolder; padding:0.2rem;">Stock</h4>
+//       <div>
+//         <span>Restant</span> <span></span>
+//       </div>
+//     </div>
 
-    <div style="margin-top: 0.25rem;">
-      <h4 style="border-bottom: 1px solid black; font-weight:bolder; padding:0.2rem;">Commande</h4>
-      <div>
-        <span>Restant</span> <span></span>
-      </div>
-    </div>
-    <div mat-dialog-actions style="display: flex; justify-content: flex-end; padding: 1rem">
-    <button  mat-raised-button (click)="closeDialog()"  color="primary">Fermer</button>
-    </div>
-  </div>
+//     <div style="margin-top: 0.25rem;">
+//       <h4 style="border-bottom: 1px solid black; font-weight:bolder; padding:0.2rem;">Commande</h4>
+//       <div>
+//         <span>Restant</span> <span></span>
+//       </div>
+//     </div>
+//     <div mat-dialog-actions style="display: flex; justify-content: flex-end; padding: 1rem">
+//     <button  mat-raised-button (click)="closeDialog()"  color="primary">Fermer</button>
+//     </div>
+//   </div>
  
-  `
-})
-export class ProductInfo {
+//   `
+// })
+// export class ProductInfo {
 
-  constructor(
-    public dialogDelete: MatDialogRef<ProductInfo>,
-    @Inject(MAT_DIALOG_DATA) public data: any
-  ) { }
-  public deleteConfirmation = false;
-  ngOnInit(): void {
-    console.log(this.data);
-  }
-  public closeDialog() {
-    this.dialogDelete.close({
-    })
-  }
-}
+//   constructor(
+//     public dialogDelete: MatDialogRef<ProductInfo>,
+//     @Inject(MAT_DIALOG_DATA) public data: any
+//   ) { }
+//   public deleteConfirmation = false;
+//   ngOnInit(): void {
+//     console.log(this.data);
+//   }
+//   public closeDialog() {
+//     this.dialogDelete.close({
+//     })
+//   }
+// }
 
 
 
