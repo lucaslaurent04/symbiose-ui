@@ -1,6 +1,16 @@
 <div class="pos-pad">
     <div class="client">
-        <span>Client: xxx</span> <button mat-mini-fab color="primary" style="box-shadow: none;"><mat-icon>add</mat-icon></button>
+        <div *ngIf="displayClient == true" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            <span>Client: {{customer_name}}</span> <button (click)="displayClient = false" mat-mini-fab color="primary" style="box-shadow: none;"><mat-icon *ngIf="!customer_name">add</mat-icon><mat-icon *ngIf="customer_name?.length > 1">cancel</mat-icon></button>
+        </div>
+        <div *ngIf="displayClient == false">
+            <sb-m2o-select
+                            [entity]="'sale\\customer\\Customer'"
+                            [placeholder]="'Commencez à taper le nom'"
+                            [hint]="'Client pour la commande'"
+                            [noResult]="'rien trouvé'"
+                            (itemSelected)="onselectCustomer($event)">Client</sb-m2o-select>
+        </div>
     </div>
     <div class="pos-lowerPart">
         <div class="details-paiement">

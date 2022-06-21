@@ -29,16 +29,19 @@
         height: 100%;
         width: 100%;
 
-
-        .header {
-            width: 100%;
-            padding-left: 12px;
-            height: 48px;
-            line-height: 48px;
+        .header-wrap{
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             border-bottom: solid 1px lightgrey;
-            font-size: 22px;
+            width: 98%;
+            .header {
+                padding-left: 12px;
+                height: 48px;
+                line-height: 48px;
+                font-size: 22px;
+            }
         }
-    
         .body {
             height: calc(100vh - 123px);
             width: 100%;

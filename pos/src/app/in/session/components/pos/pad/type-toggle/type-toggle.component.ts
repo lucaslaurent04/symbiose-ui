@@ -16,12 +16,12 @@ export class TypeToggleComponent implements OnInit {
   onSelectionChange(value: string) {
     this.newItemEvent.emit(value);
   }
-  
-  onButton(value: string){
+
+  onButton(value: string) {
     this.newOnBackspace.emit(value);
   }
   ngOnInit(): void {
   }
-  onDelete(){
+  onDelete() {
   }
 }

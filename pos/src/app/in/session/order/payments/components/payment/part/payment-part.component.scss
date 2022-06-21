@@ -1,8 +1,31 @@
 :host {
     display: flex;
     width: 100%;
+    
     section{
         display: flex;
+        
+        mat-accordion {
+            width: 100%;
+            ::ng-deep .mat-expansion-panel-body {
+                display: flex;
+            }
+            mat-panel-description{
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }    
+            .line-header {
+                display: flex; 
+                margin-left: 20px;
+                
+                div {
+                    flex: 1 1 10%;
+                    text-align: left;
+                    font-weight: 500;    
+                }
+            }
+        }
         div {
             margin: 0.25rem;
         }

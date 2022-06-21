@@ -29,16 +29,20 @@
         height: 100%;
         width: 100%;
 
-
-        .header {
-            width: 100%;
-            padding-left: 12px;
-            height: 48px;
-            line-height: 48px;
+        .header-wrap {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             border-bottom: solid 1px lightgrey;
-            font-size: 22px;
+            width: 98%;
+            .header {
+                padding-left: 12px;
+                height: 48px;
+                line-height: 48px;
+                font-size: 22px;
+            }
         }
-    
+
         .body {
             height: calc(100vh - 123px);
             // overflow-y: scroll;
@@ -48,6 +52,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: space-between;
+
             // .pad{
             //     bottom: 0;
             // }
@@ -60,6 +65,7 @@
 
                 .actions-std {
                     flex: 0 1 30%;
+
                     button {
                         transform: scale(1.5);
                         margin-left: 45px;
@@ -69,53 +75,63 @@
 
                 .actions-view {
                     margin-left: auto;
-                    
+
                     button:not(:last-child) {
                         margin-right: 12px;
                     }
                 }
             }
+
             .view {
                 height: 45vh;
                 overflow: auto;
                 width: 100%;
-                .order{
+
+                .order {
                     background-color: #3f51b5;
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
                     padding: 0.75rem;
                     height: 4.5rem;
-                    h2{
+
+                    h2 {
                         color: white;
                     }
                 }
-                .hidden{
+
+                .hidden {
                     display: none;
                 }
-                .selected{
+
+                .selected {
                     background-color: #3f51b5 !important;
                     color: #3f51b5;
                 }
-                .total{
+
+                .total {
                     display: flex;
                     flex-direction: column;
                     float: right;
                     width: 25%;
                     min-width: fit-content;
+
                     @media only screen and (max-width: 1500px) {
                         width: 100%;
                     }
-                    .totalNumber{
-                        font-weight: bold; 
-                        font-size: 1.25rem; 
+
+                    .totalNumber {
+                        font-weight: bold;
+                        font-size: 1.25rem;
                         overflow: auto;
                         color: white;
                     }
-                    .taxes{
+
+                    .taxes {
                         color: white;
                     }
-                }  
+                }
+
                 .orders-container {
                     .order-row {
                         padding: 0 12px;
@@ -152,24 +168,24 @@
             }
 
         }
-    
+
         .body::-webkit-scrollbar {
             width: 6px;
             overflow-y: scroll;
             background: transparent;
-        
+
         }
-        
+
         .body::-webkit-scrollbar-thumb {
             background: var(--mdc-theme-primary, #6200ee);
             border-radius: 10px;
-        }        
+        }
 
-        
+
     }
 
     .container.hidden {
         display: none;
-    }      
-    
+    }
+
 }

@@ -22,10 +22,8 @@ export class SessionOrderPaymentsOrderLineComponent extends TreeComponent<OrderL
     @Input() set model(values: any) { this.update(values) }
     @Output() deleted = new EventEmitter();
 
-
     // public ready: boolean = false;
     public checked : boolean = true;
-
 
     constructor(
         private router: Router,

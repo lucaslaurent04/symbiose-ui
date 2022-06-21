@@ -18,6 +18,19 @@
             top: 33%;
         }
     }
+    .header-wrap{
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 99%;
+        border-bottom: solid 1px lightgrey;
+        .header {
+            padding-left: 12px;
+            height: 48px;
+            line-height: 48px;
+            font-size: 22px;
+        }
+    }
     .container{
         border-right: 1px solid lightgray;
         max-width: 430px;

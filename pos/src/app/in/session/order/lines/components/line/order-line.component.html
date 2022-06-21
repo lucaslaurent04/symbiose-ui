@@ -1,10 +1,14 @@
 <p class="lineName">{{instance.name}}</p> 
 
 <div class="orderLine" [class.selectedLine]="selectedLine">
-    <p><b>{{instance.qty}}<span *ngIf="!instance.qty.toString().includes('.')">.00</span></b> unités @ <b>{{instance.unit_price}}<span *ngIf="!instance.unit_price
+    <!-- <span *ngIf="!instance.qty.toString().includes('.')">.00</span> -->
+    <p><b>{{instance.qty}}</b> unités @ <b>{{instance.unit_price}}<span *ngIf="!instance.unit_price
         .toString().includes('.')">.00€</span> <span *ngIf="instance.unit_price
         .toString().includes('.')">€</span> </b></p>
-    <button mat-mini-fab color="accent" (click)="onclickDelete()"><mat-icon>delete</mat-icon></button>
+    <div>
+        <button mat-mini-fab color="accent" (click)="onDisplayInfo()"><mat-icon>info</mat-icon></button>
+        <button mat-mini-fab color="accent" (click)="onclickDelete()"><mat-icon>delete</mat-icon></button>
+    </div>
 </div>
 
 <hr>

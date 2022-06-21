@@ -4,36 +4,42 @@
     <p class="centerItems" style="font-weight: lighter; text-align: center; width: 100%; margin-top: 0;">Infos</p>
     <ul>
         <li *ngFor="let order of orders; index as i">
-          <span>Produit {{order.name}}</span> <span>{{order.price}} €</span> 
+            <span>Produit {{order.name}}</span> <span>{{order.price}} €</span>
         </li>
         <span class="dotts">------</span>
-    </ul> 
-    
+    </ul>
+
     <div class="subTotal" style="width: 100%;">
-        <span>SubTotal:</span>  <span style="min-width: fit-content;">  {{item?.total}} € HTVA </span>  
+        <span>SubTotal:</span> <span style="min-width: fit-content;"> {{item?.total}} € HTVA </span>
     </div>
     <div>
-        <span class="dotts">------</span> 
+        <span class="dotts">------</span>
     </div>
-    
+
     <div class="total">
-        <div style="display: flex; justify-content: space-between; width: 100%;"> <span><b>Total:</b></span> <span><b>{{item?.price}} € </b>TTC</span> </div> 
+        <div style="display: flex; justify-content: space-between; width: 100%;"> <span><b>Total:</b></span>
+            <span><b>{{item?.price}} € </b>TTC</span> </div>
     </div>
     <hr>
     <ul>
         <li *ngFor="let paymentsPart of paymentsParts; index as i">
-            <div *ngIf="paymentsPart.amount != null" style="display: flex; justify-content: space-between; width: 100%;">
+            <div *ngIf="paymentsPart.amount != null"
+                style="display: flex; justify-content: space-between; width: 100%;">
                 <span>{{paymentsPart.payment_method}}</span> <span>{{paymentsPart.amount}} €</span>
             </div>
             <!-- {{order.name?order.name:"Produit "+order.id+": "}} -->
-          <!-- <span>Produit {{order.name}}</span> <span>{{order.price}} €</span>  -->
-        </li> 
+            <!-- <span>Produit {{order.name}}</span> <span>{{order.price}} €</span>  -->
+        </li>
         <span class="dotts">------</span>
     </ul>
     <div>
-        <div style="display: flex; justify-content: space-between; width: 100%;"> <span style="font-weight: bolder; font-size: 1.1rem;"> CHANGE</span> <span>{{totalPaid - item?.price}} €</span></div>
-    </div> 
+        <div style="display: flex; justify-content: space-between; width: 100%;"> <span
+                style="font-weight: bolder; font-size: 1.1rem;"> CHANGE</span> <span>{{(totalPaid -
+                item?.price).toFixed(2)}} €</span></div>
+        <div style="display: flex; justify-content: space-between; width: 100%;"> <span
+            style="font-weight: bolder; font-size: 1.1rem;"> TVA</span> <span></span></div>
+    </div>
     <div style="text-align: center; margin-top: 1.5rem;">
-        - - - - - - - - - - - - - - - - - - -  - -
+        - - - - - - - - - - - - - - - - - - - - -
     </div>
 </div>
