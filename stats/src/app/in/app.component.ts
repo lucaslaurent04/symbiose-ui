@@ -19,6 +19,11 @@ export class AppComponent implements OnInit  {
 
 
     public ngOnInit() {
+        console.log('AppComponent::ngOnInit');
+
+        this.context.ready.subscribe( (ready:boolean) => {
+            this.ready = ready;
+        });
 
     }
 

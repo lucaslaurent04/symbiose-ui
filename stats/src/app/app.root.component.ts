@@ -47,11 +47,11 @@ export class AppRootComponent implements OnInit {
     }
 
     // load menus from server
-    const left_menu:any = await this.api.getMenu('sale', 'booking.left');
+    const left_menu:any = await this.api.getMenu('stats', 'stats.left');
     this.navMenuItems = left_menu.items;
     this.translationsMenuLeft = left_menu.translation;
 
-    const top_menu:any = await this.api.getMenu('sale', 'booking.top');
+    const top_menu:any = await this.api.getMenu('stats', 'stats.top');
     this.topMenuItems = top_menu.items;
     this.translationsMenuTop = top_menu.translation;
 

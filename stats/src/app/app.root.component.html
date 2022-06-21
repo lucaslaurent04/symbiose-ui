@@ -1,14 +1,11 @@
 <div class="container">
     <div class="app-header">
-        <app-header [section]="'Réservations'"
+        <app-header [section]="'Stats'"
                     [i18n]="translationsMenuTop"
                     [items]="topMenuItems"
-                    [action]="'Nouvelle réservation'"
                     (toggleMenu)="toggleSideMenu()"
                     (toggleBar)="toggleSideBar()"
-                    (select)="onSelectItem($event)" 
-                    (onAction)="onAction()">
-                    <div>ok</div>
+                    (select)="onSelectItem($event)"> 
         </app-header>
     </div>
     <div class="app-body">
@@ -33,8 +30,7 @@
         </div>
 
         <div class="app-asidemenu" [class.show]="show_side_menu">
-            <app-sidemenu (updated)="onUpdateSideMenu($event)"
-            ></app-sidemenu>
+            <app-sidemenu (updated)="onUpdateSideMenu($event)"></app-sidemenu>
         </div>
 
     </div>
