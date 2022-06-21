@@ -21,8 +21,6 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
 
     @ViewChildren(SessionOrderLinesOrderLineComponent) SessionOrderLinesOrderLineComponents: QueryList<SessionOrderLinesOrderLineComponent>;
 
-
-
     public ready: boolean = false;
     public session: CashdeskSession = new CashdeskSession();
     public selectedLine: number;
@@ -240,7 +238,7 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
         let child = children[this.index];
         if (this.posLineDisplay == "main") {
             child.update({ qty: parseFloat(this.quantity), unit_price: parseFloat(this.price) });
-            this.load(this.instance.id);
+            // this.load(this.instance.id);
         }
 
         if (this.posLineDisplay == "discount") {

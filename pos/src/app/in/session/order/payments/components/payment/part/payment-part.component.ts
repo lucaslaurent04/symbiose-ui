@@ -57,6 +57,7 @@ export class SessionOrderPaymentsPaymentPartComponent extends TreeComponent<Orde
         this.payment_method.valueChanges.subscribe( (value:number)  => this.instance.payment_method = value );
         this.voucher_ref.valueChanges.subscribe( (value:number)  => this.instance.voucher_ref = value );
         this.booking_id.valueChanges.subscribe( (value:number)  => this.instance.booking_id = value );
+        
     }
 
     public update(values:any) {

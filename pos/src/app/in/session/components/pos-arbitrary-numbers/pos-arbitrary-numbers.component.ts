@@ -27,8 +27,6 @@ export class PosArbitraryNumbersComponent implements OnInit {
   public myTimeout : any;
   public displayClient = true;
   public customer_name : string;
-  // public posLineDisplay : string = "main";
-  // public discountValue : any = "";
   public operator : string = '+';
   public paymentValue : string;
   

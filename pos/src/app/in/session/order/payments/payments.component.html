@@ -3,11 +3,11 @@
 </div>
 <div class="header-wrap">
     <div class="header">Session › {{session.name}} <small>{{session.id}}</small> › Commandes en cours </div>
-    <app-close ></app-close>
+    <app-close></app-close>
 </div>
 <div style="display: flex;">
     <div class="container" *ngIf="ready">
-        
+
         <div class="body">
             <div class="view">
                 <div class="order">
@@ -25,8 +25,7 @@
                         <ng-container *ngFor="let payment of instance.order_payments_ids; index as i">
                             <session-order-payments-order-payment (click)="onClickLine(i)" [model]="payment"
                                 (updated)="onupdatePayment(payment.id)" (deleted)="ondeletePayment(payment.id)"
-                                (validated)="makePayment($event)"
-                                (selectedPaymentPart)="selectedPaymentPart = $event"
+                                (validated)="makePayment($event)" (selectedPaymentPart)="selectedPaymentPart = $event"
                                 (selectedOrderLine)="selectedOrderLine = $event">
                             </session-order-payments-order-payment>
                         </ng-container>
