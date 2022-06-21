@@ -10,7 +10,7 @@ import { SessionOrderRoutingModule } from './order-routing.module';
 import { SessionOrderComponent } from './order.component';
 
 import { SessionOrderLinesComponent } from './lines/lines.component';
-import { SessionOrderLinesOrderLineComponent } from './lines/components/line/order-line.component';
+import { ProductInfo, SessionOrderLinesOrderLineComponent } from './lines/components/line/order-line.component';
 
 import { SessionOrderPaymentsComponent } from './payments/payments.component';
 import { SessionOrderPaymentsOrderPaymentComponent } from './payments/components/payment/order-payment.component';
@@ -18,7 +18,6 @@ import { SessionOrderPaymentsOrderLineComponent } from './payments/components/pa
 import { SessionOrderPaymentsPaymentPartComponent } from './payments/components/payment/part/payment-part.component';
 import { PosComponent, PosOpening } from '../components/pos/pos.component';
 import { PosClosingCoins, PosClosing } from '../close/close.component';
-
 import { AppInSessionModule } from '../session.module';
 import { PadComponent } from '../components/pos/pad/pad.component';
 import { TypeToggleComponent } from '../components/pos/pad/type-toggle/type-toggle.component';
@@ -55,7 +54,7 @@ import { CloseComponent } from '../close/close.component';
     PadComponent,
     TypeToggleComponent,
     PosOpening,
-    // ProductInfo,
+    ProductInfo,
     PosClosing,
     PadArbitraryNumbersComponent,
     PaiementComponent,
@@ -67,7 +66,7 @@ import { CloseComponent } from '../close/close.component';
     OrderItemsComponent,
     CloseComponent
   ],
-  exports: [PadComponent, PadArbitraryNumbersComponent, PosArbitraryNumbersComponent],
+  exports: [PadComponent, PadArbitraryNumbersComponent, PosArbitraryNumbersComponent, CloseComponent],
   providers: [
     { provide: DateAdapter, useClass: CustomDateAdapter, deps: [MAT_DATE_LOCALE, Platform] },
   ]

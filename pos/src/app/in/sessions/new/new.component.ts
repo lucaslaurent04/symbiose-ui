@@ -23,53 +23,7 @@ export class SessionsNewComponent implements OnInit {
   public actionType: any = "";
   public coin : any = "";
   public user : any;
-  public coins = [
-      {
-      value: 0.01, number: ""
-      },
-      {
-      value: 0.02, number: ""
-      },
-      {
-      value: 0.05, number: ""
-      },
-      {
-      value: 0.1, number: ""
-      },
-      {
-      value: 0.2, number: ""
-      },
-      {
-      value: 0.5, number: ""
-      },
-      {
-      value: 1, number: ""
-      },
-      {
-      value: 2, number: ""
-      },
-      {
-      value: 5, number: ""
-      },
-      {
-      value: 10, number: ""
-      },
-      {
-      value: 20, number: ""
-      },
-      {
-      value: 50, number: ""
-      },
-      {
-      value: 100, number: ""
-      },
-      {
-      value: 200, number: ""
-      },
-      {
-      value: 500, number: ""
-      }
-  ]
+  public coins : any;
   ngOnInit(): void {
     //ne s'active pas tjs lorsque l'on refresh la page
     this.user = this.auth.getUser();
@@ -124,6 +78,7 @@ export class SessionsNewComponent implements OnInit {
     <div>
       <div>
         <h2 style="text-align: center; text-decoration:underline; margin:2rem">Caisse : Pièces/Billets</h2>
+        <mat-error style="text-align: center; margin-bottom: 5px" *ngIf="cashdesk?.length < 1 && clicked == true">Ce centre n'a pas de Caisse</mat-error>
       </div>
       <div style="display: flex; justify-content: space-evenly; align-items: center; width: 75rem">
         <div style="display: grid;
@@ -134,10 +89,7 @@ export class SessionsNewComponent implements OnInit {
               <input style="font-size: 1.2rem" type="number" [value]="coin.number" (focus)="onGetFocusedInput(i)"> <mat-label style="font-size: 1.2rem; font-weight: bold; padding: 0.2rem">{{coin.value}}€</mat-label>
             </div>
         </div>
-        <!-- <div style="display: flex; border-bottom: 1px solid black;" *ngIf = "!displayTablet">
-            <p style="padding-right: 0.4rem;">{{data.name}}</p>
-            <button  (click)="displayTablet = !displayTablet" ><mat-icon>tablet_android</mat-icon></button>
-        </div> -->
+
         <div style="display: flex; border: 1px solid lightgreen">
           <app-pad (newNumberPassed)="onCheckNumberPassed($event)"></app-pad>
           <app-pad-arbitrary-numbers style="margin-bottom: 0.25px;" (OnaddedNumber)="checkActionType($event)" (OnBackspace)="onBackSpace($event)"></app-pad-arbitrary-numbers>
@@ -150,7 +102,6 @@ export class SessionsNewComponent implements OnInit {
       <span> <b>  Montant : </b> <br></span>
       <span *ngFor="let coin of coins"> 
         <span  *ngIf="coin.number != ''">{{coin.value}} x {{coin.number}} € <br></span>
-        
       </span>
     </p>
   
@@ -173,12 +124,14 @@ export class PosClosingCoins {
   ) { }
   public deleteConfirmation = false;
   public displayTablet = false;
+  public cashdesk : any[] = [];
   public index: number;
   public total: number = 0;
   public actionType: any = "";
   public newSession : any;
   public center_id : number;
   public user : any;
+  public clicked : boolean = false;
   public coins = [
     {
       value: 0.01, number: ""
@@ -292,13 +245,16 @@ export class PosClosingCoins {
       })
     }else{
       // Un cashdesk est nécessaire par centre !
-      let cashdesk = await this.api.collect('lodging\\sale\\pos\\Cashdesk', ['center_id', '=', this.center_id], []);
-      console.log(cashdesk)
-      this.newSession = await this.api.create(CashdeskSession.entity, {amount: this.total, cashdesk_id: cashdesk[0].id, user_id: this.user.id, center_id: this.center_id});
-      let route = '/session/'+this.newSession.id + '/orders';
-      this.router.navigate([route]);
-      this.dialogDelete.close({
-      })
+      this.cashdesk = await this.api.collect('lodging\\sale\\pos\\Cashdesk', ['center_id', '=', this.center_id], []);
+      this.clicked = true;
+      console.log(this.cashdesk.length, this.clicked)
+      if(this.cashdesk.length >= 1){
+        this.newSession = await this.api.create(CashdeskSession.entity, {amount: this.total, cashdesk_id: this.cashdesk[0].id, user_id: this.user.id, center_id: this.center_id});
+        let route = '/session/'+this.newSession.id + '/orders';
+        this.router.navigate([route]);
+        this.dialogDelete.close({
+        })
+      }
     }
   }
 }

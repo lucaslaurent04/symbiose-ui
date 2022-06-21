@@ -17,9 +17,10 @@ export class TicketComponent implements OnInit {
 
   async ngOnInit() {
   }
-  async ngOnChanges(changes: SimpleChanges) {
+  async ngOnChanges(changeDetector: SimpleChanges) {
     this.orders = await this.api.collect("sale\\pos\\OrderLine", ['order_id', '=', this.item?.id], ['order_id', 'price', 'name']);
     this.payments = await this.api.collect("sale\\pos\\OrderPayment", ['order_id', '=', this.item?.id], ['order_payment_parts_ids', 'total_due', 'total_paid']);
+    this.totalPaid = 0;
     if(this.payments.length > 0)this.payments.forEach((element:any)=>this.totalPaid += element.total_paid);
     this.paymentsParts = await this.api.collect("sale\\pos\\OrderPaymentPart", ['order_id', '=', this.item?.id], ['order_payment_parts_ids', 'payment_method', 'amount', 'order_id']);
   }

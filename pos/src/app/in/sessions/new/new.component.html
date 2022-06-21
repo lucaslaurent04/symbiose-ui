@@ -1,32 +1,25 @@
 <div class="header">Session › Nouvelle Session</div>
-<div >
+
+<div class="title">
     <button mat-raised-button color="accent" (click)="openSession()">Ouvrir</button>
-    <h2 style="text-align:center; text-decoration: underline;">Créer une nouvelle session</h2>
+    <h2>Créer une nouvelle session</h2>
 </div>
 
-
-
-
 <div class="select-row">
+
     <div class="elements-select">
         <mat-form-field appearance="legacy" required style="width: min-content;">
             <mat-label for="">Utilisateur</mat-label>
-            <input style="width: min-content;" matInput type="text" [(ngModel)]="user.name" >
-        </mat-form-field>    
+            <input style="width: min-content;" matInput type="text" [(ngModel)]="user.name">
+        </mat-form-field>
     </div>
-    
-    <div class="elements-select">
-        <sb-m2o-select
-        [entity]="'lodging\\identity\\Center'"
-        [placeholder]="'Commencez à taper le nom'"
-        [hint]="'Client pour la commande'"
-        [noResult]="'rien trouvé'"
-        [required]="true"
-        (itemSelected)="onselectCenter($event)"
-        [domain]="['id', 'in', user.centers_ids]">
-        Centre
-        </sb-m2o-select>
-        
-    </div>
-</div>
 
+    <div class="elements-select">
+        <sb-m2o-select [entity]="'lodging\\identity\\Center'" [placeholder]="'Commencez à taper le nom'"
+            [hint]="'Client pour la commande'" [noResult]="'rien trouvé'" [required]="true"
+            (itemSelected)="onselectCenter($event)" [domain]="['id', 'in', user.centers_ids]">
+            Centre
+        </sb-m2o-select>
+    </div>
+
+</div>

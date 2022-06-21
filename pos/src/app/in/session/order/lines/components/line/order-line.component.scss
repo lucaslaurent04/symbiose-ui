@@ -14,7 +14,11 @@
             width: 60%;
             text-align: start;
         }
-        
+        div{
+            button{
+                margin-right: 4px;
+            }
+        }
     }
     .selectedLine{
         background-color: #E0E0E0;

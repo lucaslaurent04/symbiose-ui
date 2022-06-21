@@ -1,6 +1,6 @@
 <section style="width: 100%;">
     <mat-accordion>
-        <mat-expansion-panel>
+        <mat-expansion-panel [disabled]="hasValidated" [expanded]="!hasValidated">
             <mat-expansion-panel-header>
             <mat-panel-title>
             </mat-panel-title>

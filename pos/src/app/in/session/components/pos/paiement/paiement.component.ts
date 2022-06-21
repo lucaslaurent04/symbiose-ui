@@ -33,19 +33,6 @@ export class PaiementComponent implements OnInit {
   }
   
 
-  // onCheckNumberPassed(value: any) {
-  //   if (value == "," && !this.payments[this.index][this.field].includes('.')) {
-  //     this.payments[this.index][this.field] += ".";
-  //   }else if (value != 'backspace' && value != ',' && value != '+/-') {
-  //     this.payments[this.index][this.field] += value;
-  //     this.onGetTotal();
-  //   }else if (value == 'backspace') {
-  //     let test = this.payments[this.index][this.field].slice(0, -1);
-  //     this.payments[this.index][this.field] = test;
-  //     this.onGetTotal();
-  //   }
-  // }
-
   onSelectionChange(toggle : string){
     this.paymentSelection.emit(toggle);
   }
@@ -61,18 +48,6 @@ export class PaiementComponent implements OnInit {
         this.total += parseFloat(this.payments[i].total)
       }
     });
-
-
-  
-    // let cash;
-    // let voucher;
-    // let reservation;
-    // let bank;
-    // this.payments[this.index].cash != "" ? cash = parseFloat(this.payments[this.index].cash) : cash = 0;
-    // this.payments[this.index].bank != "" ? bank = parseFloat(this.payments[this.index].bank) : bank = 0;
-    // this.payments[this.index].voucher != "" ? voucher = parseFloat(this.payments[this.index].voucher) : voucher = 0;
-    // this.payments[this.index].reservation != "" ? reservation = parseFloat(this.payments[this.index].reservation) : reservation = 0;
-    // this.payments[this.index].total = cash + voucher + reservation + bank;
   }
 
   onGetFocusedInput(input: any) {
@@ -100,19 +75,4 @@ export class PaiementComponent implements OnInit {
     if(this.paymentAmount != undefined && this.index != undefined)this.payments[this.index][this.field] = this.paymentAmount; 
     this.onGetTotal();
   }
-
-  // onBackSpace(element: any) {
-  //   this.onCheckNumberPassed('backspace');
-  // }
-
-  // checkActionType(event: any) {
-  //   this.actionType = event;
-  //   if (this.payments[this.index][this.field] == "") {
-  //     this.payments[this.index][this.field] = (parseFloat(event)).toString();
-
-  //   } else {
-  //     this.payments[this.index][this.field] = (parseFloat(this.payments[this.index][this.field]) + parseFloat(event)).toString();
-  //   }
-  //   this.onGetTotal();
-  // }
 }

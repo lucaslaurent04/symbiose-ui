@@ -1,11 +1,11 @@
-import { Component, OnInit, AfterViewInit, Input, Output, EventEmitter, ChangeDetectorRef, ViewChildren, QueryList } from '@angular/core';
+import { Component, OnInit, AfterViewInit, Input, Output, EventEmitter, ChangeDetectorRef, ViewChildren, QueryList, Inject } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-
 import { ApiService, ContextService, TreeComponent } from 'sb-shared-lib';
 import { Order, OrderPayment, OrderPaymentPart, OrderLine } from '../../payments.model';
 import { SessionOrderPaymentsPaymentPartComponent } from './part/payment-part.component';
 import { SessionOrderPaymentsOrderLineComponent } from './line/order-line.component';
+import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 
 
 // declaration of the interface for the map associating relational Model fields with their components
@@ -34,10 +34,8 @@ export class SessionOrderPaymentsOrderPaymentComponent extends TreeComponent<Ord
 
     public ready: boolean = false;
     public paymentPart : any;
-
     public qty:FormControl = new FormControl();
     public unit_price:FormControl = new FormControl();
-
     public display = "";
     public index : number;
     
@@ -47,7 +45,8 @@ export class SessionOrderPaymentsOrderPaymentComponent extends TreeComponent<Ord
         private route: ActivatedRoute,
         private cd: ChangeDetectorRef,
         private api: ApiService,    
-        private context: ContextService
+        private context: ContextService,
+        private dialog: MatDialog
     ) { 
         super( new OrderPayment() ) 
     }
@@ -119,13 +118,7 @@ export class SessionOrderPaymentsOrderPaymentComponent extends TreeComponent<Ord
     }
 
     public onDisplayProducts() {
-        // if (this.selectedProduct != 0) {
-        //     const dialogRef = this.dialog.open(ProductInfo, {
-        //       data: this.selectedProduct
-        //     });
-        //     dialogRef.afterClosed().subscribe(
-        //     )
-        //   }
+        
     }
 
     public onSelectedOrderLine(index : number){   
@@ -137,75 +130,3 @@ export class SessionOrderPaymentsOrderPaymentComponent extends TreeComponent<Ord
         this.selectedPaymentPart.emit(index);
     }
 }
-
-
-
-
-
-// @Component({
-//     selector: 'product-info',
-//     template: `
-//     <h2 style="background-color: white; text-align: center" mat-dialog-title>Informations de l'article</h2>
-//     <div style="background-color: #F5F5F5; width: 40rem; padding:0.5rem" mat-dialog-content>
-//       <div style="display: flex; justify-content:space-between; padding: 0.5rem; font-weight:bolder; padding:0.2rem;">
-//         <div>
-//           {{data.name}}
-//         </div>
-//         <div style="display: flex; flex-direction:column">
-//           <span>
-//             {{data.price}}
-//           </span>
-//           <span>
-//             Taxe
-//           </span>
-//         </div>
-//       </div>
-  
-//       <div style="margin-top: 0.25rem;">
-//         <h4 style="border-bottom: 1px solid black; font-weight:bolder; padding:0.2rem;">Éléments comptables</h4>
-//         <div>
-//           <span>Prix HT</span> <span></span>
-//         </div>
-//         <div>
-//           <span>Coût</span> <span></span>
-//         </div>
-//         <div>
-//           <span>Marge</span> <span></span>
-//         </div>
-//       </div>
-  
-//       <div style="margin-top: 0.25rem;">
-//         <h4 style="border-bottom: 1px solid black; font-weight:bolder; padding:0.2rem;">Stock</h4>
-//         <div>
-//           <span>Restant</span> <span></span>
-//         </div>
-//       </div>
-  
-//       <div style="margin-top: 0.25rem;">
-//         <h4 style="border-bottom: 1px solid black; font-weight:bolder; padding:0.2rem;">Commande</h4>
-//         <div>
-//           <span>Restant</span> <span></span>
-//         </div>
-//       </div>
-//       <div mat-dialog-actions style="display: flex; justify-content: flex-end; padding: 1rem">
-//       <button  mat-raised-button (click)="closeDialog()"  color="primary">Fermer</button>
-//       </div>
-//     </div>
-   
-//     `
-//   })
-//   export class ProductInfo {
-  
-//     constructor(
-//       public dialogDelete: MatDialogRef<ProductInfo>,
-//       @Inject(MAT_DIALOG_DATA) public data: any
-//     ) { }
-//     public deleteConfirmation = false;
-//     ngOnInit(): void {
-//       console.log(this.data);
-//     }
-//     public closeDialog() {
-//       this.dialogDelete.close({
-//       })
-//     }
-//   }

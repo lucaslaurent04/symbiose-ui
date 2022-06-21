@@ -8,11 +8,13 @@ import { SessionOrdersRoutingModule } from './orders-routing.module';
 
 import { SessionOrdersComponent } from './orders.component';
 import { SessionOrdersNewComponent } from './new/new.component';
+import { AppInSessionOrderModule } from '../order/order.module';
 
 @NgModule({
   imports: [
     SharedLibModule,
-    SessionOrdersRoutingModule
+    SessionOrdersRoutingModule,
+    AppInSessionOrderModule
   ],
   declarations: [
     SessionOrdersComponent,

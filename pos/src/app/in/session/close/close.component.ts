@@ -12,67 +12,66 @@ import { OrderPaymentPart } from '../order/payments/payments.model';
 export class CloseComponent implements OnInit {
 
   public session: CashdeskSession = new CashdeskSession();
-  public ready : boolean = false;
-  public resultPayments : any;
-  public resultLines : any;
+  public ready: boolean = false;
+  public resultPayments: any;
+  public resultLines: any;
   constructor(private dialog: MatDialog, private route: ActivatedRoute, private api: ApiService) { }
 
   public ngOnInit() {
     // fetch the ID from the route
     this.route.params.subscribe(async (params) => {
-        if (params && params.hasOwnProperty('session_id') && params.hasOwnProperty('order_id')) {
-            try {
-                await this.loadSession(<number>params['session_id']);
-                await this.load(<number>params['session_id']);
-                this.ready = true;
-            }
-            catch (error) {
-                console.warn(error);
-            }
-        }
-    });
-}
-
-private async loadSession(session_id: number) {
-
-    if (session_id > 0) {
+      if (params && params.hasOwnProperty('session_id')) {
         try {
-            const result: any = await this.api.read(CashdeskSession.entity, [session_id], Object.getOwnPropertyNames(new CashdeskSession()));
-            if (result && result.length) {
-                this.session = <CashdeskSession>result[0];
-            }
-        }
-        catch (response) {
-            throw 'unable to retrieve given session';
-        }
-    }
-}
+          await this.loadSession(<number>params['session_id']);
+          await this.load(<number>params['session_id']);
+          this.ready = true;
 
-
-/**
- * Load an Order object using the sale_pos_order_tree controller
- * @param session_id
- */
-async load(session_id: number) {
-    if (session_id > 0) {
-        try {
-            this.session = await this.api.fetch('/?get=sale_pos_session_tree', { id: session_id, variant: 'lines_payments' });
-            let session = await this.api.fetch('/?get=sale_pos_session_tree', { id: session_id, variant: 'lines' });
         }
-        catch (response) {
-            console.log(response);
-            throw 'unable to retrieve given order';
+        catch (error) {
+          console.warn(error);
         }
-    }
-}
-  public closeSession(){
-    const dialogRef = this.dialog.open(PosClosing, {
-      data: this.session,
-      panelClass : ['difference']
+      }
     });
   }
-  
 
+  private async loadSession(session_id: number) {
+
+    // if (session_id > 0) {
+    //   try {
+    //     const result: any = await this.api.read(CashdeskSession.entity, [session_id], Object.getOwnPropertyNames(new CashdeskSession()));
+    //     if (result && result.length) {
+    //       this.session = <CashdeskSession>result[0];
+    //     }
+    //   }
+    //   catch (response) {
+    //     throw 'unable to retrieve given session';
+    //   }
+    // }
+  }
+
+
+  /**
+   * Load an Order object using the sale_pos_order_tree controller
+   * @param session_id
+   */
+  async load(session_id: number) {
+    if (session_id > 0) {
+      try {
+        this.session = await this.api.fetch('/?get=sale_pos_session_tree', { id: session_id, variant: 'session' });
+        // let session = await this.api.fetch('/?get=sale_pos_session_tree', { id: session_id, variant: 'lines' });
+
+      }
+      catch (response) {
+        throw 'unable to retrieve given order';
+      }
+    }
+  }
+  public closeSession() {
+    const dialogRef = this.dialog.open(PosClosing, {
+      data: this.session,
+      panelClass: ['difference']
+    });
+  }
 }
 
 @Component({
@@ -147,11 +146,13 @@ async load(session_id: number) {
             <div [class.difference]="difference < 0">{{difference}} €</div>
         </div>
       </div> 
-      <div style="display: flex; justify-content:center">
-        <!-- <div *ngIf= displayTablet style="display: flex; justify-content:center">
-        </div> -->
-        <textarea [(ngModel)]="textareaValue" style="width: 100%;" name="" id="" cols="30" rows="10" placeholder="Notes">
-        </textarea>
+      <div style="display: flex; justify-content:center;">
+          <p contenteditable="true" style="background-color: white; border: 1px solid black; margin: 0.2rem; margin-top: 20px; padding: 0.2rem; width:100%; min-height: 50px" name="" id="" cols="30" rows="10" placeholder="Espèces" >
+              <span>Note :</span>
+              <span *ngFor="let coin of coins"> 
+                <span  *ngIf="coin.number != ''">{{coin.value}} x {{coin.number}} € <br></span>
+              </span>
+          </p>
       </div>
       <div style="display: flex; margin-top: 0.4rem">
          <mat-checkbox [(ngModel)]="checked" class="example-margin" ></mat-checkbox>
@@ -176,88 +177,92 @@ async load(session_id: number) {
 export class PosClosing {
   constructor(
     public dialogDelete: MatDialogRef<PosClosing>,
-    @Inject(MAT_DIALOG_DATA) 
+    @Inject(MAT_DIALOG_DATA)
     public data: any,
     private dialog: MatDialog,
-    private api:  ApiService,
-    private router : Router
+    private api: ApiService,
+    private router: Router
   ) { }
   public deleteConfirmation = false;
   public displayTablet = false;
-  public ordersTotal : number = 0;
-  public totalPaid : number = 0;
-  public totalCash : number = 0;
-  public totalBooking : number = 0;
-  public totalBank : number = 0;
-  public totalVoucher : number = 0;
-  public total : number = 0;
-  public difference : number = 0;
+  public ordersTotal: number = 0;
+  public totalPaid: number = 0;
+  public totalCash: number = 0;
+  public totalBooking: number = 0;
+  public totalBank: number = 0;
+  public totalVoucher: number = 0;
+  public total: number = 0;
+  public difference: number = 0;
+  public coins: any;
   public checked = false;
-  public matCheckboxError : boolean = false;
-  public textareaValue : any;
+  public matCheckboxError: boolean = false;
+  public textareaValue: any;
   ngOnInit(): void {
-    this.data.orders_ids.forEach((order:any)=>{
-      
+    console.log(this.data);
+    this.data.orders_ids.forEach((order: any) => {
+
       this.ordersTotal += order.total
-      
-      order.order_payments_ids.forEach((orderPayment:any)=> {
+
+      order.order_payments_ids.forEach((orderPayment: any) => {
         this.totalPaid += orderPayment.total_paid
-          orderPayment.order_payment_parts_ids.forEach((orderPaymentPart : any)=> {
-            switch (orderPaymentPart.payment_method) {
-              case 'cash':
-                this.totalCash += orderPaymentPart.amount;
-                break;
-              case 'bank':
-                this.totalBank += orderPaymentPart.amount;
-                break;
-              case 'booking':
-                this.totalBooking += orderPaymentPart.amount;
-                break;
-              default:
-                this.totalVoucher += orderPaymentPart.amount;
-            }
-          })
+        orderPayment.order_payment_parts_ids.forEach((orderPaymentPart: any) => {
+          switch (orderPaymentPart.payment_method) {
+            case 'cash':
+              this.totalCash += orderPaymentPart.amount;
+              break;
+            case 'bank':
+              this.totalBank += orderPaymentPart.amount;
+              break;
+            case 'booking':
+              this.totalBooking += orderPaymentPart.amount;
+              break;
+            default:
+              this.totalVoucher += orderPaymentPart.amount;
+          }
+        })
       })
     })
-     this.calculateDifference();
+    this.calculateDifference();
   }
 
   onDisplayCoins() {
     const dialogRef = this.dialog.open(PosClosingCoins, {
     });
     dialogRef.afterClosed().subscribe(
-      value =>{
+      value => {
         this.total = value.total;
+        this.coins = value.cash;
+        console.log(this.coins);
         this.calculateDifference();
       }
-    );  
+    );
   }
   onDisplayTablet() {
   }
 
-  public calculateDifference(){
-    this.difference =  this.total - (this.totalPaid + this.data.amount);
+  public calculateDifference() {
+    this.difference = this.total - (this.totalPaid + this.data.amount);
   }
 
   public closeDialog() {
     this.dialogDelete.close({
     })
   }
-  public closeSession(){
-  
-    if(this.difference<0){
+  public closeSession() {
+
+    if (this.difference < 0) {
       this.matCheckboxError = true;
     }
-    if(this.checked){
-      this.api.create('sale\\pos\\Operation', {cashdesk_id: this.data.cashdesk_id, user_id: this.data.user_id, type: 'move', amount: this.difference })
+    if (this.checked) {
+      this.api.create('sale\\pos\\Operation', { cashdesk_id: this.data.cashdesk_id, user_id: this.data.user_id, type: 'move', amount: this.difference })
       this.api.update(CashdeskSession.entity, [this.data.id], {
-        status : 'closed',
-        description : this.textareaValue
+        status: 'closed',
+        description: this.textareaValue
       });
       this.dialogDelete.close({
       });
       this.router.navigate(['sessions/new'])
-    }  
+    }
   }
 }
 
@@ -280,10 +285,6 @@ export class PosClosing {
               <input style="font-size: 1.2rem" type="number" [value]="coin.number" (focus)="onGetFocusedInput(i)"> <mat-label style="font-size: 1.2rem; font-weight: bold; padding: 0.2rem">{{coin.value}}€</mat-label>
             </div>
         </div>
-        <!-- <div style="display: flex; border-bottom: 1px solid black;" *ngIf = "!displayTablet">
-            <p style="padding-right: 0.4rem;">{{data.name}}</p>
-            <button  (click)="displayTablet = !displayTablet" ><mat-icon>tablet_android</mat-icon></button>
-        </div> -->
         <div style="display: flex; border: 1px solid lightgreen">
           <app-pad (newNumberPassed)="onCheckNumberPassed($event)"></app-pad>
           <app-pad-arbitrary-numbers style="margin-bottom: 0.25px;" (OnaddedNumber)="checkActionType($event)" (OnBackspace)="onBackSpace($event)"></app-pad-arbitrary-numbers>
@@ -320,9 +321,9 @@ export class PosClosingCoins {
   public index: number;
   public total: number = 0;
   public actionType: any = "";
-  public newSession : any;
-  public center_id : number;
-  public user : any;
+  public newSession: any;
+  public center_id: number;
+  public user: any;
   public coins = [
     {
       value: 0.01, number: ""
@@ -423,24 +424,5 @@ export class PosClosingCoins {
       this.coins[this.index].number = (parseFloat(this.coins[this.index].number) + parseFloat(event)).toString();
     }
     this.onGetTotal();
-  }
-
-  async openSession(){
-    // let pendingSession = await this.api.collect(CashdeskSession.entity, [['status', '=', 'pending'], ['center_id', '=', this.center_id]], []);
-    // if(pendingSession.length > 0){
-    //   let route = '/session/'+pendingSession[0].id + '/orders';
-    //   this.router.navigate([route]);
-    //   this.dialogDelete.close({
-    //   })
-    // }else{
-    //   // Un cashdesk est nécessaire par centre !
-    //   let cashdesk = await this.api.collect('lodging\\sale\\pos\\Cashdesk', ['center_id', '=', this.center_id], []);
-    //   console.log(cashdesk)
-    //   this.newSession = await this.api.create(CashdeskSession.entity, {amount: this.total, cashdesk_id: cashdesk[0].id, user_id: this.user.id, center_id: this.center_id});
-    //   let route = '/session/'+this.newSession.id + '/orders';
-    //   this.router.navigate([route]);
-    //   this.dialogDelete.close({
-    //   })
-    // }
   }
 }

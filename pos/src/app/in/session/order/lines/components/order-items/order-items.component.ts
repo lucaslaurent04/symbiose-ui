@@ -30,6 +30,8 @@ export class OrderItemsComponent implements OnInit {
 
   async ngOnInit() {
     this.bookings = await this.api.collect('lodging\\sale\\booking\\Booking', [], ['customer_id', 'center_id', 'total', 'date_from', 'date_to', 'price']);
+    this.bookings = new MatTableDataSource(this.bookings);
+    this.bookings.paginator = this.paginator;
     this.products = await this.api.collect('sale\\catalog\\Product', ['can_sell', '=', true], ['customer_id', 'center_id', 'total', 'date_from', 'date_to', 'price', 'sku']);
     this.dataSource = new MatTableDataSource(this.products);
     this.dataSource.paginator = this.paginator; 
@@ -69,7 +71,9 @@ export class OrderItemsComponent implements OnInit {
 
   public async getFunding(elem: any) {
     this.funding = true;
-    this.fundings = await this.api.collect('lodging\\sale\\booking\\Funding', [[['booking_id', '=', elem.id], ['is_paid', '=', false]]], ['due_amount', 'center_id', 'due_date', 'name'])
+    this.fundings = await this.api.collect('lodging\\sale\\booking\\Funding', [[['booking_id', '=', elem.id], ['is_paid', '=', false]]], ['due_amount', 'center_id', 'due_date', 'name']);
+    this.fundings = new MatTableDataSource(this.fundings);
+    this.fundings.paginator = this.paginator;
   }
 
   public async createBookingOrderLine(elem: any, orderType: string) {

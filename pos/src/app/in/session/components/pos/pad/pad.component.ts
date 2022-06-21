@@ -9,29 +9,27 @@ export class PadComponent implements OnInit {
   constructor() { }
   element = '';
   numberPassed = 0;
-  mouseUp : any;
+  mouseUp: any;
   mouseDown: any;
-  operator : string = '+';
+  operator: string = '+';
   @Output() newItemEvent = new EventEmitter();
   @Output() newNumberPassed = new EventEmitter();
-  
+
   ngOnInit(): void {
   }
-  checkActionType(event:any){
+  checkActionType(event: any) {
     this.newItemEvent.emit(event);
   }
-  onPassNumber(value: any){
+  onPassNumber(value: any) {
     this.numberPassed = value;
     this.newNumberPassed.emit(value);
   }
 
-  
-
-  onDoubleClick(){  
-      if(this.operator =='+'){
-        this.operator = '-'
-      }else{
-        this.operator = '+';
-      }  
+  onDoubleClick() {
+    if (this.operator == '+') {
+      this.operator = '-'
+    } else {
+      this.operator = '+';
+    }
   }
 }

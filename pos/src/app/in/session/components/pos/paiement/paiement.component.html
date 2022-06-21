@@ -1,16 +1,9 @@
 <section>
-    <!-- <div class="header">
-        <span>
-            Paiement
-        </span>
-    </div> -->
     <div class="listHeader">
         <button class="headerButton" color="primary"  mat-mini-fab (click)="onButton('main')"><mat-icon style="vertical-align: center;">arrow_back_ios</mat-icon></button>
         <p style="font-weight: bolder;">Price details</p> 
-        <!-- <button mat-mini-fab (click)="onButton('info')"><mat-icon>info</mat-icon></button> -->
     </div>
     <hr>
-
     <div class="panels">
         <div class="totals">
             <div class="total">
@@ -53,7 +46,6 @@
                             </div>
                             <div>
                                 <div>
-                                    <!-- [value]="paymentAmount.endsWith('.')? paymentAmount.slice(0,-1) + '.00' : paymentAmount" -->
                                     <mat-label>Total : </mat-label><input [value]="payment.total"
                                         (focus)="onGetFocusedInput(i)" matInput type="number" placeholder="0€">
                                 </div>
@@ -63,61 +55,12 @@
                                 </div>
                                 <button style="width: 100%; margin-top: 0.2rem" (click)="addPayment(i)" color="primary" mat-raised-button>
                                     <mat-icon>add_box</mat-icon>
-                                </button>
-                                <!-- <div>
-                                    <mat-label>Banque : </mat-label><input
-                                        [value]="payment.bank.endsWith('.')? payment.bank.slice(0,-1) + '.00' : payment.bank"
-                                        matInput type="number" placeholder="0€" (focus)="onGetFocusedInput(i, 'bank')">
-                                </div>
-                                <div>
-                                    <mat-label>Réservation : </mat-label><input
-                                        [value]="payment.reservation.endsWith('.')? payment.reservation.slice(0,-1) + '.00' : payment.reservation"
-                                        matInput type="number" placeholder="0€"
-                                        (focus)="onGetFocusedInput(i,'reservation')">
-                                </div>
-                                <div>
-                                    <mat-label>Voucher : </mat-label><input
-                                        [value]="payment.voucher.endsWith('.')? payment.voucher.slice(0,-1) + '.00' : payment.voucher"
-                                        matInput type="number" placeholder="0€"
-                                        (focus)="onGetFocusedInput(i, 'voucher')">
-                                </div> -->
+                                </button>                      
                             </div>
                         </div>
                     </mat-expansion-panel>
-                </mat-accordion>
-                
+                </mat-accordion>    
             </div>
-        </div>
-
-
-        <div>
-            <!-- <div class="paymentStatus">
-                <div style="display: flex; flex-direction: column;">
-                    <span>Restant price</span>
-                    <span style="color: rgba(78, 75, 75, 0.397);">Montant dû price</span>
-                </div>
-                <div style="display: flex; flex-direction: column;">
-                    <span>Rendu</span>
-                    <span>Price</span>
-                    <button mat-raised-button color="warn"> Valider Paiement </button>
-                </div>
-            </div>
-            <div style="display: flex; justify-content: space-around; padding: 1rem; border: 1px solid lightgray;">
-                <div style="display: flex; border: 1px solid lightgreen;">
-                    <app-pad (newNumberPassed)="onCheckNumberPassed($event)"></app-pad>
-                    <app-pad-arbitrary-numbers (OnaddedNumber)="checkActionType($event)"
-                        (OnBackspace)="onBackSpace($event)"></app-pad-arbitrary-numbers>
-                </div>
-                <div>
-                    <div class="myButtons" style="display: flex; flex-direction: column;">
-                        <button style="margin: 0.4rem; padding: 2rem;" mat-raised-button color="primary">Client</button>
-                        <button style="margin: 0.4rem; padding: 2rem;" mat-raised-button color="accent">
-                            <mat-icon>file_copy</mat-icon>Facture
-                        </button>
-                    </div>
-                </div>
-            </div> -->
         </div>
     </div>
-
 </section>

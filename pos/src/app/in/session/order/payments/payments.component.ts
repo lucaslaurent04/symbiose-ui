@@ -131,6 +131,7 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
     public async ondeletePayment(line_id: number) {
         // a line has been removed: reload tree
         this.load(this.instance.id);
+        this.change = 'deleted';
     }
 
     public async onclickCreateNewPayment() {

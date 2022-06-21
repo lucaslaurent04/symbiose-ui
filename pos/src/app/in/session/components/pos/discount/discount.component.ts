@@ -19,8 +19,6 @@ export class DiscountComponent implements OnInit {
  
 
   onSelectedElement(selected : any){
-    console.log(selected)
-  
      this.index = selected[0].value;
      this.discountValue.emit(this.liners[this.index].field);
    
@@ -68,7 +66,6 @@ export class DiscountComponent implements OnInit {
       colour : "#3f51b5",
       disabled : false
     }]
-    // if(this.item != undefined && this.index != undefined)this.liners[this.index].value = this.item; 
   }
 
   onButton(value: string){

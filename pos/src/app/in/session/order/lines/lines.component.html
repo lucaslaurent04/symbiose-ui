@@ -17,12 +17,8 @@
                 </div>          
                 <div *ngIf="session.status != 'pending'">Cette session n'est plus active.</div>
                 <div *ngIf="session.status == 'pending'">
-                    <!-- <div>{{instance.id}}</div>
-                    <div>{{instance.created |  date}}</div>
-                    <div>{{instance.price |  currency}}</div>
-                    <div>{{instance.total |  currency}}</div> -->
                     <app-info [item]="instanceElement" *ngIf="posLineDisplay == 'info'" (posLineDisplay)="onDisplayDetails($event)"></app-info>
-                    <app-discount [item]="instanceElement" (discountValue)="getDiscountValue($event)" (posLineDisplay)="onDisplayDetails($event)" *ngIf="posLineDisplay == 'discount'"></app-discount>
+                    <app-discount [item]="instanceElement" (discountValue)="getDiscountValue($event)" (posLineDisplay)="onDisplayMain($event)" *ngIf="posLineDisplay == 'discount'"></app-discount>
                     <ng-container  *ngFor="let line of instance.order_lines_ids; index as i">
                         <session-order-lines-order-line [class.hidden]="posLineDisplay !='main'"
                             [model]="line"
@@ -31,7 +27,7 @@
                             (click)="onClickLine(i)"
                             [selected]="selectedLine"
                         ></session-order-lines-order-line>
-                        <!-- [class.selected]="index == i" -->
+                        
                     </ng-container>
                 </div>
             </div>
