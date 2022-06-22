@@ -1,45 +1,49 @@
 <div class="overlay-container" *ngIf="!ready"><mat-spinner></mat-spinner></div>
 
 <div class="container" *ngIf="ready">
-    <div class="header-wrap"><div class="header">Session › {{session.name}} <small>{{session.id}}</small> › Commandes en cours  </div><app-close ></app-close></div>
+    <div class="header-wrap"><div class="header">Session › {{session.name}} <small>{{session.id}}</small> › Commandes en cours  </div><app-close></app-close></div>
     <div style="display: flex;">
         <div class="body">
-            <!-- <div class="actions" *ngIf="posLineDisplay == 'main'"> -->
-                <!-- <div class="actions-std"><button mat-flat-button color="accent" (click)="onclickCreateNewLine()">Nouvelle ligne</button></div>
-                <div class="actions-view"></div></div> -->
             <div class="view">
                 <div class="order">
                     <h2>Order {{instance.id}}</h2> 
                     <div class="total">
                         <span class="totalNumber"> Total : {{instance.price}} </span> 
-                        <span class="taxes"> Taxes : {{instance.price - instance.total}} </span>   
+                        <span class="taxes"> Taxes : {{calcTaxes()}} </span>   
                     </div>
                 </div>          
                 <div *ngIf="session.status != 'pending'">Cette session n'est plus active.</div>
                 <div *ngIf="session.status == 'pending'">
-                    <app-info [item]="instanceElement" *ngIf="posLineDisplay == 'info'" (posLineDisplay)="onDisplayDetails($event)"></app-info>
-                    <app-discount [item]="instanceElement" (discountValue)="getDiscountValue($event)" (posLineDisplay)="onDisplayMain($event)" *ngIf="posLineDisplay == 'discount'"></app-discount>
-                    <ng-container  *ngFor="let line of instance.order_lines_ids; index as i">
-                        <session-order-lines-order-line [class.hidden]="posLineDisplay !='main'"
+                    <div [class.hidden]="current_pane !='discount'" >
+                        <session-order-lines-discount-pane
+                            [model]="selectedLine" 
+                            (selectField)="onSelectField($event)" 
+                            (closePane)="switchPane('main')">
+                        </session-order-lines-discount-pane>
+                    </div>
+                    <div [class.hidden]="current_pane !='main'">
+                        <session-order-lines-order-line
+                            *ngFor="let line of instance.order_lines_ids; index as i"
                             [model]="line"
-                            (updated)="onupdateLine(line.id)"
-                            (deleted)="ondeleteLine(line.id)"
-                            (click)="onClickLine(i)"
-                            [selected]="selectedLine"
-                        ></session-order-lines-order-line>
-                    </ng-container>
+                            (updated)="onupdateLine()"
+                            (deleted)="ondeleteLine()"
+                            (click)="onSelectLine(i, line)"
+                            [selected]="line.id == selectedLine?.id">
+                        </session-order-lines-order-line>                        
+                    </div>
                 </div>
             </div>
-        <div class="pad">           
-        <pos-pad   (onDisplayDetails)="onDisplayDetails($event)" 
-        (onDigitTyped)="onDigitTyped($event)" 
-        (onInvoice)="onGetInvoice($event)" 
-        (onTypeMode)="typeMode = $event"></pos-pad> 
+            <div class="pad">           
+                <pos-pad (onDisplayDetails)="onDisplayDetails($event)" 
+                         (onKeyPressed)="onPadPressed($event)" 
+                         (onInvoice)="onGetInvoice($event)" 
+                         (onTypeMode)="onSelectField($event)">
+                </pos-pad> 
+            </div>
+        </div> 
+        <div style="width: 100%; height: 100vh;">
+            <app-order-items (addedBookingOrderLine)="onAddBookingOrderLine($event)" (addedProduct)="onAddProduct($event)" (selectedtTab)="onSelectedTab($event)"></app-order-items>
         </div>
-    </div> 
-    <div style="width: 100%; height: 100vh;">
-        <app-order-items (addedBookingOrderLine)="addBookingOrderLine($event)" (addedProduct)="addedProduct($event)" (selectedtTab)="onSelectedTab($event)"></app-order-items>
-    </div>
     </div>
        
 </div>

@@ -7,21 +7,24 @@ import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 })
 export class TypeToggleComponent implements OnInit {
 
-  constructor() { }
-  myToggle = "quantity";
+    @Output() newItemEvent = new EventEmitter();
+    @Output() newOnBackspace = new EventEmitter();
 
-  @Output() newItemEvent = new EventEmitter();
-  @Output() newOnBackspace = new EventEmitter();
+    public value = "qty";
 
-  onSelectionChange(value: string) {
-    this.newItemEvent.emit(value);
-  }
+    constructor() { }
 
-  onButton(value: string) {
-    this.newOnBackspace.emit(value);
-  }
-  ngOnInit(): void {
-  }
-  onDelete() {
-  }
+    onSelectionChange(value: string) {
+        this.newItemEvent.emit(value);
+    }
+
+    onKeypress(value: string) {
+        this.newOnBackspace.emit(value);
+    }
+
+    ngOnInit(): void {
+    }
+
+    onDelete() {
+    }
 }

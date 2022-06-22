@@ -5,7 +5,7 @@ import { SharedLibModule, AuthInterceptorService, CustomDateAdapter } from 'sb-s
 import { SessionOrderRoutingModule } from './order-routing.module';
 import { SessionOrderComponent } from './order.component';
 import { SessionOrderLinesComponent } from './lines/lines.component';
-import { ProductInfo, SessionOrderLinesOrderLineComponent } from './lines/components/line/order-line.component';
+import { ProductInfo, SessionOrderLinesOrderLineComponent } from './lines/_components/line/order-line.component';
 import { SessionOrderPaymentsComponent } from './payments/payments.component';
 import { SessionOrderPaymentsOrderPaymentComponent } from './payments/components/payment/order-payment.component';
 import { SessionOrderPaymentsOrderLineComponent } from './payments/components/payment/line/order-line.component';
@@ -17,15 +17,15 @@ import { PadComponent } from '../components/pos/pad/pad.component';
 import { TypeToggleComponent } from '../components/pos/pad/type-toggle/type-toggle.component';
 import { PadArbitraryNumbersComponent } from '../components/pos/pad/pad-arbitrary-numbers/pad-arbitrary-numbers.component';
 import { PaiementComponent } from '../components/pos/paiement/paiement.component';
-import { DiscountComponent } from '../components/pos/discount/discount.component';
-import { InfoComponent } from '../components/pos/info/info.component';
-import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { SessionOrderLinesDiscountPaneComponent } from '../components/pos/discount/discount-pane.component';
+
 import { PosArbitraryNumbersComponent } from '../components/pos-arbitrary-numbers/pos-arbitrary-numbers.component';
 import { TicketComponent } from './payments/components/ticket/ticket.component';
-import { OrderItemsComponent } from './lines/components/order-items/order-items.component';
-import {MatPaginatorModule} from '@angular/material/paginator';
+import { OrderItemsComponent } from './lines/_components/order-items/order-items.component';
 import { CloseComponent } from '../close/close.component';
 
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatPaginatorModule } from '@angular/material/paginator';
 
 
 @NgModule({
@@ -53,8 +53,7 @@ import { CloseComponent } from '../close/close.component';
     PadArbitraryNumbersComponent,
     PaiementComponent,
     PosClosingCoins,
-    DiscountComponent,
-    InfoComponent,
+    SessionOrderLinesDiscountPaneComponent,
     PosArbitraryNumbersComponent,
     TicketComponent,
     OrderItemsComponent,

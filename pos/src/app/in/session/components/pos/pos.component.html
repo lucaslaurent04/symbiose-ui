@@ -1,67 +1,32 @@
-
-    <div class="pos-pad">
-        <div class="client">
-            <div *ngIf="displayClient == true" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-                <span>Client: {{customer_name}}</span> <button (click)="displayClient = false" mat-mini-fab color="primary" style="box-shadow: none;"><mat-icon *ngIf="!customer_name">add</mat-icon><mat-icon *ngIf="customer_name?.length > 1">cancel</mat-icon></button>
-            </div>
-            <div *ngIf="displayClient == false">
-                <sb-m2o-select
-                                [entity]="'sale\\customer\\Customer'"
-                                [placeholder]="'Commencez à taper le nom'"
-                                [hint]="'Client pour la commande'"
-                                [noResult]="'rien trouvé'"
-                                (itemSelected)="onselectCustomer($event)">Client</sb-m2o-select>
-            </div>
+<div class="pos-pad">
+    <div class="client">
+        <div *ngIf="displayClient == true" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+            <span>Client: {{customer_name}}</span> <button (click)="displayClient = false" mat-mini-fab color="primary" style="box-shadow: none;"><mat-icon *ngIf="!customer_name">add</mat-icon><mat-icon *ngIf="customer_name?.length > 1">cancel</mat-icon></button>
         </div>
-        <div class="pos-lowerPart">
-            <div class="details-paiement">
-                 
-                <mat-button-toggle-group [(ngModel)]="invoice" class="paiement">
-                    <mat-button-toggle style="width: 100%; height: 100%; background-color: lightblue; display: flex; align-items: center;" [class.selected]="invoice == true" (click)="onInvoice()" mat-raised-button [value]="invoice"> <p style="height: 100%;"><span>Facture</span></p> </mat-button-toggle>
-                </mat-button-toggle-group>
-                
-                <button mat-raised-button class="paiement" (click)="getPosLineDisplay('payment')">
-                    <mat-icon>play_circle_filled</mat-icon>
-                    <p>Paiement</p>
-                </button> 
-            </div>
-            <div style="display: flex;">
-                <app-pad (newNumberPassed)="checkNumberPassed($event)"></app-pad>
-                <app-type-toggle (newItemEvent)="checkActionType($event)" (newOnBackspace)="onBackSpace($event)"></app-type-toggle>
-            </div>
-        </div>  
+        <div *ngIf="displayClient == false">
+            <sb-m2o-select
+                [entity]="'sale\\customer\\Customer'"
+                [placeholder]="'Commencez à taper le nom'"
+                [hint]="'Client pour la commande'"
+                [noResult]="'rien trouvé'"
+                (itemSelected)="onselectCustomer($event)">Client</sb-m2o-select>
+        </div>
     </div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<!-- To keep it in mind
-    <div class="client-resa">
-            <div style="margin: 0.4rem; width: 100%;">
-                Client : <span> lorem ipsum </span> <button (click)="changeClient()">ok</button>
-            </div>
-            <div style="display: grid;
-            grid-template-columns: repeat(2, 1fr); width: 50%; margin: 0.4rem;">
-            <span >Réservation : <mat-checkbox (change)="onResa = !onResa" ></mat-checkbox></span> <span *ngIf="onResa"> Resa Name </span>
-            </div>
-        </div> -->
+    <div class="pos-lowerPart">
+        <div class="details-paiement">
+                
+            <mat-button-toggle-group [(ngModel)]="invoice" class="paiement">
+                <mat-button-toggle style="width: 100%; height: 100%; display: flex; align-items: center;" [class.selected]="invoice == true" (click)="onInvoice()" mat-raised-button [value]="invoice"> <p style="height: 100%;"><span>Facture</span></p> </mat-button-toggle>
+            </mat-button-toggle-group>
+            
+            <button mat-raised-button class="paiement" (click)="getPosLineDisplay('payment')">
+                <mat-icon>play_circle_filled</mat-icon>
+                <p>Paiement</p>
+            </button> 
+        </div>
+        <div style="display: flex;">
+            <app-pad (keyPressed)="onKeypress($event)"></app-pad>
+            <app-type-toggle (newItemEvent)="checkActionType($event)" (newOnBackspace)="onKeypress($event)"></app-type-toggle>
+        </div>
+    </div>  
+</div>

@@ -1,9 +1,9 @@
-import { Component, OnInit, AfterViewInit, ChangeDetectorRef, ViewChildren, QueryList, Input, SimpleChanges, Output, EventEmitter } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChildren, QueryList } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService, ContextService, TreeComponent, RootTreeComponent } from 'sb-shared-lib';
 import { CashdeskSession } from './../../session.model';
 import { Order, OrderLine } from './lines.model';
-import { SessionOrderLinesOrderLineComponent } from './components/line/order-line.component';
+import { SessionOrderLinesOrderLineComponent } from './_components/line/order-line.component';
 import { OrderService } from 'src/app/in/orderService';
 
 
@@ -19,30 +19,37 @@ interface OrderComponentsMap {
 })
 export class SessionOrderLinesComponent extends TreeComponent<Order, OrderComponentsMap> implements RootTreeComponent, OnInit, AfterViewInit {
 
-    @ViewChildren(SessionOrderLinesOrderLineComponent) SessionOrderLinesOrderLineComponents: QueryList<SessionOrderLinesOrderLineComponent>;
+    @ViewChildren(SessionOrderLinesOrderLineComponent) sessionOrderLinesOrderLineComponents: QueryList<SessionOrderLinesOrderLineComponent>;
 
     public ready: boolean = false;
     public session: CashdeskSession = new CashdeskSession();
-    public selectedLine: number;
-    public index: number;
+
     public invoice: boolean;
-    public price: any = "";
-    public quantity: any = "";
-    public discountValue: any = "";
-    public discountField: any;
-    public instanceElement: any;
-    public operator: string;
-    public posLineDisplay: string = "main";
-    public typeMode: string = "quantity";
+
+    // string values for handling pad actions and apply them on properties of the selected line
+    public str_unit_price: string = '';
+    public str_qty: string = '';
+    public str_discount: string = '';
+    public str_free_qty: string = '';
+    public str_vat_rate: string = '';
+
+    public selected_field: string = 'qty';
+
+    // reference to the selected line component
+    private selectedLineComponent: SessionOrderLinesOrderLineComponent;
+    // local copy of selected line
+    public selectedLine: OrderLine;
+
+    // pane to be displayed : 'main', 'discount'
+    public current_pane: string = "main";
+
     private debounce: any;
-    public orderLine: any;
 
     constructor(
         private router: Router,
         private route: ActivatedRoute,
         private api: ApiService,
         private context: ContextService,
-        private cdRef: ChangeDetectorRef,
         public orderservice: OrderService
     ) {
         super(new Order());
@@ -51,12 +58,10 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
     public ngAfterViewInit() {
         // init local componentsMap
         let map: OrderComponentsMap = {
-            order_lines_ids: this.SessionOrderLinesOrderLineComponents
+            order_lines_ids: this.sessionOrderLinesOrderLineComponents
         };
         this.componentsMap = map;
     }
-
-
 
     public ngOnInit() {
         console.log('SessionOrderLinesComponent init');
@@ -118,157 +123,249 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
         super.update(values);
     }
 
-
-    public async onupdateLine(line_id: any) {
+    public async onupdateLine() {
         // a line has been updated: reload tree
         await this.load(this.instance.id);
     }
 
-    public async ondeleteLine(line_id: number) {
+    public async ondeleteLine() {
         // a line has been removed: reload tree
         this.load(this.instance.id);
     }
 
     public async onclickCreateNewLine() {
         await this.api.create((new OrderLine()).entity, { order_id: this.instance.id });
-        await this.load(this.instance.id);
+        // reload tree
+        this.load(this.instance.id);
     }
 
-    public onClickLine(index: number) {
-        this.index = index;
-        this.price = this.componentsMap.order_lines_ids._results[this.index].instance.unit_price;
-        this.quantity = this.componentsMap.order_lines_ids._results[this.index].instance.qty;
-        this.discountValue = this.componentsMap.order_lines_ids._results[this.index].instance.free_qty;
-        this.instanceElement = { ...this.instance.order_lines_ids[this.index] };
-        this.selectedLine = this.componentsMap.order_lines_ids._results[this.index].instance.id;
+    public onSelectLine(index: number, line: any) {
+        console.log('onSelectLine', line);
+
+        this.selectedLineComponent = this.sessionOrderLinesOrderLineComponents.toArray()[index];
+        // create a clone of the selected line
+        this.selectedLine = <OrderLine> {...line};
+
+        this.str_unit_price = this.selectedLine.unit_price.toString();
+        this.str_qty = this.selectedLine.qty.toString();
+        this.str_discount = (this.selectedLine.discount * 100).toString();
+        this.str_free_qty = this.selectedLine.free_qty.toString();
+        this.str_vat_rate = (this.selectedLine.vat_rate * 100).toString();
     }
 
-    public async onDigitTyped(event: any) {
-        // first check what component is displayed
-        if (this.posLineDisplay == "discount" && event != "%") {
-            this.discountValue = this.discountValue.toString();
-            if ((event == '+' || event == "-") && this.index != undefined && this.posLineDisplay == "discount") {
 
-                if (this.discountValue.includes('-') && event == "-") {
-                    let test = this.discountValue.replace('-', '');
-                    this.discountValue = test;
-                } else if (!this.discountValue.includes('-') && event == "-") {
-                    this.discountValue = '-' + this.discountValue;
-                } else if (this.discountValue.includes('-') && event == "+") {
-                    let test = this.discountValue.replace('-', '');
-                    this.discountValue = test;
-                }
-            }
-            else if (event == "," && this.discountField == "unit_price") {
-                if (!this.discountValue.includes('.')) {
-                    this.discountValue += ".";
-                }
-            }
-            else if (event == 'backspace') {
-                let test = this.discountValue.slice(0, -1);
-                this.discountValue = test;
-            } else if (((this.discountValue.includes('.') && this.discountValue.indexOf('.') > 3) || (!this.discountValue.includes('.') && this.discountValue.length > 1 && (this.discountField == 'free_qty' || this.discountField == 'discount' || this.discountField == 'vat_rate')))) {
-                this.discountValue = "100";
-            }
-            else if (event != 'backspace' && event != ',' && event != '+/-') {
-                this.discountValue += event;
-            }
-        } else {
-            if (event != 'backspace' && event != '%') {
-            } else if (event == "%") {
-                this.posLineDisplay = "discount";
-                this.instanceElement = { ...this.instance.order_lines_ids[this.index] };
-            }
+    /**
+     * We received an event from the pad
+     * special keys : 0-9, '%', 'backspace', '+/-', '+', '-'
+     */
+    public async onPadPressed(key: any) {
+
+        // make sure a line is currently selected
+        if(!this.selectedLine) {
+            return;
         }
-        if (this.posLineDisplay == "main") {
-            this.quantity = this.quantity.toString();
-            this.price = this.price.toString();
-            if (event == ",") {
-                if (this.typeMode == "price" && !this.price.includes('.')) {
-                    this.price += ".";
-                }
-            } else if (this.typeMode == "quantity") {
-                if ((event == '+' || event == "-") && this.index != undefined) {
-                    if (this.quantity.includes('-') && event == "-") {
-                        let test = this.quantity.replace('-', '');
-                        this.quantity = test;
-                    } else if (!this.quantity.includes('-') && event == "-") {
-                        this.quantity = '-' + this.quantity;
-                    } else if (this.quantity.includes('-') && event == "+") {
-                        let test = this.quantity.replace('-', '');
-                        this.quantity = test;
-                    }
-                } else if (event != 'backspace') {
-                    this.quantity += event;
-                    this.componentsMap.order_lines_ids._results[this.index].instance.qty = this.quantity;
-                } else {
-                    if (this.quantity != "0") {
-                        this.quantity = this.quantity.slice(0, -1);
-                        if (this.quantity.length == 0) this.quantity = 0;
-                    } else {
-                        this.componentsMap.order_lines_ids.toArray()[this.index].onclickDelete();
-                    }
-                }
-            } else if (this.typeMode == "price") {
-                if (event == '+' || event == "-" && this.index != undefined) {
-                    if (this.price.includes('-') && event == "-") {
-                        let test = this.price.replace('-', '');
-                        this.price = test;
-                    } else if (!this.price.includes('-') && event == "-") {
-                        this.price = '-' + this.price;
-                    } else if (this.price.includes('-') && event == "+") {
-                        let test = this.price.replace('-', '');
-                        this.price = test;
-                    }
-                } else if (event != 'backspace') {
-                    this.price += event;
-                } else {
-                    if (this.price != "0") {
-                        this.price = this.price.slice(0, -1);
-                        if (this.price.length == 0) this.price = 0;
 
-                    } else {
-                        this.componentsMap.order_lines_ids.toArray()[this.index].onclickDelete();
+        // special key: '%' is a request for switch to discount pane
+        if (key == "%") {
+            this.switchPane('discount');
+            // force a view refresh
+            // #todo - to improve
+            this.selectedLine = <OrderLine> { ...this.selectedLine };
+            return;
+        }
+
+
+        /*
+            adapt local values based on the received key and current pane
+        */
+
+        if (this.selected_field == "qty") {
+            if (['+', '-'].indexOf(key) >= 0) {
+                if (key == "-") {
+                    if(this.str_qty.includes('-')) {
+                        this.str_qty = this.str_qty.replace('-', '');
+                    }
+                    else {
+                        this.str_qty = '-' + this.str_qty;
+                    }
+                }
+                else if (key == "+") {
+                    if(this.str_qty.includes('-')) {
+                        this.str_qty = this.str_qty.replace('-', '');
                     }
                 }
             }
-        }
-
-        let children = this.componentsMap.order_lines_ids.toArray();
-        let child = children[this.index];
-        if (this.posLineDisplay == "main") {
-            child.update({ qty: parseFloat(this.quantity), unit_price: parseFloat(this.price) });
-            // this.load(this.instance.id);
-        }
-
-        if (this.posLineDisplay == "discount") {
-            if (this.discountValue == "" || this.discountValue == ",") {
-                this.discountValue = 0;
+            else if (key == 'backspace') {
+                if (this.str_qty.length) {
+                    // remove last char
+                    this.str_qty = this.str_qty.slice(0, -1);
+                    if (!this.str_qty.length) {
+                        this.str_qty = "0";
+                    }
+                }
             }
-
-            if (this.discountField == "discount") {
-                console.log(this.discountField, "discouuuunt")
-                child.update({ discount: parseFloat(this.discountValue) / 100 });
-            } else if (this.discountField == "free_qty") {
-                child.update({ free_qty: parseFloat(this.discountValue) });
-            } else if (this.discountField == "vat_rate") {
-                child.update({ vat_rate: parseFloat(this.discountValue) / 100 });
-            } else if (this.discountField == "unit_price") {
-                child.update({ unit_price: parseFloat(this.discountValue) })
-            } else if (this.discountField == "qty") {
-                child.update({ qty: parseFloat(this.discountValue) })
+            else if (/^[0-9]{1}/.test(key)) {
+                // char is a digit: append it
+                this.str_qty += key;
             }
-            this.instanceElement = { ...child.instance };
         }
+        if (this.selected_field == "free_qty") {
+            if (['+', '-'].indexOf(key) >= 0) {
+                if (key == "-") {
+                    if(this.str_free_qty.includes('-')) {
+                        this.str_free_qty = this.str_free_qty.replace('-', '');
+                    }
+                    else {
+                        this.str_free_qty = '-' + this.str_free_qty;
+                    }
+                }
+                else if (key == "+") {
+                    if(this.str_free_qty.includes('-')) {
+                        this.str_free_qty = this.str_free_qty.replace('-', '');
+                    }
+                }
+            }
+            else if (key == 'backspace') {
+                if (this.str_free_qty.length) {
+                    // remove last char
+                    this.str_free_qty = this.str_free_qty.slice(0, -1);
+                    if (!this.str_free_qty.length) {
+                        this.str_free_qty = "0";
+                    }
+                }
+            }
+            else if (/^[0-9]{1}/.test(key)) {
+                // char is a digit: append it
+                this.str_free_qty += key;
+            }
+        }        
+        else if (this.selected_field == "unit_price") {
+            if (key == ",") {
+                if(!this.str_unit_price.includes('.')) {
+                    this.str_unit_price += ".";
+                }
+            }
+            else if (['+', '-'].indexOf(key) >= 0) {
+                if (key == "-") {
+                    if (this.str_unit_price.includes('-')) {
+                        this.str_unit_price = this.str_unit_price.replace('-', '');
+                    }
+                    else {
+                        this.str_unit_price = '-' + this.str_unit_price;
+                    }
+                }
+                else if (key == "+" && this.str_unit_price.includes('-')) {
+                    this.str_unit_price = this.str_unit_price.replace('-', '');
+                }
+            }
+            else if (key == 'backspace') {
+                if (this.str_unit_price.length) {
+                    // remove last char
+                    this.str_unit_price = this.str_unit_price.slice(0, -1);
+                    if (!this.str_unit_price.length) {
+                        this.str_unit_price = "0";
+                    }
+                    // remove decimal separator if unnecessary
+                    else if(this.str_unit_price.includes('.')) {
+                        let num_val = parseFloat(this.str_unit_price);
+                        if(Number.isInteger(num_val)) {
+                            this.str_unit_price = num_val.toString();
+                        }
+                    }
+                }
+            }
+            else if (/^[0-9]{1}/.test(key)) {
+                this.str_unit_price += key;
+            }
+        }
+        else if (this.selected_field == "discount") {
+            if (['+', '-'].indexOf(key) >= 0) {
+                if(key == "-") {
+                    if(this.str_discount.includes('-')) {
+                        this.str_discount = this.str_discount.replace('-', '');
+                    }
+                    else {
+                        this.str_discount = '-' + this.str_discount;
+                    }
+                }
+                else if(key == "+") {
+                    if (this.str_discount.includes('-')) {
+                        this.str_discount = this.str_discount.replace('-', '');
+                    }
+                }
+            }
+            else if (key == 'backspace') {
+                if (this.str_discount.length) {
+                    // remove last char
+                    this.str_discount = this.str_discount.slice(0, -1);
+                    if (!this.str_discount.length) {
+                        this.str_discount = "0";
+                    }
+                }
+            }
+            else if (/^[0-9]{1}/.test(key)) {
+                this.str_discount += key;
+            }
+        }
+        else if (this.selected_field == "vat_rate") {
+            if (['+', '-'].indexOf(key) >= 0) {
+                if(key == "-") {
+                    if(this.str_vat_rate.includes('-')) {
+                        this.str_vat_rate = this.str_vat_rate.replace('-', '');
+                    }
+                    else {
+                        this.str_vat_rate = '-' + this.str_vat_rate;
+                    }
+                }
+                else if(key == "+") {
+                    if (this.str_vat_rate.includes('-')) {
+                        this.str_vat_rate = this.str_vat_rate.replace('-', '');
+                    }
+                }
+            }
+            else if (key == 'backspace') {
+                if (this.str_vat_rate.length) {
+                    // remove last char
+                    this.str_vat_rate = this.str_vat_rate.slice(0, -1);
+                    if (!this.str_vat_rate.length) {
+                        this.str_vat_rate = "0";
+                    }
+                }
+            }
+            else if (/^[0-9]{1}/.test(key)) {
+                this.str_vat_rate += key;
+            }
+        }        
+
+
+        /*
+            trigger an immediate update (UI only)
+        */
+        console.log(this.str_discount, this.str_vat_rate, this.str_qty, this.str_free_qty, this.str_unit_price);
+
+        // update local copy
+        this.selectedLine = <OrderLine> {...this.selectedLine,
+            discount: parseFloat(this.str_discount) / 100,
+            vat_rate: parseFloat(this.str_vat_rate) / 100,
+            qty: parseInt(this.str_qty, 10),
+            free_qty: parseInt(this.str_free_qty, 10),
+            unit_price: Math.round(parseFloat(this.str_unit_price)*100) / 100
+        };
+
+        // refresh selected line Component
+        this.selectedLineComponent.update(this.selectedLine);
+        
+
+        /*
+            relay to currently selected child with a debounce
+        */
 
         if (this.debounce) {
             clearTimeout(this.debounce);
         }
         this.debounce = setTimeout(async () => {
-            await child.onChangeOrderLine();
-
-            await this.onupdateLine(child.id);
-        }, 500);
+            this.selectedLineComponent.onChange();
+        }, 1500);
     }
 
     public async onSelectedTab(event: any) {
@@ -280,33 +377,34 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
     }
 
     public onDisplayDetails(value: any) {
-        // this.posLineDisplay = value;
+        // this.current_pane = value;
         let newRoute = this.router.url.replace('lines', 'payments');
         this.router.navigateByUrl(newRoute);
     }
 
-    public onDisplayMain(event: string) {
-        this.posLineDisplay = event;
+    public switchPane(event: string) {
+        this.current_pane = event;
     }
 
-    public onTypeMode(value: any) {
-
-    }
-    public getDiscountValue(event: any) {
-        this.discountField = event;
-        this.discountValue = "";
+    public onSelectField(event: any) {
+        this.selected_field = event;
     }
 
-    public async addBookingOrderLine(funding: any) {
+    public async onAddBookingOrderLine(funding: any) {
         if (this.instance.order_lines_ids.length < 1) {
-            const line = await this.api.create((new OrderLine()).entity, { order_id: this.instance.id, unit_price: funding.due_amount, qty: 1, has_funding: true, funding_id: funding.id, name: funding.name });
-            await this.api.update(this.instance.entity, [this.instance.id], { order_lines_ids: [line.id] });
-            await this.load(this.instance.id);
+            try {
+                const line = await this.api.create((new OrderLine()).entity, { order_id: this.instance.id, unit_price: funding.due_amount, qty: 1, has_funding: true, funding_id: funding.id, name: funding.name });
+                await this.api.update(this.instance.entity, [this.instance.id], { order_lines_ids: [line.id] });
+                this.load(this.instance.id);
+            }
+            catch(response) {
+                // unexpected error
+            }
         }
         // Changement temporaire pour reload le composant
     }
 
-    public async addedProduct(product: any) {
+    public async onAddProduct(product: any) {
         let has_funding = false;
         this.instance.order_lines_ids.forEach((element: any) => {
             if (element.has_funding == true) {
@@ -314,10 +412,24 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
             }
         });
         if (!has_funding) {
-            const line = await this.api.create((new OrderLine()).entity, { order_id: this.instance.id, unit_price: product.due_amount, qty: 1, name: product.sku, product_id: product.id });
-            await this.api.update(this.instance.entity, [this.instance.id], { order_lines_ids: [line.id] });
-            await this.load(this.instance.id);
+            try {
+                const line = await this.api.create((new OrderLine()).entity, {
+                    order_id: this.instance.id,
+                    unit_price: 0,      // we don't know the price yet (will be resolved by back-end)
+                    qty: 1,
+                    name: product.sku,
+                    product_id: product.id
+                });
+                await this.api.update(this.instance.entity, [this.instance.id], { order_lines_ids: [line.id] });
+                this.load(this.instance.id);
+            }
+            catch(response) {
+                // unexpected error
+            }
         }
     }
 
+    public calcTaxes() {
+        return Math.round( (this.instance.price - this.instance.total) * 100) / 100;
+    }
 }

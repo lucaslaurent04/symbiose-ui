@@ -87,112 +87,13 @@ export class PosArbitraryNumbersComponent implements OnInit {
 
   checkActionType(event: any) {
     console.log(event)
-    this.onTypeMode.emit(event);
-    // this.actionType = event;
-    // this.quantityTest = "";
-    // this.priceTest = "";
+    this.onTypeMode.emit(event);  
   }
 
   checkNumberPassed(event: any) {
     this.onDigitTyped.emit(event);
-    // this.price = this.price.toString();
-    // this.quantity = this.quantity.toString();
-    // this.discountValue = this.discountValue.toString();
-    // // first check what component is displayed
-    // if(this.posLineDisplay == "discount" || this.posLineDisplay =="payment"){
-    //   if(event== 'backspace'){
-    //     let test = this.discountValue.slice(0, -1);
-    //     this.discountValue = test;
-    //     this.emitDiscountValue.emit([this.discountValue, this.index]);
-    //   }else if (((this.discountValue.includes('.') && this.discountValue.indexOf('.')>3)  || (!this.discountValue.includes('.') && this.discountValue.length>1)) && this.posLineDisplay !="payment"){
-    //    this.discountValue = "100"; 
-    //    this.emitDiscountValue.emit([this.discountValue, this.index]);
-    //   }
-    //    else if(event!= 'backspace' && event!= ',' && event!= '+/-') {
-    //     this.discountValue += event;
-    //     this.emitDiscountValue.emit([this.discountValue, this.index]);
-    //   }else if(event == ','){
-    //     if (!this.discountValue.includes('.')) {
-    //       this.discountValue += ".";
-    //       this.emitDiscountValue.emit([this.discountValue, this.index]);
-    //     } 
-    //   }
-    // }else{
-
-    //   if(event == '+' || event == "-" && this.index != undefined){
-    //     if(this.operator =='-' && !this.products[this.index][this.actionType].includes('-')){
-    //       this.products[this.index][this.actionType] = '-' + this.products[this.index][this.actionType];
-    //     }else if (this.index != undefined){
-    //       console.log(this.index)
-    //       let test = this.products[this.index][this.actionType].replace('-', '+');
-    //       this.products[this.index][this.actionType] = test
-    //     }
-    //     return;
-    //   }
-    //   else if(event != 'backspace' && event != '%'){
-    //     this.numberPassed = event;
-    //   }else if (event == "%"){
-    //     this.posLineDisplay = "discount";
-    //     this.onDisplayDetails.emit(this.posLineDisplay);
-    //     this.emitDiscountValue.emit(this.discountValue);
-    //     console.log(this.discountValue);
-    //     return;
-    //   }
-  
-    //   console.log(this.discountValue)
-     
-    //   clearTimeout(this.myTimeout);
-    //   this.myTimeout = setTimeout(() => {
-    //     this.quantityTest = "";
-    //     this.priceTest = "";
-    //     this.discountTest = "";
-    //   }, 2000);
-  
-  
-
-      
-    //   if (typeof this.numberPassed == "number") {
-    //     if (this.actionType == "quantity") {
-    //       if (event != 'backspace') {
-    //         this.quantityTest += this.numberPassed.toString();
-    //         this.quantity = this.quantityTest;
-    //       } else {
-    //           if(this.quantity !=""){
-    //             this.quantityTest = this.quantityTest.slice(0, -1);
-    //             // this.products[this.index].quantity = this.quantityTest;
-    //             this.quantity = this.quantityTest;
-    //           }else{
-    //             this.products.splice(this.index, 1);
-    //           } 
-    //       }
-    //     } else if (this.actionType == "price") {
-    //       if (event != 'backspace') {
-    //         this.priceTest += this.numberPassed.toString()
-    //         this.price = this.priceTest;
-    //       } else {
-    //         if (this.price !=""){
-    //         this.priceTest = this.priceTest.slice(0, -1);
-    //         this.price = this.priceTest;
-    //         }else{
-    //           this.products.splice(this.index, 1);
-    //         }
-    //       }
-    //     } 
-    //   } 
-    //   else if (this.numberPassed == ",") {
-    //     if (this.actionType == "quantity" && !this.quantityTest.includes('.')) {
-    //       this.quantityTest += ".";
-    //       this.quantity = this.quantityTest;
-    //     } else if (this.actionType == "price" && !this.quantityTest.includes('.')) {
-    //       this.priceTest += ".";
-    //       this.price = this.priceTest;
-    //     } 
-    //   }
-    //   this.emitPrice.emit(this.price);
-    //   this.emitQuantity.emit(this.quantity);
-      
-    // }    
   }
+
   onselectCustomer(customer:any){
     this.customer_name = customer.name;
     this.displayClient = true;

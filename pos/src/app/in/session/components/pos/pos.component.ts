@@ -7,144 +7,144 @@ import { data } from 'jquery';
 
 
 @Component({
-  selector: 'pos-pad',
-  templateUrl: './pos.component.html',
-  styleUrls: ['./pos.component.scss']
+    selector: 'pos-pad',
+    templateUrl: './pos.component.html',
+    styleUrls: ['./pos.component.scss']
 })
 export class PosComponent implements OnInit {
 
-  constructor(private dialog: MatDialog) { }
-  public products: any = [{ id: 1, price: "5", name: "Esteban", quantity: "1.00", discount: "" }, { id: 2, price: "7.5", name: "Graccus", quantity: "1.00", discount: "" }];
-  public selectedProduct = 0;
-  public invoice = false;
-  public actionType: any = "quantity";
-  public displayClient = true;
-  public quantityTest = "";
-  public priceTest = "";
-  public discountTest = "";
-  public numberPassed = 0;
-  public numberPassedIndex = -1;
-  public total = 0;
-  public taxes = 0;
-  public posLineDisplay: string = "main";
-  public customer_name: string;
-  public operator: string = '+';
-  public paymentValue: string;
+    public products: any = [{ id: 1, price: "5", name: "Esteban", quantity: "1.00", discount: "" }, { id: 2, price: "7.5", name: "Graccus", quantity: "1.00", discount: "" }];
+    public selectedProduct = 0;
+    public invoice = false;
+    public actionType: any = "qty";
+    public displayClient = true;
+    public quantityTest = "";
+    public priceTest = "";
+    public discountTest = "";
+    public numberPassed = 0;
+    public numberPassedIndex = -1;
+    public total = 0;
+    public taxes = 0;
+    public posLineDisplay: string = "main";
+    public customer_name: string;
+    public operator: string = '+';
+    public paymentValue: string;
 
-  @Output() onGetInvoice = new EventEmitter();
-  @Output() onDisplayDetails = new EventEmitter();
-  @Output() onDigitTyped = new EventEmitter();
-  @Output() onTypeMode = new EventEmitter();
+    @Output() onGetInvoice = new EventEmitter();
+    @Output() onDisplayDetails = new EventEmitter();
+    @Output() onKeyPressed = new EventEmitter();
+    @Output() onTypeMode = new EventEmitter();
 
-  ngOnInit(): void {
-    this.total = 0;
-    this.products.forEach((element: any) => {
-      this.total += Number(element.price) * Number(element.quantity);
-    })
-  }
 
-  onInvoice() {
-    this.invoice = !this.invoice;
-    this.onGetInvoice.emit(this.invoice);
-  }
+    constructor(private dialog: MatDialog) { }
 
-  changeClient() {
-    // could be used to change clients
-  }
+    ngOnInit(): void {
+        this.total = 0;
+        this.products.forEach((element: any) => {
+            this.total += Number(element.price) * Number(element.quantity);
+        })
+    }
 
-  getPosLineDisplay(value: string) {
-    this.onDisplayDetails.emit(value);
-    // this.discountValue = "0";
-    // this.posLineDisplay = value;
-  }
+    onInvoice() {
+        this.invoice = !this.invoice;
+        this.onGetInvoice.emit(this.invoice);
+    }
 
-  getDiscountValue(value: any) {
-  }
+    changeClient() {
+        // could be used to change clients
+    }
 
-  getPaymentSelection(value: string) {
+    getPosLineDisplay(value: string) {
+        this.onDisplayDetails.emit(value);
+        // this.discountValue = "0";
+        // this.posLineDisplay = value;
+    }
 
-  }
+    getDiscountValue(value: any) {
+    }
 
-  getPaymentValue(value: any) {
-  }
+    getPaymentSelection(value: string) {
 
-  onDisplayProductInfo() {
-  }
+    }
 
-  onSelectedProductChange(element: any) {
-    this.selectedProduct = element[0].value;
-    // Products infos
-    const dialogRef = this.dialog.open(PosOpening, {
-      data: this.selectedProduct
-    });
-    dialogRef.afterClosed().subscribe(
-    )
-  }
+    getPaymentValue(value: any) {
+    }
 
-  onBackSpace(event: any) {
-    this.checkNumberPassed(event);
-  }
+    onDisplayProductInfo() {
+    }
 
-  checkActionType(event: any) {
-    this.onTypeMode.emit(event);
-  }
+    onSelectedProductChange(element: any) {
+        this.selectedProduct = element[0].value;
+        // Products infos
+        const dialogRef = this.dialog.open(PosOpening, {
+            data: this.selectedProduct
+        });
+        dialogRef.afterClosed().subscribe(
+        )
+    }
 
-  onselectCustomer(customer: any) {
-    this.customer_name = customer.name;
-    this.displayClient = true;
-  }
+    checkActionType(event: any) {
+        this.onTypeMode.emit(event);
+    }
 
-  checkNumberPassed(event: any) {
-    this.onDigitTyped.emit(event);
-  }
+    onselectCustomer(customer: any) {
+        this.customer_name = customer.name;
+        this.displayClient = true;
+    }
+
+    onKeypress(event: any) {
+        this.onKeyPressed.emit(event);
+    }
 }
 
 
 @Component({
-  selector: 'pos-opening',
-  template: `
-  <h2 mat-dialog-title style="text-align:center">Contrôle des espèces à l'ouverture</h2>
-  <div mat-dialog-content  style="width: 40rem; background-color:lightgray; padding: 1rem">
-    <div>
-      <div style="display: flex; justify-content:space-between; padding: 0.5rem">
-        <h4 style="font-weight:bold">Espèces à l'ouverture</h4>
-        <div class="tablet" style="width:25%; display:flex; justify-content:space-evenly;align-items: center; border-bottom: 1px solid black; float:right;padding: 0.4rem">
-          <p style="font-size: 1.5rem; margin:0; height:max-content">{{data.price}}</p>
-          <button style="padding: 0.75rem;" (click)="onDisplayCoins()" *ngIf ="!displayTablet"><mat-icon>tablet_android</mat-icon></button>
-        </div>
-      </div>
-      <div>
-        <!-- <app-pad style="width: 50%;" *ngIf = "displayTablet"></app-pad> -->
-        <textarea style="background-color: white; border: 2px solid lightgreen; margin: 0.2rem; padding: 0.2rem; width:100%;" name="" id="" cols="30" rows="10" placeholder="Espèces">
-        <ul> <li></li> </ul></textarea>
-      </div>
+selector: 'pos-opening',
+template: `
+<h2 mat-dialog-title style="text-align:center">Contrôle des espèces à l'ouverture</h2>
+<div mat-dialog-content  style="width: 40rem; background-color:lightgray; padding: 1rem">
+<div>
+    <div style="display: flex; justify-content:space-between; padding: 0.5rem">
+    <h4 style="font-weight:bold">Espèces à l'ouverture</h4>
+    <div class="tablet" style="width:25%; display:flex; justify-content:space-evenly;align-items: center; border-bottom: 1px solid black; float:right;padding: 0.4rem">
+        <p style="font-size: 1.5rem; margin:0; height:max-content">{{data.price}}</p>
+        <button style="padding: 0.75rem;" (click)="onDisplayCoins()" *ngIf ="!displayTablet"><mat-icon>tablet_android</mat-icon></button>
     </div>
-    <div mat-dialog-actions style="display: flex; justify-content: flex-end; background-color:lightgray; width: 100%">
-    <button mat-raised-button color="primary" style="display:block;" mat-raised-button (click)="closeDialog()" >Fermer</button>
-  </div>
-  `
+    </div>
+    <div>
+    <!-- <app-pad style="width: 50%;" *ngIf = "displayTablet"></app-pad> -->
+    <textarea style="background-color: white; border: 2px solid lightgreen; margin: 0.2rem; padding: 0.2rem; width:100%;" name="" id="" cols="30" rows="10" placeholder="Espèces">
+    <ul> <li></li> </ul></textarea>
+    </div>
+</div>
+<div mat-dialog-actions style="display: flex; justify-content: flex-end; background-color:lightgray; width: 100%">
+<button mat-raised-button color="primary" style="display:block;" mat-raised-button (click)="closeDialog()" >Fermer</button>
+</div>
+`
 })
 
 export class PosOpening {
-  constructor(
-    public dialogDelete: MatDialogRef<PosOpening>,
-    @Inject(MAT_DIALOG_DATA) public data: any,
-    private dialog: MatDialog
-  ) { }
-  public deleteConfirmation = false;
-  public displayTablet = false;
-  public coins: any = [{ value: "" }, { value: "" }];
-  ngOnInit(): void {
-    console.log(this.data);
-  }
 
-  onDisplayCoins() {
-  }
+    public deleteConfirmation = false;
+    public displayTablet = false;
+    public coins: any = [{ value: "" }, { value: "" }];
 
-  public closeDialog() {
-    this.dialogDelete.close({
-    })
-  }
+    constructor(
+        public dialogDelete: MatDialogRef<PosOpening>,
+        @Inject(MAT_DIALOG_DATA) public data: any,
+        private dialog: MatDialog
+    ) { }
+
+    ngOnInit(): void {
+        console.log(this.data);
+    }
+
+    onDisplayCoins() {
+    }
+
+    public closeDialog() {
+        this.dialogDelete.close({});
+    }
 }
 
 

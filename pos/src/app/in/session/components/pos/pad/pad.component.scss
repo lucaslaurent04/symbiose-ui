@@ -5,8 +5,9 @@
     height: 100%;
     .pad-numbers{
         display: grid;
-        grid-template-columns: repeat(3, 70px);
-        grid-template-rows: repeat(4, 70px);
+        grid-gap: 2px;
+        grid-template-columns: repeat(3, 68px);
+        grid-template-rows: repeat(4, 68px);
         @media only screen and (max-width: 1500px) {
             grid-template-columns: repeat(3, 55px);
             grid-template-rows: repeat(4, 55px);
