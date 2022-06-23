@@ -368,10 +368,6 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
         }, 1500);
     }
 
-    public async onSelectedTab(event: any) {
-        await this.load(this.instance.id);
-    }
-
     public onGetInvoice(value: any) {
         this.invoice = value;
     }
