@@ -25,7 +25,7 @@
             </button> 
         </div>
         <div style="display: flex;">
-            <app-pad (newNumberPassed)="checkNumberPassed($event)"></app-pad>
+            <app-pad (keyPressed)="checkNumberPassed($event)"></app-pad>
             <app-pad-arbitrary-numbers (OnaddedNumber)="checkNumberPassed($event)" (OnBackspace)="onBackSpace($event)"></app-pad-arbitrary-numbers>
         </div>
     </div>  

@@ -25,6 +25,7 @@ export class OrderItemsComponent implements OnInit {
     public fundings: any;
     public products : any;
     public dataSource: any;
+    public selectedRowIndex : number;
 
     constructor(
         private api: ApiService,
@@ -98,6 +99,18 @@ export class OrderItemsComponent implements OnInit {
     applyFilter(event: Event) {
         const filterValue = (event.target as HTMLInputElement).value;
         this.dataSource.filter = filterValue.trim().toLowerCase();
+    }
+
+    public selectProduct(row: any){
+        console.log('hightlight')
+        this.selectedRowIndex = row.id;
+        this.createBookingOrderLine(row, 'product');
+    }
+
+    public selectBooking(row: any){
+        console.log('hightlight')
+        this.selectedRowIndex = row.id;
+        this.createBookingOrderLine(row, 'product');
     }
 
 }

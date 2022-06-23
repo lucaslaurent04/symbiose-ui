@@ -7,6 +7,7 @@ import { SessionOrderPaymentsOrderPaymentComponent } from './components/payment/
 import { SessionOrderLinesComponent } from '../../order/lines/lines.component';
 import { OrderService } from 'src/app/in/orderService';
 import { BookingLineClass } from 'src/app/model';
+import { TicketComponent } from './components/ticket/ticket.component';
 
 
 
@@ -25,6 +26,7 @@ interface OrderComponentsMap {
 export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderComponentsMap> implements RootTreeComponent, OnInit, AfterViewInit {
     @ViewChildren(SessionOrderPaymentsOrderPaymentComponent) SessionOrderPaymentsOrderPaymentComponents: QueryList<SessionOrderPaymentsOrderPaymentComponent>;
     // @ViewChildren(SessionOrderLinesComponent) SessionOrderLinesComponents: QueryList<SessionOrderLinesComponent>; 
+    @ViewChildren(TicketComponent) TicketComponent: QueryList<TicketComponent>;
 
     public item: number;
     public ready: boolean = false;
@@ -40,6 +42,8 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
     public due: number;
     public change: any;
     public session: CashdeskSession = new CashdeskSession();
+    public ticket : any;
+
 
     constructor(
         private router: Router,
@@ -76,6 +80,9 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
                 }
             }
         });
+
+        this.ticket = this.TicketComponent.toArray()[0]
+
     }
 
     private async loadSession(session_id: number) {
@@ -122,16 +129,19 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
         super.update(values);
     }
 
-    public onupdatePayment(line_id: any) {
-        console.log('onupdatePayment');
-        // a line has been updated: reload tree
-        this.load(this.instance.id);
-    }
-
     public async ondeletePayment(line_id: number) {
         // a line has been removed: reload tree
+        console.log("deleted")
         this.load(this.instance.id);
-        this.change = 'deleted';
+        this.updateTicket();
+
+    }
+
+    public async onupdatePayment(line_id: number) {
+        // a line has been removed: reload tree
+        console.log("deleted")
+        this.load(this.instance.id);
+        this.updateTicket();
     }
 
     public async onclickCreateNewPayment() {
@@ -142,6 +152,10 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
         this.load(this.instance.id);
     }
 
+    public updateTicket(){
+        this.ticket = this.TicketComponent.toArray()[0]
+        this.ticket.load();
+    }
 
     public onClickLine(index: number) {
         this.index = index;
@@ -191,7 +205,6 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
             } else if (value != 'backspace' && value != ',' && value != '+/-') {
                 this.digits += value;
             }
-            this.change = this.digits;
             child.update({ payment_method: payment_method });
             if (child.focused == "amount") {
                 child.update({ amount: parseFloat(this.digits) });
@@ -206,7 +219,10 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
             }
 
             this.currentOrder = this.instance;
+            this.updateTicket();
         }
+        
+        
     }
 
     public onDisplayDetails(value: any) {

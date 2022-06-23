@@ -51,7 +51,7 @@
                     </ng-container>
                   
                     <tr mat-header-row *matHeaderRowDef="['name', 'customer_id', 'center_id', 'date_from', 'date_to','total','actions']"></tr>
-                    <tr mat-row *matRowDef="let row; columns: ['name', 'customer_id', 'center_id', 'date_from', 'date_to','total', 'actions'];"></tr>
+                    <tr mat-row *matRowDef="let row; columns: ['name', 'customer_id', 'center_id', 'date_from', 'date_to','total', 'actions'];" (click)="selectProduct(row)" [ngClass]="{'highlight': selectedRowIndex == row.id}"></tr>
                   </table>
 
                   <mat-paginator [length]="100"

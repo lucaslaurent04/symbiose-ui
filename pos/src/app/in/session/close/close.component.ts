@@ -15,6 +15,7 @@ export class CloseComponent implements OnInit {
   public ready: boolean = false;
   public resultPayments: any;
   public resultLines: any;
+  public session_id : number;
   constructor(private dialog: MatDialog, private route: ActivatedRoute, private api: ApiService) { }
 
   public ngOnInit() {
@@ -22,8 +23,9 @@ export class CloseComponent implements OnInit {
     this.route.params.subscribe(async (params) => {
       if (params && params.hasOwnProperty('session_id')) {
         try {
-          await this.loadSession(<number>params['session_id']);
-          await this.load(<number>params['session_id']);
+          this.session_id = <number>params['session_id'];
+          await this.loadSession(this.session_id);
+          await this.load(this.session_id);
           this.ready = true;
 
         }
@@ -71,6 +73,7 @@ export class CloseComponent implements OnInit {
       data: this.session,
       panelClass: ['difference']
     });
+    this.load(this.session_id);
   }
 }
 
@@ -84,10 +87,10 @@ export class CloseComponent implements OnInit {
        <p>Total de {{data.orders_ids.length - 1}} commandes <span>d'une valeur de {{ordersTotal}} € </span></p> 
        <p>Paiements <span> {{totalPaid}} € </span></p> 
       </div>
-      <div style="border-left: light-grey 1px solid;">
+      <!-- <div style="border-left: light-grey 1px solid;">
         Money details:
         x x x €
-      </div>
+      </div> -->
     </div>
     <div>
       <div style="display:grid; grid-template-columns: repeat(4,1fr);">
@@ -206,11 +209,12 @@ export class PosClosing {
       order.order_payments_ids.forEach((orderPayment: any) => {
         this.totalPaid += orderPayment.total_paid
         orderPayment.order_payment_parts_ids.forEach((orderPaymentPart: any) => {
+          console.log(orderPaymentPart.payment_method, "méthoooode")
           switch (orderPaymentPart.payment_method) {
             case 'cash':
               this.totalCash += orderPaymentPart.amount;
               break;
-            case 'bank':
+            case 'bank_card':
               this.totalBank += orderPaymentPart.amount;
               break;
             case 'booking':
