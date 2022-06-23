@@ -17,7 +17,7 @@
     <div class="elements-select">
         <sb-m2o-select [entity]="'lodging\\identity\\Center'" [placeholder]="'Commencez à taper le nom'"
             [hint]="'Client pour la commande'" [noResult]="'rien trouvé'" [required]="true"
-            (itemSelected)="onselectCenter($event)" [domain]="['id', 'in', user.centers_ids]">
+            (itemSelected)="onselectCenter($event)" [domain]="['id', 'in', [24,25,26,27,28,29,30]]">
             Centre
         </sb-m2o-select>
     </div>

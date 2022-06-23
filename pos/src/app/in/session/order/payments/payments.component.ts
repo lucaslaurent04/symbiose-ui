@@ -43,7 +43,7 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
     public change: any;
     public session: CashdeskSession = new CashdeskSession();
     public ticket : any;
-
+    public customer_name : string;
 
     constructor(
         private router: Router,
@@ -108,6 +108,7 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
         if (order_id > 0) {
             try {
                 const result: any = await this.api.fetch('/?get=sale_pos_order_tree', { id: order_id, variant: 'payments' });
+                this.customer_name= result.customer_id.name;
                 if (result) {
                     this.update(result);
                 }

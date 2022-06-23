@@ -3,9 +3,12 @@
         <app-header [section]="'Point de Vente'"
                     [i18n]="translationsMenuTop"
                     [items]="topMenuItems"
+                    [action]="'Nouvelle session'"
                     (toggleMenu)="toggleSideMenu()"
                     (toggleBar)="toggleSideBar()"
-                    (select)="onSelectItem($event)" >
+                    (select)="onSelectItem($event)"
+                    (onAction)="onAction()">
+                    >
         </app-header>
     </div>
     <div class="app-body">

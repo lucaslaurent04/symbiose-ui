@@ -35,6 +35,8 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
 
     public selected_field: string = 'qty';
 
+    public customer_name : string;
+
     // reference to the selected line component
     private selectedLineComponent: SessionOrderLinesOrderLineComponent;
     // local copy of selected line
@@ -103,6 +105,7 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
         if (order_id > 0) {
             try {
                 const result: any = await this.api.fetch('/?get=sale_pos_order_tree', { id: order_id, variant: 'lines' });
+                this.customer_name= result.customer_id.name;
                 if (result) {
                     this.update(result);
                 }
@@ -180,6 +183,8 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
         */
 
         if (this.selected_field == "qty") {
+            // Reset the quantity to zero after we type one number
+            if(this.str_qty == "1") this.str_qty = "";
             if (['+', '-'].indexOf(key) >= 0) {
                 if (key == "-") {
                     if(this.str_qty.includes('-')) {

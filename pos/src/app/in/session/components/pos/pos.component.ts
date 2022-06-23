@@ -26,7 +26,6 @@ export class PosComponent implements OnInit {
     public total = 0;
     public taxes = 0;
     public posLineDisplay: string = "main";
-    public customer_name: string;
     public operator: string = '+';
     public paymentValue: string;
 
@@ -34,7 +33,7 @@ export class PosComponent implements OnInit {
     @Output() onDisplayDetails = new EventEmitter();
     @Output() onKeyPressed = new EventEmitter();
     @Output() onTypeMode = new EventEmitter();
-
+    @Input() customer_name : string;
 
     constructor(private dialog: MatDialog) { }
 

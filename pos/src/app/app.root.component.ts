@@ -79,6 +79,15 @@ export class AppRootComponent implements OnInit {
     }
   }
 
+
+  public onAction() {
+    let descriptor = {
+        route: '/sessions/new'
+    };
+
+    this.context.change(descriptor);
+}
+
     /**
      * Items are handled as descriptors.
      * They always have a `route` property (if not, it is added and set to '/').

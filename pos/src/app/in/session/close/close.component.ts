@@ -16,7 +16,8 @@ export class CloseComponent implements OnInit {
   public resultPayments: any;
   public resultLines: any;
   public session_id : number;
-  constructor(private dialog: MatDialog, private route: ActivatedRoute, private api: ApiService) { }
+  public buttonDisplay : boolean =  true;
+  constructor(private dialog: MatDialog, private route: ActivatedRoute, private api: ApiService, private router : Router) { }
 
   public ngOnInit() {
     // fetch the ID from the route
@@ -34,21 +35,13 @@ export class CloseComponent implements OnInit {
         }
       }
     });
+    if(this.router.url.includes('close')){
+      this.buttonDisplay = false;
+      this.closeSession();
+    }
   }
 
   private async loadSession(session_id: number) {
-
-    // if (session_id > 0) {
-    //   try {
-    //     const result: any = await this.api.read(CashdeskSession.entity, [session_id], Object.getOwnPropertyNames(new CashdeskSession()));
-    //     if (result && result.length) {
-    //       this.session = <CashdeskSession>result[0];
-    //     }
-    //   }
-    //   catch (response) {
-    //     throw 'unable to retrieve given session';
-    //   }
-    // }
   }
 
 
@@ -61,19 +54,19 @@ export class CloseComponent implements OnInit {
       try {
         this.session = await this.api.fetch('/?get=sale_pos_session_tree', { id: session_id, variant: 'session' });
         // let session = await this.api.fetch('/?get=sale_pos_session_tree', { id: session_id, variant: 'lines' });
-
       }
       catch (response) {
         throw 'unable to retrieve given order';
       }
     }
   }
-  public closeSession() {
+
+  public async closeSession() {
+    await this.load(this.session_id);
     const dialogRef = this.dialog.open(PosClosing, {
       data: this.session,
       panelClass: ['difference']
     });
-    this.load(this.session_id);
   }
 }
 
@@ -290,7 +283,7 @@ export class PosClosing {
             </div>
         </div>
         <div style="display: flex; border: 1px solid lightgreen">
-          <app-pad (newNumberPassed)="onCheckNumberPassed($event)"></app-pad>
+          <app-pad (keyPressed)="onCheckNumberPassed($event)"></app-pad>
           <app-pad-arbitrary-numbers style="margin-bottom: 0.25px;" (OnaddedNumber)="checkActionType($event)" (OnBackspace)="onBackSpace($event)"></app-pad-arbitrary-numbers>
         </div>
       </div>    
@@ -381,6 +374,7 @@ export class PosClosingCoins {
   }
 
   onCheckNumberPassed(value: any) {
+    console.log('pressed')
     if (value != 'backspace' && value != ',' && value != '+/-') {
       this.coins[this.index].number += value;
       this.onGetTotal();

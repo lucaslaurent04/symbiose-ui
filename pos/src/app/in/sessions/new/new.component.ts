@@ -91,7 +91,7 @@ export class SessionsNewComponent implements OnInit {
         </div>
 
         <div style="display: flex; border: 1px solid lightgreen">
-          <app-pad (newNumberPassed)="onCheckNumberPassed($event)"></app-pad>
+          <app-pad (keyPressed)="onCheckNumberPassed($event)"></app-pad>
           <app-pad-arbitrary-numbers style="margin-bottom: 0.25px;" (OnaddedNumber)="checkActionType($event)" (OnBackspace)="onBackSpace($event)"></app-pad-arbitrary-numbers>
         </div>
       </div>    

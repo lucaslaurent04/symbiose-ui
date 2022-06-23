@@ -27,7 +27,7 @@ export class SessionOrderLinesDiscountPaneComponent implements OnInit {
         console.log('update discount pane', values);
         if(values) {
             this.liners = [{
-                name: "Freebies",
+                name: "Gratuités",
                 unit : "Qty",
                 value : values.free_qty,
                 field : 'free_qty',
@@ -35,7 +35,7 @@ export class SessionOrderLinesDiscountPaneComponent implements OnInit {
                 disabled : false
             },
             {
-                name: "Discount",
+                name: "Réduction",
                 unit : "%",
                 value : (values.discount*100).toFixed(0),
                 field : 'discount',
@@ -43,7 +43,7 @@ export class SessionOrderLinesDiscountPaneComponent implements OnInit {
                 disabled : false
             },
             {
-                name: "Quantity",
+                name: "Quantité",
                 unit : "units",
                 value : values.qty,
                 field: "qty",
@@ -51,7 +51,7 @@ export class SessionOrderLinesDiscountPaneComponent implements OnInit {
                 disabled : false
             },
             {
-                name: "Price",
+                name: "Prix",
                 unit : "€",
                 value : values.unit_price,
                 field: "unit_price",
@@ -59,7 +59,7 @@ export class SessionOrderLinesDiscountPaneComponent implements OnInit {
                 disabled : false
             },
             {
-                name: "Tax",
+                name: "Taxes",
                 unit : "%",
                 value : (values.vat_rate*100).toFixed(0),
                 field: "vat_rate",

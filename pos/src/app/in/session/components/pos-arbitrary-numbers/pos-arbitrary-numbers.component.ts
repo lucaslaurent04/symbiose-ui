@@ -26,7 +26,6 @@ export class PosArbitraryNumbersComponent implements OnInit {
   public taxes = 0;
   public myTimeout : any;
   public displayClient = true;
-  public customer_name : string;
   public operator : string = '+';
   public paymentValue : string;
   
@@ -35,6 +34,7 @@ export class PosArbitraryNumbersComponent implements OnInit {
   @Output() onDigitTyped = new EventEmitter();
   @Output() onTypeMode = new EventEmitter();
   @Input() item : number;
+  @Input() customer_name : string;
 
   ngOnInit(): void {
     this.total = 0;
@@ -91,6 +91,7 @@ export class PosArbitraryNumbersComponent implements OnInit {
   }
 
   checkNumberPassed(event: any) {
+    console.log('pressed')
     this.onDigitTyped.emit(event);
   }
 

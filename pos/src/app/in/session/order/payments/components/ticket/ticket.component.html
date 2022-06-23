@@ -10,7 +10,7 @@
     </ul>
 
     <div class="subTotal" style="width: 100%;">
-        <span>SubTotal:</span> <span style="min-width: fit-content;"> {{order.price}} € HTVA </span>
+        <span>Total:</span> <span style="min-width: fit-content;"> {{order.price}} € HTVA </span>
     </div>
     <div>
         <span class="dotts">------</span>
@@ -33,7 +33,7 @@
     </ul>
     <div>
         <div style="display: flex; justify-content: space-between; width: 100%;"> <span
-                style="font-weight: bolder; font-size: 1.1rem;"> CHANGE</span> <span>{{(order.total_paid -
+                style="font-weight: bolder; font-size: 1.1rem;"> MONNAIE</span> <span>{{(order.total_paid -
                 order.total).toFixed(2)}} €</span></div>
         <div style="display: flex; justify-content: space-between; width: 100%;"> <span
                 style="font-weight: bolder; font-size: 1.1rem;"> TVA</span> <span></span></div>

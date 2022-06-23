@@ -1,6 +1,6 @@
 import { Component, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { ApiService } from 'sb-shared-lib';
+import { ApiService, AuthService } from 'sb-shared-lib';
 import { Order, OrderLine } from '../../lines.model';
 import {MatTableDataSource} from '@angular/material/table';
 import {MatPaginator, MatPaginatorModule} from '@angular/material/paginator';
@@ -24,13 +24,16 @@ export class OrderItemsComponent implements OnInit {
     public fundings: any;
     public products : any;
     public dataSource: any;
-    public selectedRowIndex : number;
-
+    public selectedProductIndex : number;
+    public selectedBookingIndex : number;
+    public selectedFundingIndex : number;
+    public user : any;
     private selected_tab = 'products';
 
     constructor(
         private api: ApiService,
-        private route: ActivatedRoute
+        private route: ActivatedRoute,
+        private auth: AuthService
     ) { }
 
     async ngOnInit() {
@@ -54,6 +57,7 @@ export class OrderItemsComponent implements OnInit {
                 }
             }
         });
+        this.user = this.auth.getUser();
     }
 
     private async load(id: number) {
@@ -108,22 +112,25 @@ export class OrderItemsComponent implements OnInit {
         }
         else if(this.selected_tab == 'bookings') {
             //  #todo - bookings du centre en cours + non payés (au moins un funding)
-            this.bookings = await this.api.collect('lodging\\sale\\booking\\Booking', [['name', 'ilike', '%'+filter_value+'%']], ['customer_id', 'center_id', 'total', 'date_from', 'date_to', 'price']);
+            this.bookings = await this.api.collect('lodging\\sale\\booking\\Booking', [['name', 'ilike', '%'+filter_value+'%'], ['center_id', 'in', this.user.centers_ids]], ['customer_id', 'center_id', 'total', 'date_from', 'date_to', 'price']);
             this.bookings = new MatTableDataSource(this.bookings);
             this.bookings.paginator = this.paginator;
         }        
     }
 
     public selectProduct(row: any){
-        console.log('hightlight')
-        this.selectedRowIndex = row.id;
+        this.selectedProductIndex = row.id;
         this.createBookingOrderLine(row, 'product');
     }
 
     public selectBooking(row: any){
-        console.log('hightlight')
-        this.selectedRowIndex = row.id;
-        this.createBookingOrderLine(row, 'product');
+        this.selectedBookingIndex = row.id;
+        this.getFunding(row);
+    }
+
+    public selectFunding(row: any){
+        this.selectedFundingIndex = row.id;
+        this.createBookingOrderLine(row, 'funding');
     }
 
 }
