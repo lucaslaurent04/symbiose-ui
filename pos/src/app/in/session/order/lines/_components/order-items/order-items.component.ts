@@ -12,7 +12,6 @@ import {MatPaginator, MatPaginatorModule} from '@angular/material/paginator';
 })
 export class OrderItemsComponent implements OnInit {
 
-    @Output() selectedtTab = new EventEmitter();
     @Output() addedBookingOrderLine = new EventEmitter();
     @Output() addedProduct = new EventEmitter();
     @ViewChild(MatPaginator) paginator: MatPaginator;
@@ -26,6 +25,8 @@ export class OrderItemsComponent implements OnInit {
     public products : any;
     public dataSource: any;
 
+    private selected_tab = 'products';
+
     constructor(
         private api: ApiService,
         private route: ActivatedRoute
@@ -35,6 +36,7 @@ export class OrderItemsComponent implements OnInit {
         this.bookings = await this.api.collect('lodging\\sale\\booking\\Booking', [], ['customer_id', 'center_id', 'total', 'date_from', 'date_to', 'price']);
         this.bookings = new MatTableDataSource(this.bookings);
         this.bookings.paginator = this.paginator;
+
         this.products = await this.api.collect('sale\\catalog\\Product', ['can_sell', '=', true], ['customer_id', 'center_id', 'total', 'date_from', 'date_to', 'price', 'sku']);
         this.dataSource = new MatTableDataSource(this.products);
         this.dataSource.paginator = this.paginator; 
@@ -68,7 +70,7 @@ export class OrderItemsComponent implements OnInit {
     }
 
     public onSelectedTab(event: any) {
-        this.selectedtTab.emit(event.tab.textLabel);
+        this.selected_tab = event.tab.textLabel;
         this.funding = false;
     }
 
@@ -95,9 +97,20 @@ export class OrderItemsComponent implements OnInit {
         this.addedProduct.emit(elem);
     }
 
-    applyFilter(event: Event) {
-        const filterValue = (event.target as HTMLInputElement).value;
-        this.dataSource.filter = filterValue.trim().toLowerCase();
+    public async applyFilter(event: Event) {
+        const filter_value = (event.target as HTMLInputElement).value;
+        
+        if(this.selected_tab == 'products') {
+            this.products = await this.api.collect('sale\\catalog\\Product', [['name', 'ilike', '%'+filter_value+'%'], ['can_sell', '=', true]], ['customer_id', 'center_id', 'total', 'date_from', 'date_to', 'price', 'sku']);
+            this.dataSource = new MatTableDataSource(this.products);
+            this.dataSource.paginator = this.paginator;
+        }
+        else if(this.selected_tab == 'bookings') {
+            //  #todo - bookings du centre en cours + non payés (au moins un funding)
+            this.bookings = await this.api.collect('lodging\\sale\\booking\\Booking', [['name', 'ilike', '%'+filter_value+'%']], ['customer_id', 'center_id', 'total', 'date_from', 'date_to', 'price']);
+            this.bookings = new MatTableDataSource(this.bookings);
+            this.bookings.paginator = this.paginator;
+        }        
     }
 
 }
