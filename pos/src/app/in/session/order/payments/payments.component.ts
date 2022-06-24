@@ -241,6 +241,7 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
 
     public async makePayment(paymentPart : any) {
         let orderPayments = await this.api.collect('sale\\pos\\OrderPayment', [['order_id', '=', this.instance.id]], ['funding_id', 'has_funding']);
+        
         if(orderPayments[0].funding_id != null || 0){
             await this.api.update('sale\\pos\\OrderPaymentPart',[paymentPart.id], {  funding_id: orderPayments[0].funding_id, has_funding : true });
         }

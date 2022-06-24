@@ -25,7 +25,8 @@
                   <mat-paginator [length]="100"
                   [pageSize]="5"
                   [pageSizeOptions]="[5, 10, 25, 100]"
-                  aria-label="Select page">
+                  aria-label="Select page"
+                  #paginator>
                 </mat-paginator>
 
             </mat-tab>
@@ -80,6 +81,7 @@
                   [pageSizeOptions]="[5, 10, 25, 100]"
                   aria-label="Select page"
                   *ngIf="!funding"
+                  #paginatorBooking="matPaginator"
                   >
                 </mat-paginator>
 
@@ -126,7 +128,8 @@
                   [length]="100"
                   [pageSize]="5"
                   [pageSizeOptions]="[5, 10, 25, 100]"
-                  aria-label="Select page">
+                  aria-label="Select page"
+                  #paginatorFunding="matPaginator">
                 </mat-paginator>
             </mat-tab>
         </mat-tab-group>

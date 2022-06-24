@@ -14,7 +14,9 @@ export class OrderItemsComponent implements OnInit {
 
     @Output() addedBookingOrderLine = new EventEmitter();
     @Output() addedProduct = new EventEmitter();
-    @ViewChild(MatPaginator) paginator: MatPaginator;
+    @ViewChild('paginator') paginator: MatPaginator;
+    @ViewChild('paginatorBooking') paginatorBooking: MatPaginator;
+    @ViewChild('paginatorFunding') paginatorFunding: MatPaginator;
 
     public bookings: any;
     public ready: boolean = false;
@@ -39,7 +41,7 @@ export class OrderItemsComponent implements OnInit {
     async ngOnInit() {
         this.bookings = await this.api.collect('lodging\\sale\\booking\\Booking', [], ['customer_id', 'center_id', 'total', 'date_from', 'date_to', 'price']);
         this.bookings = new MatTableDataSource(this.bookings);
-        this.bookings.paginator = this.paginator;
+        this.bookings.paginator = this.paginatorBooking;
 
         this.products = await this.api.collect('sale\\catalog\\Product', ['can_sell', '=', true], ['customer_id', 'center_id', 'total', 'date_from', 'date_to', 'price', 'sku']);
         this.dataSource = new MatTableDataSource(this.products);
@@ -83,7 +85,7 @@ export class OrderItemsComponent implements OnInit {
         this.funding = true;
         this.fundings = await this.api.collect('lodging\\sale\\booking\\Funding', [[['booking_id', '=', elem.id], ['is_paid', '=', false]]], ['due_amount', 'center_id', 'due_date', 'name']);
         this.fundings = new MatTableDataSource(this.fundings);
-        this.fundings.paginator = this.paginator;
+        this.fundings.paginator = this.paginatorFunding;
     }
 
     public async createBookingOrderLine(elem: any, orderType: string) {
@@ -104,17 +106,25 @@ export class OrderItemsComponent implements OnInit {
 
     public async applyFilter(event: Event) {
         const filter_value = (event.target as HTMLInputElement).value;
-        
-        if(this.selected_tab == 'products') {
-            this.products = await this.api.collect('sale\\catalog\\Product', [['name', 'ilike', '%'+filter_value+'%'], ['can_sell', '=', true]], ['customer_id', 'center_id', 'total', 'date_from', 'date_to', 'price', 'sku']);
+        console.log(this.funding, this.selected_tab)
+        if(this.funding == true){
+            this.fundings.filter = filter_value.trim().toLowerCase();
+        }
+        else if(this.selected_tab == 'products') {
+            this.dataSource.filter = filter_value.trim().toLowerCase();
+
+            // 'customer_id', 'center_id', 'total', 'date_from', 'date_to', 'price', 
+            this.products = await this.api.collect('sale\\catalog\\Product', [['name', 'ilike', '%'+filter_value+'%'], ['can_sell', '=', true]], ['sku']);
             this.dataSource = new MatTableDataSource(this.products);
             this.dataSource.paginator = this.paginator;
         }
-        else if(this.selected_tab == 'bookings') {
+        else if(this.selected_tab == 'Réservations') {
+            this.bookings.filter = filter_value.trim().toLowerCase();
+
             //  #todo - bookings du centre en cours + non payés (au moins un funding)
             this.bookings = await this.api.collect('lodging\\sale\\booking\\Booking', [['name', 'ilike', '%'+filter_value+'%'], ['center_id', 'in', this.user.centers_ids]], ['customer_id', 'center_id', 'total', 'date_from', 'date_to', 'price']);
             this.bookings = new MatTableDataSource(this.bookings);
-            this.bookings.paginator = this.paginator;
+            this.bookings.paginator = this.paginatorBooking;
         }        
     }
 

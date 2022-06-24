@@ -77,7 +77,7 @@ export class CloseComponent implements OnInit {
   <div mat-dialog-content style="background-color:#F5F5F5; padding: 3rem">
     <div style="display: flex; justify-content: space-between; align-items:center; border-bottom: 1px solid lightgray">
       <div style="display: flex; flex-direction:column">
-       <p>Total de {{data.orders_ids.length - 1}} commandes <span>d'une valeur de {{ordersTotal}} € </span></p> 
+       <p>Total de {{data.orders_ids.length}} commande(s) <span>d'une valeur de {{ordersTotal}} € </span></p> 
        <p>Paiements <span> {{totalPaid}} € </span></p> 
       </div>
       <!-- <div style="border-left: light-grey 1px solid;">
