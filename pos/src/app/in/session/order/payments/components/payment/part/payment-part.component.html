@@ -46,11 +46,23 @@
 
                 <div>
                     <div *ngIf="payment_method.value=='booking'">
-                        <mat-form-field>
+                        <sb-m2o-select
+                        [entity]="'lodging\\sale\\booking\\Booking'"
+                        [placeholder]="'Commencez à taper le nom'"
+                        [hint]="'Réservation pour la commande'"
+                        [noResult]="'rien trouvé'"
+                        (itemSelected)="onchangeBookingId($event)"
+                        [fields]="['customer_id.name']"
+                        [domain]="['customer_id', '=', customer?.id]"
+                        [displayWith]="displayBooking"
+                        >Réservation
+                        </sb-m2o-select>
+
+                        <!-- <mat-form-field>
                             <mat-label>Booking</mat-label>
                             <input (focus)="focused = 'booking_id'" type="number" matInput (blur)="onchangeBookingId()"
                                 [formControl]="booking_id">
-                        </mat-form-field>
+                        </mat-form-field> -->
                     </div>
                     <div *ngIf="payment_method.value=='voucher'">
                         <mat-form-field>

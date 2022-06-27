@@ -22,6 +22,7 @@ export class SessionOrderPaymentsPaymentPartComponent extends TreeComponent<Orde
     @Output() updated = new EventEmitter();
     @Output() deleted = new EventEmitter();
     @Output() validated = new EventEmitter();
+    @Input() customer : any;
 
 
     public ready: boolean = false;
@@ -86,8 +87,8 @@ export class SessionOrderPaymentsPaymentPartComponent extends TreeComponent<Orde
         this.updated.emit();
     }
 
-    public async onchangeBookingId() {
-        await this.api.update(this.instance.entity, [this.instance.id], {booking_id: this.instance.booking_id});
+    public async onchangeBookingId(booking: any) {
+        await this.api.update(this.instance.entity, [this.instance.id], {booking_id: booking.id});
         // no change in the tree - no reload needed
     }
 
@@ -99,5 +100,9 @@ export class SessionOrderPaymentsPaymentPartComponent extends TreeComponent<Orde
     public async validate(){
         this.validated.emit(this.instance);
         this.hasValidated = true;
+    }
+
+    public displayBooking (item : any): string{
+        return item.name + '-' + item.customer_id.name;
     }
 }

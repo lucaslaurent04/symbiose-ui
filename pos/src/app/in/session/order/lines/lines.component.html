@@ -35,12 +35,12 @@
             <div class="pad">
                 <pos-pad (onDisplayDetails)="onDisplayDetails($event)" (onKeyPressed)="onPadPressed($event)"
                     (onInvoice)="onGetInvoice($event)" (onTypeMode)="onSelectField($event)"
-                    [customer_name]="customer_name">
+                    [customer_name]="customer_name" (customer_change)="customer_change($event)">
                 </pos-pad>
             </div>
         </div>
         <div style="width: 100%; height: 100vh;">
-            <app-order-items (addedBookingOrderLine)="onAddBookingOrderLine($event)"
+            <app-order-items [error_message]="error_message" (addedBookingOrderLine)="onAddBookingOrderLine($event)"
                 (addedProduct)="onAddProduct($event)"></app-order-items>
         </div>
     </div>

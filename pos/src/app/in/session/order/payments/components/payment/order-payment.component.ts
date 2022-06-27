@@ -27,6 +27,7 @@ export class SessionOrderPaymentsOrderPaymentComponent extends TreeComponent<Ord
     @Output() validated = new EventEmitter();
     @Output() selectedPaymentPart = new EventEmitter();
     @Output() selectedOrderLine = new EventEmitter();
+    @Input() customer = '';
 
     @ViewChildren(SessionOrderPaymentsPaymentPartComponent) SessionOrderPaymentsPaymentPartComponents: QueryList<SessionOrderPaymentsPaymentPartComponent>; 
     @ViewChildren(SessionOrderPaymentsOrderLineComponent) SessionOrderPaymentsOrderLineComponents: QueryList<SessionOrderPaymentsOrderLineComponent>; 

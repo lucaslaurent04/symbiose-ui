@@ -3,14 +3,14 @@
     <h2>Kaleo ASBL</h2>
     <p class="centerItems" style="font-weight: lighter; text-align: center; width: 100%; margin-top: 0;">Infos</p>
     <ul>
-        <li *ngFor="let orderLines of order.order_lines_ids; index as i">
-            <span>Produit {{orderLines.name}}</span> <span>{{orderLines.price}} €</span>
+        <li *ngFor="let orderLines of order?.order_lines_ids; index as i">
+            <span>Produit {{orderLines?.name}}</span> <span>{{orderLines?.price}} €</span>
         </li>
         <span class="dotts">------</span>
     </ul>
 
     <div class="subTotal" style="width: 100%;">
-        <span>Total:</span> <span style="min-width: fit-content;"> {{order.price}} € HTVA </span>
+        <span>Total:</span> <span style="min-width: fit-content;"> {{order?.price}} € HTVA </span>
     </div>
     <div>
         <span class="dotts">------</span>
@@ -18,23 +18,23 @@
 
     <div class="total">
         <div style="display: flex; justify-content: space-between; width: 100%;"> <span><b>Total:</b></span>
-            <span><b>{{order.total}} € </b>TTC</span>
+            <span><b>{{order?.total}} € </b>TTC</span>
         </div>
     </div>
     <hr>
     <ul>
-        <li *ngFor="let paymentsPart of order.order_payments_ids[0]?.order_payment_parts_ids; index as i">
+        <li *ngFor="let paymentsPart of order?.order_payments_ids[0]?.order_payment_parts_ids; index as i">
             <div *ngIf="paymentsPart.amount != null"
                 style="display: flex; justify-content: space-between; width: 100%;">
-                <span>{{paymentsPart.payment_method}}</span> <span>{{paymentsPart.amount}} €</span>
+                <span>{{paymentsPart?.payment_method}}</span> <span>{{paymentsPart?.amount}} €</span>
             </div>
         </li>
         <span class="dotts">------</span>
     </ul>
     <div>
         <div style="display: flex; justify-content: space-between; width: 100%;"> <span
-                style="font-weight: bolder; font-size: 1.1rem;"> MONNAIE</span> <span>{{(order.total_paid -
-                order.total).toFixed(2)}} €</span></div>
+                style="font-weight: bolder; font-size: 1.1rem;"> MONNAIE</span> <span>{{(order?.total_paid -
+                order?.total).toFixed(2)}} €</span></div>
         <div style="display: flex; justify-content: space-between; width: 100%;"> <span
                 style="font-weight: bolder; font-size: 1.1rem;"> TVA</span> <span></span></div>
     </div>

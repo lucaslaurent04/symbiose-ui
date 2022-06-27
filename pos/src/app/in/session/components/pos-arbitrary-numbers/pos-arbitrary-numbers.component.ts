@@ -33,8 +33,11 @@ export class PosArbitraryNumbersComponent implements OnInit {
   @Output() onDisplayDetails = new EventEmitter();
   @Output() onDigitTyped = new EventEmitter();
   @Output() onTypeMode = new EventEmitter();
+  @Output() customer_change : any = new EventEmitter();
   @Input() item : number;
   @Input() customer_name : string;
+  @Input() back_button = "commande";
+  @Input() disabled_key : any;
 
   ngOnInit(): void {
     this.total = 0;
@@ -53,8 +56,7 @@ export class PosArbitraryNumbersComponent implements OnInit {
   }
 
   getPosLineDisplay(value: string){
-    // this.discountValue = "0";
-    // this.posLineDisplay = value;
+    this.onDisplayDetails.emit(value);
   }
 
   getDiscountValue(value: any){
@@ -98,6 +100,7 @@ export class PosArbitraryNumbersComponent implements OnInit {
   onselectCustomer(customer:any){
     this.customer_name = customer.name;
     this.displayClient = true;
+    this.customer_change.emit(customer);
   }
 
 }

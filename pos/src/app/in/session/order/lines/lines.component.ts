@@ -23,6 +23,8 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
 
     public ready: boolean = false;
     public session: CashdeskSession = new CashdeskSession();
+    public orderLine: any;
+    public error_message: boolean = false;
 
     public invoice: boolean;
 
@@ -85,9 +87,9 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
     private async loadSession(session_id: number) {
         if (session_id > 0) {
             try {
-                const result: any = await this.api.read(CashdeskSession.entity, [session_id], Object.getOwnPropertyNames(new CashdeskSession()));
-                if (result && result.length) {
-                    this.session = <CashdeskSession>result[0];
+                const result : any = await this.api.read(CashdeskSession.entity, [session_id], Object.getOwnPropertyNames(new CashdeskSession()));
+                if ( result &&  result.length) {
+                    this.session = <CashdeskSession> result[0];
                 }
             }
             catch (response) {
@@ -104,10 +106,10 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
     async load(order_id: number) {
         if (order_id > 0) {
             try {
-                const result: any = await this.api.fetch('/?get=sale_pos_order_tree', { id: order_id, variant: 'lines' });
-                this.customer_name= result.customer_id.name;
-                if (result) {
-                    this.update(result);
+                this.orderLine = await this.api.fetch('/?get=sale_pos_order_tree', { id: order_id, variant: 'lines' });
+                this.customer_name= this.orderLine.customer_id.name;
+                if (this.orderLine) {
+                    this.update(this.orderLine);
                 }
             }
             catch (response) {
@@ -392,7 +394,8 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
     }
 
     public async onAddBookingOrderLine(funding: any) {
-        if (this.instance.order_lines_ids.length < 1) {
+        if (this.instance.order_lines_ids.length == 0) {
+            this.error_message = false;
             try {
                 const line = await this.api.create((new OrderLine()).entity, { order_id: this.instance.id, unit_price: funding.due_amount, qty: 1, has_funding: true, funding_id: funding.id, name: funding.name });
                 await this.api.update(this.instance.entity, [this.instance.id], { order_lines_ids: [line.id] });
@@ -401,36 +404,48 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
             catch(response) {
                 // unexpected error
             }
+        }else{
+            this.error_message = true;
         }
         // Changement temporaire pour reload le composant
     }
 
     public async onAddProduct(product: any) {
-        let has_funding = false;
-        this.instance.order_lines_ids.forEach((element: any) => {
-            if (element.has_funding == true) {
-                has_funding = true;
+        if (!this.instance.order_lines_ids[0]?.has_funding) {
+            let has_funding = false;
+            this.error_message = false;
+            this.instance.order_lines_ids.forEach((element: any) => {
+                if (element.has_funding == true) {
+                    has_funding = true;
+                }
+            });
+            if (!has_funding) {
+                try {
+                    const line = await this.api.create((new OrderLine()).entity, {
+                        order_id: this.instance.id,
+                        unit_price: 0,      // we don't know the price yet (will be resolved by back-end)
+                        qty: 1,
+                        name: product.sku,
+                        product_id: product.id
+                    });
+                    await this.api.update(this.instance.entity, [this.instance.id], { order_lines_ids: [line.id] });
+                    this.load(this.instance.id);
+                }
+                catch(response) {
+                    // unexpected error
+                }
             }
-        });
-        if (!has_funding) {
-            try {
-                const line = await this.api.create((new OrderLine()).entity, {
-                    order_id: this.instance.id,
-                    unit_price: 0,      // we don't know the price yet (will be resolved by back-end)
-                    qty: 1,
-                    name: product.sku,
-                    product_id: product.id
-                });
-                await this.api.update(this.instance.entity, [this.instance.id], { order_lines_ids: [line.id] });
-                this.load(this.instance.id);
-            }
-            catch(response) {
-                // unexpected error
-            }
+        }else{
+            this.error_message = true;
         }
     }
 
     public calcTaxes() {
         return Math.round( (this.instance.price - this.instance.total) * 100) / 100;
+    }
+
+    public async customer_change(event : any){
+        await this.api.update(this.instance.entity, [this.instance.id], { customer_id: event.id });
+        this.load(this.instance.id);
     }
 }

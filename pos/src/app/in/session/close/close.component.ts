@@ -78,7 +78,7 @@ export class CloseComponent implements OnInit {
     <div style="display: flex; justify-content: space-between; align-items:center; border-bottom: 1px solid lightgray">
       <div style="display: flex; flex-direction:column">
        <p>Total de {{data.orders_ids.length}} commande(s) <span>d'une valeur de {{ordersTotal}} € </span></p> 
-       <p>Paiements <span> {{totalPaid}} € </span></p> 
+       <p>Paiements: <span> {{totalPaid}} € </span></p> 
       </div>
       <!-- <div style="border-left: light-grey 1px solid;">
         Money details:
@@ -153,14 +153,13 @@ export class CloseComponent implements OnInit {
       <div style="display: flex; margin-top: 0.4rem">
          <mat-checkbox [(ngModel)]="checked" class="example-margin" ></mat-checkbox>
          <div style="display:flex; flex-direction:column;">
-         <mat-error *ngIf="matCheckboxError && !checked">
-            Cocher pour fermer la session
-         </mat-error>
+         
          <span style="margin-left: 0.4rem;">Accepter la différence de paiement et l'enregistrer au journal des pertes et des profits</span>
          </div>
-
-        
       </div>
+      <mat-error *ngIf="matCheckboxError && !checked">
+            Cocher pour fermer la session
+      </mat-error>
     </div>
     <div mat-dialog-actions style="display: flex; justify-content: flex-end;">
     <button mat-raised-button color="primary" (click)="closeSession()" >Fermer la Session</button>
@@ -246,7 +245,7 @@ export class PosClosing {
     })
   }
   public closeSession() {
-
+    console.log(this.checked, this.matCheckboxError)
     if (this.difference < 0) {
       this.matCheckboxError = true;
     }
@@ -283,7 +282,7 @@ export class PosClosing {
             </div>
         </div>
         <div style="display: flex; border: 1px solid lightgreen">
-          <app-pad (keyPressed)="onCheckNumberPassed($event)"></app-pad>
+          <app-pad [disabled_key]="disabled_key" (keyPressed)="onCheckNumberPassed($event)"></app-pad>
           <app-pad-arbitrary-numbers style="margin-bottom: 0.25px;" (OnaddedNumber)="checkActionType($event)" (OnBackspace)="onBackSpace($event)"></app-pad-arbitrary-numbers>
         </div>
       </div>    
@@ -321,6 +320,7 @@ export class PosClosingCoins {
   public newSession: any;
   public center_id: number;
   public user: any;
+  public disabled_key = [',', '+']
   public coins = [
     {
       value: 0.01, number: ""

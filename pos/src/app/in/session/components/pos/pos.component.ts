@@ -33,6 +33,7 @@ export class PosComponent implements OnInit {
     @Output() onDisplayDetails = new EventEmitter();
     @Output() onKeyPressed = new EventEmitter();
     @Output() onTypeMode = new EventEmitter();
+    @Output() customer_change : any = new EventEmitter();
     @Input() customer_name : string;
 
     constructor(private dialog: MatDialog) { }
@@ -89,6 +90,7 @@ export class PosComponent implements OnInit {
     onselectCustomer(customer: any) {
         this.customer_name = customer.name;
         this.displayClient = true;
+        this.customer_change.emit(customer);
     }
 
     onKeypress(event: any) {

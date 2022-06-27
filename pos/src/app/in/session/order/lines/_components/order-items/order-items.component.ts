@@ -1,4 +1,4 @@
-import { Component, EventEmitter, OnInit, Output, ViewChild } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { ApiService, AuthService } from 'sb-shared-lib';
 import { Order, OrderLine } from '../../lines.model';
@@ -14,6 +14,7 @@ export class OrderItemsComponent implements OnInit {
 
     @Output() addedBookingOrderLine = new EventEmitter();
     @Output() addedProduct = new EventEmitter();
+    @Input() error_message = false;
     @ViewChild('paginator') paginator: MatPaginator;
     @ViewChild('paginatorBooking') paginatorBooking: MatPaginator;
     @ViewChild('paginatorFunding') paginatorFunding: MatPaginator;

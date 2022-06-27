@@ -91,7 +91,7 @@ export class SessionsNewComponent implements OnInit {
         </div>
 
         <div style="display: flex; border: 1px solid lightgreen">
-          <app-pad (keyPressed)="onCheckNumberPassed($event)"></app-pad>
+          <app-pad [disabled_key]="disabled_key" (keyPressed)="onCheckNumberPassed($event)"></app-pad>
           <app-pad-arbitrary-numbers style="margin-bottom: 0.25px;" (OnaddedNumber)="checkActionType($event)" (OnBackspace)="onBackSpace($event)"></app-pad-arbitrary-numbers>
         </div>
       </div>    
@@ -132,6 +132,7 @@ export class PosClosingCoins {
   public center_id : number;
   public user : any;
   public clicked : boolean = false;
+  public disabled_key = ['+', ','];
   public coins = [
     {
       value: 0.01, number: ""

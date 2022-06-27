@@ -1,4 +1,5 @@
 import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
     selector: 'app-pad',
@@ -8,18 +9,20 @@ import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 export class PadComponent implements OnInit {
     @Output() newItemEvent = new EventEmitter();
     @Output() keyPressed = new EventEmitter();
+    @Input() disabled_key: any; 
 
-    constructor() { }
+    constructor(private router: Router) { }
     
     public element = '';
     public numberPassed = 0;
     public mouseUp: any;
     public mouseDown: any;
-    
+    public good_route: boolean = true;
     public operator: string = '+';
 
 
     ngOnInit(): void {
+        
     }
 
     checkActionType(event: any) {

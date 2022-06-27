@@ -26,16 +26,16 @@
                             <session-order-payments-order-payment (click)="onClickLine(i)" [model]="payment"
                                 (updated)="onupdatePayment(payment.id)" (deleted)="ondeletePayment(payment.id)"
                                 (validated)="makePayment($event)" (selectedPaymentPart)="selectedPaymentPart = $event"
-                                (selectedOrderLine)="selectedOrderLine = $event">
+                                (selectedOrderLine)="selectedOrderLine = $event" [customer]="customer">
                             </session-order-payments-order-payment>
                         </ng-container>
                     </div>
                 </div>
             </div>
             <div class="pad">
-                <app-pos-arbitrary-numbers (onDisplayDetails)="onDisplayDetails($event)"
+                <app-pos-arbitrary-numbers [disabled_key]="disabled_key" [back_button]="back_button" (onDisplayDetails)="onDisplayDetails($event)"
                     (onDigitTyped)="onDigitTyped($event)" (onTypeMode)="typeMode = $event"
-                    [customer_name]="customer_name"></app-pos-arbitrary-numbers>
+                    [customer_name]="customer_name" (customer_change)="customer_change($event)"></app-pos-arbitrary-numbers>
             </div>
         </div>
     </div>

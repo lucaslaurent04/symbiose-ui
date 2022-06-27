@@ -25,7 +25,8 @@
         <ng-container *ngFor="let part of instance.order_payment_parts_ids; index as i">
 
             <session-order-payments-payment-part [model]="part" (updated)="onupdatePart(part.id)"
-                (deleted)="ondeletePart(part.id)" (validated)="onvalidate(part)" (click)="onSelectedPaymentPart(i)">
+                (deleted)="ondeletePart(part.id)" (validated)="onvalidate(part)" (click)="onSelectedPaymentPart(i)"
+                [customer]="customer">
             </session-order-payments-payment-part>
 
         </ng-container>

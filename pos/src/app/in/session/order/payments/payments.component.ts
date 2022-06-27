@@ -27,6 +27,7 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
     @ViewChildren(SessionOrderPaymentsOrderPaymentComponent) SessionOrderPaymentsOrderPaymentComponents: QueryList<SessionOrderPaymentsOrderPaymentComponent>;
     // @ViewChildren(SessionOrderLinesComponent) SessionOrderLinesComponents: QueryList<SessionOrderLinesComponent>; 
     @ViewChildren(TicketComponent) TicketComponent: QueryList<TicketComponent>;
+    public back_button = "commande";
 
     public item: number;
     public ready: boolean = false;
@@ -44,6 +45,8 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
     public session: CashdeskSession = new CashdeskSession();
     public ticket : any;
     public customer_name : string;
+    public disabled_key= ["+"];
+    public customer : any;
 
     constructor(
         private router: Router,
@@ -81,7 +84,7 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
             }
         });
 
-        this.ticket = this.TicketComponent.toArray()[0]
+        this.ticket = this.TicketComponent?.toArray()[0]
 
     }
 
@@ -108,7 +111,9 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
         if (order_id > 0) {
             try {
                 const result: any = await this.api.fetch('/?get=sale_pos_order_tree', { id: order_id, variant: 'payments' });
+                console.log(result, "la résultanteee")
                 this.customer_name= result.customer_id.name;
+                this.customer = result.customer_id;
                 if (result) {
                     this.update(result);
                 }
@@ -140,16 +145,22 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
 
     public async onupdatePayment(line_id: number) {
         // a line has been removed: reload tree
-        console.log("deleted")
         this.load(this.instance.id);
         this.updateTicket();
     }
 
     public async onclickCreateNewPayment() {
         console.log(this.instance)
-        let fundings = await this.api.collect('sale\\pos\\OrderLine', [['order_id', '=', this.instance.id], ['has_funding', '=', 'true']], ['funding_id', 'has_funding']);
+        let orderLines = await this.api.collect('sale\\pos\\OrderLine', [['order_id', '=', this.instance.id], ['has_funding', '=', 'true']], ['funding_id', 'has_funding']);
         
-        await this.api.create((new OrderPayment()).entity, { order_id: this.instance.id, funding_id: fundings[0]?.funding_id, has_funding : true });
+        let orderPayment = await this.api.create((new OrderPayment()).entity, { order_id: this.instance.id, funding_id: orderLines[0]?.funding_id, has_funding : true });
+
+        // nécessaire ? Adapte déjà l'id semble-t-il
+        for(let i = 0; i < orderLines.length; i++){
+            await this.api.update('sale\\pos\\OrderLine',[orderLines[i]], {
+                payment_id : orderPayment.id
+            });
+        }
         this.load(this.instance.id);
     }
 
@@ -228,9 +239,23 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
 
     public onDisplayDetails(value: any) {
         this.posLineDisplay = value;
+        console.log('dispallllalallalala')
+        let newRoute = this.router.url.replace('payments','lines');
+        this.router.navigateByUrl(newRoute);
     }
 
-    public onPrint() {
+    public async onPrint() {
+
+
+        // update all basic payment part field => payment_method, price, quantity
+        // update the funding_id related to the paymentPart, if any
+        // update voucher/booking_id if any
+        // Close the order --> status = paid 
+        // change route
+
+        // await this.api.fetch('?do=lodging_order_do-pay', {id : this.instance.id });
+        await this.api.update(this.instance.entity, [this.instance.id], {status : "paid"});
+        this.router.navigate(['/']);
 
     }
 
@@ -241,6 +266,7 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
 
     public async makePayment(paymentPart : any) {
         let orderPayments = await this.api.collect('sale\\pos\\OrderPayment', [['order_id', '=', this.instance.id]], ['funding_id', 'has_funding']);
+        // let fundings = await this.api.collect('sale\\pos\\OrderLine', [['order_id', '=', this.instance.id], ['has_funding', '=', 'true']], ['funding_id', 'has_funding']);
         
         if(orderPayments[0].funding_id != null || 0){
             await this.api.update('sale\\pos\\OrderPaymentPart',[paymentPart.id], {  funding_id: orderPayments[0].funding_id, has_funding : true });
@@ -248,4 +274,8 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
         // this.load(this.instance.id)
     }
 
+    public async customer_change(event: any){
+        await this.api.update(this.instance.entity, [this.instance.id], { customer_id: event.id });
+        this.load(this.instance.id);
+    }
 }
