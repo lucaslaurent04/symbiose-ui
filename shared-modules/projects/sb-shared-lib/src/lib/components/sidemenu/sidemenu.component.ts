@@ -220,7 +220,24 @@ export class AppSideMenuComponent implements OnInit {
                         const translationService = this.eq.getTranslationService();
 
                         const translation:any = await apiService.getTranslation(this.object_class);
-                        const view:any = await apiService.getView(this.object_class, this.view_id);
+
+                        // fetch view, with fallback to default name of same type
+                        let view_type = 'form';
+                        let view_name = 'default';
+
+                        let parts = this.view_id.split('.');
+                        if(parts.length) view_type = <string>parts.shift();
+                        if(parts.length) view_name = <string>parts.shift();
+
+                        let view:any = await apiService.getView(this.object_class, view_type + '.' + view_name);
+
+                        if(!Object.keys(view).length) {
+                            // fallback to default view
+                            view = await apiService.getView(this.object_class, view_type + '.default');
+                            if(!Object.keys(view).length) {                                
+                                throw 'unknown_view';
+                            }
+                        }
 
                         // load routes from view, if any
                         if (view.hasOwnProperty('routes') && view.routes.length) {
@@ -428,7 +445,7 @@ export class AppSideMenuComponent implements OnInit {
             console.warn(err);
         }
     }
-
+        
     public onHelpFullScreen() {
         console.log('onHelpFullScreen');
         if (screenfull.isEnabled) {

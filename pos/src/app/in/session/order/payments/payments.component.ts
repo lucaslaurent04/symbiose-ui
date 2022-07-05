@@ -253,9 +253,9 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
         // Close the order --> status = paid 
         // change route
 
-        // await this.api.fetch('?do=lodging_order_do-pay', {id : this.instance.id });
+        await this.api.fetch('?do=lodging_order_do-pay', {id : this.instance.id });
         await this.api.update(this.instance.entity, [this.instance.id], {status : "paid"});
-        this.router.navigate(['/']);
+        // this.router.navigate(['/']);
 
     }
 

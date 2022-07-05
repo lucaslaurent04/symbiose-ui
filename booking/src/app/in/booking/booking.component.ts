@@ -1,6 +1,6 @@
 import { Component, OnInit, AfterViewInit, ChangeDetectorRef, ViewChild, ElementRef, HostListener, OnDestroy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { Subject } from 'rxjs/internal/Subject';
+import { Subject } from 'rxjs';
 import { delay, takeUntil } from 'rxjs/operators';
 import { ContextService } from 'sb-shared-lib';
 
