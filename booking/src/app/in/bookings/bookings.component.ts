@@ -1,6 +1,7 @@
 import { Component, OnInit, AfterViewInit, OnDestroy, HostListener, ElementRef } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { delay } from 'rxjs/operators';
+import { Subject } from 'rxjs';
+import { delay, takeUntil } from 'rxjs/operators';
 import { ContextService } from 'sb-shared-lib';
 
 
@@ -10,12 +11,10 @@ import { ContextService } from 'sb-shared-lib';
   styleUrls: ['bookings.component.scss']
 })
 export class BookingsComponent implements OnInit, AfterViewInit, OnDestroy {
-    @HostListener('unloaded')
-    ngOnDestroy() {
-        console.log('BookingsComponent::ngOnDestroy');
-        this.active = false;
-    }
 
+    // rx subject for unsubscribing subscriptions on destroy
+    private ngUnsubscribe = new Subject<void>();
+    
     public ready: boolean = false;
 
     // flag telling if the route to which the component is associated with is currently active (amongst routes defined in first parent routing module)
@@ -36,6 +35,11 @@ export class BookingsComponent implements OnInit, AfterViewInit, OnDestroy {
         private context: ContextService
     ) {}
 
+    public ngOnDestroy() {
+        console.log('BookingComponent::ngOnDestroy');
+        this.ngUnsubscribe.next();
+        this.ngUnsubscribe.complete();
+    }
 
     public ngAfterViewInit() {
         console.log('BookingsComponent::ngAfterViewInit');
@@ -53,17 +57,17 @@ export class BookingsComponent implements OnInit, AfterViewInit, OnDestroy {
     public ngOnInit() {
         console.log('BookingsComponent::ngOnInit');
 
-        this.context.ready.subscribe( (ready:boolean) => {
+        this.context.ready.pipe(takeUntil(this.ngUnsubscribe)).subscribe( (ready:boolean) => {
             this.ready = ready;
         });
 
         // once view is ready, subscribe to route changes
-        this.route.params.subscribe( async (params:any) => {
+        this.route.params.pipe(takeUntil(this.ngUnsubscribe)).subscribe( async (params:any) => {
             // no params for this route(/bookings)
         });
 
         // if no context or all contexts have been closed, re-open default context (wait for route init)
-        this.context.getObservable().subscribe( () => {
+        this.context.getObservable().pipe(takeUntil(this.ngUnsubscribe)).subscribe( () => {
             console.log('BookingsComponent:: received context change');
             const descriptor = this.context.getDescriptor();
             if(descriptor.hasOwnProperty('context') && !Object.keys(descriptor.context).length && this.active) {

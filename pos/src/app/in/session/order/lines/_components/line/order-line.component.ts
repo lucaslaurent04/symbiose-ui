@@ -69,7 +69,6 @@ export class SessionOrderLinesOrderLineComponent extends TreeComponent<OrderLine
     }
 
     public async onChange() {
-        console.log('#############################" onchange', this.instance);
         await this.api.update(this.instance.entity, [this.instance.id], { 
             qty: this.instance.qty, 
             unit_price: this.instance.unit_price, 

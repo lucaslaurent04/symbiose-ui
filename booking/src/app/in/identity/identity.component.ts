@@ -1,6 +1,7 @@
 import { Component, OnInit, AfterViewInit, ChangeDetectorRef, ViewChild, ElementRef, HostListener, OnDestroy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { delay } from 'rxjs/operators';
+import { Subject } from 'rxjs';
+import { delay, takeUntil } from 'rxjs/operators';
 import { ContextService } from 'sb-shared-lib';
 
 
@@ -10,13 +11,10 @@ import { ContextService } from 'sb-shared-lib';
   styleUrls: ['identity.component.scss']
 })
 export class IdentityComponent implements OnInit, AfterViewInit, OnDestroy {
-    // @ViewChild('sbContainer') sbContainer: ElementRef;
-    @HostListener('unloaded')
-    ngOnDestroy() {
-        console.log('IdentityComponent::ngOnDestroy');
-        this.active = false;
-    }
 
+    // rx subject for unsubscribing subscriptions on destroy
+    private ngUnsubscribe = new Subject<void>();
+    
     public ready: boolean = false;
 
     // flag telling if the route to which the component is associated with is currently active (amongst routes defined in first parent routing module)
@@ -38,17 +36,18 @@ export class IdentityComponent implements OnInit, AfterViewInit, OnDestroy {
         private context: ContextService
     ) {}
 
+    public ngOnDestroy() {
+        console.log('BookingComponent::ngOnDestroy');
+        this.ngUnsubscribe.next();
+        this.ngUnsubscribe.complete();
+    }
 
     public ngAfterViewInit() {
         console.log('IdentityComponent::ngAfterViewInit');
 
         this.context.setTarget('#sb-container-identity');
-
-        const descriptor = this.context.getDescriptor();
-        if(!Object.keys(descriptor.context).length) {
-            this.default_descriptor.context.domain = ["id", "=", this.identity_id];
-            this.context.change(this.default_descriptor);
-        }
+        this.default_descriptor.context.domain = ["id", "=", this.identity_id];
+        this.context.change(this.default_descriptor);
 
         this.active = true;
     }
@@ -56,7 +55,7 @@ export class IdentityComponent implements OnInit, AfterViewInit, OnDestroy {
     public ngOnInit() {
         console.log('IdentityComponent::ngOnInit');
 
-        this.context.ready.subscribe( (ready:boolean) => {
+        this.context.ready.pipe(takeUntil(this.ngUnsubscribe)).subscribe( (ready:boolean) => {
             this.ready = ready;
         });
 
@@ -64,7 +63,7 @@ export class IdentityComponent implements OnInit, AfterViewInit, OnDestroy {
             subscribe only once.
             routing module is AppRoutingModule, siblings are /planning and /bookings
         */
-        this.route.params.subscribe( async (params) => {
+        this.route.params.pipe(takeUntil(this.ngUnsubscribe)).subscribe( async (params) => {
             this.identity_id = <number> parseInt(params['identity_id'], 10);
         });
     }
