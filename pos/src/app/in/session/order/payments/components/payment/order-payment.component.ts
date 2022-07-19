@@ -6,6 +6,7 @@ import { Order, OrderPayment, OrderPaymentPart, OrderLine } from '../../payments
 import { SessionOrderPaymentsPaymentPartComponent } from './part/payment-part.component';
 import { SessionOrderPaymentsOrderLineComponent } from './line/order-line.component';
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
+import { isThisMinute } from 'date-fns';
 
 
 // declaration of the interface for the map associating relational Model fields with their components
@@ -25,10 +26,10 @@ export class SessionOrderPaymentsOrderPaymentComponent extends TreeComponent<Ord
     @Output() updated = new EventEmitter();
     @Output() deleted = new EventEmitter();
     @Output() validated = new EventEmitter();
+    @Output() updatedQty = new EventEmitter();
     @Output() selectedPaymentPart = new EventEmitter();
     @Output() selectedOrderLine = new EventEmitter();
     @Input() customer = '';
-
     @ViewChildren(SessionOrderPaymentsPaymentPartComponent) SessionOrderPaymentsPaymentPartComponents: QueryList<SessionOrderPaymentsPaymentPartComponent>; 
     @ViewChildren(SessionOrderPaymentsOrderLineComponent) SessionOrderPaymentsOrderLineComponents: QueryList<SessionOrderPaymentsOrderLineComponent>; 
 
@@ -39,7 +40,11 @@ export class SessionOrderPaymentsOrderPaymentComponent extends TreeComponent<Ord
     public unit_price:FormControl = new FormControl();
     public display = "";
     public index : number;
-    
+    public focused: any;
+    public line_quantity : any = "";
+
+
+
 
     constructor(
         private router: Router,
@@ -68,7 +73,7 @@ export class SessionOrderPaymentsOrderPaymentComponent extends TreeComponent<Ord
     }
 
     public ngOnInit() {
-
+        // this.line_quantity.valueChanges.subscribe( (value:number)  => console.log('okay') );
         this.qty.valueChanges.subscribe( (value:number)  => this.instance.qty = value );
         this.unit_price.valueChanges.subscribe( (value:number)  => this.instance.unit_price = value );
     }
@@ -113,7 +118,6 @@ export class SessionOrderPaymentsOrderPaymentComponent extends TreeComponent<Ord
     }
 
     public async onclickCreateNewPart() {
-        console.log(this.componentsMap.order_lines_ids)
         await this.api.create((new OrderPaymentPart()).entity, {order_payment_id: this.instance.id});
         this.updated.emit();
     }
@@ -127,7 +131,69 @@ export class SessionOrderPaymentsOrderPaymentComponent extends TreeComponent<Ord
         this.selectedOrderLine.emit(index);
     }
 
+    public async setNewLineValue(digits : number){
+        
+        // change the value of the line, only if it's lower ! and add it to the right side again !
+        this.instance.order_lines_ids.forEach((line : any) => {
+            if(line.id == this.index){
+                let newLineQty = line.qty.toString() + digits.toString();
+                if(line.qty>= newLineQty){
+                    this.line_quantity = newLineQty;
+                    console.log(this.line_quantity, 'changeed')
+                }else if (line.qty>= digits){
+                    this.line_quantity = digits;
+                    console.log(this.line_quantity, 'changeed')
+
+                }
+                this.changeQuantity(line);
+            }
+        });
+        
+        
+
+    }
+
+    public selectLine(index:number){
+        this.index = index;
+        console.log(this.index);
+    }
+
     public onSelectedPaymentPart(index : number){
         this.selectedPaymentPart.emit(index);
+    }
+
+    public async onConfirmOrderPayment(){
+        await this.api.update(this.instance.entity, [this.instance.id], {  status: 'paid' });
+        this.updated.emit();
+
+    }
+
+    public async changeQuantity(line : any){
+        
+        // console.log('changed', line.qty, this.line_quantity.value )
+        
+        if(parseInt(this.line_quantity) <line.qty){
+            await this.api.create('lodging\\sale\\pos\\OrderLine', {
+                order_id: line.order_id,
+                order_payment_id: 0,
+                order_unit_price: line.unit_price,
+                has_funding: line.has_funding,
+                funding_id: line.funding_id,
+                vat_rate: line.vat_rate,
+                discount: line.discount,
+                free_qty: line.free_qty,
+                name: line.name,
+                qty: line.qty-parseInt(this.line_quantity)
+            });
+            await this.api.update('lodging\\sale\\pos\\OrderLine', [line.id], {
+                qty : parseInt(this.line_quantity)
+            });
+        }else{
+            await this.api.update('lodging\\sale\\pos\\OrderLine', [line.id], {
+                qty : parseInt(this.line_quantity)
+            });
+        }  
+        line.qty = this.line_quantity;  
+        this.updatedQty.emit();    
     }
 }

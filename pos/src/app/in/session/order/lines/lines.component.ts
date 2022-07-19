@@ -68,7 +68,6 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
     }
 
     public ngOnInit() {
-        console.log('SessionOrderLinesComponent init');
         // fetch the ID from the route
         this.route.params.subscribe(async (params) => {
             if (params && params.hasOwnProperty('session_id') && params.hasOwnProperty('order_id')) {
@@ -107,6 +106,7 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
         if (order_id > 0) {
             try {
                 this.orderLine = await this.api.fetch('/?get=sale_pos_order_tree', { id: order_id, variant: 'lines' });
+                console.log(this.orderLine)
                 this.customer_name= this.orderLine.customer_id.name;
                 if (this.orderLine) {
                     this.update(this.orderLine);

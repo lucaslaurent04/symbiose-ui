@@ -10,6 +10,9 @@ import { ApiService } from 'sb-shared-lib';
 export class TicketComponent implements OnInit {
   public order : any;
   public order_id : any;
+  public session_id : any;
+  public session : any;
+  @Input() invoice : any;
   constructor(private api: ApiService, private route: ActivatedRoute) { }
 
   public ngOnInit() {
@@ -17,7 +20,8 @@ export class TicketComponent implements OnInit {
     this.route.params.subscribe(async (params) => {
       if (params && params.hasOwnProperty('session_id')) {
         try {
-          this.order_id = <number>params['order_id']
+          this.order_id = <number>params['order_id'];
+          this.session_id = <number>params['session_id'];
           await this.loadSession(<number>params['session_id']);
           await this.load();
         }
@@ -26,6 +30,12 @@ export class TicketComponent implements OnInit {
         }
       }
     });
+
+  
+
+    
+
+
   }
 
   private async loadSession(session_id: number) {
@@ -43,6 +53,7 @@ export class TicketComponent implements OnInit {
     // }
   }
 
+  
 
   /**
    * Load an Order object using the sale_pos_order_tree controller
@@ -53,7 +64,7 @@ export class TicketComponent implements OnInit {
     if (this.order_id > 0) {
       try {
         this.order = await this.api.fetch('/?get=sale_pos_order_tree', { id: this.order_id, variant: 'payments' });
-        console.log(this.order);
+        this.session = await this.api.fetch('/?get=sale_pos_ticket_tree', { id: this.session_id, variant: 'session' });
       }
       catch (response) {
         throw 'unable to retrieve given order';
@@ -66,7 +77,6 @@ export class TicketComponent implements OnInit {
     // this.totalPaid = 0;
     // if(this.payments.length > 0)this.payments.forEach((element:any)=>this.totalPaid += element.total_paid);
     // this.paymentsParts = await this.api.collect("sale\\pos\\OrderPaymentPart", ['order_id', '=', this.item?.id], ['order_payment_parts_ids', 'payment_method', 'amount', 'order_id']);
-
   }
 
 }

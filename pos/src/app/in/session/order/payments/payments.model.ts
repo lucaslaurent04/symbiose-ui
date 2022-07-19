@@ -56,7 +56,8 @@ export class OrderPayment {
         public order_lines_ids: any[] = [],
         public order_payment_parts_ids: any[] = [],
         public funding_id: number = 0,
-        public has_funding: boolean = false
+        public has_funding: boolean = false,
+        public status: string = 'pending'
     ) {}
 }
 

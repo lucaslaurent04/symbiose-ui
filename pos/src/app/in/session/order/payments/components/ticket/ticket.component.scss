@@ -6,6 +6,19 @@
     border-radius: 0.2rem;
     font-size: 1.1rem;
     overflow: auto;
+    .ticketDetails{
+        text-align: center;
+        p{
+            margin: 0.5px !important;
+        }
+    }
+    .customerDetails{
+        text-align: center;
+        margin-top: 1px;
+        p{
+            margin: 0.5px !important;
+        }
+    }
     .dotts{
         float: right; 
         font-weight: lighter; 

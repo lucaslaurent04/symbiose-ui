@@ -35,7 +35,7 @@
 
             </div>
             <div>
-                <div>
+                <div *ngIf="payment_method.value !== 'booking'">
                     <mat-form-field>
                         <mat-label>Amount</mat-label>
                         <input (focus)="focused = 'amount'" type="number" matInput (blur)="onchangeAmount()"

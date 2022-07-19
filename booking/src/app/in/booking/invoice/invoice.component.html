@@ -135,7 +135,18 @@
                         </button>
                     </a>
                 </div>
-
+                <div style="margin-left: 10px;">
+                    <div *ngFor="let document of documents" style="max-width: 40%;">
+                            <sb-m2o-select [entity]="'documents\\Document'" [placeholder]="'Commencez à taper le nom'"
+                                [noResult]="'rien trouvé'" [required]="true"
+                                (itemSelected)="onselectDocuments($event)">
+                                Document
+                            </sb-m2o-select>
+                    </div>
+                    <button mat-mini-fab color="primary" (click)="addDocument()" style="margin-top: 3px;">
+                        <mat-icon>add</mat-icon>
+                    </button>
+                </div>
             </div>
         </div>
     </div>

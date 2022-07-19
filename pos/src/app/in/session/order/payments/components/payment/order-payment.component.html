@@ -1,4 +1,4 @@
-<section>
+<section [class.disabled]="instance.status == 'pending'">
     <div class="header">
         <!-- <h2>Payment {{instance.id}}</h2> -->
         <span style="font-size: 1.15rem; font-weight: bold;">Dû: {{instance.total_due}}</span>
@@ -17,18 +17,24 @@
     </div> -->
     <div *ngIf="display !='products'">
         <div style="display: flex; margin: 0.25rem; display: flex; align-items: center;">
-            <h3 style="max-height: fit-content;">Encaissements</h3> <button mat-mini-fab color="accent"
+            <h3 style="max-height: fit-content;">Encaissements</h3> 
+            <button *ngIf="instance.status != 'paid'" mat-mini-fab color="accent"
                 (click)="onclickCreateNewPart()">
                 <mat-icon>add</mat-icon>
             </button>
+            <button *ngIf="instance.status != 'paid'" mat-mini-fab color="accent"
+                (click)="onConfirmOrderPayment()">
+                <mat-icon>check</mat-icon>
+            </button>
+        </div>
+        <div *ngFor="let line of instance.order_lines_ids; index as i;">
+            <span>{{line.name}}    </span><b><span>  <input (click)="selectLine(line.id)" (focus)="focused = 'line'" [readonly]="instance.status != 'pending'" style="width: 30px;" type="number" placeholder={{line.qty}} (blur)="changeQuantity(line)" min="0" max={{line.qty}}> unités  </span> <span>{{line.total}} €</span></b> 
         </div>
         <ng-container *ngFor="let part of instance.order_payment_parts_ids; index as i">
-
             <session-order-payments-payment-part [model]="part" (updated)="onupdatePart(part.id)"
                 (deleted)="ondeletePart(part.id)" (validated)="onvalidate(part)" (click)="onSelectedPaymentPart(i)"
                 [customer]="customer">
             </session-order-payments-payment-part>
-
         </ng-container>
     </div>
     <div class="row" *ngIf="display =='products'">
@@ -39,10 +45,8 @@
                 <div>qty</div>
             </div> -->
             <ng-container *ngFor="let line of instance.order_lines_ids; index as i">
-
                 <session-order-payments-order-line [model]="line" (deleted)="ondeleteLine(line.id)">
                 </session-order-payments-order-line>
-
             </ng-container>
         </div>
     </div>

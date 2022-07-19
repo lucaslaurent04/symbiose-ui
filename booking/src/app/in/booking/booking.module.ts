@@ -24,6 +24,7 @@ import { BookingCompositionLinesComponent } from './composition/components/booki
 import { BookingQuoteComponent } from './quote/quote.component';
 import { BookingContractComponent } from './contract/contract.component';
 import { BookingInvoiceComponent } from './invoice/invoice.component';
+import { BookingOptionComponent } from './option/option.component';
 
 
 @NgModule({
@@ -41,7 +42,8 @@ import { BookingInvoiceComponent } from './invoice/invoice.component';
     BookingCompositionLinesComponent,
     BookingQuoteComponent, 
     BookingContractComponent,
-    BookingInvoiceComponent
+    BookingInvoiceComponent,
+    BookingOptionComponent
   ],
   providers: [
     { provide: DateAdapter, useClass: CustomDateAdapter, deps: [MAT_DATE_LOCALE, Platform] }

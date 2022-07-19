@@ -40,7 +40,8 @@ export class OrderItemsComponent implements OnInit {
     ) { }
 
     async ngOnInit() {
-        this.bookings = await this.api.collect('lodging\\sale\\booking\\Booking', [], ['customer_id', 'center_id', 'total', 'date_from', 'date_to', 'price']);
+        this.bookings = await this.api.collect('lodging\\sale\\booking\\Booking', [], ['customer_id', 'center_id', 'total', 'date_from', 'date_to', 'price', 'fundings_ids']);
+
         this.bookings = new MatTableDataSource(this.bookings);
         this.bookings.paginator = this.paginatorBooking;
 
@@ -49,7 +50,6 @@ export class OrderItemsComponent implements OnInit {
         this.dataSource.paginator = this.paginator; 
 
         this.route.params.subscribe(async (params) => {
-            console.log(params)
             if (params && params.hasOwnProperty('order_id')) {
                 try {
                     await this.load(<number>params['order_id']);
@@ -83,8 +83,9 @@ export class OrderItemsComponent implements OnInit {
     }
 
     public async getFunding(elem: any) {
-        this.funding = true;
+        
         this.fundings = await this.api.collect('lodging\\sale\\booking\\Funding', [[['booking_id', '=', elem.id], ['is_paid', '=', false]]], ['due_amount', 'center_id', 'due_date', 'name']);
+        this.funding = true;
         this.fundings = new MatTableDataSource(this.fundings);
         this.fundings.paginator = this.paginatorFunding;
     }
@@ -107,7 +108,7 @@ export class OrderItemsComponent implements OnInit {
 
     public async applyFilter(event: Event) {
         const filter_value = (event.target as HTMLInputElement).value;
-        console.log(this.funding, this.selected_tab)
+
         if(this.funding == true){
             this.fundings.filter = filter_value.trim().toLowerCase();
         }
@@ -124,6 +125,7 @@ export class OrderItemsComponent implements OnInit {
 
             //  #todo - bookings du centre en cours + non payés (au moins un funding)
             this.bookings = await this.api.collect('lodging\\sale\\booking\\Booking', [['name', 'ilike', '%'+filter_value+'%'], ['center_id', 'in', this.user.centers_ids]], ['customer_id', 'center_id', 'total', 'date_from', 'date_to', 'price']);
+        
             this.bookings = new MatTableDataSource(this.bookings);
             this.bookings.paginator = this.paginatorBooking;
         }        

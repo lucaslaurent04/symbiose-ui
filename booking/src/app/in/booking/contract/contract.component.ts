@@ -88,6 +88,9 @@ interface vmModel {
     },
     attachments: {
         items:        any[]
+    },
+    documents: {
+        items:        any[]
     }
 };
 
@@ -113,6 +116,7 @@ export class BookingContractComponent implements OnInit, AfterContentInit {
     public booking: any = new Booking();
     public customer: any = new Customer();
     public contacts: any[] = [];
+    public documents: any[] = [];
 
 
     public languages: any[] = [];
@@ -166,6 +170,9 @@ export class BookingContractComponent implements OnInit, AfterContentInit {
                 formControl:    new FormControl('', [Validators.required, Validators.email])
             },
             attachments: {
+                items:          []
+            },
+            documents: {
                 items:          []
             }
         };
@@ -287,6 +294,13 @@ export class BookingContractComponent implements OnInit, AfterContentInit {
         catch(error) {
             console.log(error);
         }
+    }
+
+    public addDocument(){
+        this.documents.push('document');
+    }
+    public onselectDocuments(document : any){
+        this.vm.documents.items.push(document);
     }
 
     private async loadLanguages() {
@@ -558,7 +572,9 @@ this.vm.recipient.addresses.push(this.user.login);
                 message: this.message,
                 lang: this.lang,
                 mode: this.mode,
-                attachments_ids: this.vm.attachments.items.map( (e:any) => e.id )
+                attachments_ids: this.vm.attachments.items.map( (e:any) => e.id ),
+                documents_ids: this.vm.documents.items.map( (e:any) => e.id )
+
             });
             this.is_sent = true;
             this.snack.open("Contrat envoyé avec succès.");

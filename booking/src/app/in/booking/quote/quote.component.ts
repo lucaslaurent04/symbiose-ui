@@ -88,6 +88,9 @@ interface vmModel {
     },
     attachments: {
         items:        any[]
+    },
+    documents: {
+        items:        any[]
     }
 };
 
@@ -112,6 +115,7 @@ export class BookingQuoteComponent implements OnInit, AfterContentInit {
     public booking: any = new Booking();
     public customer: any = new Customer();
     public contacts: any[] = [];
+    public documents: any[] = [];
 
 
     public languages: any[] = [];
@@ -124,7 +128,7 @@ export class BookingQuoteComponent implements OnInit, AfterContentInit {
     public title: string = '';
     public message: string = '';
     public sender: string = '';
-    public recipient: string = '';    
+    public recipient: string = '';
 
 
     public vm: vmModel;
@@ -166,6 +170,9 @@ export class BookingQuoteComponent implements OnInit, AfterContentInit {
             },
             attachments: {
                 items:          []
+            },
+            documents: {
+                items:           []
             }
         };
     }
@@ -182,7 +189,7 @@ export class BookingQuoteComponent implements OnInit, AfterContentInit {
         this.vm.title.formControl.valueChanges.pipe(debounceTime(300)).subscribe( (title:string) => this.title = title);
         this.vm.message.formControl.valueChanges.pipe(debounceTime(500)).subscribe( (message:string) => this.message = message);
         this.vm.sender.formControl.valueChanges.subscribe( (sender:string) => this.sender = sender);
-        this.vm.recipient.formControl.valueChanges.subscribe( (recipient:string) => this.recipient = recipient);                
+        this.vm.recipient.formControl.valueChanges.subscribe( (recipient:string) => this.recipient = recipient);
     }
 
     /**
@@ -282,6 +289,13 @@ export class BookingQuoteComponent implements OnInit, AfterContentInit {
         catch(error) {
             console.log(error);
         }
+    }
+
+    public addDocument(){
+        this.documents.push('document');
+    }
+    public onselectDocuments(document : any){
+        this.vm.documents.items.push(document);
     }
 
     private async loadLanguages() {
@@ -552,7 +566,8 @@ this.vm.recipient.addresses.push(this.user.login);
                 message: this.message,
                 lang: this.lang,
                 mode: this.mode,
-                attachments_ids: this.vm.attachments.items.map( (e:any) => e.id )
+                attachments_ids: this.vm.attachments.items.map( (e:any) => e.id ),
+                documents_ids: this.vm.documents.items.map( (e:any) => e.id ),
             });
             this.is_sent = true;
             this.snack.open("Devis envoyé avec succès.");
@@ -580,7 +595,7 @@ this.vm.recipient.addresses.push(this.user.login);
 
     public onclickBooking() {
         let descriptor:any = {
-            context_silent: true, // do not update sidebar            
+            context_silent: true, // do not update sidebar
             context: {
                 entity: 'lodging\\sale\\booking\\Booking',
                 type: 'form',
@@ -598,12 +613,12 @@ this.vm.recipient.addresses.push(this.user.login);
 
         // prevent angular lifecycles while a context is open
         this.cd.detach();
-        this.context.change(descriptor);        
+        this.context.change(descriptor);
     }
 
     public onclickCustomer() {
         let descriptor:any = {
-            context_silent: true, // do not update sidebar            
+            context_silent: true, // do not update sidebar
             context: {
                 entity: 'sale\\customer\\Customer',
                 type: 'form',
@@ -621,6 +636,6 @@ this.vm.recipient.addresses.push(this.user.login);
 
         // prevent angular lifecycles while a context is open
         this.cd.detach();
-        this.context.change(descriptor);          
+        this.context.change(descriptor);
     }
 }

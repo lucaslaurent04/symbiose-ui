@@ -1,7 +1,21 @@
 <div class="ticket">
     <!-- *ngFor="let orderLine of orderLines" -->
-    <h2>Kaleo ASBL</h2>
-    <p class="centerItems" style="font-weight: lighter; text-align: center; width: 100%; margin-top: 0;">Infos</p>
+    <div class="ticketDetails">
+        <p>{{session?.cashdesk_id?.center_id?.organisation_id?.name}}</p>
+        <p>{{session?.cashdesk_id?.center_id?.center_office_id?.address_street}}</p>
+        <p>{{session?.cashdesk_id?.center_id?.center_office_id?.address_zip}}
+            {{session?.cashdesk_id?.center_id?.center_office_id?.address_city}}</p>
+        <p *ngIf="session?.cashdesk_id?.center_id?.organisation_id?.vat_number">
+            {{session?.cashdesk_id?.center_id?.organisation_id?.vat_number}}</p>
+    </div>
+    <hr>
+    <div class="customerDetails" *ngIf="invoice">
+        <p>{{order?.customer_id?.name}}</p>
+        <p>{{order?.customer_id?.partner_identity_id?.address_street}}</p>
+        <p>{{order?.customer_id?.partner_identity_id?.address_zip}}
+            {{order?.customer_id?.partner_identity_id?.address_city}}</p>
+        <p>{{order?.customer_id?.partner_identity_id?.vat_number}}</p>
+    </div>
     <ul>
         <li *ngFor="let orderLines of order?.order_lines_ids; index as i">
             <span>Produit {{orderLines?.name}}</span> <span>{{orderLines?.price}} €</span>
@@ -24,7 +38,7 @@
     <hr>
     <ul>
         <li *ngFor="let paymentsPart of order?.order_payments_ids[0]?.order_payment_parts_ids; index as i">
-            <div *ngIf="paymentsPart.amount != null"
+            <div *ngIf="paymentsPart.amount != null && paymentsPart?.payment_method !== 'booking' "
                 style="display: flex; justify-content: space-between; width: 100%;">
                 <span>{{paymentsPart?.payment_method}}</span> <span>{{paymentsPart?.amount}} €</span>
             </div>
@@ -35,8 +49,6 @@
         <div style="display: flex; justify-content: space-between; width: 100%;"> <span
                 style="font-weight: bolder; font-size: 1.1rem;"> MONNAIE</span> <span>{{(order?.total_paid -
                 order?.total).toFixed(2)}} €</span></div>
-        <div style="display: flex; justify-content: space-between; width: 100%;"> <span
-                style="font-weight: bolder; font-size: 1.1rem;"> TVA</span> <span></span></div>
     </div>
     <div style="text-align: center; margin-top: 1.5rem;">
         - - - - - - - - - - - - - - - - - - - - -

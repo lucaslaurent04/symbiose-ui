@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, Input, Output, EventEmitter, ChangeDetectorRef } from '@angular/core';
+import { Component, OnInit, AfterViewInit, Input, Output, EventEmitter, ChangeDetectorRef, SimpleChanges } from '@angular/core';
 import { FormControl } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -35,8 +35,7 @@ export class SessionOrderPaymentsPaymentPartComponent extends TreeComponent<Orde
     public voucher_ref:FormControl = new FormControl();
     public booking_id:FormControl = new FormControl();
     public payment_method:FormControl = new FormControl();
-
-
+    
 
     constructor(
         private router: Router,
@@ -53,13 +52,22 @@ export class SessionOrderPaymentsPaymentPartComponent extends TreeComponent<Orde
         this.componentsMap = {};
     }
 
-    public ngOnInit() {
+    public async ngOnChanges(changes: SimpleChanges) {
+        //Called before any other lifecycle hook. Use it to inject dependencies, but avoid any serious work here.
+        //Add '${implements OnChanges}' to the class.
+        let orderPayment = await this.api.collect('sale\\pos\\OrderPayment', [['order_payment_parts_ids', 'contains',this.instance.id], ['status', '=', 'paid']], ['status']);
+        if(orderPayment.length > 0) this.hasValidated = true;
+    }
+
+    public async ngOnInit() {
+        
         this.amount.valueChanges.subscribe( (value:number)  => this.instance.amount = value );
         this.payment_method.valueChanges.subscribe( (value:number)  => this.instance.payment_method = value );
         this.voucher_ref.valueChanges.subscribe( (value:number)  => this.instance.voucher_ref = value );
         this.booking_id.valueChanges.subscribe( (value:number)  => this.instance.booking_id = value );
         
     }
+
 
     public update(values:any) {
         super.update(values);
@@ -100,6 +108,7 @@ export class SessionOrderPaymentsPaymentPartComponent extends TreeComponent<Orde
     public async validate(){
         this.validated.emit(this.instance);
         this.hasValidated = true;
+
     }
 
     public displayBooking (item : any): string{

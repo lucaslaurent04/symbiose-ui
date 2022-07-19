@@ -3,6 +3,7 @@ import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dial
 import { ActivatedRoute, Router } from '@angular/router';
 import { CashdeskSession } from '../session.model';
 import { ApiService, ContextService } from 'sb-shared-lib';
+import {DOCUMENT} from '@angular/common';
 import { OrderPaymentPart } from '../order/payments/payments.model';
 @Component({
   selector: 'app-close',
@@ -17,10 +18,13 @@ export class CloseComponent implements OnInit {
   public resultLines: any;
   public session_id : number;
   public buttonDisplay : boolean =  true;
-  constructor(private dialog: MatDialog, private route: ActivatedRoute, private api: ApiService, private router : Router) { }
+  public elem : any;
+  constructor(private dialog: MatDialog, private route: ActivatedRoute, private api: ApiService, private router : Router, @Inject(DOCUMENT)private document : any) { }
 
   public ngOnInit() {
     // fetch the ID from the route
+    this.elem = document.documentElement;
+
     this.route.params.subscribe(async (params) => {
       if (params && params.hasOwnProperty('session_id')) {
         try {
@@ -28,7 +32,6 @@ export class CloseComponent implements OnInit {
           await this.loadSession(this.session_id);
           await this.load(this.session_id);
           this.ready = true;
-
         }
         catch (error) {
           console.warn(error);
@@ -68,6 +71,21 @@ export class CloseComponent implements OnInit {
       panelClass: ['difference']
     });
   }
+
+  openFullscreen() {
+    if (this.elem.requestFullscreen) {
+      this.elem.requestFullscreen();
+    } else if (this.elem.mozRequestFullScreen) {
+      /* Firefox */
+      this.elem.mozRequestFullScreen();
+    } else if (this.elem.webkitRequestFullscreen) {
+      /* Chrome, Safari and Opera */
+      this.elem.webkitRequestFullscreen();
+    } else if (this.elem.msRequestFullscreen) {
+      /* IE/Edge */
+      this.elem.msRequestFullscreen();
+    }
+  }
 }
 
 @Component({
@@ -101,12 +119,12 @@ export class CloseComponent implements OnInit {
             <div>
               Banque
             </div>
-            <div>
+            <!-- <div>
               Voucher
             </div>
             <div>
               Réservation
-            </div>
+            </div> -->
         </div>
         
         <div style="text-align:center;">
@@ -123,12 +141,12 @@ export class CloseComponent implements OnInit {
             <div>
                 {{totalBank}}
             </div>
-            <div>
+            <!-- <div>
                 {{totalVoucher}}
             </div>
             <div>
                 {{totalBooking}}
-            </div>
+            </div> -->
         </div>
         <div style="text-align:center;">
             <h4>Compté</h4>
@@ -199,21 +217,20 @@ export class PosClosing {
       this.ordersTotal += order.total
 
       order.order_payments_ids.forEach((orderPayment: any) => {
-        this.totalPaid += orderPayment.total_paid
+        // this.totalPaid += orderPayment.total_paid
         orderPayment.order_payment_parts_ids.forEach((orderPaymentPart: any) => {
-          console.log(orderPaymentPart.payment_method, "méthoooode")
           switch (orderPaymentPart.payment_method) {
             case 'cash':
               this.totalCash += orderPaymentPart.amount;
               break;
-            case 'bank_card':
-              this.totalBank += orderPaymentPart.amount;
-              break;
-            case 'booking':
-              this.totalBooking += orderPaymentPart.amount;
-              break;
-            default:
-              this.totalVoucher += orderPaymentPart.amount;
+            // case 'bank_card':
+            //   this.totalBank += orderPaymentPart.amount;
+            //   break;
+            // case 'booking':
+            //   this.totalBooking += orderPaymentPart.amount;
+            //   break;
+            // default:
+            //   this.totalVoucher += orderPaymentPart.amount;
           }
         })
       })
@@ -228,7 +245,6 @@ export class PosClosing {
       value => {
         this.total = value.total;
         this.coins = value.cash;
-        console.log(this.coins);
         this.calculateDifference();
       }
     );
@@ -237,7 +253,7 @@ export class PosClosing {
   }
 
   public calculateDifference() {
-    this.difference = this.total - (this.totalPaid + this.data.amount);
+    this.difference = this.total - (this.totalCash + this.data.amount);
   }
 
   public closeDialog() {
@@ -245,7 +261,6 @@ export class PosClosing {
     })
   }
   public closeSession() {
-    console.log(this.checked, this.matCheckboxError)
     if (this.difference < 0) {
       this.matCheckboxError = true;
     }

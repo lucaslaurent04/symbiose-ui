@@ -7,6 +7,7 @@ import { BookingContractComponent } from './contract/contract.component';
 import { BookingCompositionComponent } from './composition/composition.component';
 import { BookingQuoteComponent } from './quote/quote.component';
 import { BookingInvoiceComponent } from './invoice/invoice.component';
+import { BookingOptionComponent } from './option/option.component';
 
 const routes: Routes = [
     {
@@ -24,6 +25,10 @@ const routes: Routes = [
     {
         path: 'quote',
         component: BookingQuoteComponent
+    },
+    {
+        path: 'option',
+        component: BookingOptionComponent
     },
     {
         path: 'invoice/:invoice_id',

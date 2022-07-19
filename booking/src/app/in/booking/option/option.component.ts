@@ -77,6 +77,9 @@ interface vmModel {
     },
     message: {
         formControl:  FormControl,
+    },
+    mention: {
+        formControl: FormControl,
     }
     sender: {
         addresses:    string [],
@@ -95,11 +98,11 @@ interface vmModel {
 };
 
 @Component({
-  selector: 'booking-invoice',
-  templateUrl: 'invoice.component.html',
-  styleUrls: ['invoice.component.scss']
+  selector: 'booking-option',
+  templateUrl: 'option.component.html',
+  styleUrls: ['option.component.scss']
 })
-export class BookingInvoiceComponent implements OnInit, AfterContentInit {
+export class BookingOptionComponent implements OnInit, AfterContentInit {
 
     public showSbContainer: boolean = false;
     public selectedTabIndex:number = 0;
@@ -108,7 +111,6 @@ export class BookingInvoiceComponent implements OnInit, AfterContentInit {
 
     public user: UserClass = null;
     public booking_id: number;
-    public invoice_id: number;
 
     public organisation: any = new Organisation();
     public center: any = new Center();
@@ -128,6 +130,7 @@ export class BookingInvoiceComponent implements OnInit, AfterContentInit {
     public mode:string = 'simple';
     public title: string = '';
     public message: string = '';
+    public mention: string = '';
     public sender: string = '';
     public recipient: string = '';    
 
@@ -161,6 +164,9 @@ export class BookingInvoiceComponent implements OnInit, AfterContentInit {
             message: {
                 formControl:    new FormControl('', Validators.required),
             },
+            mention: {
+                formControl:    new FormControl('', Validators.required),
+            },
             sender: {
                 addresses:      [],
                 formControl:    new FormControl('', [Validators.required, Validators.pattern("^[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,8}$")])
@@ -189,6 +195,7 @@ export class BookingInvoiceComponent implements OnInit, AfterContentInit {
         this.vm.mode.formControl.valueChanges.subscribe( (mode:string) => this.mode = mode);
         this.vm.title.formControl.valueChanges.pipe(debounceTime(300)).subscribe( (title:string) => this.title = title);
         this.vm.message.formControl.valueChanges.pipe(debounceTime(500)).subscribe( (message:string) => this.message = message);
+        this.vm.mention.formControl.valueChanges.pipe(debounceTime(500)).subscribe( (mention:string) => this.mention = mention);
         this.vm.sender.formControl.valueChanges.subscribe( (sender:string) => this.sender = sender);
         this.vm.recipient.formControl.valueChanges.subscribe( (recipient:string) => this.recipient = recipient);                
     }
@@ -225,11 +232,7 @@ export class BookingInvoiceComponent implements OnInit, AfterContentInit {
                         await this.loadBooking();
                     }
 
-                    if(params.hasOwnProperty('invoice_id')){
-                        this.invoice_id = <number> parseInt(params['invoice_id'], 10);
-                    }
-
-                    // #memo - this is only necessary when directly browsing to the URL /booking/:id/invoice/:id
+                    // #memo - this is only necessary when directly browsing to the URL /booking/:id/quote
                     // relay change to context (to display sidemenu panes according to current object)
                     this.context.change({
                         context_only: true,   // do not change the view
@@ -252,14 +255,14 @@ export class BookingInvoiceComponent implements OnInit, AfterContentInit {
     /**
      * Fetch templates that apply on current booking (center and related category).
      *
-     * We should received attachments, invoice.mail.subject, invoice.mail.body + organisation signature
+     * We should received attachments, quote.mail.subject, quote.mail.body + organisation signature
      */
     private async fetchTemplates() {
         console.log('re-fetch templates', this.center);
         try {
             const templates = await this.api.collect("communication\\Template", [
                 ['category_id', '=', this.center.template_category_id],
-                ['type', '=', 'invoice'],
+                ['type', '=', 'option'],
                 ['code', '=', 'mail']
             ],
             ['parts_ids', 'attachments_ids'], 'id', 'asc', 0, 1, this.lang);
@@ -280,6 +283,8 @@ export class BookingInvoiceComponent implements OnInit, AfterContentInit {
                     }
                     else if(part.name == 'body') {
                         this.vm.message.formControl.setValue(part.value);
+                    }else if(part.name == 'mention') {
+                        this.vm.mention.formControl.setValue(part.value);
                     }
                 }
 
@@ -477,7 +482,6 @@ export class BookingInvoiceComponent implements OnInit, AfterContentInit {
 
 // #todo - temp tests
 this.vm.recipient.addresses.push(this.user.login);
-
 /*
         // customer address
         if(this.customer && this.customer.email && this.customer.email.length) {
@@ -501,6 +505,7 @@ this.vm.recipient.addresses.push(this.user.login);
             this.vm.recipient.addresses.push(this.user.login);
         }
 */
+
         if(this.vm.recipient.addresses.length == 1) {
             this.vm.recipient.formControl.setValue(this.vm.recipient.addresses[0]);
         }
@@ -563,8 +568,8 @@ this.vm.recipient.addresses.push(this.user.login);
 
         try {
             this.loading = true;
-            const response:any = await this.api.call('?do=lodging_booking_send-invoice', {
-                invoice_id: this.invoice_id,
+            const response:any = await this.api.call('?do=lodging_booking_send-quote', {
+                booking_id: this.booking_id,
                 sender_email: this.sender,
                 recipient_email: this.recipient,
                 title: this.title,
@@ -573,9 +578,10 @@ this.vm.recipient.addresses.push(this.user.login);
                 mode: this.mode,
                 attachments_ids: this.vm.attachments.items.map( (e:any) => e.id ),
                 documents_ids: this.vm.documents.items.map( (e:any) => e.id )
+
             });
             this.is_sent = true;
-            this.snack.open("Facture envoyée avec succès.");
+            this.snack.open("Option envoyé avec succès.");
             this.loading = false;
         }
         catch(response:any) {

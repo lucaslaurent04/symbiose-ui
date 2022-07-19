@@ -63,12 +63,23 @@
         }
     }
     .ticket{
-        width: 80%; 
+        width: 99%; 
         background-color: lightgray; 
         display: flex; 
         justify-content:space-evenly; 
+        flex-direction: column;
         align-items: center;
-        margin: 5px
+        margin: 5px;
+        padding: 10px;
+    }
+    ::ng-deep .mat-tab-labels{
+        height: 4rem;
+        font-size: 1.5rem;
+    }
+    ::ng-deep .mat-tab-label{
+        font-size: 1.5rem;
+        font-weight: 100;
+        height: 100%
     }
     
 }
