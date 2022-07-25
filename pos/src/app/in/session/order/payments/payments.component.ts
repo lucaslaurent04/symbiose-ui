@@ -362,7 +362,6 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
         if(orderPayments[0].funding_id != null || 0){
             await this.api.update('sale\\pos\\OrderPaymentPart',[paymentPart.id], {  funding_id: orderPayments[0].funding_id, has_funding : true });
         }
-        // this.load(this.instance.id)
     }
 
     public async customer_change(event: any){

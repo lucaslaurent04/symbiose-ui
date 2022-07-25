@@ -170,8 +170,8 @@ export class SessionOrderPaymentsOrderPaymentComponent extends TreeComponent<Ord
 
     public async changeQuantity(line : any){
         
-        // console.log('changed', line.qty, this.line_quantity.value )
-        
+    // Remove the number of elements indicated, and create a new object with the difference
+
         if(parseInt(this.line_quantity) <line.qty){
             await this.api.create('lodging\\sale\\pos\\OrderLine', {
                 order_id: line.order_id,
