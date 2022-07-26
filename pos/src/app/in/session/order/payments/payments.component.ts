@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, ChangeDetectorRef, ViewChildren, QueryList, Input, SimpleChanges } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ChangeDetectorRef, ViewChildren, QueryList, Input, SimpleChanges, ViewChild } from '@angular/core';
 import { ActivatedRoute, BaseRouteReuseStrategy, Router } from '@angular/router';
 import { ApiService, ContextService, TreeComponent, RootTreeComponent } from 'sb-shared-lib';
 import { CashdeskSession } from './../../session.model';
@@ -27,6 +27,7 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
     @ViewChildren(SessionOrderPaymentsOrderPaymentComponent) SessionOrderPaymentsOrderPaymentComponents: QueryList<SessionOrderPaymentsOrderPaymentComponent>;
     // @ViewChildren(SessionOrderLinesComponent) SessionOrderLinesComponents: QueryList<SessionOrderLinesComponent>;
     @ViewChildren(TicketComponent) TicketComponent: QueryList<TicketComponent>;
+    @ViewChild('fullScreen') divRef : any;
 
 
     public back_button = "commande";
@@ -174,6 +175,21 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
     public update(values: any) {
         this.currentOrder = this.instance;
         super.update(values);
+    }
+
+    public openFullscreen() {
+        // Use this.divRef.nativeElement here to request fullscreen
+        const elem = this.divRef.nativeElement;
+      
+        if (elem.requestFullscreen) {
+          elem.requestFullscreen();
+        } else if (elem.msRequestFullscreen) {
+          elem.msRequestFullscreen();
+        } else if (elem.mozRequestFullScreen) {
+          elem.mozRequestFullScreen();
+        } else if (elem.webkitRequestFullscreen) {
+          elem.webkitRequestFullscreen();
+        }
     }
 
     public async ondeletePayment(line_id: number) {
