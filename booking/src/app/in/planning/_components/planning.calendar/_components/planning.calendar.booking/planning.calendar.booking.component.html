@@ -19,7 +19,7 @@
             </div>
         </div>
 
-        <div *ngIf="consumption.type == 'ooo'">
+        <div *ngIf="consumption.type == 'ooo'" (click)="onShowBooking(consumption)">
             <div style="display: flex;">
                 <div style="flex: 0 1 20%;">bloqué</div>
                 <div style="margin-left: auto">

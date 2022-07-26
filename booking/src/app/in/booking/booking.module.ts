@@ -26,7 +26,6 @@ import { BookingContractComponent } from './contract/contract.component';
 import { BookingInvoiceComponent } from './invoice/invoice.component';
 import { BookingOptionComponent } from './option/option.component';
 
-
 @NgModule({
   imports: [
     SharedLibModule,

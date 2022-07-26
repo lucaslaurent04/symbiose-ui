@@ -30,7 +30,7 @@
                 </ng-container>
             </tr>
         </thead>
-        <tbody>
+        <tbody (mouseleave)="onmouseleaveTable()" >
             <!-- body -->
             <tr class="rows cdk-drag-disabled" (dragstart)="preventDrag($event)"  *ngFor="let rental_unit of rental_units; let index = index;" [class.highlight]="(index == hover_row_index)">
                 <td class="cell-room rental-unit" 

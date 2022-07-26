@@ -22,7 +22,7 @@ interface DateRange {
     templateUrl: './planning.component.html',
     styleUrls: ['./planning.component.scss']
 })
-export class PlanningComponent implements OnInit, AfterViewInit {    
+export class PlanningComponent implements OnInit, AfterViewInit {
     @ViewChild('planningBody') planningBody: ElementRef;
     @ViewChild('planningCalendar') planningCalendar: ElementRef;
 
@@ -75,24 +75,47 @@ export class PlanningComponent implements OnInit, AfterViewInit {
         const dialogRef = this.dialog.open(DialogInfo, {
           });
     }
+    public onShowBooking(consumption: any) {
+        let descriptor:any
 
-    public onShowBooking(booking: any) {
-        let descriptor:any = {
-            context_silent: true, // do not update sidebar            
-            context: {
-                entity: 'lodging\\sale\\booking\\Booking',
-                type: 'form',
-                name: 'default',
-                domain: ['id', '=', booking.booking_id.id],
-                mode: 'view',
-                purpose: 'view',
-                display_mode: 'popup',
-                callback: (data:any) => {
-                    // restart angular lifecycles
-                    this.cd.reattach();
+        // switch depending on object type (booking or ooo)
+        if(consumption.type == 'ooo') {
+            descriptor = {
+                context_silent: true, // do not update sidebar
+                context: {
+                    entity: 'sale\\booking\\Repairing',
+                    type: 'form',
+                    name: 'default',
+                    domain: ['id', '=', consumption.repairing_id.id],
+                    mode: 'view',
+                    purpose: 'view',
+                    display_mode: 'popup',
+                    callback: (data:any) => {
+                        // restart angular lifecycles
+                        this.cd.reattach();
+                    }
                 }
-            }
-        };
+            };
+        }
+        // 'book' or similar
+        else {
+            descriptor = {
+                context_silent: true, // do not update sidebar
+                context: {
+                    entity: 'lodging\\sale\\booking\\Booking',
+                    type: 'form',
+                    name: 'default',
+                    domain: ['id', '=', consumption.booking_id.id],
+                    mode: 'view',
+                    purpose: 'view',
+                    display_mode: 'popup',
+                    callback: (data:any) => {
+                        // restart angular lifecycles
+                        this.cd.reattach();
+                    }
+                }
+            };
+        }
 
         if(this.fullscreen) {
             descriptor.context['dom_container'] = '.planning-body';
@@ -105,7 +128,7 @@ export class PlanningComponent implements OnInit, AfterViewInit {
 
     public onShowRentalUnit(rental_unit: any) {
         let descriptor:any = {
-            context_silent: true, // do not update sidebar            
+            context_silent: true, // do not update sidebar
             context: {
                 entity: 'lodging\\realestate\\RentalUnit',
                 type: 'form',
