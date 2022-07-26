@@ -7,7 +7,7 @@ import { SharedLibModule, AuthInterceptorService, CustomDateAdapter } from 'sb-s
 
 import { PlanningRoutingModule } from './planning-routing.module';
 
-import { PlanningComponent } from './planning.component';
+import { DialogInfo, PlanningComponent } from './planning.component';
 import { PlanningCalendarComponent } from './_components/planning.calendar/planning.calendar.component';
 import { PlanningCalendarBookingComponent } from './_components/planning.calendar/_components/planning.calendar.booking/planning.calendar.booking.component';
 import { PlanningCalendarNavbarComponent } from './_components/planning.calendar/_components/planning.calendar.navbar/planning.calendar.navbar.component';
@@ -29,7 +29,8 @@ import { OverlayModule } from '@angular/cdk/overlay';
     PlanningCalendarComponent,
     PlanningCalendarBookingComponent,
     PlanningCalendarNavbarComponent,
-    ConsumptionCreationDialog
+    ConsumptionCreationDialog,
+    DialogInfo
   ],
   providers: [
     { provide: DateAdapter, useClass: CustomDateAdapter, deps: [MAT_DATE_LOCALE, Platform] }

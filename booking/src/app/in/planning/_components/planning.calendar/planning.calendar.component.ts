@@ -528,4 +528,12 @@ LEGEND :
     gris : terminée / client parti
     couleur transparente : unité parente partiellement louée (non disponible entièrement) - une ou plusieurs sous-unités sont louées
 
+    yellow: '#ff9633',
+    turquoise: '#0fc4a7',
+    green: '#0FA200',
+    blue: '#0288d1',
+    violet: '#9575cd',
+    red: '#C80651',
+    grey: '#988a7d',
+
 */

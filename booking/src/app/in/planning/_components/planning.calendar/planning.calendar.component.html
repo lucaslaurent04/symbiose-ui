@@ -17,7 +17,7 @@
             <tr class="head">
                 <ng-container *ngFor="let day of headers.days" >
                     <th #calTableHeadCells
-                        (mouseenter)="onhoverDate(day)"
+                        (mouseenter)="onhoverDate(day)"z
                         (mouseleave)="onhoverDate(null)"
                         class="head-days"
                         [class.small]="cells_width <= 26"
