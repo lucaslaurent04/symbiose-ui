@@ -32,24 +32,27 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
 
     public back_button = "commande";
 
-    public item: number;
     public ready: boolean = false;
     public posLineDisplay: any;
     public typeMode: any;
     public amount: any;
     public digits: any;
+
     public index: number;
     public selectedPaymentPart: number;
     public selectedOrderLine: number;
     public currentOrder: any;
     public focus: string;
+
     public due: number;
     public change: any;
     public session: CashdeskSession = new CashdeskSession();
+
     public ticket : any;
     public customer_name : string;
     public disabled_key= ["+"];
     public customer : any;
+
     public orderLines : any;
     public orderPayment : any;
     public order : any;

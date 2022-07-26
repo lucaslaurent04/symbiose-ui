@@ -1,4 +1,4 @@
-import { Component, OnInit, AfterViewInit, ViewChildren, QueryList } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChildren, QueryList, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService, ContextService, TreeComponent, RootTreeComponent } from 'sb-shared-lib';
 import { CashdeskSession } from './../../session.model';
@@ -20,6 +20,7 @@ interface OrderComponentsMap {
 export class SessionOrderLinesComponent extends TreeComponent<Order, OrderComponentsMap> implements RootTreeComponent, OnInit, AfterViewInit {
 
     @ViewChildren(SessionOrderLinesOrderLineComponent) sessionOrderLinesOrderLineComponents: QueryList<SessionOrderLinesOrderLineComponent>;
+    @ViewChild('fullScreen') divRef : any;
 
     public ready: boolean = false;
     public session: CashdeskSession = new CashdeskSession();
@@ -126,6 +127,21 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
      */
     public update(values: any) {
         super.update(values);
+    }
+
+    public openFullscreen() {
+        // Use this.divRef.nativeElement here to request fullscreen
+        const elem = this.divRef.nativeElement;
+      
+        if (elem.requestFullscreen) {
+          elem.requestFullscreen();
+        } else if (elem.msRequestFullscreen) {
+          elem.msRequestFullscreen();
+        } else if (elem.mozRequestFullScreen) {
+          elem.mozRequestFullScreen();
+        } else if (elem.webkitRequestFullscreen) {
+          elem.webkitRequestFullscreen();
+        }
     }
 
     public async onupdateLine() {

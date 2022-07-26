@@ -3,8 +3,10 @@
 </div>
 <div class="header-wrap">
     <div class="header">Session › {{session.name}} <small>{{session.id}}</small> › Commandes en cours </div>
-    <app-close></app-close>
-    <!-- <a (click)="openFullscreen()" title="Full Screen"> Toggle fullscreen </a> -->
+    <div style="display: flex; align-items: center;">
+        <app-close></app-close>
+        <mat-icon class="screen" (click)="openFullscreen()">fullscreen</mat-icon>
+    </div>
 </div>
 <div class="pos-body" #fullScreen>
     <div style="display: flex;">
@@ -80,7 +82,7 @@
                         <td mat-cell *matCellDef="let element"> {{element.qty}} </td>
                         </ng-container>
                     
-                        
+                
                         <tr mat-header-row *matHeaderRowDef="['select', 'name', 'price', 'qty']"></tr>
                         <tr mat-row *matRowDef="let row; columns: ['select', 'name', 'price', 'qty'];"
                             (click)="selection.toggle(row)">
