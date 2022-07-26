@@ -543,6 +543,14 @@ export class AppSideMenuComponent implements OnInit {
             descriptor.route = route;
         }
 
+        // route targets another app
+        if (item.hasOwnProperty('app')) {
+            // interpolate the 
+            // open link in new tab
+            window.open('/'+item.app+'/#'+descriptor.route, '_blank');
+            return;
+        }
+
         if (item.hasOwnProperty('context')) {
             let context:any = {...item.context};
             if (context.hasOwnProperty('domain') && Array.isArray(context.domain)) {

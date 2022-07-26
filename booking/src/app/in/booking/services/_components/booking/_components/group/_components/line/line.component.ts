@@ -332,7 +332,8 @@ export class BookingServicesBookingGroupLineComponent extends TreeComponent<Book
         try {
             let domain = [
                 ["name", "ilike", '%'+name+'%'],
-                ["can_sell", "=", true]
+                ["can_sell", "=", true],
+                ["is_pack", "=", false]
             ];
 
             if(Array.isArray(this.booking.center_id.product_groups_ids) && this.booking.center_id.product_groups_ids.length) {

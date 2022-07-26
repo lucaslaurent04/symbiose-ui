@@ -132,7 +132,7 @@ export class BookingOptionComponent implements OnInit, AfterContentInit {
     public message: string = '';
     public mention: string = '';
     public sender: string = '';
-    public recipient: string = '';    
+    public recipient: string = '';
 
 
     public vm: vmModel;
@@ -197,7 +197,7 @@ export class BookingOptionComponent implements OnInit, AfterContentInit {
         this.vm.message.formControl.valueChanges.pipe(debounceTime(500)).subscribe( (message:string) => this.message = message);
         this.vm.mention.formControl.valueChanges.pipe(debounceTime(500)).subscribe( (mention:string) => this.mention = mention);
         this.vm.sender.formControl.valueChanges.subscribe( (sender:string) => this.sender = sender);
-        this.vm.recipient.formControl.valueChanges.subscribe( (recipient:string) => this.recipient = recipient);                
+        this.vm.recipient.formControl.valueChanges.subscribe( (recipient:string) => this.recipient = recipient);
     }
 
     /**
@@ -516,6 +516,10 @@ this.vm.recipient.addresses.push(this.user.login);
         this.vm.attachments.items.splice(this.vm.attachments.items.indexOf(attachment), 1);
     }
 
+    public onRemoveDocument(index:any) {
+        this.documents.splice(index, 1);
+    }
+
     public getLangId(lang:string) {
         const found = this.languages.find(elem => elem.code == lang);
         return (found)?found.id:0;
@@ -606,7 +610,7 @@ this.vm.recipient.addresses.push(this.user.login);
 
     public onclickBooking() {
         let descriptor:any = {
-            context_silent: true, // do not update sidebar            
+            context_silent: true, // do not update sidebar
             context: {
                 entity: 'lodging\\sale\\booking\\Booking',
                 type: 'form',
@@ -624,12 +628,12 @@ this.vm.recipient.addresses.push(this.user.login);
 
         // prevent angular lifecycles while a context is open
         this.cd.detach();
-        this.context.change(descriptor);        
+        this.context.change(descriptor);
     }
 
     public onclickCustomer() {
         let descriptor:any = {
-            context_silent: true, // do not update sidebar            
+            context_silent: true, // do not update sidebar
             context: {
                 entity: 'sale\\customer\\Customer',
                 type: 'form',
@@ -647,6 +651,6 @@ this.vm.recipient.addresses.push(this.user.login);
 
         // prevent angular lifecycles while a context is open
         this.cd.detach();
-        this.context.change(descriptor);          
+        this.context.change(descriptor);
     }
 }

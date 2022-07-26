@@ -73,6 +73,8 @@ export class PlanningCalendarComponent implements OnInit, AfterViewInit, AfterVi
         }
     };
 
+    private mousedownTimeout: any;
+
     // duration history as hint for refreshing cell width
     private previous_duration: number;
 
@@ -340,10 +342,12 @@ export class PlanningCalendarComponent implements OnInit, AfterViewInit, AfterVi
     }
 
     public onSelectedBooking(event: any) {
+        clearTimeout(this.mousedownTimeout);
         this.showBooking.emit(event);
     }
 
-    public onSelectedRentalUnit(rental_unit: any) {
+    public onSelectedRentalUnit(rental_unit: any) {        
+        clearTimeout(this.mousedownTimeout);
         this.showRentalUnit.emit(rental_unit);
     }
 
@@ -365,10 +369,17 @@ export class PlanningCalendarComponent implements OnInit, AfterViewInit, AfterVi
         this.hovered_rental_unit = rental_unit;
     }
 
+    public onmouseleaveTable() {
+        clearTimeout(this.mousedownTimeout);        
+        this.selection.is_active = false;
+        this.selection.width = 0;
+    }
 
     public onmouseup() {
+        clearTimeout(this.mousedownTimeout);
 
         if(this.selection.is_active) {
+            console.log('is active');
             // make from and to right
             let rental_unit:any = this.selection.cell_from.rental_unit;
             let from:any = this.selection.cell_from;
@@ -392,17 +403,12 @@ export class PlanningCalendarComponent implements OnInit, AfterViewInit, AfterVi
                     break;
                 }
             }
-            if(!valid){
+            if(!valid || !from.rental_unit) {
                 this.selection.is_active = false;
                 this.selection.width = 0;
+                return;
             }
             else {
-                console.log('selection is valid', from.rental_unit, from.date, to.date);
-
-                if(!from.rental_unit) {
-                    return;                    
-                }
-
                 // open dialog for requesting action dd
 
                 const dialogRef = this.dialog.open(ConsumptionCreationDialog, {
@@ -417,7 +423,6 @@ export class PlanningCalendarComponent implements OnInit, AfterViewInit, AfterVi
 
                 dialogRef.afterClosed().subscribe( async (values) => {
                     if(values) {
-                        console.log('########### received values', values);
                         if(values.type && values.type == 'book') {
                             try {
                                 await this.api.call('?do=lodging_booking_plan-option', {
@@ -441,7 +446,7 @@ export class PlanningCalendarComponent implements OnInit, AfterViewInit, AfterVi
                                     date_from: values.date_from.toISOString(),
                                     date_to: values.date_to.toISOString(),
                                     rental_unit_id: values.rental_unit_id,
-                                    description: values.description
+                                    description: (values.description.length)?values.description:'Blocage via planning'
                                 });
 
                                 this.onRefresh();
@@ -454,36 +459,33 @@ export class PlanningCalendarComponent implements OnInit, AfterViewInit, AfterVi
                     }
                 });
 
-
-                this.selection.is_active = false;
-                this.selection.width = 0;
-
             }
         }
-        else {
-            this.selection.is_active = false;
-            this.selection.width = 0;
-        }
+
+        this.selection.is_active = false;
+        this.selection.width = 0;
 
     }
 
     public onmousedown($event: any, rental_unit: any, day: any) {
+        // start seleciton with a 100ms delay to avoid confusion with booking selection
+        this.mousedownTimeout = setTimeout( () => {
+            let table = this.calTable.nativeElement.getBoundingClientRect();
+            let cell = $event.target.getBoundingClientRect();
 
-        let table = this.calTable.nativeElement.getBoundingClientRect();
-        let cell = $event.target.getBoundingClientRect();
+            this.selection.top = cell.top - table.top;
+            this.selection.left = cell.left - table.left + this.calTable.nativeElement.offsetLeft;
 
-        this.selection.top = cell.top - table.top;
-        this.selection.left = cell.left - table.left + this.calTable.nativeElement.offsetLeft;
+            this.selection.width = cell.width;
+            this.selection.height = cell.height;
 
-        this.selection.width = cell.width;
-        this.selection.height = cell.height;
+            this.selection.cell_from.left = this.selection.left;
+            this.selection.cell_from.width = cell.width;
+            this.selection.cell_from.date = day;
+            this.selection.cell_from.rental_unit = rental_unit;
 
-        this.selection.cell_from.left = this.selection.left;
-        this.selection.cell_from.width = cell.width;
-        this.selection.cell_from.date = day;
-        this.selection.cell_from.rental_unit = rental_unit;
-
-        this.selection.is_active = true;
+            this.selection.is_active = true;
+        }, 100);
     }
 
     public onmouseover($event: any, day:any) {
@@ -507,7 +509,6 @@ export class PlanningCalendarComponent implements OnInit, AfterViewInit, AfterVi
                 this.selection.left = this.selection.cell_from.left;
             }
         }
-
     }
 
     public preventDrag($event:any) {
@@ -526,6 +527,7 @@ LEGEND :
     vert : validée  (avec 'v')
     turquoise : en cours d'occupation
     gris : terminée / client parti
+    
     couleur transparente : unité parente partiellement louée (non disponible entièrement) - une ou plusieurs sous-unités sont louées
 
 */

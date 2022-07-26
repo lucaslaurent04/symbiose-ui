@@ -123,11 +123,8 @@
         <div class="row" style="margin-top: 30px;">
             <div class="column" style="width: 100%; flex-direction: column;">
 
-                <div style="display: flex;">
-                    <mat-icon>attach_file</mat-icon> Pièces jointes ({{center.name}})
-                </div>
-                <div *ngFor="let attachment of vm.attachments.items"
-                    style="margin-left: 10px; display: flex; align-items: center;">
+                <div style="display: flex;"><mat-icon>attach_file</mat-icon> Pièces jointes ({{center.name}})</div>                
+                <div *ngFor="let attachment of vm.attachments.items" style="margin-left: 10px; display: flex; align-items: center;">
 
                     <div><b>{{attachment.name}}</b> ({{attachment.document_id.name}})</div>
                     <button mat-icon-button (click)="onRemoveAttachment(attachment)">
@@ -140,17 +137,21 @@
                     </a>
                 </div>
                 <div style="margin-left: 10px;">
-                    <div *ngFor="let document of documents" style="max-width: 40%;">
-                            <sb-m2o-select [entity]="'documents\\Document'" [placeholder]="'Commencez à taper le nom'"
-                                [noResult]="'rien trouvé'" [required]="true"
-                                (itemSelected)="onselectDocuments($event)">
-                                Document
-                            </sb-m2o-select>
+                    <div *ngFor="let document of documents; let index = index" style="display: flex; width: 100%;">
+                        <sb-m2o-select style="min-width: 70%" [entity]="'documents\\Document'" [placeholder]="'Commencez à taper le nom'"
+                            [noResult]="'rien trouvé'" [required]="true"
+                            (itemSelected)="onselectDocuments($event)">
+                            Document
+                        </sb-m2o-select>
+                        <button mat-icon-button (click)="onRemoveDocument(index)">
+                            <mat-icon>delete</mat-icon>
+                        </button>
                     </div>
                     <button mat-mini-fab color="primary" (click)="addDocument()" style="margin-top: 3px;">
                         <mat-icon>add</mat-icon>
                     </button>
                 </div>
+                
             </div>
         </div>
     </div>

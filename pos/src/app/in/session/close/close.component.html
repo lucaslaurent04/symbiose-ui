@@ -1,4 +1,4 @@
 <p style="display: flex; align-items: center;">
-    <button *ngIf="buttonDisplay" mat-raised-button color="accent" (click)="closeSession()">Fermer</button>
-    <mat-icon class="screen" (click)="openFullscreen()">fullscreen</mat-icon>
+    <button *ngIf="buttonDisplay" mat-raised-button color="accent" (click)="closeSession()" style="margin-right: 10px;">Fermer la session</button>
+    <button mat-icon-button class="screen" (click)="openFullscreen()"><mat-icon>open_in_full</mat-icon></button>
 </p>

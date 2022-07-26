@@ -502,6 +502,10 @@ export class BookingQuoteComponent implements OnInit, AfterContentInit {
         this.vm.attachments.items.splice(this.vm.attachments.items.indexOf(attachment), 1);
     }
 
+    public onRemoveDocument(index:any) {
+        this.documents.splice(index, 1);        
+    }
+
     public getLangId(lang:string) {
         const found = this.languages.find(elem => elem.code == lang);
         return (found)?found.id:0;

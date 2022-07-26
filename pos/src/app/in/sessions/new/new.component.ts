@@ -108,8 +108,8 @@ export class SessionsNewComponent implements OnInit {
     <h3 style="margin-top: 0.5rem; margin-left:6rem; font-weight: bold">TOTAL: {{total.toFixed(2)}} €</h3>
   </div>
   <div mat-dialog-actions style="display: flex; justify-content: flex-end">
-    <button mat-raised-button color="primary" style="float:right" mat-raised-button (click)="openSession()" >Ouvrir</button>
-    <button mat-raised-button color="primary" style="float:right" mat-raised-button (click)="closeDialog()" >Fermer</button>
+    <button mat-raised-button color="primary" style="float:right" mat-raised-button (click)="openSession()">Ouvrir</button>
+    <button mat-raised-button color="primary" style="float:right" mat-raised-button (click)="closeDialog()">Annuler</button>
   </div>`
 })
 

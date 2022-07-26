@@ -2,6 +2,7 @@
     <a mat-list-item 
         (click)="onItemSelected(item)"
         [class.expanded]="item.expanded"
+        [title]="(i18n && i18n[item.id])?i18n[item.id].label:item.label"
         class="menu-list-item">
         <mat-icon *ngIf="item.icon" class="item-icon">{{item.icon}}</mat-icon>
         <span class="item-title" [class.has-icon]="item.icon">{{(i18n && i18n[item.id])?i18n[item.id].label:item.label}}</span>

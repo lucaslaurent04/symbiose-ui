@@ -80,7 +80,10 @@
                 justify-content: space-evenly;
                 flex-direction: column;
                 align-items: center;
-                background-color: lightgray;
+                background-color: lightgray;                
+            }
+            .paiement.payment-button {
+                height: 228px;
             }
         }
     } 
