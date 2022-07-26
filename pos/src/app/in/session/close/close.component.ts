@@ -293,7 +293,7 @@ export class PosClosing {
                     grid-template-columns: repeat(2, 1fr);
                     grid-template-rows: repeat(8, 1fr); height: 100%">
             <div *ngFor="let coin of coins; index as i" style="margin: 0.2rem;">
-              <input style="font-size: 1.2rem" type="number" [value]="coin.number" (focus)="onGetFocusedInput(i)"> <mat-label style="font-size: 1.2rem; font-weight: bold; padding: 0.2rem">{{coin.value}}€</mat-label>
+              <input (input)="onKeyboardNumberPressed($event);" style="font-size: 1.2rem" type="number" [value]="coin.number" (focus)="onGetFocusedInput(i)"> <mat-label style="font-size: 1.2rem; font-weight: bold; padding: 0.2rem">{{coin.value}}€</mat-label>
             </div>
         </div>
         <div style="display: flex; border: 1px solid lightgreen">
@@ -388,6 +388,17 @@ export class PosClosingCoins {
   ngOnInit(): void {
   }
 
+  onKeyboardNumberPressed(event : any){
+    // check if backspace, otherwise add number
+    if(event.inputType == "deleteContentBackward") {
+      let test = this.coins[this.index].number.slice(0, -1);
+      this.coins[this.index].number = test;
+      this.onGetTotal();
+    }else{
+      this.coins[this.index].number += event.target.value[event.target.value.length - 1];
+      this.onGetTotal();
+    }
+  }
   onCheckNumberPassed(value: any) {
     console.log('pressed')
     if (value != 'backspace' && value != ',' && value != '+/-') {
