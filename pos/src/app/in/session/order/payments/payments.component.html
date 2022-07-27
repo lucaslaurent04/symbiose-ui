@@ -5,7 +5,6 @@
     <div class="header">Session › {{session.name}} <small>{{session.id}}</small> › Commandes en cours </div>
     <div style="display: flex; align-items: center;">
         <app-close></app-close>
-        <mat-icon class="screen" (click)="openFullscreen()">fullscreen</mat-icon>
     </div>
 </div>
 <div class="pos-body" #fullScreen>
@@ -36,10 +35,10 @@
                     </div>
                 </div>
                 <div class="pad">
-                    <app-pos-arbitrary-numbers (onGetInvoice)="onGetInvoice($event)" [disabled_key]="disabled_key" [back_button]="back_button" (onDisplayDetails)="onDisplayDetails($event)"
+                    <order-keypad-payment (onGetInvoice)="onGetInvoice($event)" [disabled_key]="disabled_key" [back_button]="back_button" (onDisplayDetails)="onDisplayDetails($event)"
                         (onDigitTyped)="onDigitTyped($event)" (onTypeMode)="typeMode = $event"
                         [customer_name]="customer_name" (customer_change)="customer_change($event)">
-                    </app-pos-arbitrary-numbers>
+                    </order-keypad-payment>
                 </div>
             </div>
         </div>

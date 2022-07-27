@@ -3,7 +3,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService, ContextService, TreeComponent, RootTreeComponent } from 'sb-shared-lib';
 import { CashdeskSession } from './../../session.model';
 import { Order, OrderLine } from './lines.model';
-import { SessionOrderLinesOrderLineComponent } from './_components/line/order-line.component';
+import { SessionOrderLinesOrderLineComponent } from './_components/order-line/order-line.component';
 import { OrderService } from 'src/app/in/orderService';
 
 
@@ -20,7 +20,6 @@ interface OrderComponentsMap {
 export class SessionOrderLinesComponent extends TreeComponent<Order, OrderComponentsMap> implements RootTreeComponent, OnInit, AfterViewInit {
 
     @ViewChildren(SessionOrderLinesOrderLineComponent) sessionOrderLinesOrderLineComponents: QueryList<SessionOrderLinesOrderLineComponent>;
-    @ViewChild('fullScreen') divRef : any;
 
     public ready: boolean = false;
     public session: CashdeskSession = new CashdeskSession();
@@ -129,21 +128,6 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
         super.update(values);
     }
 
-    public openFullscreen() {
-        // Use this.divRef.nativeElement here to request fullscreen
-        const elem = this.divRef.nativeElement;
-      
-        if (elem.requestFullscreen) {
-          elem.requestFullscreen();
-        } else if (elem.msRequestFullscreen) {
-          elem.msRequestFullscreen();
-        } else if (elem.mozRequestFullScreen) {
-          elem.mozRequestFullScreen();
-        } else if (elem.webkitRequestFullscreen) {
-          elem.webkitRequestFullscreen();
-        }
-    }
-
     public async onupdateLine() {
         // a line has been updated: reload tree
         await this.load(this.instance.id);
@@ -160,12 +144,15 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
         this.load(this.instance.id);
     }
 
-    public onSelectLine(index: number, line: any) {
-        console.log('onSelectLine', line);
+    public onSelectLine(line: any) {
+        console.log('##### onSelectLine', line);
 
+        console.log(this.sessionOrderLinesOrderLineComponents.toArray());
+        let index = this.sessionOrderLinesOrderLineComponents.toArray().findIndex( (l:any) => l.instance.id == line.id );
+        console.log(index);
         this.selectedLineComponent = this.sessionOrderLinesOrderLineComponents.toArray()[index];
         // create a clone of the selected line
-        this.selectedLine = <OrderLine> {...line};
+        this.selectedLine = <OrderLine> {...this.selectedLineComponent.instance};
 
         this.str_unit_price = this.selectedLine.unit_price.toString();
         this.str_qty = this.selectedLine.qty.toString();
@@ -416,6 +403,7 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
                 const line = await this.api.create((new OrderLine()).entity, { order_id: this.instance.id, unit_price: funding.due_amount, qty: 1, has_funding: true, funding_id: funding.id, name: funding.name });
                 await this.api.update(this.instance.entity, [this.instance.id], { order_lines_ids: [line.id] });
                 this.load(this.instance.id);
+                // this.onSelectLine(line);                
             }
             catch(response) {
                 // unexpected error
@@ -445,13 +433,18 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
                         product_id: product.id
                     });
                     await this.api.update(this.instance.entity, [this.instance.id], { order_lines_ids: [line.id] });
-                    this.load(this.instance.id);
+                    await this.load(this.instance.id);
+                    // select line upon next digest
+                    setTimeout( () => {
+                        this.onSelectLine(line);
+                    });
                 }
                 catch(response) {
                     // unexpected error
                 }
             }
-        }else{
+        }
+        else {
             this.error_message = true;
         }
     }

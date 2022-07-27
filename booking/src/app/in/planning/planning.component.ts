@@ -72,9 +72,9 @@ export class PlanningComponent implements OnInit, AfterViewInit {
     }
 
     public onOpenDialog(){
-        const dialogRef = this.dialog.open(DialogInfo, {
-          });
+        const dialogRef = this.dialog.open(DialogInfo, {});
     }
+    
     public onShowBooking(consumption: any) {
         let descriptor:any
 

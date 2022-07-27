@@ -181,7 +181,7 @@ export class CloseComponent implements OnInit {
     </div>
     <div mat-dialog-actions style="display: flex; justify-content: flex-end;">
     <button mat-raised-button color="primary" (click)="closeSession()" >Fermer la Session</button>
-    <button mat-raised-button color="primary" (click)="closeDialog()" >Fermer</button>
+    <button mat-raised-button color="primary" (click)="closeDialog()" >Annuler</button>
     </div>
   </div>
   `
@@ -296,9 +296,9 @@ export class PosClosing {
               <input (input)="onKeyboardNumberPressed($event);" style="font-size: 1.2rem" type="number" [value]="coin.number" (focus)="onGetFocusedInput(i)"> <mat-label style="font-size: 1.2rem; font-weight: bold; padding: 0.2rem">{{coin.value}}€</mat-label>
             </div>
         </div>
-        <div style="display: flex; border: 1px solid lightgreen">
-          <app-pad [disabled_key]="disabled_key" (keyPressed)="onCheckNumberPassed($event)"></app-pad>
-          <app-pad-arbitrary-numbers style="margin-bottom: 0.25px;" (OnaddedNumber)="checkActionType($event)" (OnBackspace)="onBackSpace($event)"></app-pad-arbitrary-numbers>
+        <div style="display: flex; border: 0; background-color: #ededed; padding: 10px;">
+          <pos-pad-generic [disabled_key]="disabled_key" (keyPressed)="onCheckNumberPassed($event)"></pos-pad-generic>
+          <pos-pad-value-increments style="margin-bottom: 0.25px;" (OnaddedNumber)="checkActionType($event)" (OnBackspace)="onBackSpace($event)"></pos-pad-value-increments>
         </div>
       </div>    
     </div>
@@ -314,7 +314,7 @@ export class PosClosing {
     <h3 style="margin-top: 0.5rem; margin-left:6rem; font-weight: bold">TOTAL: {{total.toFixed(2)}} €</h3>
   </div>
   <div mat-dialog-actions style="display: flex; justify-content: flex-end">
-    <button mat-raised-button color="primary" style="float:right" mat-raised-button (click)="closeDialog()" >Fermer</button>
+    <button mat-raised-button color="primary" style="float:right" mat-raised-button (click)="closeDialog()" >Valider</button>
   </div>`
 })
 

@@ -3,11 +3,11 @@ import { ActivatedRoute, BaseRouteReuseStrategy, Router } from '@angular/router'
 import { ApiService, ContextService, TreeComponent, RootTreeComponent } from 'sb-shared-lib';
 import { CashdeskSession } from './../../session.model';
 import { Order, OrderLine, OrderPayment, OrderPaymentPart } from './payments.model';
-import { SessionOrderPaymentsOrderPaymentComponent } from './components/payment/order-payment.component';
+import { SessionOrderPaymentsOrderPaymentComponent } from './_components/payment/order-payment.component';
 import { SessionOrderLinesComponent } from '../../order/lines/lines.component';
 import { OrderService } from 'src/app/in/orderService';
 import { BookingLineClass } from 'src/app/model';
-import { TicketComponent } from './components/ticket/ticket.component';
+import { TicketComponent } from './_components/ticket/ticket.component';
 import { MatTableDataSource } from '@angular/material/table';
 import {DataSource, SelectionModel} from '@angular/cdk/collections';
 
@@ -27,8 +27,6 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
     @ViewChildren(SessionOrderPaymentsOrderPaymentComponent) SessionOrderPaymentsOrderPaymentComponents: QueryList<SessionOrderPaymentsOrderPaymentComponent>;
     // @ViewChildren(SessionOrderLinesComponent) SessionOrderLinesComponents: QueryList<SessionOrderLinesComponent>;
     @ViewChildren(TicketComponent) TicketComponent: QueryList<TicketComponent>;
-    @ViewChild('fullScreen') divRef : any;
-
 
     public back_button = "commande";
 
@@ -178,21 +176,6 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
     public update(values: any) {
         this.currentOrder = this.instance;
         super.update(values);
-    }
-
-    public openFullscreen() {
-        // Use this.divRef.nativeElement here to request fullscreen
-        const elem = this.divRef.nativeElement;
-      
-        if (elem.requestFullscreen) {
-          elem.requestFullscreen();
-        } else if (elem.msRequestFullscreen) {
-          elem.msRequestFullscreen();
-        } else if (elem.mozRequestFullScreen) {
-          elem.mozRequestFullScreen();
-        } else if (elem.webkitRequestFullscreen) {
-          elem.webkitRequestFullscreen();
-        }
     }
 
     public async ondeletePayment(line_id: number) {

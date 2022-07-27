@@ -6,7 +6,7 @@ import {MatTableDataSource} from '@angular/material/table';
 import {MatPaginator, MatPaginatorModule} from '@angular/material/paginator';
 
 @Component({
-  selector: 'app-order-items',
+  selector: 'session-order-lines-orderitems',
   templateUrl: './order-items.component.html',
   styleUrls: ['./order-items.component.scss']
 })

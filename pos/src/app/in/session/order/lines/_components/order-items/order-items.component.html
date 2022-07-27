@@ -1,33 +1,34 @@
 <section>
     <div>
         <mat-tab-group animationDuration="0ms" (selectedTabChange)="onSelectedTab($event)" mat-align-tabs="end" [backgroundColor]="'primary'">
+
             <mat-tab label="Produits"> 
 
                 <table style="width: 100%;" mat-table [dataSource]="dataSource" class="mat-elevation-z8" *ngIf="!funding">
-
                     <!--- Note that these columns can be defined in any order.
-                          The actual rendered columns are set as a property on the row definition" -->
-                  
+                            The actual rendered columns are set as a property on the row definition" -->
+                    
                     <!-- Position Column -->
                     <ng-container matColumnDef="name">
-                      <th mat-header-cell *matHeaderCellDef> 
-                        <mat-form-field appearance="standard">
-                        <mat-label>Filtrer</mat-label>
-                        <input matInput (keyup)="applyFilter($event)" placeholder="Ex. ium" #input>
-                        </mat-form-field> </th>
-                      <td mat-cell *matCellDef="let element"> {{element.name}} </td>
+                        <th mat-header-cell *matHeaderCellDef> 
+                            <mat-form-field appearance="standard">
+                                <mat-label>Filtrer</mat-label>
+                                <input matInput (keyup)="applyFilter($event)" placeholder="Ex. ium" #input>
+                            </mat-form-field> 
+                        </th>
+                        <td mat-cell *matCellDef="let element"> {{element.name}} </td>
                     </ng-container>
-      
+        
                     <tr mat-header-row *matHeaderRowDef="['name']"></tr>
                     <tr mat-row *matRowDef="let row; columns: ['name'];" (click)="selectProduct(row)" [ngClass]="{'highlight': selectedProductIndex == row.id}"></tr>
-                  </table>
+                </table>
 
-                  <mat-paginator [length]="100"
-                  [pageSize]="5"
-                  [pageSizeOptions]="[5, 10, 25, 100]"
-                  aria-label="Select page"
-                  #paginator>
+                <mat-paginator #paginator
+                    [length]="100"
+                    [pageSize]="5"
+                    [pageSizeOptions]="[5, 10, 25, 100]">
                 </mat-paginator>
+                
                 <mat-error style="text-align: center; font-size: 2rem;" *ngIf="error_message">Vous devez payer les financements séparément</mat-error>
             </mat-tab>
 

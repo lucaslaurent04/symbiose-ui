@@ -61,9 +61,9 @@ export class SessionsNewComponent implements OnInit {
   }
 
 
-  public onselectCenter(center:any) {
-    this.center_id = center.id
-}
+    public onselectCenter(center:any) {
+        this.center_id = center.id
+    }
 
 
 
@@ -90,9 +90,9 @@ export class SessionsNewComponent implements OnInit {
             </div>
         </div>
 
-        <div style="display: flex; border: 1px solid lightgreen">
-          <app-pad [disabled_key]="disabled_key" (keyPressed)="onCheckNumberPassed($event)"></app-pad>
-          <app-pad-arbitrary-numbers style="margin-bottom: 0.25px;" (OnaddedNumber)="checkActionType($event)" (OnBackspace)="onBackSpace($event)"></app-pad-arbitrary-numbers>
+        <div style="display: flex; border: 0; background-color: #ededed; padding: 10px;">
+          <pos-pad-generic [disabled_key]="disabled_key" (keyPressed)="onCheckNumberPassed($event)"></pos-pad-generic>
+          <pos-pad-value-increments style="margin-bottom: 0.25px;" (OnaddedNumber)="checkActionType($event)" (OnBackspace)="onBackSpace($event)"></pos-pad-value-increments>
         </div>
       </div>    
     </div>

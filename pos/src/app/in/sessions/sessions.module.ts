@@ -7,7 +7,6 @@ import { SharedLibModule, AuthInterceptorService, CustomDateAdapter } from 'sb-s
 
 import { SessionsComponent } from './sessions.component';
 import { PosClosingCoins, SessionsNewComponent } from './new/new.component';
-import { PadComponent } from '../session/components/pos/pad/pad.component';
 import { AppInSessionOrderModule } from '../session/order/order.module';
 
 

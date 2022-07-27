@@ -1,9 +1,0 @@
-<div>
-    <mat-button-toggle-group [(ngModel)]="value" (change)="onSelectionChange(value)">
-        <mat-button-toggle mat-raised-button value="qty" [class.selected]="value == 'qty'"> <mat-icon>add_shopping_cart</mat-icon></mat-button-toggle>
-        <mat-button-toggle mat-raised-button value="unit_price" [class.selected]="value == 'unit_price'"><mat-icon> attach_money</mat-icon></mat-button-toggle>
-        <!-- <mat-button-toggle  mat-raised-button value="discount" [class.selected]="myToggle == 'discount'">Re.</mat-button-toggle> -->
-        <button (click)="onKeypress('%')" mat-raised-button><mat-icon>%</mat-icon></button>
-        <button (click)="onKeypress('backspace')" mat-raised-button class="backspace"><mat-icon>backspace</mat-icon></button>
-    </mat-button-toggle-group>
-</div>
