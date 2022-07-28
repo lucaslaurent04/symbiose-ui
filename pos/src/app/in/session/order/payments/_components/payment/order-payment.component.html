@@ -1,39 +1,33 @@
 <section [class.disabled]="instance.status == 'pending'">
     <div class="header">
-        <!-- <h2>Payment {{instance.id}}</h2> -->
-        <span style="font-size: 1.15rem; font-weight: bold;">Dû: {{instance.total_due}}</span>
-        <span style="color: darkgreen; font-size: 1.15rem; font-weight: bold;">Reçu: {{instance.total_paid}}</span>
+        <span>Dû: {{instance.total_due | number : '1.2-2'}}€</span>
+        <span style="color: #747474;">Restant: {{ instance.total_due-instance.total_paid | number : '1.2-2'}}€</span>
         <div>
-            <!-- <button (click)="onDisplayProducts()" mat-mini-fab color="accent"><mat-icon>info</mat-icon></button> -->
-            <button mat-mini-fab color="accent" (click)="onclickDelete()">
-                <mat-icon>delete</mat-icon>
-            </button>
+            <button mat-icon-button color="primary" (click)="onDisplayProducts()"><mat-icon>list</mat-icon></button>
+            <button mat-mini-fab color="accent" (click)="onclickDelete()"><mat-icon>delete</mat-icon></button>
         </div>
 
     </div>
 
-    <!-- <div class="row">
-        <h3>Details</h3>   
-    </div> -->
     <div *ngIf="display !='products'">
         <div style="display: flex; margin: 0.25rem; display: flex; align-items: center;">
             <h3 style="max-height: fit-content;">Encaissements</h3> 
-            <button *ngIf="instance.status != 'paid'" mat-mini-fab color="accent"
-                (click)="onclickCreateNewPart()">
+            <button *ngIf="canAddPart()" mat-mini-fab color="accent" (click)="onclickCreateNewPart()" style="transform: scale(0.75);">
                 <mat-icon>add</mat-icon>
             </button>
-            <button *ngIf="instance.status != 'paid'" mat-mini-fab color="accent"
-                (click)="onConfirmOrderPayment()">
+            <button *ngIf="canValidate()" mat-mini-fab color="accent" (click)="onConfirmOrderPayment()" style="margin-left: auto;">
                 <mat-icon>check</mat-icon>
             </button>
         </div>
-        <div *ngFor="let line of instance.order_lines_ids; index as i;">
-            <span>{{line.name}}    </span><b><span>  <input (click)="selectLine(line.id)" (focus)="focused = 'line'" [readonly]="instance.status != 'pending'" style="width: 30px;" type="number" placeholder={{line.qty}} (blur)="changeQuantity(line)" min="0" max={{line.qty}}> unités  </span> <span>{{line.total}} €</span></b> 
-        </div>
         <ng-container *ngFor="let part of instance.order_payment_parts_ids; index as i">
-            <session-order-payments-payment-part [model]="part" (updated)="onupdatePart(part.id)"
-                (deleted)="ondeletePart(part.id)" (validated)="onvalidate(part)" (click)="onSelectedPaymentPart(i)"
-                [customer]="customer">
+            <session-order-payments-payment-part 
+                [model]="part" 
+                [payment]="instance"
+                [customer]="customer"
+                (updated)="onupdatePart(part.id)"
+                (deleted)="ondeletePart(part.id)" 
+                (validated)="onvalidate(part)" 
+                (click)="onSelectedPaymentPart(i)">
             </session-order-payments-payment-part>
         </ng-container>
     </div>

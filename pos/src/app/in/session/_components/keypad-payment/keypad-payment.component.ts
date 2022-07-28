@@ -36,7 +36,7 @@ export class OrderKeypadPaymentComponent implements OnInit {
   @Output() customer_change : any = new EventEmitter();
   @Input() item : number;
   @Input() customer_name : string;
-  @Input() back_button = "commande";
+  @Input() back_button = "order";
   @Input() disabled_key : any;
 
   ngOnInit(): void {
@@ -56,6 +56,7 @@ export class OrderKeypadPaymentComponent implements OnInit {
   }
 
   getPosLineDisplay(value: string){
+      console.log('###########');
     this.onDisplayDetails.emit(value);
   }
 

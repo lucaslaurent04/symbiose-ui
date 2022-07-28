@@ -2,7 +2,7 @@ import { Component, OnInit, AfterViewInit, Input, Output, EventEmitter, ChangeDe
 import { FormControl } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService, ContextService, TreeComponent } from 'sb-shared-lib';
-import { Order, OrderPayment, OrderPaymentPart, OrderLine } from '../../payments.model';
+import { Order, OrderPayment, OrderPaymentPart, OrderLine, Customer } from '../../payments.model';
 import { SessionOrderPaymentsPaymentPartComponent } from './part/payment-part.component';
 import { SessionOrderPaymentsOrderLineComponent } from './line/order-line.component';
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
@@ -23,13 +23,15 @@ interface OrderPaymentComponentsMap {
 export class SessionOrderPaymentsOrderPaymentComponent extends TreeComponent<OrderPayment, OrderPaymentComponentsMap> implements OnInit, AfterViewInit  {
     // servel-model relayed by parent
     @Input() set model(values: any) { this.update(values) }
+    @Input() customer: Customer;
+
     @Output() updated = new EventEmitter();
     @Output() deleted = new EventEmitter();
     @Output() validated = new EventEmitter();
     @Output() updatedQty = new EventEmitter();
-    @Output() selectedPaymentPart = new EventEmitter();
-    @Output() selectedOrderLine = new EventEmitter();
-    @Input() customer = '';
+    @Output() selectedPaymentPartIndex = new EventEmitter();
+    @Output() displayPaymentProducts = new EventEmitter();
+
     @ViewChildren(SessionOrderPaymentsPaymentPartComponent) SessionOrderPaymentsPaymentPartComponents: QueryList<SessionOrderPaymentsPaymentPartComponent>; 
     @ViewChildren(SessionOrderPaymentsOrderLineComponent) SessionOrderPaymentsOrderLineComponents: QueryList<SessionOrderPaymentsOrderLineComponent>; 
 
@@ -90,6 +92,14 @@ export class SessionOrderPaymentsOrderPaymentComponent extends TreeComponent<Ord
         // this.cd.detectChanges();
     }
 
+    public canAddPart() {
+        return ( this.instance.total_due > 0 &&  this.instance.total_paid < this.instance.total_due && this.instance.status != 'paid');
+    }
+
+    public canValidate() {
+        return ( this.instance.total_due > 0 && this.instance.total_paid >= this.instance.total_due && this.instance.status != 'paid');
+    }
+
     public async onclickDelete() {
         await this.api.update((new Order()).entity, [this.instance.order_id], {order_payments_ids: [-this.instance.id]});
         this.deleted.emit();
@@ -107,8 +117,6 @@ export class SessionOrderPaymentsOrderPaymentComponent extends TreeComponent<Ord
 
     public async onvalidate(paymentPart : any) {
         this.paymentPart = paymentPart;
-        // relay to parent component
-        this.validated.emit(paymentPart);
     }
 
     public async ondeleteLine(line_id:number) {
@@ -123,12 +131,7 @@ export class SessionOrderPaymentsOrderPaymentComponent extends TreeComponent<Ord
     }
 
     public onDisplayProducts() {
-        
-    }
-
-    public onSelectedOrderLine(index : number){   
-        this.index = index;
-        this.selectedOrderLine.emit(index);
+        this.displayPaymentProducts.emit();
     }
 
     public async setNewLineValue(digits : number){
@@ -148,9 +151,6 @@ export class SessionOrderPaymentsOrderPaymentComponent extends TreeComponent<Ord
                 this.changeQuantity(line);
             }
         });
-        
-        
-
     }
 
     public selectLine(index:number){
@@ -159,13 +159,13 @@ export class SessionOrderPaymentsOrderPaymentComponent extends TreeComponent<Ord
     }
 
     public onSelectedPaymentPart(index : number){
-        this.selectedPaymentPart.emit(index);
+        this.selectedPaymentPartIndex.emit(index);
     }
 
     public async onConfirmOrderPayment(){
-        await this.api.update(this.instance.entity, [this.instance.id], {  status: 'paid' });
-        this.updated.emit();
-
+        this.api.update(this.instance.entity, [this.instance.id], {  status: 'paid' });
+        this.instance.status = 'paid';
+        this.validated.emit();
     }
 
     public async changeQuantity(line : any){

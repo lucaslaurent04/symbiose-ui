@@ -1,6 +1,6 @@
 .pos-pad {
 
-    padding: 5px 12px 24px 12px;
+    padding: 5px 5px 24px 5px;
     height: max-content;
     background-color: #F5F5F5;
     display: flex;
@@ -42,7 +42,7 @@
         display: flex;
         justify-content: center;
         width: max-content;
-        .details-paiement{              
+        .details-payment{              
             display: grid;
             grid-template-columns: repeat(1, 100px);
             grid-template-rows: max-content; 
@@ -58,7 +58,7 @@
                 color: white;
                 background-color: var(--mdc-theme-secondary) !important;
             }
-            
+
             p {
                 margin: 0;
             }
@@ -87,7 +87,7 @@
 
             }
 
-            .paiement{
+            .payment{
                 display: flex;
                 justify-content: space-evenly;
                 flex-direction: column;
@@ -95,7 +95,7 @@
                 background-color: lightgray;
             }
 
-            .paiement.payment-button {
+            .payment.payment-button {
                 height: calc(100% - 2px);
             }
         }

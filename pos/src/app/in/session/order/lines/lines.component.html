@@ -16,32 +16,36 @@
                     <div class="order">
                         <h2>Commande</h2>
                         <div class="total">
-                            <span class="totalNumber"> Total : {{instance.price}} </span>
-                            <span class="taxes"> Taxes : {{calcTaxes()}} </span>
+                            <span class="total"> Total : {{ instance.price | number : '1.2-2' }}€ </span>
+                            <span class="taxes"> Taxes : {{ taxes | number : '1.2-2'}}€ </span>
                         </div>
                     </div>
                     <div *ngIf="session.status != 'pending'">Cette session n'est plus active.</div>
-                    <div *ngIf="session.status == 'pending'">
-                        <div [class.hidden]="current_pane !='discount'">
-                            <session-order-lines-discount-pane 
-                                [model]="selectedLine" 
-                                (selectField)="onSelectField($event)"
-                                (closePane)="switchPane('main')">
-                            </session-order-lines-discount-pane>
+                    <ng-container *ngIf="session.status == 'pending'">
+                        <div class="products">
+                            <div [class.hidden]="current_pane !='discount'">
+                                <session-order-lines-discount-pane 
+                                    [model]="selectedLine" 
+                                    (selectField)="onSelectField($event)"
+                                    (closePane)="switchPane('main')">
+                                </session-order-lines-discount-pane>
+                            </div>
+                            <div [class.hidden]="current_pane !='main'">
+                                <session-order-lines-orderline *ngFor="let line of instance.order_lines_ids; index as i"
+                                    [model]="line" 
+                                    [selected]="line.id == selectedLine?.id"                                
+                                    (updated)="onupdateLine()" 
+                                    (deleted)="ondeleteLine()"
+                                    (click)="onSelectLine(line)">
+                                </session-order-lines-orderline>
+                            </div>
                         </div>
-                        <div [class.hidden]="current_pane !='main'">
-                            <session-order-lines-orderline *ngFor="let line of instance.order_lines_ids; index as i"
-                                [model]="line" 
-                                [selected]="line.id == selectedLine?.id"                                
-                                (updated)="onupdateLine()" 
-                                (deleted)="ondeleteLine()"
-                                (click)="onSelectLine(line)">
-                            </session-order-lines-orderline>
-                        </div>
-                    </div>
+                    </ng-container>
                 </div>
                 <div class="pad">
-                    <order-keypad-lines [customer_name]="customer_name" 
+                    <order-keypad-lines 
+                        [customer_name]="customer_name" 
+                        [back_button]="'payment'"
                         (onDisplayDetails)="onDisplayDetails($event)" 
                         (onKeyPressed)="onPadPressed($event)"
                         (onInvoice)="onGetInvoice($event)" 

@@ -2,94 +2,136 @@
     <mat-spinner></mat-spinner>
 </div>
 <div class="header-wrap">
-    <div class="header">Session › {{session.name}} <small>{{session.id}}</small> › Commandes en cours </div>
+    <div class="header">Session › {{session.name}} <small>{{session.id}}</small> › <a [attr.href]="'#/session/'+session.id+'/orders'">Commandes en cours</a></div>
     <div style="display: flex; align-items: center;">
         <app-close></app-close>
     </div>
 </div>
 <div class="pos-body" #fullScreen>
     <div style="display: flex;">
-        <div class="container" *ngIf="ready">
+
+        <div class="left-pane" *ngIf="ready">
             <div class="body">
+                <div class="body-overlay" *ngIf="is_validated"></div>
                 <div class="view">
+
                     <div class="order">
-                        <div style="display: flex; justify-content: center; align-items: center;">
-                            <h2>Paiements</h2> <button mat-mini-fab color="accent"
-                                (click)="onclickCreateNewPayment()">
-                                <mat-icon>add</mat-icon>
-                            </button>
+                        <h2>Paiements</h2>
+                        <button *ngIf="canAddPayment()" mat-mini-fab color="accent" (click)="onclickCreateNewPayment()"><mat-icon>add</mat-icon></button>
+                        <div class="total">
+                            <span class="total"> Total: {{instance.total | number : '1.2-2'}}€</span>
+                            <span class="remaining"> Restant: {{instance.total - instance.total_paid | number : '1.2-2'}}€</span>
                         </div>
-                        <p><b> TOTAL: {{instance.total}}</b></p>
                     </div>
+
                     <div *ngIf="session.status != 'pending'">Cette session n'est plus active.</div>
-                    <div *ngIf="session.status == 'pending'">
-                        <div style="min-height: 35vh; overflow: auto; max-height: 42vh; overflow: auto;">
-                            <ng-container *ngFor="let payment of instance.order_payments_ids; index as i">
-                                <session-order-payments-order-payment (click)="onClickLine(i)" [model]="payment"
-                                    (updated)="onupdatePayment(payment.id)" (updatedQty)="onupdateQty()" (deleted)="ondeletePayment(payment.id)"
-                                    (validated)="makePayment($event)" (selectedPaymentPart)="selectedPaymentPart = $event"
-                                    (selectedOrderLine)="selectedOrderLine = $event" [customer]="customer">
-                                </session-order-payments-order-payment>
-                            </ng-container>
+                    <ng-container *ngIf="session.status == 'pending'">
+                        <div class="payments">
+                            <session-order-payments-order-payment  
+                                *ngFor="let payment of instance.order_payments_ids; index as index"
+                                [model]="payment"
+                                [customer]="instance.customer_id"
+                                (click)="onclickPayment(index)"
+                                (updated)="onupdatePayment(payment.id)" 
+                                (updatedQty)="onupdateQty()" 
+                                (deleted)="ondeletePayment(payment.id)"
+                                (validated)="onvalidatePayment(index)" 
+                                (selectedPaymentPartIndex)="selectedPaymentPartIndex = $event"
+                                (displayPaymentProducts)="onclickProductsList(index)">
+                            </session-order-payments-order-payment>
                         </div>
-                    </div>
+
+                        <div class="order-lines" *ngIf="show_products">
+                            <div *ngFor="let line of instance.order_payments_ids[selectedPaymentIndex].order_lines_ids; index as i;" 
+                            style="display: flex; align-items: center; width: 100%; justify-content: space-around;">
+                                <div>{{line.name}}</div>
+                                <div>{{line.unit_price | number : '1.2-2'}}€</div>                                
+                                <div>{{line.qty}}</div>
+                                <div>{{line.total | number : '1.2-2'}}€</div>
+                            </div>
+                            <div class="close-button"><button mat-icon-button (click)="show_products = false"><mat-icon>close</mat-icon></button></div>
+                        </div>
+                    </ng-container>
+
+
                 </div>
                 <div class="pad">
-                    <order-keypad-payment (onGetInvoice)="onGetInvoice($event)" [disabled_key]="disabled_key" [back_button]="back_button" (onDisplayDetails)="onDisplayDetails($event)"
-                        (onDigitTyped)="onDigitTyped($event)" (onTypeMode)="typeMode = $event"
-                        [customer_name]="customer_name" (customer_change)="customer_change($event)">
+                    <order-keypad-payment 
+                        [customer_name]="instance.customer_id.name"                     
+                        [back_button]="'order'"
+                        [disabled_key]="['+']"
+                        (onGetInvoice)="onclickInvoice($event)" 
+                        (onDigitTyped)="onDigitTyped($event)" 
+                        (onDisplayDetails)="onDisplayDetails($event)" 
+                        (onTypeMode)="typeMode = $event"
+                        (customer_change)="customer_change($event)">
                     </order-keypad-payment>
                 </div>
             </div>
         </div>
-        <div style="width: 100%;">
-            <mat-tab-group animationDuration="0ms" mat-align-tabs="end" [backgroundColor]="'primary'">
-                <mat-tab label="OrderLines" style="width: 100%;"> 
+
+        <div class="right-pane">
+
+            <mat-tab-group animationDuration="0ms" mat-align-tabs="end" [backgroundColor]="'primary'" [disablePagination]="true" [selectedIndex]="selectedTabIndex">
+
+                <mat-tab label="Produits">                    
+                    <div style="display: flex; align-items: center; height: 56px;">
+                        
+                        <div style="display: flex; align-items: center; margin-left: 10px">
+                            <button [disabled]="!selection?.selected.length" mat-icon-button color="accent" (click)="onclickAddProoduct()"><mat-icon>add</mat-icon></button>
+                            <button mat-icon-button color="accent"><mat-icon>remove</mat-icon></button>
+                        </div>
+                        
+                        <mat-form-field appearance="standard" class="filter-input">
+                            <mat-label>Rechercher</mat-label>
+                            <input matInput (keyup)="applyFilter($event)" placeholder="Ex. boisson" #input>
+                        </mat-form-field>                    
+
+                    </div>
+
                     <table mat-table [dataSource]="dataSource" class="mat-elevation-z8" style="width: 100%;">
                         <!-- Checkbox Column -->
-                        <ng-container matColumnDef="select">
-                        <th mat-header-cell *matHeaderCellDef>
-                            <mat-checkbox (change)="$event ? toggleAllRows() : null"
-                                        [checked]="selection?.hasValue() && isAllSelected()"
-                                        [indeterminate]="selection?.hasValue() && !isAllSelected()"
-                                        [aria-label]="checkboxLabel()">
-                            </mat-checkbox>
-                        </th>
-                        <td mat-cell *matCellDef="let row">
-                            <mat-checkbox (click)="$event?.stopPropagation();"
-                                        (change)="$event ? selection.toggle(row) : null"
-                                        [checked]="selection?.isSelected(row)"
-                                        [aria-label]="checkboxLabel(row)">
-                            </mat-checkbox>
-                        </td>
+                        <ng-container matColumnDef="select">                            
+                            <th mat-header-cell *matHeaderCellDef>
+                                <mat-checkbox 
+                                    (change)="$event ? toggleAllRows() : null"
+                                    [checked]="selection?.hasValue() && isAllSelected()"
+                                    [indeterminate]="selection?.hasValue() && !isAllSelected()">
+                                </mat-checkbox>
+                            </th>
+                            <td mat-cell *matCellDef="let row">
+                                <mat-checkbox 
+                                    (click)="$event?.stopPropagation();"
+                                    (change)="$event ? selection.toggle(row) : null"
+                                    [checked]="selection?.isSelected(row)">
+                                </mat-checkbox>
+                            </td>
                         </ng-container>
 
                         <ng-container matColumnDef="name">
                             <th mat-header-cell *matHeaderCellDef> Nom </th>
                             <td mat-cell *matCellDef="let element"> {{element.name}} </td>
                         </ng-container>
-                    
-                        <!-- Position Column -->
-                        <ng-container matColumnDef="price">
-                        <th mat-header-cell *matHeaderCellDef> Prix </th>
-                        <td mat-cell *matCellDef="let element"> {{element.total}} </td>
-                        </ng-container>
-                    
-                        <!-- Name Column -->
+
                         <ng-container matColumnDef="qty">
-                        <th mat-header-cell *matHeaderCellDef> Quantité </th>
-                        <td mat-cell *matCellDef="let element"> {{element.qty}} </td>
+                            <th mat-header-cell *matHeaderCellDef> Quantité </th>
+                            <td mat-cell *matCellDef="let element"> {{element.qty}} </td>
                         </ng-container>
-                    
-                
-                        <tr mat-header-row *matHeaderRowDef="['select', 'name', 'price', 'qty']"></tr>
-                        <tr mat-row *matRowDef="let row; columns: ['select', 'name', 'price', 'qty'];"
-                            (click)="selection.toggle(row)">
-                        </tr>
+
+                        <ng-container matColumnDef="price">
+                            <th mat-header-cell *matHeaderCellDef> Prix </th>
+                            <td mat-cell *matCellDef="let element"> {{element.total | number : '1.2-2'}}€</td>
+                        </ng-container>
+
+                        <tr mat-header-row *matHeaderRowDef="['select', 'name', 'qty', 'price']"></tr>
+                        <tr mat-row *matRowDef="let row; columns: ['select', 'name', 'qty', 'price'];"(click)="selection.toggle(row)"></tr>
                     </table>
-                
+
+                    <div class="validate-button" *ngIf="instance.price <= instance.total_paid"><button mat-flat-button color="accent" (click)="onclickValidate()">Finaliser</button></div>
+
                 </mat-tab>
-                <mat-tab label="Ticket" class="ticket" style="height:  100vh !important;">  
+
+                <mat-tab label="Ticket" class="ticket" [disabled]="!is_validated">
                     <div class="ticket">
                         <button (click)="onPrint()" mat-raised-button [color]="'primary'"
                         style="padding: 0.25rem; display: flex; align-items: center; justify-content: center; margin-top: 12px; margin-bottom: 12px; font-size: 1.2rem;">
@@ -97,10 +139,11 @@
                         </button>
                         <!-- <button (click)="makePayment()" mat-raised-button [color]="'primary'" style="width: 100%;"> Payer </button> -->
                         <app-ticket [invoice]="invoice"></app-ticket>
-                    </div> 
+                    </div>
                 </mat-tab>
-                
+
             </mat-tab-group>
         </div>
+
     </div>
 </div>

@@ -55,9 +55,11 @@ export class SessionOrdersComponent implements OnInit, AfterViewInit {
                     this.session = <CashdeskSession> result[0];
                     try {
                         const result:any = await this.api.collect(Order.entity, [
-                            ['id', 'in', this.session.orders_ids],
-                            ['status', '=', 'pending']
-                        ], ['customer_id.name', ...Object.getOwnPropertyNames(new Order())]);
+                                ['session_id', '=', id],
+                                ['status', '<>', 'paid']
+                            ],
+                            ['customer_id.name', ...Object.getOwnPropertyNames(new Order())]
+                        );
                         if(result && result.length) {
                             this.orders = result;
                         }

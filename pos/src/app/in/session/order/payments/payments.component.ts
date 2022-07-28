@@ -26,34 +26,29 @@ interface OrderComponentsMap {
 export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderComponentsMap> implements RootTreeComponent, OnInit, AfterViewInit {
     @ViewChildren(SessionOrderPaymentsOrderPaymentComponent) SessionOrderPaymentsOrderPaymentComponents: QueryList<SessionOrderPaymentsOrderPaymentComponent>;
     // @ViewChildren(SessionOrderLinesComponent) SessionOrderLinesComponents: QueryList<SessionOrderLinesComponent>;
-    @ViewChildren(TicketComponent) TicketComponent: QueryList<TicketComponent>;
-
-    public back_button = "commande";
+    @ViewChild(TicketComponent) ticketComponent: TicketComponent;
 
     public ready: boolean = false;
-    public posLineDisplay: any;
     public typeMode: any;
     public amount: any;
     public digits: any;
 
-    public index: number;
-    public selectedPaymentPart: number;
-    public selectedOrderLine: number;
-    public currentOrder: any;
+    public selectedPaymentIndex: number;    
+    public selectedPaymentPartIndex: number;
+    public selectedTabIndex: number = 0;
+
     public focus: string;
+
+    public show_products: boolean = false;
+    public is_validated: boolean = false;
 
     public due: number;
     public change: any;
     public session: CashdeskSession = new CashdeskSession();
 
-    public ticket : any;
-    public customer_name : string;
-    public disabled_key= ["+"];
-    public customer : any;
-
     public orderLines : any;
     public orderPayment : any;
-    public order : any;
+
     public dataSource : any;
     public selection : any;
     public invoice : any;
@@ -78,8 +73,14 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
         this.componentsMap = map;
     }
 
-    public onGetInvoice(invoice : any){
+    public onclickInvoice(invoice : any){
         this.invoice = invoice;
+    }
+
+    public onclickValidate() {
+        // enable ticket pane and switch to it
+        this.is_validated = true;
+        this.selectedTabIndex = 1;
     }
 
     public ngOnInit() {
@@ -89,39 +90,8 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
             if (params && params.hasOwnProperty('session_id') && params.hasOwnProperty('order_id')) {
                 try {
                     await this.loadSession(<number>params['session_id']);
-                    let order = await this.load(<number>params['order_id']);
+                    await this.load(<number>params['order_id']);
                     this.ready = true;
-                    this.currentOrder = this.instance;
-                    this.orderLines = await this.api.collect('sale\\pos\\OrderLine', [[['order_id', '=', this.instance.id], ['order_payment_id', '=', 0]],[['order_id', '=', this.instance.id], ['order_payment_id', '=', null]] ], ['funding_id', 'has_funding', 'qty', 'price', 'total', 'order_payment_id']);
-                    // let orderPayments = await this.api.collect('sale\\pos\\OrderPayment', [['order_id', '=', this.instance.id]], ['funding_id', 'has_funding']);
-                    // for(let i = 0; i < this.orderLines.length; i++){
-                    //     if(this.orderLines[i].order_payment_id == orderPayments[orderPayments.length-1].id){
-                    //         await this.api.update('sale\\pos\\OrderLine',[this.orderLines[i].id], {
-                    //             order_payment_id : 0
-                    //         });
-                    //     }
-                    // }
-                    this.dataSource = new MatTableDataSource(this.orderLines);
-                    this.selection = new SelectionModel(true, []);
-                    this.selection.changed.subscribe(async (s:any) =>
-                    {
-                        let orderPayments = await this.api.collect('sale\\pos\\OrderPayment', [['order_id', '=', this.instance.id]], ['funding_id', 'has_funding']);
-
-                        for(let i = 0; i < this.orderLines.length; i++){
-                            if(this.orderLines[i].order_payment_id == orderPayments[orderPayments.length-1].id){
-                                await this.api.update('sale\\pos\\OrderLine',[this.orderLines[i].id], {
-                                    order_payment_id : 0
-                                });
-                            }
-                        }
-                        console.log(s.source.selected)
-                        for(let i = 0; i < s.source.selected.length; i++){
-                            await this.api.update('sale\\pos\\OrderLine',[s.source.selected[i].id], {
-                                order_payment_id : orderPayments[orderPayments.length-1].id
-                            });
-                        }
-                    }
-                );
                 }
                 catch (error) {
                     console.warn(error);
@@ -129,7 +99,6 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
             }
         });
 
-        this.ticket = this.TicketComponent?.toArray()[0]
     }
 
     private async loadSession(session_id: number) {
@@ -137,7 +106,7 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
             try {
                 const result: any = await this.api.read(CashdeskSession.entity, [session_id], Object.getOwnPropertyNames(new CashdeskSession()));
                 if (result && result.length) {
-                    this.session = <CashdeskSession>result[0];
+                    this.session = <CashdeskSession> result[0];
                 }
             }
             catch (response) {
@@ -154,13 +123,14 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
     async load(order_id: number) {
         if (order_id > 0) {
             try {
-                this.order = await this.api.fetch('/?get=sale_pos_order_tree', { id: order_id, variant: 'payments' });
-                this.customer_name= this.order.customer_id.name;
-                this.customer = this.order.customer_id;
-                if (this.order) {
-                    this.update(this.order);
+                const data = await this.api.fetch('/?get=sale_pos_order_tree', { id: order_id, variant: 'payments' });
+                if (data) {
+                    this.update(data);
                 }
-                return this.order;
+                // fetch order lines (ordered products that haven't been paid yet)
+                this.orderLines = await this.api.collect('sale\\pos\\OrderLine', [[['order_id', '=', this.instance.id], ['order_payment_id', '=', 0]],[['order_id', '=', this.instance.id], ['order_payment_id', '=', null]] ], ['funding_id', 'has_funding', 'qty', 'price', 'total', 'order_payment_id'], 'id', 'asc', 0, 100);
+                this.dataSource = new MatTableDataSource(this.orderLines);
+                this.selection = new SelectionModel(true, []);
             }
             catch (response) {
                 console.log(response);
@@ -174,7 +144,6 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
      * @param values
      */
     public update(values: any) {
-        this.currentOrder = this.instance;
         super.update(values);
     }
 
@@ -185,71 +154,99 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
     }
 
     public async onupdatePayment(line_id: number) {
-
-
-        // Refresh the orderLines to pay
-        let orderLine = await this.api.collect('sale\\pos\\OrderLine', [[['order_id', '=', this.instance.id], ['order_payment_id', '=', 0]],[['order_id', '=', this.instance.id], ['order_payment_id', '=', null]] ], ['funding_id', 'has_funding', 'qty', 'price', 'total', 'order_payment_id']);
-        this.dataSource = new MatTableDataSource(orderLine);
-
         // a line has been removed: reload tree
         await this.load(this.instance.id);
         this.updateTicket();
-
     }
 
     public async onupdateQty() {
-
         // a line has been removed: reload tree
-        this.orderLines = await this.api.collect('sale\\pos\\OrderLine', [[['order_id', '=', this.instance.id], ['order_payment_id', '=', 0]],[['order_id', '=', this.instance.id], ['order_payment_id', '=', null]] ], ['funding_id', 'has_funding', 'qty', 'price', 'total', 'order_payment_id']);
-
-        console.log(this.orderLines)
-        this.dataSource = new MatTableDataSource(this.orderLines);
-
         this.load(this.instance.id);
         this.updateTicket();
     }
 
-    public async onclickCreateNewPayment() {
-        let orderLines : any = await this.api.collect('sale\\pos\\OrderLine', [['order_id', '=', this.instance.id], ['has_funding', '=', true]], ['funding_id', 'has_funding','order_payment_id']);
+    public canAddPayment() {
+        if(this.instance.order_payments_ids.length) {
+            // if the latest payment is not done, deny
+            if(this.instance.order_payments_ids[this.instance.order_payments_ids.length-1].status != 'paid') {
+                return false;
+            }
+            // if sum of payment has reached due amount, deny
+            if(this.instance.total_paid >= this.instance.price) {
+                return false;
+            }
+        }        
+        return true;
+    }
 
-        // Add new payment if the previous one is paid
-        if(this.order.order_payments_ids[this.order.order_payments_ids.length-1]?.status == 'paid' || this.order.order_payments_ids.length == 0){
-            this.orderPayment = await this.api.create((new OrderPayment()).entity, { order_id: this.instance.id, funding_id: orderLines[0]?.funding_id, has_funding : true });
+    /** 
+     * Handler for payment-add button.
+     * Adds a new payment only if all payments are paid and there is some due amount left.
+     */ 
+    public async onclickCreateNewPayment() {
+
+        // check consistency       
+        if(!this.canAddPayment()) {
+            return;
         }
 
+        this.orderPayment = await this.api.create((new OrderPayment()).entity, { order_id: this.instance.id });
 
-
+        // reload the Tree
         await this.load(this.instance.id);
+    }
 
-        // to improve resets table
+    public async onclickAddProoduct() {
 
-        this.orderLines = await this.api.collect('sale\\pos\\OrderLine', [[['order_id', '=', this.instance.id], ['order_payment_id', '=', 0]],[['order_id', '=', this.instance.id], ['order_payment_id', '=', null]] ], ['funding_id', 'has_funding', 'qty', 'price', 'total', 'order_payment_id']);
+        // retrieve selected ids
+        const order_lines_ids: number[] = this.selection.selected.map( (a:any) => a.id);
 
-        this.dataSource = new MatTableDataSource(this.orderLines);
+        // if there is no payment yet: create one
+        if(!this.instance.order_payments_ids.length) {
+            await this.onclickCreateNewPayment();
+        }
 
+        let orderPayment = this.instance.order_payments_ids[this.instance.order_payments_ids.length-1];
+
+        // if current (latest) payment is already paid, create a new payment
+        if(orderPayment.status == 'paid') {
+            await this.onclickCreateNewPayment();
+            orderPayment = this.instance.order_payments_ids[this.instance.order_payments_ids.length-1];
+        }
+
+        // add selected product to the current (latest) payment
+        await this.api.update('sale\\pos\\OrderPayment', [orderPayment.id], {order_lines_ids: order_lines_ids});
+
+        // remove added items from product list
+        const remainingOrderLines: any[] = this.dataSource.data.filter( (a:any) => (order_lines_ids.indexOf(a.id) < 0) );
+        this.dataSource = new MatTableDataSource(remainingOrderLines);
+
+        // reload the Tree
+        await this.load(this.instance.id);
     }
 
     public updateTicket(){
-        this.ticket = this.TicketComponent.toArray()[0]
-        this.ticket.load();
+        this.ticketComponent.load();
     }
 
-    public onClickLine(index: number) {
-        this.index = index;
-        // this.price = this.componentsMap.order_lines_ids._results[this.index].instance.unit_price;
-        // this.quantity = this.componentsMap.order_lines_ids._results[this.index].instance.qty;
-        // this.discountValue = this.componentsMap.order_lines_ids._results[this.index].instance.free_qty;
-        // this.instanceElement = {...this.instance.order_lines_ids[this.index]};
+    public onclickPayment(index: number) {
+        this.selectedPaymentIndex = index;
+    }
+
+    public onDisplayDetails(value: any) {
+        // this.current_pane = value;
+        let newRoute = this.router.url.replace('payments', 'lines');
+        this.router.navigateByUrl(newRoute);
     }
 
     public async onDigitTyped(value: any) {
-        
+
         let children = this.componentsMap.order_payments_ids.toArray();
-        let child = children[this.index];
+        let child = children[this.selectedPaymentIndex];
         let productAmount = child;
         if (child.display != "products") {
 
-            child = child?.SessionOrderPaymentsPaymentPartComponents.toArray()[this.selectedPaymentPart];
+            child = child?.SessionOrderPaymentsPaymentPartComponents.toArray()[this.selectedPaymentPartIndex];
 
             let payment_method = child?.payment_method.value;
 
@@ -257,7 +254,8 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
             this.focus = child?.focused;
             if (this.digits?.toString()?.includes('.') && this.digits[this.digits.length - 1] == ".") {
                 this.digits = child?.instance[child.focused] + ".";
-            } else {
+            }
+            else {
                 this.digits = child?.instance[child.focused]
             }
 
@@ -267,19 +265,22 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
                 value = parseInt(value);
                 this.digits = parseFloat(this.digits);
                 this.digits += value;
-            } else if (value == "," && this.focus != "voucher_ref") {
+            }
+            else if (value == "," && this.focus != "voucher_ref") {
                 if (!this.digits?.includes('.')) {
                     this.digits += ".";
                     console.log(this.digits)
                 }
-            } else if (value == 'backspace') {
+            }
+            else if (value == 'backspace') {
                 // On enlève deux éléments (chiffre et virgule) si la valeur est une virgule
                 let test = this.digits?.slice(0, -1);
                 if (test?.slice(-1) == '.') test = test?.slice(0, -1);
                 this.digits = test;
                 // On met la valeur à 0, lorsqu'il n'y a plus de chiffre
                 if (this.digits == "") this.digits = 0;
-            } else if (value != 'backspace' && value != ',' && value != '+/-') {
+            }
+            else if (value != 'backspace' && value != ',' && value != '+/-') {
                 this.digits += value;
             }
             child?.update({ payment_method: payment_method });
@@ -287,27 +288,23 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
                 this.digits = 0;
                 this.digits += value;
                 productAmount.setNewLineValue(parseFloat(this.digits));
-            }else if (child.focused == "amount") {
+            }
+            else if (child.focused == "amount") {
                 child.update({ amount: parseFloat(this.digits) });
                 // .toFixed(2)
-                await child.onchangeAmount();
-            } else if (child.focused == "booking_id") {
+                // await child.onchangeAmount();
+            }
+            else if (child.focused == "booking_id") {
                 // child.update({booking_id: this.digits});
                 // await child.onchangeBookingId();
-            } else if (child.focused == "voucher_ref") {
+            }
+            else if (child.focused == "voucher_ref") {
                 child.update({ voucher_ref: parseFloat(this.digits) })
                 await child.onchangeVoucherRef();
             }
 
-            this.currentOrder = this.instance;
             this.updateTicket();
         }
-    }
-
-    public onDisplayDetails(value: any) {
-        this.posLineDisplay = value;
-        let newRoute = this.router.url.replace('payments','lines');
-        this.router.navigateByUrl(newRoute);
     }
 
     public async onPrint() {
@@ -327,37 +324,19 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
     public getDiscountValue(event: any) {
     }
 
+    public async onvalidatePayment(index : number) {
+        console.log('############ onvalidatePayment');
+        console.log(this.instance.order_payments_ids, index);
+        this.instance.order_payments_ids[index].status = 'paid';
+        // this.load(this.instance.id);
+    }
+
+// #todo
     public async makePayment(paymentPart : any) {
+        console.log(' makePayment', paymentPart);
+        return;
         let orderPayments = await this.api.collect('sale\\pos\\OrderPayment', [['order_id', '=', this.instance.id]], ['funding_id', 'has_funding']);
-        this.orderLines = await this.api.collect('sale\\pos\\OrderLine', [[['order_id', '=', this.instance.id], ['order_payment_id', '=', orderPayments[orderPayments.length-1].id]]], ['funding_id', 'has_funding', 'qty', 'total', 'order_payment_id']);
-
-        // let fundings = await this.api.collect('sale\\pos\\OrderLine', [['order_id', '=', this.instance.id], ['has_funding', '=', 'true']], ['funding_id', 'has_funding']);
-
-
-        // for(let i = 0; i < this.order.order_payments_ids.length; i++){
-        //     if(this.order.order_payments_ids[i].status == 'paid'){
-        //         for (let y = 0; y < this.order.order_payments_ids[i].order_lines_ids; y++){
-
-        //         }
-        //     }
-        // }
-
-
-        // for(let i = 0; i < this.orderLines.length; i++){
-        //     if(this.orderLines[i].order_payment_id == this.orderPayment.id){
-        //         await this.api.update('sale\\pos\\OrderLine',[this.orderLines[i].id], {
-        //             order_payment_id : 0
-        //         });
-        //     }
-        // }
-
-
-        // for(let i = 0; i < this.selection._selected.length; i++){
-        //     await this.api.update('sale\\pos\\OrderLine',[this.selection._selected[i].id], {
-        //         order_payment_id : orderPayments[orderPayments.length-1].id
-        //     });
-        // }
-
+        
         await this.load(this.instance.id);
         await this.api.fetch('?do=lodging_order_do-pay', {id : this.instance.id });
 
@@ -371,27 +350,32 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
         this.load(this.instance.id);
     }
 
-    isAllSelected() {
+    public isAllSelected() {
         const numSelected = this.selection?.selected.length;
         const numRows = this.dataSource?.data.length;
         return numSelected === numRows;
     }
 
-      /** Selects all rows if they are not all selected; otherwise clear selection. */
-    toggleAllRows() {
-    if (this.isAllSelected()) {
-        this.selection.clear();
-        return;
+    /**
+     * Selects all rows if they are not all selected; otherwise clear selection. 
+     * 
+     */
+    public toggleAllRows() {
+        if (this.isAllSelected()) {
+            this.selection.clear();
+            return;
+        }
+
+        this.selection.select(...this.dataSource.data);
     }
 
-    this.selection.select(...this.dataSource.data);
+    public applyFilter(event:any) {
+        const filterValue = (event.target as HTMLInputElement).value;
+        this.dataSource.filter = filterValue.trim().toLowerCase();    
     }
 
-    /** The label for the checkbox on the passed row */
-    checkboxLabel(row? : any) {
-    if (!row) {
-        return `${this.isAllSelected() ? 'deselect' : 'select'} all`;
-    }
-    return `${this.selection.isSelected(row) ? 'deselect' : 'select'} row ${row.position + 1}`;
+    public onclickProductsList(index: number) {
+        this.selectedPaymentIndex = index;
+        this.show_products = true;
     }
 }

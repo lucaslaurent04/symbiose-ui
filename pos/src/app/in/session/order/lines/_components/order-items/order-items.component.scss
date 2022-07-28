@@ -1,15 +1,17 @@
-:host ::ng-deep .mat-tab-labels{
-    height: 4.5rem;
-    font-size: 1.5rem;
-}
-:host ::ng-deep .mat-tab-label{
-    font-size: 1.5rem;
-    font-weight: 100;
-    height: 100%
-}
-section{
-    width: 100%; 
-}
-.mat-row.highlight {
-    background: #E0E0E0;
+:host {
+
+    ::ng-deep .mat-tab-labels {
+        height: 72px;
+        font-size: 1.5rem;
+    }
+
+    ::ng-deep .mat-tab-label {
+        font-size: 1.5rem;
+        font-weight: 100;
+        height: 100%
+    }
+    
+    .mat-row.highlight {
+        background: #E0E0E0;
+    }
 }

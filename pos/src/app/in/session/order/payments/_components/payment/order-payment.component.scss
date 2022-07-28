@@ -1,21 +1,24 @@
 :host {
     input::-webkit-outer-spin-button,
     input::-webkit-inner-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
+        -webkit-appearance: none;
+        margin: 0;
     }
 
     /* Firefox */
     input[type=number] {
-    -moz-appearance: textfield;
+        -moz-appearance: textfield;
     }
-    section{
-        border: 1px solid #3f51b5;
+
+    section {
+
         margin-top: 0.25rem;
-        .disabled{
+
+        .disabled {
             background-color: grey;
         }
-        .mat-mini-fab{
+
+        .mat-mini-fab {
             box-shadow: none;
             margin-left: 0.25rem;
             &::ng-deep .mat-button-wrapper{
@@ -23,38 +26,42 @@
             }
         }
         
-        .header{
+        .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin: 0.35rem;
+            height: 51px;
+            margin: 5px;
             border-bottom: 1px solid lightgray;
-            button{
-                margin: 0.4rem;
-            }
-            h2{
-                height: max-content;
+            
+
+            span {
+                font-weight: 600;
+                font-size: 20px;
             }
         }
+
         .row {
             display: flex;
             justify-content: space-evenly;
             align-items: center;
             width: 100%;
             text-align: center;
-            h3{
+
+            h3 {
                 flex: 1 1 10%;
+                font-size: 20px;
                 border-bottom: 1px solid lightgray;
             }
-            span{
+
+            span {
                 flex: 1 1 10%;
                 font-weight: bolder;
             }
+
             div {
                 flex: 1 1 10%;
-            }
-    
-            
+            }            
     
         }
     }

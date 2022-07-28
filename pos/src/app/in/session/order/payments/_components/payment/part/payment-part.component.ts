@@ -3,7 +3,7 @@ import { FormControl } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { ApiService, ContextService, TreeComponent } from 'sb-shared-lib';
-import { OrderPayment, OrderPaymentPart } from '../../../payments.model';
+import { OrderPayment, OrderPaymentPart, Customer } from '../../../payments.model';
 
 
 // declaration of the interface for the map associating relational Model fields with their components
@@ -19,11 +19,13 @@ interface OrderPaymentPartComponentsMap {
 export class SessionOrderPaymentsPaymentPartComponent extends TreeComponent<OrderPaymentPart, OrderPaymentPartComponentsMap> implements OnInit, AfterViewInit  {
     // servel-model relayed by parent
     @Input() set model(values: any) { this.update(values) }
+
+    @Input() customer: Customer;
+    @Input() payment: OrderPayment;
+
     @Output() updated = new EventEmitter();
     @Output() deleted = new EventEmitter();
     @Output() validated = new EventEmitter();
-    @Input() customer : any;
-
 
     public ready: boolean = false;
     public hasValidated = false;
@@ -37,6 +39,17 @@ export class SessionOrderPaymentsPaymentPartComponent extends TreeComponent<Orde
     public payment_method:FormControl = new FormControl();
     
 
+    public get partLabel():string {
+        const map: any = {
+            "cash":         "espèces",
+            "bank_card":    "carte",
+            "booking":      "réservation",
+            "voucher":      "voucher"
+        };
+        const value = this.payment_method.value;
+        return map.hasOwnProperty(value)?map[value]:'montant';
+    }
+
     constructor(
         private router: Router,
         private route: ActivatedRoute,
@@ -49,23 +62,28 @@ export class SessionOrderPaymentsPaymentPartComponent extends TreeComponent<Orde
 
 
     public ngAfterViewInit() {
-        this.componentsMap = {};
+        this.componentsMap = {};        
     }
 
     public async ngOnChanges(changes: SimpleChanges) {
-        //Called before any other lifecycle hook. Use it to inject dependencies, but avoid any serious work here.
-        //Add '${implements OnChanges}' to the class.
-        let orderPayment = await this.api.collect('sale\\pos\\OrderPayment', [['order_payment_parts_ids', 'contains',this.instance.id], ['status', '=', 'paid']], ['status']);
-        if(orderPayment.length > 0) this.hasValidated = true;
+        if(changes.hasOwnProperty('model')) {
+            // default to due_amount
+            if(this.instance.amount == 0) {
+                this.amount.setValue(this.payment.total_due-this.payment.total_paid);
+            }
+            if(this.payment.status == 'paid') {
+                this.hasValidated = true;
+            }
+            this.ready = true;
+        }
     }
 
     public async ngOnInit() {
-        
+        this.payment_method.setValue('cash');
         this.amount.valueChanges.subscribe( (value:number)  => this.instance.amount = value );
         this.payment_method.valueChanges.subscribe( (value:number)  => this.instance.payment_method = value );
         this.voucher_ref.valueChanges.subscribe( (value:number)  => this.instance.voucher_ref = value );
-        this.booking_id.valueChanges.subscribe( (value:number)  => this.instance.booking_id = value );
-        
+        this.booking_id.valueChanges.subscribe( (value:number)  => this.instance.booking_id = value );        
     }
 
 
@@ -85,11 +103,6 @@ export class SessionOrderPaymentsPaymentPartComponent extends TreeComponent<Orde
         this.deleted.emit();
     }
 
-    public async onchangeAmount() {
-        await this.api.update(this.instance.entity, [this.instance.id], {amount: this.instance.amount});
-        this.updated.emit();
-    }
-
     public async onchangePaymentMethod() {
         await this.api.update(this.instance.entity, [this.instance.id], {payment_method: this.instance.payment_method});
         this.updated.emit();
@@ -106,9 +119,11 @@ export class SessionOrderPaymentsPaymentPartComponent extends TreeComponent<Orde
     }
 
     public async validate(){
-        this.validated.emit(this.instance);
         this.hasValidated = true;
-
+        this.instance.amount = this.amount.value;
+        await this.api.update(this.instance.entity, [this.instance.id], {amount: this.instance.amount});    
+        this.validated.emit(this.instance);
+        this.updated.emit();
     }
 
     public displayBooking (item : any): string{

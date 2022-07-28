@@ -28,6 +28,10 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
 
     public invoice: boolean;
 
+    public get taxes () {
+        return Math.round( (this.instance.price - this.instance.total) * 100) / 100;
+    }
+
     // string values for handling pad actions and apply them on properties of the selected line
     public str_unit_price: string = '';
     public str_qty: string = '';
@@ -449,9 +453,6 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
         }
     }
 
-    public calcTaxes() {
-        return Math.round( (this.instance.price - this.instance.total) * 100) / 100;
-    }
 
     public async customer_change(event : any){
         await this.api.update(this.instance.entity, [this.instance.id], { customer_id: event.id });

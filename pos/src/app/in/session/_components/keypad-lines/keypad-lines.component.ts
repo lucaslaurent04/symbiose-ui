@@ -35,6 +35,7 @@ export class OrderKeypadLinesComponent implements OnInit {
     @Output() onTypeMode = new EventEmitter();
     @Output() customer_change : any = new EventEmitter();
     @Input() customer_name : string;
+    @Input() back_button = "payment";
 
     constructor(private dialog: MatDialog) { }
 

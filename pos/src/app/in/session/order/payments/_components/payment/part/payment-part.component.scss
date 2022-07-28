@@ -1,38 +1,36 @@
 :host {
     display: flex;
     width: 100%;
-    
-    section{
-        display: flex;
+    user-select: none;
         
-        mat-accordion {
-            width: 100%;
-            ::ng-deep .mat-expansion-panel-body {
-                display: flex;
-            }
-            mat-panel-description{
+    mat-accordion {
+        width: 100%;
+
+        ::ng-deep .mat-expansion-panel-body {
+            display: flex;
+            padding: 0 10px;
+        }
+
+        mat-expansion-panel-header {
+            padding: 0;
+            
+            mat-panel-description {
                 display: flex;
                 justify-content: space-between;
                 align-items: center;
-            }    
-            .line-header {
-                display: flex; 
-                margin-left: 20px;
-                
-                div {
-                    flex: 1 1 10%;
-                    text-align: left;
-                    font-weight: 500;    
-                }
+                padding-left: 10px;
+                margin-right: 0;
             }
         }
-        div {
-            margin: 0.25rem;
-        }
-        .selected{
-            background-color: #3f51b5;
-            color: white;
-        }
+    }
+
+    div {
+        margin: 0.25rem;
+    }
+
+    .selected{
+        background-color: #3f51b5;
+        color: white;
     }
     
 }

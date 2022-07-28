@@ -84,19 +84,58 @@
 
             .view {
                 height: 45vh;
-                overflow: auto;
                 width: 100%;
 
                 .order {
-                    background-color: #3f51b5;
                     display: flex;
                     justify-content: space-between;
                     align-items: center;
+                    height: 72px;
                     padding: 0.75rem;
-                    height: 4.5rem;
+                    background-color: #3f51b5;
 
                     h2 {
                         color: white;
+                    }
+
+                    .total {
+                        display: flex;
+                        flex-direction: column;
+                        margin-left: auto;
+
+                        @media only screen and (max-width: 1500px) {
+                            width: 100%;
+                        }
+
+                        .total {
+                            font-weight: bold;
+                            font-size: 1.25rem;
+                            overflow: auto;
+                            color: white;
+                        }
+
+                        .taxes {
+                            color: white;
+                        }
+                    }                    
+                }
+
+                .products {
+                    min-height: 35vh;
+                    overflow: auto;
+                    max-height: 42vh;
+                    overflow: auto;
+
+                    &::-webkit-scrollbar {
+                        width: 6px;
+                        overflow-y: scroll;
+                        background: transparent;
+
+                    }
+
+                    &::-webkit-scrollbar-thumb {
+                        background: var(--mdc-theme-primary, #6200ee);
+                        border-radius: 10px;
                     }
                 }
 
@@ -109,28 +148,7 @@
                     color: #3f51b5;
                 }
 
-                .total {
-                    display: flex;
-                    flex-direction: column;
-                    float: right;
-                    width: 25%;
-                    min-width: fit-content;
 
-                    @media only screen and (max-width: 1500px) {
-                        width: 100%;
-                    }
-
-                    .totalNumber {
-                        font-weight: bold;
-                        font-size: 1.25rem;
-                        overflow: auto;
-                        color: white;
-                    }
-
-                    .taxes {
-                        color: white;
-                    }
-                }
 
                 .orders-container {
                     .order-row {
