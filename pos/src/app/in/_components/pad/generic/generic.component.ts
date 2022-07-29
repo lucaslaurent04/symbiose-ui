@@ -2,11 +2,11 @@ import { Component, EventEmitter, Input, OnInit, Output } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
-    selector: 'pos-pad-generic',
+    selector: 'app-pad-generic',
     templateUrl: './generic.component.html',
     styleUrls: ['./generic.component.scss']
 })
-export class PosPadGenericComponent implements OnInit {
+export class AppPadGenericComponent implements OnInit {
     @Output() newItemEvent = new EventEmitter();
     @Output() keyPressed = new EventEmitter();
     @Input() disabled_key: any; 

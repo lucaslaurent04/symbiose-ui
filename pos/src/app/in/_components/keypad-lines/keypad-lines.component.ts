@@ -7,11 +7,11 @@ import { data } from 'jquery';
 
 
 @Component({
-    selector: 'order-keypad-lines',
+    selector: 'app-keypad-lines',
     templateUrl: './keypad-lines.component.html',
     styleUrls: ['./keypad-lines.component.scss']
 })
-export class OrderKeypadLinesComponent implements OnInit {
+export class AppKeypadLinesComponent implements OnInit {
 
     public products: any = [{ id: 1, price: "5", name: "Esteban", quantity: "1.00", discount: "" }, { id: 2, price: "7.5", name: "Graccus", quantity: "1.00", discount: "" }];
     public selectedProduct = 0;
@@ -77,7 +77,7 @@ export class OrderKeypadLinesComponent implements OnInit {
     onSelectedProductChange(element: any) {
         this.selectedProduct = element[0].value;
         // Products infos
-        const dialogRef = this.dialog.open(PosOpening, {
+        const dialogRef = this.dialog.open(PosOpeningDialog, {
             data: this.selectedProduct
         });
         dialogRef.afterClosed().subscribe(
@@ -125,14 +125,14 @@ template: `
 `
 })
 
-export class PosOpening {
+export class PosOpeningDialog {
 
     public deleteConfirmation = false;
     public displayTablet = false;
     public coins: any = [{ value: "" }, { value: "" }];
 
     constructor(
-        public dialogDelete: MatDialogRef<PosOpening>,
+        public dialogDelete: MatDialogRef<PosOpeningDialog>,
         @Inject(MAT_DIALOG_DATA) public data: any,
         private dialog: MatDialog
     ) { }

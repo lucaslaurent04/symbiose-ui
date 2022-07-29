@@ -148,6 +148,26 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
         this.load(this.instance.id);
     }
 
+    public onclickCloseSession() {
+        this.router.navigate(['/session/'+this.session.id+'/close']);
+    }
+
+    public onclickFullscreen() {
+        const elem:any = document.documentElement;
+        if (elem.requestFullscreen) {
+            elem.requestFullscreen();
+        } 
+        else if (elem.mozRequestFullScreen) {
+            elem.mozRequestFullScreen();
+        } 
+        else if (elem.webkitRequestFullscreen) {            
+            elem.webkitRequestFullscreen();
+        } 
+        else if (elem.msRequestFullscreen) {
+            elem.msRequestFullscreen();
+        }
+    }    
+
     public onSelectLine(line: any) {
         console.log('##### onSelectLine', line);
 

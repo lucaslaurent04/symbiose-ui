@@ -1,7 +1,6 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
-import { CloseComponent } from './close/close.component';
-
+import { SessionCloseComponent } from './close/close.component';
 import { SessionComponent } from './session.component';
 
 const routes: Routes = [
@@ -19,7 +18,7 @@ const routes: Routes = [
     },
     {
         path: 'close',
-        component: CloseComponent
+        component: SessionCloseComponent
     },
     {
         path: '',

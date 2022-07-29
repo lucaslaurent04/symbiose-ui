@@ -51,6 +51,9 @@ import { MatTreeModule } from '@angular/material/tree';
 import { DragDropModule } from '@angular/cdk/drag-drop';
 import { TextFieldModule } from '@angular/cdk/text-field';
 import { MatDialogModule } from '@angular/material/dialog';
+import { MatButtonToggleModule } from '@angular/material/button-toggle';
+import { MatPaginatorModule } from '@angular/material/paginator';
+
 
 import { HttpClient } from '@angular/common/http';
 import { TranslateModule, TranslateLoader, TranslateService } from '@ngx-translate/core';
@@ -64,6 +67,7 @@ const materialModules = [
   MatDatepickerModule, MatNativeDateModule, MatRippleModule, MatCardModule, MatListModule, MatButtonModule, MatSidenavModule,  MatIconModule, MatToolbarModule,
   MatChipsModule, MatExpansionModule, MatTabsModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatTableModule, MatProgressSpinnerModule, MatSnackBarModule,
   MatProgressBarModule, MatCheckboxModule, MatAutocompleteModule, MatMenuModule, MatBadgeModule, MatStepperModule, MatGridListModule, MatTreeModule, MatSlideToggleModule,
+  MatButtonToggleModule, MatPaginatorModule,
   DragDropModule, TextFieldModule, MatDialogModule,
   NgxMaterialTimepickerModule
  ];

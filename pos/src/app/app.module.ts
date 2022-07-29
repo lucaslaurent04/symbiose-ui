@@ -10,6 +10,8 @@ import { PlatformModule } from '@angular/cdk/platform';
 import { SharedLibModule, AuthInterceptorService } from 'sb-shared-lib';
 import { NgxMaterialTimepickerModule } from 'ngx-material-timepicker';
 
+import { AppSharedModule } from './shared.module';
+
 import { AppRootComponent } from './app.root.component';
 import { AppComponent } from './in/app.component';
 import { AppRoutingModule } from './app-routing.module';
@@ -22,12 +24,6 @@ import localeFr from '@angular/common/locales/fr';
 
 import { MAT_SNACK_BAR_DEFAULT_OPTIONS } from '@angular/material/snack-bar';
 
-import {MatButtonToggleModule} from '@angular/material/button-toggle';
-import { OrderService } from './in/orderService';
-import { AppInSessionOrderModule } from './in/session/order/order.module';
-
-
-
 
 registerLocaleData(localeFr);
 
@@ -37,22 +33,20 @@ registerLocaleData(localeFr);
     AppComponent
   ],
   imports: [
+    SharedLibModule,
+    AppSharedModule,
     AppRoutingModule,
     BrowserModule,
     BrowserAnimationsModule,
-    SharedLibModule,
     PlatformModule,
-    NgxMaterialTimepickerModule.setLocale('fr-BE'),
-    MatButtonToggleModule
-    
+    NgxMaterialTimepickerModule.setLocale('fr-BE')
   ],
   providers: [
     // add HTTP interceptor to inject AUTH header to any outgoing request
     { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptorService, multi: true },
     { provide: MAT_SNACK_BAR_DEFAULT_OPTIONS, useValue: { duration: 4000, horizontalPosition: 'start' } },
     { provide: MAT_DATE_LOCALE, useValue: 'fr-BE' },
-    { provide: LOCALE_ID, useValue: 'fr-BE' },
-    OrderService
+    { provide: LOCALE_ID, useValue: 'fr-BE' }
     /* remeber to provide CustomDateAdapter in modules with children components using dates */
   ],
   bootstrap: [AppRootComponent]

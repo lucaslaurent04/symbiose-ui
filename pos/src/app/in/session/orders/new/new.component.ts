@@ -19,13 +19,13 @@ export class SessionOrdersNewComponent implements OnInit, AfterViewInit {
 
     private customer_id: number = 0;
     public deleteConfirmation = false;
-    
+
 
     constructor(
         private router: Router,
         private route: ActivatedRoute,
         private zone: NgZone,
-        private api: ApiService,    
+        private api: ApiService,
         private context: ContextService
     ) {}
 
@@ -37,7 +37,7 @@ export class SessionOrdersNewComponent implements OnInit, AfterViewInit {
     public ngOnInit() {
         // fetch the ID from the route
         this.route.params.subscribe( async (params) => {
-            
+
             if(params && params.hasOwnProperty('session_id')) {
                 try {
                     await this.load(<number> params['session_id']);
@@ -51,7 +51,7 @@ export class SessionOrdersNewComponent implements OnInit, AfterViewInit {
 
     }
 
-      
+
     private async load(id: number) {
         if(id > 0) {
             try {
@@ -87,4 +87,5 @@ export class SessionOrdersNewComponent implements OnInit, AfterViewInit {
 
         }
     }
+
 }

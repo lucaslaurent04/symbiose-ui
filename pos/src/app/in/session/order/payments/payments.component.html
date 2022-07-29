@@ -4,7 +4,8 @@
 <div class="header-wrap">
     <div class="header">Session › {{session.name}} <small>{{session.id}}</small> › <a [attr.href]="'#/session/'+session.id+'/orders'">Commandes en cours</a></div>
     <div style="display: flex; align-items: center;">
-        <app-close></app-close>
+        <button mat-raised-button color="accent" (click)="onclickCloseSession()" style="margin-right: 10px;">Fermer la session</button>
+        <button mat-icon-button class="screen" (click)="onclickFullscreen()"><mat-icon>open_in_full</mat-icon></button>    
     </div>
 </div>
 <div class="pos-body" #fullScreen>
@@ -19,8 +20,8 @@
                         <h2>Paiements</h2>
                         <button *ngIf="canAddPayment()" mat-mini-fab color="accent" (click)="onclickCreateNewPayment()"><mat-icon>add</mat-icon></button>
                         <div class="total">
-                            <span class="total"> Total: {{instance.total | number : '1.2-2'}}€</span>
-                            <span class="remaining"> Restant: {{instance.total - instance.total_paid | number : '1.2-2'}}€</span>
+                            <span class="total"> Total: {{instance.price | number : '1.2-2'}}€</span>
+                            <span class="remaining"> Restant: {{ calcDueRemaining() | number : '1.2-2'}}€</span>
                         </div>
                     </div>
 
@@ -42,6 +43,7 @@
                         </div>
 
                         <div class="order-lines" *ngIf="show_products">
+                            <span>Dû: {{instance.order_payments_ids[selectedPaymentIndex].total_due | number : '1.2-2'}}€</span>
                             <div *ngFor="let line of instance.order_payments_ids[selectedPaymentIndex].order_lines_ids; index as i;" 
                             style="display: flex; align-items: center; width: 100%; justify-content: space-around;">
                                 <div>{{line.name}}</div>
@@ -53,10 +55,9 @@
                         </div>
                     </ng-container>
 
-
                 </div>
                 <div class="pad">
-                    <order-keypad-payment 
+                    <app-keypad-payment 
                         [customer_name]="instance.customer_id.name"                     
                         [back_button]="'order'"
                         [disabled_key]="['+']"
@@ -65,7 +66,7 @@
                         (onDisplayDetails)="onDisplayDetails($event)" 
                         (onTypeMode)="typeMode = $event"
                         (customer_change)="customer_change($event)">
-                    </order-keypad-payment>
+                    </app-keypad-payment>
                 </div>
             </div>
         </div>
@@ -77,7 +78,7 @@
                 <mat-tab label="Produits">                    
                     <div style="display: flex; align-items: center; height: 56px;">
                         
-                        <div style="display: flex; align-items: center; margin-left: 10px">
+                        <div style="display: flex; align-items: center; margin-left: 10px;">
                             <button [disabled]="!selection?.selected.length" mat-icon-button color="accent" (click)="onclickAddProoduct()"><mat-icon>add</mat-icon></button>
                             <button mat-icon-button color="accent"><mat-icon>remove</mat-icon></button>
                         </div>
@@ -131,7 +132,7 @@
 
                 </mat-tab>
 
-                <mat-tab label="Ticket" class="ticket" [disabled]="!is_validated">
+                <mat-tab label="Ticket" class="ticket" >
                     <div class="ticket">
                         <button (click)="onPrint()" mat-raised-button [color]="'primary'"
                         style="padding: 0.25rem; display: flex; align-items: center; justify-content: center; margin-top: 12px; margin-bottom: 12px; font-size: 1.2rem;">

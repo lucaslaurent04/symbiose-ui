@@ -7,13 +7,13 @@ import { SharedLibModule, AuthInterceptorService, CustomDateAdapter } from 'sb-s
 
 import { SessionsComponent } from './sessions.component';
 import { PosClosingCoins, SessionsNewComponent } from './new/new.component';
-import { AppInSessionOrderModule } from '../session/order/order.module';
+import { AppSharedModule } from '../../shared.module';
 
 
 @NgModule({
   imports: [
     SharedLibModule,
-    AppInSessionOrderModule
+    AppSharedModule
   ],
   declarations: [
     SessionsComponent,

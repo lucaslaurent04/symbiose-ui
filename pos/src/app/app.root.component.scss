@@ -13,6 +13,9 @@ a {
 }
 
 .app-header {
+    @media print {
+        display: none;
+    }
     position: fixed;
     left: 0;
     top: 0;

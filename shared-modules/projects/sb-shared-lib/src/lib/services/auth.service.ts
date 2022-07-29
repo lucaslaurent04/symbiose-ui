@@ -8,7 +8,7 @@ import { UserClass } from '../classes/user.class';
 import { EnvService} from './env.service';
 
 @Injectable({
-  providedIn: 'root'
+    providedIn: 'root'
 })
 
 /**
@@ -22,7 +22,7 @@ export class AuthService {
     readonly MAX_RETRIES = 2;
 
     // current User
-    private _user = new UserClass();
+    private _user: UserClass = new UserClass();
 
     // internal counter for preventing infinite-loop in case of server error
     private retries = 0;
@@ -33,12 +33,14 @@ export class AuthService {
     private observable: ReplaySubject<any>;
 
 
-    // #todo - make this private
+    /**
+     * #todo - make this private
+     */
     public get user(): any {
         return this._user;
     }
 
-    private set user(user: any) {
+    private set user(user: UserClass) {
         this._user = {...this._user, ...user};
         // notify subscribers
         this.observable.next(this._user);
@@ -47,7 +49,10 @@ export class AuthService {
     public getObservable(): ReplaySubject<any> {
         return this.observable;
     }
-
+    /**
+     * As retrieving user is asynchronous, the getObservable method should be preferred.
+     * @deprecated
+     */     
     public getUser(): UserClass {
         return this._user;
     }
@@ -59,60 +64,60 @@ export class AuthService {
     }
 
 
-  /**
-   * Upon success, this method updates the `user` member of the class accordingly to the object received.
-   * Otherwise, it throws an error holding the httpResponse.
-   *
-   * @throws HttpErrorResponse  In case an error is returned, the respons object is relayed as an Exception.
-   */
-  public async authenticate() {
-    console.log('AuthService::authenticate');
+    /**
+     * Upon success, this method updates the `user` member of the class accordingly to the object received.
+     * Otherwise, it throws an error holding the httpResponse.
+     *
+     * @throws HttpErrorResponse  In case an error is returned, the respons object is relayed as an Exception.
+     */
+    public async authenticate() {
+        console.log('AuthService::authenticate');
 
-    // attempt to log the user in
-    try {
-      // make sure Environment has been fetched
-      const environment = await this.env.getEnv();
-      // #memo - /userinfo route can be adapted in back-end config (to steer to wanted controller)
-      const data = await this.http.get<any>(environment.backend_url + '/userinfo').toPromise();
+        // attempt to log the user in
+        try {
+            // make sure Environment has been fetched
+            const environment = await this.env.getEnv();
+            // #memo - /userinfo route can be adapted in back-end config (to steer to wanted controller)
+            const data = await this.http.get<any>(environment.backend_url + '/userinfo').toPromise();
 
-      this.last_auth_time = new Date().getTime();
+            this.last_auth_time = new Date().getTime();
 
-      // update local user object and notify subscribers
-      this.user = <UserClass> data;
-      if(this.user.hasOwnProperty('language')) {        
-        this.env.setEnv('locale', this.user.language);
-      }
-    }
-    catch(httpErrorResponse:any) {
-      let response = <HttpErrorResponse> httpErrorResponse;
-
-      if(response.hasOwnProperty('status') && response.status == 401) {
-        let body = response.error;
-        let error_code = Object.keys(body.errors)[0];
-        let error_id = body.errors[error_code];
-        if(error_id == 'auth_expired_token') {
-          try {
-            if(this.retries < this.MAX_RETRIES) {
-              ++this.retries;
-              // request a refresh of the access token
-              await this.refreshToken();
-              // try to auth once more
-              await this.authenticate();
+            // update local user object and notify subscribers
+            this.user = <UserClass> data;
+            if(this._user.hasOwnProperty('language')) {        
+                this.env.setEnv('locale', this._user.language);
             }
-            else {
-              throw response;
-            }
-          }
-          catch(error:any) {
-            response = error;
-          }
         }
-      }
+        catch(httpErrorResponse:any) {
+            let response = <HttpErrorResponse> httpErrorResponse;
 
-      throw response;
+            if(response.hasOwnProperty('status') && response.status == 401) {
+                let body = response.error;
+                let error_code = Object.keys(body.errors)[0];
+                let error_id = body.errors[error_code];
+                if(error_id == 'auth_expired_token') {
+                    try {
+                        if(this.retries < this.MAX_RETRIES) {
+                            ++this.retries;
+                            // request a refresh of the access token
+                            await this.refreshToken();
+                            // try to auth once more
+                            await this.authenticate();
+                        }
+                        else {
+                            throw response;
+                        }
+                    }
+                    catch(error:any) {
+                        response = error;
+                    }
+                }
+            }
+
+            throw response;
+        }
+
     }
-
-  }
 
     /**
      * Assert a user is member of a given group
@@ -156,8 +161,8 @@ export class AuthService {
             const environment:any = await this.env.getEnv();
             const data = await this.http.get<any>(environment.backend_url+'/?do=user_signin', {
                 params: {
-                login: login,
-                password: password
+                    login: login,
+                    password: password
                 }
             })
             .pipe(

@@ -75,11 +75,42 @@ export class SessionOrdersComponent implements OnInit, AfterViewInit {
         }
     }
 
-    public onclickNewOrder() {
-        this.router.navigate([this.router.url+'/new']);
+    public async onclickNewOrder() {
+        // this.router.navigate([this.router.url+'/new']);
+
+        // create a new order
+        try {
+            const order:any = await this.api.create(Order.entity, { session_id: this.session.id });
+            // and navigate to it
+            this.router.navigate(['/session/'+this.session.id+'/order/'+order.id+'/lines']);
+        }
+        catch(response) {
+            console.log(response);
+        }            
+
     }
 
     public onclickSelectOrder(order_id:any) {
         this.router.navigate(['/session/'+this.session.id+'/order/'+order_id]) ;
     }
+
+    public onclickCloseSession() {
+        this.router.navigate(['/session/'+this.session.id+'/close']);
+    }
+
+    public onclickFullscreen() {
+        const elem:any = document.documentElement;
+        if (elem.requestFullscreen) {
+            elem.requestFullscreen();
+        } 
+        else if (elem.mozRequestFullScreen) {
+            elem.mozRequestFullScreen();
+        } 
+        else if (elem.webkitRequestFullscreen) {            
+            elem.webkitRequestFullscreen();
+        } 
+        else if (elem.msRequestFullscreen) {
+            elem.msRequestFullscreen();
+        }
+    }    
 }

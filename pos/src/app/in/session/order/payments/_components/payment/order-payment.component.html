@@ -1,12 +1,12 @@
 <section [class.disabled]="instance.status == 'pending'">
+
     <div class="header">
-        <span>Dû: {{instance.total_due | number : '1.2-2'}}€</span>
-        <span style="color: #747474;">Restant: {{ instance.total_due-instance.total_paid | number : '1.2-2'}}€</span>
+        <span [class.accent]="calcDueRemaining() > 0">Restant: {{ calcDueRemaining() | number : '1.2-2'}}€</span>
+        <span [class.accent]="calcReturnedAmount() > 0">Rendu: {{ calcReturnedAmount() | number : '1.2-2'}}€</span>
         <div>
             <button mat-icon-button color="primary" (click)="onDisplayProducts()"><mat-icon>list</mat-icon></button>
             <button mat-mini-fab color="accent" (click)="onclickDelete()"><mat-icon>delete</mat-icon></button>
         </div>
-
     </div>
 
     <div *ngIf="display !='products'">
@@ -33,15 +33,7 @@
     </div>
     <div class="row" *ngIf="display =='products'">
         <div>
-            <!-- <div class="line-header">
-                <div>name</div>
-                <div>unit_price</div>
-                <div>qty</div>
-            </div> -->
-            <ng-container *ngFor="let line of instance.order_lines_ids; index as i">
-                <session-order-payments-order-line [model]="line" (deleted)="ondeleteLine(line.id)">
-                </session-order-payments-order-line>
-            </ng-container>
+            <session-order-payments-order-line *ngFor="let line of instance.order_lines_ids" [model]="line" (deleted)="ondeleteLine(line.id)"></session-order-payments-order-line>
         </div>
     </div>
 </section>

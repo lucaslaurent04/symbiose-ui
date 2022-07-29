@@ -1,7 +1,13 @@
 <div class="overlay-container" *ngIf="!ready"><mat-spinner></mat-spinner></div>
 
 <div class="container" *ngIf="ready">
-    <div class="header-wrap"><div class="header">Session › {{session.name}} > Commandes en cours</div><app-close ></app-close></div>
+    <div class="header-wrap">
+        <div class="header">Session › {{session.name}} <small>[{{session.name}}]</small> › Commandes en cours</div>
+        <div style="display: flex; align-items: center;">
+            <button mat-raised-button color="accent" (click)="onclickCloseSession()" style="margin-right: 10px;">Fermer la session</button>
+            <button mat-icon-button class="screen" (click)="onclickFullscreen()"><mat-icon>open_in_full</mat-icon></button>
+        </div>
+    </div>
     <div class="body">
         <div class="actions">
             <div class="actions-std"><button mat-flat-button color="accent" (click)="onclickNewOrder()">Nouvelle commande</button></div>

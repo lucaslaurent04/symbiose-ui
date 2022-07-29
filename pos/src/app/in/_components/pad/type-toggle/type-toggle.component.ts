@@ -1,11 +1,11 @@
 import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 
 @Component({
-  selector: 'pos-pad-type-toggle',
+  selector: 'app-pad-type-toggle',
   templateUrl: './type-toggle.component.html',
   styleUrls: ['./type-toggle.component.scss']
 })
-export class PosPadTypeToggleComponent implements OnInit {
+export class AppPadTypeToggleComponent implements OnInit {
 
     @Output() newItemEvent = new EventEmitter();
     @Output() newOnBackspace = new EventEmitter();

@@ -67,8 +67,7 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
     public ngAfterViewInit() {
         // init local componentsMap
         let map: OrderComponentsMap = {
-            order_payments_ids: this.SessionOrderPaymentsOrderPaymentComponents,
-            // order_lines_ids: this.SessionOrderLinesComponents
+            order_payments_ids: this.SessionOrderPaymentsOrderPaymentComponents
         };
         this.componentsMap = map;
     }
@@ -77,15 +76,21 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
         this.invoice = invoice;
     }
 
-    public onclickValidate() {
-        // enable ticket pane and switch to it
-        this.is_validated = true;
-        this.selectedTabIndex = 1;
+    public async onclickValidate() {
+        try {
+            await this.api.fetch('?do=lodging_order_do-pay', {id : this.instance.id });
+            // enable ticket pane and switch to it
+            this.is_validated = true;
+            this.selectedTabIndex = 1;
+            this.ticketComponent.load(this.instance.id);
+        }
+        catch(response) {
+            console.warn(response);
+        }
     }
 
-    public ngOnInit() {
-        // fetch the ID from the route
-
+    public ngOnInit() {        
+        // fetch the IDs from the route
         this.route.params.subscribe(async (params) => {
             if (params && params.hasOwnProperty('session_id') && params.hasOwnProperty('order_id')) {
                 try {
@@ -98,7 +103,6 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
                 }
             }
         });
-
     }
 
     private async loadSession(session_id: number) {
@@ -150,19 +154,16 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
     public async ondeletePayment(line_id: number) {
         // a line has been removed: reload tree
         this.load(this.instance.id);
-        this.updateTicket();
     }
 
     public async onupdatePayment(line_id: number) {
         // a line has been removed: reload tree
-        await this.load(this.instance.id);
-        this.updateTicket();
+        await this.load(this.instance.id);    
     }
 
     public async onupdateQty() {
         // a line has been removed: reload tree
         this.load(this.instance.id);
-        this.updateTicket();
     }
 
     public canAddPayment() {
@@ -178,6 +179,11 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
         }        
         return true;
     }
+
+    public calcDueRemaining() {
+        return Math.max(0, this.instance.total - this.instance.total_paid);
+    }
+
 
     /** 
      * Handler for payment-add button.
@@ -223,10 +229,6 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
 
         // reload the Tree
         await this.load(this.instance.id);
-    }
-
-    public updateTicket(){
-        this.ticketComponent.load();
     }
 
     public onclickPayment(index: number) {
@@ -303,32 +305,42 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
                 await child.onchangeVoucherRef();
             }
 
-            this.updateTicket();
         }
     }
 
+    public onclickCloseSession() {
+        this.router.navigate(['/session/'+this.session.id+'/close']);
+    }
+
+    public onclickFullscreen() {
+        const elem:any = document.documentElement;
+        if (elem.requestFullscreen) {
+            elem.requestFullscreen();
+        } 
+        else if (elem.mozRequestFullScreen) {
+            elem.mozRequestFullScreen();
+        } 
+        else if (elem.webkitRequestFullscreen) {            
+            elem.webkitRequestFullscreen();
+        } 
+        else if (elem.msRequestFullscreen) {
+            elem.msRequestFullscreen();
+        }
+    }     
+
     public async onPrint() {
-        // update all basic payment part field => payment_method, price, quantity
-        // update the funding_id related to the paymentPart, if any
-        // update voucher/booking_id if any
-        // Close the order --> status = paid
-        // change route
-
-        // await this.api.update(this.instance.entity, [this.instance.id], {status : "paid"});
-        this.router.navigate(['/']);
-
+        window.print();
     }
 
     public onTypeMode(value: any) {
     }
+    
     public getDiscountValue(event: any) {
     }
 
     public async onvalidatePayment(index : number) {
-        console.log('############ onvalidatePayment');
         console.log(this.instance.order_payments_ids, index);
         this.instance.order_payments_ids[index].status = 'paid';
-        // this.load(this.instance.id);
     }
 
 // #todo

@@ -9,6 +9,7 @@ export class CashdeskSession {
       public status: string = '',
       public user_id: number = 0,
       public cashdesk_id: number = 0,
-      public center_id: number = 0
+      public center_id: number = 0,
+      public orders_ids: [] = []
     ) {}
 }

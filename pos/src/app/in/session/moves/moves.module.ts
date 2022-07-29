@@ -9,11 +9,13 @@ import { SharedLibModule, AuthInterceptorService } from 'sb-shared-lib';
 import { SessionMovesRoutingModule } from './moves-routing.module';
 
 import { SessionMovesComponent } from './moves.component';
+import { AppSharedModule } from '../../../shared.module';
 
 @NgModule({
   imports: [
     SharedLibModule,
-    SessionMovesRoutingModule
+    SessionMovesRoutingModule,
+    AppSharedModule
   ],
   declarations: [
     SessionMovesComponent    

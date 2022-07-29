@@ -4,11 +4,11 @@ import { th } from 'date-fns/locale';
 import { data } from 'jquery';
 
 @Component({
-  selector: 'order-keypad-payment',
+  selector: 'app-keypad-payment',
   templateUrl: './keypad-payment.component.html',
   styleUrls: ['./keypad-payment.component.scss']
 })
-export class OrderKeypadPaymentComponent implements OnInit {
+export class AppKeypadPaymentComponent implements OnInit {
 
   constructor(private dialog: MatDialog) { }
   // public onResa = false;

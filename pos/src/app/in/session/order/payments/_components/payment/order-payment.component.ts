@@ -100,6 +100,14 @@ export class SessionOrderPaymentsOrderPaymentComponent extends TreeComponent<Ord
         return ( this.instance.total_due > 0 && this.instance.total_paid >= this.instance.total_due && this.instance.status != 'paid');
     }
 
+    public calcDueRemaining() {
+        return Math.max(0, this.instance.total_due - this.instance.total_paid);
+    }
+
+    public calcReturnedAmount() {
+        return Math.max(0, this.instance.total_paid - this.instance.total_due);
+    }
+
     public async onclickDelete() {
         await this.api.update((new Order()).entity, [this.instance.order_id], {order_payments_ids: [-this.instance.id]});
         this.deleted.emit();
@@ -134,8 +142,7 @@ export class SessionOrderPaymentsOrderPaymentComponent extends TreeComponent<Ord
         this.displayPaymentProducts.emit();
     }
 
-    public async setNewLineValue(digits : number){
-        
+    public async setNewLineValue(digits : number){        
         // change the value of the line, only if it's lower ! and add it to the right side again !
         this.instance.order_lines_ids.forEach((line : any) => {
             if(line.id == this.index){
@@ -168,11 +175,9 @@ export class SessionOrderPaymentsOrderPaymentComponent extends TreeComponent<Ord
         this.validated.emit();
     }
 
-    public async changeQuantity(line : any){
-        
-    // Remove the number of elements indicated, and create a new object with the difference
-
-        if(parseInt(this.line_quantity) <line.qty){
+    public async changeQuantity(line : any){        
+        // Remove the number of elements indicated, and create a new object with the difference
+        if(parseInt(this.line_quantity) <line.qty) {
             await this.api.create('lodging\\sale\\pos\\OrderLine', {
                 order_id: line.order_id,
                 order_payment_id: 0,

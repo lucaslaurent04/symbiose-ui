@@ -24,24 +24,13 @@
                                 <button style="margin: 0.2rem; box-shadow: none;" mat-mini-fab color="warn"  (click)="onCancel(i)"><mat-icon>cancel</mat-icon></button>   
                             </mat-panel-title>
                         </mat-expansion-panel-header>
-                        <div class="orderLines">
-                            <p>I'm a line bruv</p>
-                        </div>
                         <div class="paymentMethod">
                             <div>
                                 <mat-button-toggle-group [(ngModel)]="myToggle" (change)="onSelectionChange(myToggle)" class="mat-button-toggle-group;" style="display: flex; flex-direction: column;">
-                                    <mat-button-toggle mat-raised-button value="cash">
-                                        Espèces
-                                    </mat-button-toggle>
-                                    <mat-button-toggle mat-raised-button value="bank">
-                                        Banque
-                                    </mat-button-toggle>
-                                    <mat-button-toggle mat-raised-button value="reservation">
-                                        Reservation
-                                    </mat-button-toggle>
-                                    <mat-button-toggle mat-raised-button value="voucher">
-                                        Voucher
-                                    </mat-button-toggle>
+                                    <mat-button-toggle mat-raised-button value="cash">Espèces</mat-button-toggle>
+                                    <mat-button-toggle mat-raised-button value="bank">Banque</mat-button-toggle>
+                                    <mat-button-toggle mat-raised-button value="reservation">Reservation</mat-button-toggle>
+                                    <mat-button-toggle mat-raised-button value="voucher">Voucher</mat-button-toggle>
                                 </mat-button-toggle-group>
                             </div>
                             <div>

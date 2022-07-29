@@ -6,7 +6,8 @@
     <div class="header-wrap">
         <div class="header">Session › {{session.name}} <small>{{session.id}}</small> › <a [attr.href]="'#/session/'+session.id+'/orders'">Commandes en cours</a></div>
         <div style="display: flex; align-items: center;">
-            <app-close></app-close>
+            <button mat-raised-button color="accent" (click)="onclickCloseSession()" style="margin-right: 10px;">Fermer la session</button>
+            <button mat-icon-button class="screen" (click)="onclickFullscreen()"><mat-icon>open_in_full</mat-icon></button>
         </div>
     </div>
     <div class="pos-body" #fullScreen>
@@ -43,7 +44,7 @@
                     </ng-container>
                 </div>
                 <div class="pad">
-                    <order-keypad-lines 
+                    <app-keypad-lines 
                         [customer_name]="customer_name" 
                         [back_button]="'payment'"
                         (onDisplayDetails)="onDisplayDetails($event)" 
@@ -51,7 +52,7 @@
                         (onInvoice)="onGetInvoice($event)" 
                         (onTypeMode)="onSelectField($event)"                        
                         (customer_change)="customer_change($event)">
-                    </order-keypad-lines>
+                    </app-keypad-lines>
                 </div>
             </div>
             <div style="width: 100%; height: 100vh;">

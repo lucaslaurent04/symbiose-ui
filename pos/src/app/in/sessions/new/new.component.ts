@@ -1,72 +1,95 @@
 import { Component, Inject, OnInit, SimpleChanges } from '@angular/core';
 import { Router } from '@angular/router';
-import { AuthService } from 'sb-shared-lib';
-import { ApiService } from 'sb-shared-lib';
+import { AuthService, ApiService } from 'sb-shared-lib';
+import { UserClass } from 'sb-shared-lib/lib/classes/user.class';
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { CashdeskSession } from '../sessions.model';
+import { CashdeskSession } from 'src/app/in/sessions/sessions.model';
 
 @Component({
-  selector: 'sessions-new',
-  templateUrl: './new.component.html',
-  styleUrls: ['./new.component.scss']
+    selector: 'sessions-new',
+    templateUrl: './new.component.html',
+    styleUrls: ['./new.component.scss']
 })
 export class SessionsNewComponent implements OnInit {
 
-  constructor( public auth : AuthService,public api : ApiService, private router: Router,private dialog: MatDialog) { }
+    constructor( public auth : AuthService,public api : ApiService, private router: Router,private dialog: MatDialog) { }
 
-  public deleteConfirmation = false;
-  public displayTablet = false;
-  public newSession : any;
-  public center_id : number;
-  public index: number;
-  public total: number = 0;
-  public actionType: any = "";
-  public coin : any = "";
-  public user : any;
-  public coins : any;
-  ngOnInit(): void {
-    //ne s'active pas tjs lorsque l'on refresh la page
-    this.user = this.auth.getUser();
-    console.log(this.user)
-  }
-  ngOnChanges(changes: SimpleChanges): void {
-    this.user = this.auth.getUser();
-    console.log(this.user)
-    
-  }
+    public deleteConfirmation = false;
+    public displayTablet = false;
+    public newSession : any;
 
-  passedNumber(value:any){
-  }
+    public index: number;
+    public total: number = 0;
+    public actionType: any = "";
+    public coin : any = "";
 
-  onDisplayCoins() {
-    this.displayTablet = true;
-    const dialogRef = this.dialog.open(PosClosingCoins, {
-    });
-    dialogRef.afterClosed().subscribe(
-      data =>{
-        console.log(data)
-        this.coins = data.data.filter((element:any)=>{
-          element.number != "";
+    public coins : any;
+
+    public cashdesk_id : number;
+    public user : UserClass;
+
+    ngOnInit(): void {
+        this.auth.getObservable().subscribe( (user: UserClass) => {
+            this.user = user;
+            console.log('#####', this.user);
         });
-      }
-    )
-  }
-
-  public async openSession(){
-    if(this.user && this.center_id){
-      const dialogRef = this.dialog.open(PosClosingCoins, {
-        data: {user : this.user, center_id : this.center_id}
-      });
-    }
-  }
-
-
-    public onselectCenter(center:any) {
-        this.center_id = center.id
     }
 
+    ngOnChanges(changes: SimpleChanges): void {
+
+    }
+
+    passedNumber(value:any){
+    }
+
+    public onDisplayCoins() {
+        this.displayTablet = true;
+        const dialogRef = this.dialog.open(PosClosingCoins, {});
+    
+        dialogRef.afterClosed().subscribe(
+            data => {
+                console.log(data)
+                this.coins = data.data.filter((element:any) => {
+                    element.number != "";
+                });
+            }
+        );
+    }
+
+    public async onclickOpenSession() {
+        // if a session already exists, resume it
+        const result = await this.api.collect(CashdeskSession.entity, [['status', '=', 'pending'], ['cashdesk_id', '=', this.cashdesk_id]], []);
+
+        // show pending orders for the targeted session
+        if(result.length > 0) {
+            this.router.navigate(['/session/' + result[0].id + '/orders']);
+            return;
+        }
+
+        // otherwise open a new session
+        if(this.user && this.cashdesk_id){
+            const dialogRef = this.dialog.open(PosClosingCoins, {
+                data: {user : this.user, cashdesk_id : this.cashdesk_id}
+            });
+            dialogRef.afterClosed().subscribe( async (cash_inventory: any) => {
+                if(cash_inventory) {
+                    // #todo - add inventory as note
+                    try {
+                        const session = await this.api.create(CashdeskSession.entity, {amount: cash_inventory.total, cashdesk_id: this.cashdesk_id, user_id: this.user.id, });        
+                        this.router.navigate(['/session/' + session.id + '/orders']);
+                    }
+                    catch(response) {
+                        console.log(response);
+                    }
+                }
+            });            
+        }
+    }
 
 
+    public onselectCashdesk(cashdesk:any) {
+        this.cashdesk_id = cashdesk.id;        
+    }
 
 }
 
@@ -78,7 +101,6 @@ export class SessionsNewComponent implements OnInit {
     <div>
       <div>
         <h2 style="text-align: center; text-decoration:underline; margin:2rem">Caisse : Pièces/Billets</h2>
-        <mat-error style="text-align: center; margin-bottom: 5px" *ngIf="cashdesk?.length < 1 && clicked == true">Ce centre n'a pas de Caisse</mat-error>
       </div>
       <div style="display: flex; justify-content: space-evenly; align-items: center; width: 75rem">
         <div style="display: grid;
@@ -91,8 +113,8 @@ export class SessionsNewComponent implements OnInit {
         </div>
 
         <div style="display: flex; border: 0; background-color: #ededed; padding: 10px;">
-          <pos-pad-generic [disabled_key]="disabled_key" (keyPressed)="onCheckNumberPassed($event)"></pos-pad-generic>
-          <pos-pad-value-increments style="margin-bottom: 0.25px;" (OnaddedNumber)="checkActionType($event)" (OnBackspace)="onBackSpace($event)"></pos-pad-value-increments>
+          <app-pad-generic [disabled_key]="['+', ',']" (keyPressed)="onCheckNumberPassed($event)"></app-pad-generic>
+          <app-pad-value-increments style="margin-bottom: 0.25px;" (OnaddedNumber)="checkActionType($event)" (OnBackspace)="onBackSpace($event)"></app-pad-value-increments>
         </div>
       </div>    
     </div>
@@ -108,166 +130,152 @@ export class SessionsNewComponent implements OnInit {
     <h3 style="margin-top: 0.5rem; margin-left:6rem; font-weight: bold">TOTAL: {{total.toFixed(2)}} €</h3>
   </div>
   <div mat-dialog-actions style="display: flex; justify-content: flex-end">
-    <button mat-raised-button color="primary" style="float:right" mat-raised-button (click)="openSession()">Ouvrir</button>
-    <button mat-raised-button color="primary" style="float:right" mat-raised-button (click)="closeDialog()">Annuler</button>
+    <button mat-raised-button color="primary" style="float:right" mat-raised-button (click)="onclickOk()">Ouvrir</button>
+    <button mat-raised-button color="primary" style="float:right" mat-raised-button (click)="onclickCancel()">Annuler</button>
   </div>`
 })
 
 export class PosClosingCoins {
-  constructor(
-    public dialogDelete: MatDialogRef<PosClosingCoins>,
-    @Inject(MAT_DIALOG_DATA) public data: any,
-    public auth : AuthService,
-    public api : ApiService, 
-    private router: Router,
-    private dialog: MatDialog
-  ) { }
-  public deleteConfirmation = false;
-  public displayTablet = false;
-  public cashdesk : any[] = [];
-  public index: number;
-  public total: number = 0;
-  public actionType: any = "";
-  public newSession : any;
-  public center_id : number;
-  public user : any;
-  public clicked : boolean = false;
-  public disabled_key = ['+', ','];
-  public coins = [
-    {
-      value: 0.01, number: ""
-    },
-    {
-      value: 0.02, number: ""
-    },
-    {
-      value: 0.05, number: ""
-    },
-    {
-      value: 0.1, number: ""
-    },
-    {
-      value: 0.2, number: ""
-    },
-    {
-      value: 0.5, number: ""
-    },
-    {
-      value: 1, number: ""
-    },
-    {
-      value: 2, number: ""
-    },
-    {
-      value: 5, number: ""
-    },
-    {
-      value: 10, number: ""
-    },
-    {
-      value: 20, number: ""
-    },
-    {
-      value: 50, number: ""
-    },
-    {
-      value: 100, number: ""
-    },
-    {
-      value: 200, number: ""
-    },
-    {
-      value: 500, number: ""
-    }
-  ]
+    constructor(
+        public dialogRef: MatDialogRef<PosClosingCoins>,
+        @Inject(MAT_DIALOG_DATA) public data: any,
+        public auth : AuthService,
+        public api : ApiService, 
+        private router: Router,
+        private dialog: MatDialog
+    ) { }
+
+    public deleteConfirmation = false;
+    public displayTablet = false;
+    
+    public index: number;
+    public total: number = 0;
+    public actionType: any = "";
+    public newSession : any;
+    public cashdesk_id : number;
+    public user : any;
+    public clicked : boolean = false;
 
 
-  ngOnInit(): void {
-    this.user = this.data.user;
-    this.center_id = this.data.center_id;
-    console.log(this.data)
-  }
+    public coins = [
+        {
+            value: 0.01, number: ""
+        },
+        {
+            value: 0.02, number: ""
+        },
+        {
+            value: 0.05, number: ""
+        },
+        {
+            value: 0.1, number: ""
+        },
+        {
+            value: 0.2, number: ""
+        },
+        {
+            value: 0.5, number: ""
+        },
+        {
+            value: 1, number: ""
+        },
+        {
+            value: 2, number: ""
+        },
+        {
+            value: 5, number: ""
+        },
+        {
+            value: 10, number: ""
+        },
+        {
+            value: 20, number: ""
+        },
+        {
+            value: 50, number: ""
+        },
+        {
+            value: 100, number: ""
+        },
+        {
+            value: 200, number: ""
+        },
+        {
+            value: 500, number: ""
+        }
+    ];
 
-  onKeyboardNumberPressed(event: any){
-    // check if backspace, otherwise add number
-    if(event.inputType == "deleteContentBackward") {
-      let test = this.coins[this.index].number.slice(0, -1);
-      this.coins[this.index].number = test;
-      this.onGetTotal();
-    }else{
-      this.coins[this.index].number += event.target.value[event.target.value.length - 1];
-      this.onGetTotal();
-    }
-  }
 
-  onCheckNumberPassed(value: any) {
-    if (value != 'backspace' && value != ',' && value != '+/-') {
-      this.coins[this.index].number += value;
-      this.onGetTotal();
+    ngOnInit(): void {
+        this.user = this.data.user;
+        this.cashdesk_id = this.data.cashdesk_id;
+        console.log(this.data)
     }
 
-
-    if (value == 'backspace') {
-      let test = this.coins[this.index].number.slice(0, -1);
-      this.coins[this.index].number = test;
-      this.onGetTotal();
+    public onKeyboardNumberPressed(event: any){
+        // check if backspace, otherwise add number
+        if(event.inputType == "deleteContentBackward") {
+            let test = this.coins[this.index].number.slice(0, -1);
+            this.coins[this.index].number = test;
+            this.onGetTotal();
+        }
+        else {
+            this.coins[this.index].number += event.target.value[event.target.value.length - 1];
+            this.onGetTotal();
+        }
     }
-  }
 
-  onGetTotal() {
-    this.total = 0;
-    this.coins.forEach((element) => {
-      if (element.number != "") {
-        this.total += element.value * parseFloat(element.number);
-      }
-    })
-  }
+    public onCheckNumberPassed(value: any) {
+        if (value != 'backspace' && value != ',' && value != '+/-') {
+            this.coins[this.index].number += value;
+            this.onGetTotal();
+        }
 
-  onGetFocusedInput(input: any) {
-    this.index = input;
-  }
-
-  public closeDialog() {
-    this.dialogDelete.close({
-      data: this.coins,
-      total: this.total
-    })
-  }
-
-  onBackSpace(element: any) {
-    this.onCheckNumberPassed('backspace');
-  }
-
-  checkActionType(event: any) {
-    this.actionType = event;
-    if (this.coins[this.index].number == "") {
-      this.coins[this.index].number = (parseFloat(event)).toString();
-
-    } else {
-      this.coins[this.index].number = (parseFloat(this.coins[this.index].number) + parseFloat(event)).toString();
+        if (value == 'backspace') {
+            let test = this.coins[this.index].number.slice(0, -1);
+            this.coins[this.index].number = test;
+            this.onGetTotal();
+        }
     }
-    this.onGetTotal();
-  }
 
-  async openSession(){
-    let pendingSession = await this.api.collect(CashdeskSession.entity, [['status', '=', 'pending'], ['center_id', '=', this.center_id]], []);
-    if(pendingSession.length > 0){
-      let route = '/session/'+pendingSession[0].id + '/orders';
-      this.router.navigate([route]);
-      this.dialogDelete.close({
-      })
-    }else{
-      // Un cashdesk est nécessaire par centre !
-      this.cashdesk = await this.api.collect('lodging\\sale\\pos\\Cashdesk', ['center_id', '=', this.center_id], []);
-      this.clicked = true;
-      console.log(this.cashdesk.length, this.clicked)
-      if(this.cashdesk.length >= 1){
-        this.newSession = await this.api.create(CashdeskSession.entity, {amount: this.total, cashdesk_id: this.cashdesk[0].id, user_id: this.user.id, center_id: this.center_id});
-        let route = '/session/'+this.newSession.id + '/orders';
-        this.router.navigate([route]);
-        this.dialogDelete.close({
-        })
-      }
+    public onGetTotal() {
+        this.total = 0;
+        this.coins.forEach((element) => {
+            if (element.number != "") {
+                this.total += element.value * parseFloat(element.number);
+            }
+        });
     }
-  }
+
+    public onGetFocusedInput(input: any) {
+        this.index = input;
+    }
+
+
+    public onBackSpace(element: any) {
+        this.onCheckNumberPassed('backspace');
+    }
+
+    public checkActionType(event: any) {
+        this.actionType = event;
+        if (this.coins[this.index].number == "") {
+            this.coins[this.index].number = (parseFloat(event)).toString();
+        } 
+        else {
+            this.coins[this.index].number = (parseFloat(this.coins[this.index].number) + parseFloat(event)).toString();
+        }
+        this.onGetTotal();
+    }
+
+    public onclickCancel() {
+        this.dialogRef.close(false);
+    }
+
+    public async onclickOk(){
+        this.dialogRef.close({
+            data: this.coins,
+            total: this.total
+        });
+    }
+
 }

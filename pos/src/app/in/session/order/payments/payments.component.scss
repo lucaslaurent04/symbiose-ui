@@ -44,6 +44,7 @@
 
 
         .left-pane {
+
             border-right: 1px solid lightgray;
             max-width: 430px;
 
@@ -187,7 +188,7 @@
                     width: 100%;
                     height: calc(100vh - 200px);
                 }
-
+                
                 ::ng-deep .mat-tab-body-content {
                     &::-webkit-scrollbar {
                         width: 6px;
@@ -225,10 +226,13 @@
                 height: 100%
             }
 
+            ::ng-deep .mat-tab-label-active {
+                opacity: 1;
+            }
+
 
             .filter-input {
                 margin-left: 50px;
-
 
                 ::ng-deep .mat-form-field-wrapper {
                     padding-bottom: 15px;
