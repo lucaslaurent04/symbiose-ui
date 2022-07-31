@@ -7,7 +7,7 @@ import { SessionOrderPaymentsOrderPaymentComponent } from './_components/payment
 import { SessionOrderLinesComponent } from '../../order/lines/lines.component';
 import { OrderService } from 'src/app/in/orderService';
 import { BookingLineClass } from 'src/app/model';
-import { TicketComponent } from './_components/ticket/ticket.component';
+
 import { MatTableDataSource } from '@angular/material/table';
 import {DataSource, SelectionModel} from '@angular/cdk/collections';
 
@@ -25,8 +25,7 @@ interface OrderComponentsMap {
 })
 export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderComponentsMap> implements RootTreeComponent, OnInit, AfterViewInit {
     @ViewChildren(SessionOrderPaymentsOrderPaymentComponent) SessionOrderPaymentsOrderPaymentComponents: QueryList<SessionOrderPaymentsOrderPaymentComponent>;
-    // @ViewChildren(SessionOrderLinesComponent) SessionOrderLinesComponents: QueryList<SessionOrderLinesComponent>;
-    @ViewChild(TicketComponent) ticketComponent: TicketComponent;
+
 
     public ready: boolean = false;
     public typeMode: any;
@@ -82,7 +81,6 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
             // enable ticket pane and switch to it
             this.is_validated = true;
             this.selectedTabIndex = 1;
-            this.ticketComponent.load(this.instance.id);
         }
         catch(response) {
             console.warn(response);

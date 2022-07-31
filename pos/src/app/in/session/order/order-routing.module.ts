@@ -6,6 +6,7 @@ import { SessionOrderComponent } from './order.component';
 
 import { SessionOrderLinesComponent } from './lines/lines.component';
 import { SessionOrderPaymentsComponent } from './payments/payments.component';
+import { SessionOrderTicketComponent } from './ticket/ticket.component';
 
 const routes: Routes = [
     {
@@ -16,6 +17,11 @@ const routes: Routes = [
         path: 'payments',
         component: SessionOrderPaymentsComponent
     },
+    {
+        path: 'ticket',
+        component: SessionOrderTicketComponent
+    },
+
     { 
         path: '',   redirectTo: 'lines', pathMatch: 'full'    
     }
