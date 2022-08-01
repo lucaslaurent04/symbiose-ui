@@ -2,7 +2,7 @@
     <mat-spinner></mat-spinner>
 </div>
 <div class="header-wrap">
-    <div class="header">Session › {{session.name}} <small>{{session.id}}</small> › <a [attr.href]="'#/session/'+session.id+'/orders'">Commandes en cours</a></div>
+    <div class="header">Session › {{session.name}} <small>[{{session.id}}]</small> › <a [attr.href]="'#/session/'+session.id+'/orders'">Commandes en cours</a></div>
     <div style="display: flex; align-items: center;">
         <button mat-raised-button color="accent" (click)="onclickCloseSession()" style="margin-right: 10px;">Fermer la session</button>
         <button mat-icon-button class="screen" (click)="onclickFullscreen()"><mat-icon>open_in_full</mat-icon></button>    
@@ -13,7 +13,6 @@
 
         <div class="left-pane" *ngIf="ready">
             <div class="body">
-                <div class="body-overlay" *ngIf="is_validated"></div>
                 <div class="view">
 
                     <div class="order">
@@ -73,7 +72,7 @@
 
         <div class="right-pane">
 
-            <mat-tab-group animationDuration="0ms" mat-align-tabs="end" [backgroundColor]="'primary'" [disablePagination]="true" [selectedIndex]="selectedTabIndex">
+            <mat-tab-group animationDuration="0ms" mat-align-tabs="end" [backgroundColor]="'primary'" [disablePagination]="true">
 
                 <mat-tab label="Produits">                    
                     <div style="display: flex; align-items: center; height: 56px;">

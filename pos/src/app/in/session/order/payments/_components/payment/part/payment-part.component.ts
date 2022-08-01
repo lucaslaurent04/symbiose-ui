@@ -46,7 +46,8 @@ export class SessionOrderPaymentsPaymentPartComponent extends TreeComponent<Orde
             "booking":      "réservation",
             "voucher":      "voucher"
         };
-        const value = this.payment_method.value;
+        const value = this.instance.payment_method;
+        console.log('##', value);
         return map.hasOwnProperty(value)?map[value]:'montant';
     }
 
@@ -80,6 +81,7 @@ export class SessionOrderPaymentsPaymentPartComponent extends TreeComponent<Orde
 
     public async ngOnInit() {
         this.payment_method.setValue('cash');
+
         this.amount.valueChanges.subscribe( (value:number)  => this.instance.amount = value );
         this.payment_method.valueChanges.subscribe( (value:number)  => this.instance.payment_method = value );
         this.voucher_ref.valueChanges.subscribe( (value:number)  => this.instance.voucher_ref = value );
@@ -105,7 +107,7 @@ export class SessionOrderPaymentsPaymentPartComponent extends TreeComponent<Orde
 
     public async onchangePaymentMethod() {
         await this.api.update(this.instance.entity, [this.instance.id], {payment_method: this.instance.payment_method});
-        this.updated.emit();
+        // this.updated.emit();
     }
 
     public async onchangeBookingId(booking: any) {

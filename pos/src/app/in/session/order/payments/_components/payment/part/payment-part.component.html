@@ -7,25 +7,28 @@
                 <button *ngIf="payment?.status != 'paid'" mat-icon-button (click)="onclickDelete()"><mat-icon>delete</mat-icon></button>
             </mat-panel-description>
         </mat-expansion-panel-header>
-        <div style="padding-bottom: 20px;">
-            <mat-label style="text-align: center; width: 100%; margin-left: 1.5rem;">Méthode</mat-label>
+        <div style="padding-bottom: 20px; margin: 4px;">
             <mat-button-toggle-group (change)="onchangePaymentMethod()" [formControl]="payment_method"
                 style="display: flex; flex-direction: column;">
-                <mat-button-toggle mat-raised-button value="cash" [class.selected]="payment_method.value == 'cash'">
-                    Espèces
+                <mat-button-toggle 
+                    mat-raised-button value="cash" 
+                    [class.selected]="payment_method.value == 'cash'">Espèces
                 </mat-button-toggle>
-                <mat-button-toggle mat-raised-button value="bank_card" [class.selected]="payment_method.value == 'bank_card'">
-                    Banque
+                <mat-button-toggle 
+                    mat-raised-button value="bank_card" 
+                    [class.selected]="payment_method.value == 'bank_card'">Banque
                 </mat-button-toggle>
-                <mat-button-toggle mat-raised-button value="booking" [class.selected]="payment_method.value == 'booking'">
-                    Reservation
+                <mat-button-toggle 
+                    mat-raised-button value="booking" 
+                    [class.selected]="payment_method.value == 'booking'">Reservation
                 </mat-button-toggle>
-                <mat-button-toggle mat-raised-button value="voucher" [class.selected]="payment_method.value == 'voucher'">
-                    Voucher
+                <mat-button-toggle 
+                    mat-raised-button value="voucher" 
+                    [class.selected]="payment_method.value == 'voucher'">Voucher
                 </mat-button-toggle>
             </mat-button-toggle-group>
         </div>
-        <div>
+        <div style="margin: 4px;">
             <div *ngIf="payment_method.value !== 'booking'">
                 <mat-form-field>
                     <mat-label>Montant</mat-label>
@@ -34,7 +37,7 @@
             </div>
 
             <div>
-                <div *ngIf="payment_method.value=='booking'">
+                <div *ngIf="payment_method.value=='booking'" style="max-width: 180px; margin: 0;">
                     <sb-m2o-select
                         [entity]="'lodging\\sale\\booking\\Booking'"
                         [placeholder]="'Commencez à taper le nom'"
@@ -53,7 +56,7 @@
                             [formControl]="booking_id">
                     </mat-form-field> -->
                 </div>
-                <div *ngIf="payment_method.value=='voucher'">
+                <div *ngIf="payment_method.value=='voucher'" style="max-width: 180px; margin: 0;">
                     <mat-form-field>
                         <mat-label>Voucher</mat-label>
                         <input matInput (focus)="focused = 'voucher_ref'" type="number" (blur)="onchangeVoucherRef()" [formControl]="voucher_ref">

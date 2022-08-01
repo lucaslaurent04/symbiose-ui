@@ -34,12 +34,10 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
 
     public selectedPaymentIndex: number;    
     public selectedPaymentPartIndex: number;
-    public selectedTabIndex: number = 0;
 
     public focus: string;
 
     public show_products: boolean = false;
-    public is_validated: boolean = false;
 
     public due: number;
     public change: any;
@@ -78,9 +76,6 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
     public async onclickValidate() {
         try {
             await this.api.fetch('?do=lodging_order_do-pay', {id : this.instance.id });
-            // enable ticket pane and switch to it
-            this.is_validated = true;
-            this.selectedTabIndex = 1;
         }
         catch(response) {
             console.warn(response);
