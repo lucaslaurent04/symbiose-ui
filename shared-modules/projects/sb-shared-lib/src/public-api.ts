@@ -24,3 +24,4 @@ export * from './lib/components/menu-list-item/menu-list-item.component';
 export * from './lib/components/date-selection/date-selection.component';
 export * from './lib/components/sb-m2o-select/sb-m2o-select.component';
 export {SbDialogConfirmDialog} from './lib/components/sb-dialog-confirm/sb-dialog-confirm.dialog';
+export {SbDialogNotifyDialog} from './lib/components/sb-dialog-notify/sb-dialog-notify.dialog';

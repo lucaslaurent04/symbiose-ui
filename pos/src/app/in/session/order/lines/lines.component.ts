@@ -1,10 +1,13 @@
 import { Component, OnInit, AfterViewInit, ViewChildren, QueryList, ViewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ApiService, ContextService, TreeComponent, RootTreeComponent } from 'sb-shared-lib';
-import { CashdeskSession } from './../../session.model';
-import { Order, OrderLine } from './lines.model';
+import { ApiService, ContextService, TreeComponent, RootTreeComponent, SbDialogNotifyDialog } from 'sb-shared-lib';
+import { CashdeskSession } from '../../_models/session.model';
+import { Order } from './_models/order.model';
+import { OrderLine } from './_models/order-line.model';
 import { SessionOrderLinesOrderLineComponent } from './_components/order-line/order-line.component';
+import { SessionOrderLinesSelectionComponent } from './_components/selection/selection.component';
 import { OrderService } from 'src/app/in/orderService';
+import { MatDialog } from '@angular/material/dialog';
 
 
 // declaration of the interface for the map associating relational Model fields with their components
@@ -20,28 +23,19 @@ interface OrderComponentsMap {
 export class SessionOrderLinesComponent extends TreeComponent<Order, OrderComponentsMap> implements RootTreeComponent, OnInit, AfterViewInit {
 
     @ViewChildren(SessionOrderLinesOrderLineComponent) sessionOrderLinesOrderLineComponents: QueryList<SessionOrderLinesOrderLineComponent>;
+    @ViewChild('selection') selection: SessionOrderLinesSelectionComponent;
 
     public ready: boolean = false;
-    public session: CashdeskSession = new CashdeskSession();
-    public orderLine: any;
-    public error_message: boolean = false;
 
     public invoice: boolean;
+
+    private last_stroke: number = Date.now();
 
     public get taxes () {
         return Math.round( (this.instance.price - this.instance.total) * 100) / 100;
     }
 
-    // string values for handling pad actions and apply them on properties of the selected line
-    public str_unit_price: string = '';
-    public str_qty: string = '';
-    public str_discount: string = '';
-    public str_free_qty: string = '';
-    public str_vat_rate: string = '';
-
     public selected_field: string = 'qty';
-
-    public customer_name : string;
 
     // reference to the selected line component
     private selectedLineComponent: SessionOrderLinesOrderLineComponent;
@@ -51,12 +45,11 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
     // pane to be displayed : 'main', 'discount'
     public current_pane: string = "main";
 
-    private debounce: any;
-
     constructor(
         private router: Router,
         private route: ActivatedRoute,
         private api: ApiService,
+        private dialog: MatDialog,
         private context: ContextService,
         public orderservice: OrderService
     ) {
@@ -74,9 +67,8 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
     public ngOnInit() {
         // fetch the ID from the route
         this.route.params.subscribe(async (params) => {
-            if (params && params.hasOwnProperty('session_id') && params.hasOwnProperty('order_id')) {
+            if (params && params.hasOwnProperty('order_id')) {
                 try {
-                    await this.loadSession(<number>params['session_id']);
                     await this.load(<number>params['order_id']);
                     this.ready = true;
                 }
@@ -87,21 +79,6 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
         });
     }
 
-    private async loadSession(session_id: number) {
-        if (session_id > 0) {
-            try {
-                const result : any = await this.api.read(CashdeskSession.entity, [session_id], Object.getOwnPropertyNames(new CashdeskSession()));
-                if ( result &&  result.length) {
-                    this.session = <CashdeskSession> result[0];
-                }
-            }
-            catch (response) {
-                throw 'unable to retrieve given session';
-            }
-        }
-    }
-
-
     /**
      * Load an Order object using the sale_pos_order_tree controller
      * @param order_id
@@ -109,11 +86,9 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
     async load(order_id: number) {
         if (order_id > 0) {
             try {
-                this.orderLine = await this.api.fetch('/?get=sale_pos_order_tree', { id: order_id, variant: 'lines' });
-                console.log(this.orderLine)
-                this.customer_name= this.orderLine.customer_id.name;
-                if (this.orderLine) {
-                    this.update(this.orderLine);
+                const data = await this.api.fetch('/?get=lodging_sale_pos_order_tree', { id: order_id, variant: 'lines' });
+                if (data) {
+                    this.update(data);
                 }
             }
             catch (response) {
@@ -149,7 +124,7 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
     }
 
     public onclickCloseSession() {
-        this.router.navigate(['/session/'+this.session.id+'/close']);
+        this.router.navigate(['/session/'+this.instance.session_id.id+'/close']);
     }
 
     public onclickFullscreen() {
@@ -174,21 +149,17 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
         console.log(this.sessionOrderLinesOrderLineComponents.toArray());
         let index = this.sessionOrderLinesOrderLineComponents.toArray().findIndex( (l:any) => l.instance.id == line.id );
         console.log(index);
+
         this.selectedLineComponent = this.sessionOrderLinesOrderLineComponents.toArray()[index];
         // create a clone of the selected line
         this.selectedLine = <OrderLine> {...this.selectedLineComponent.instance};
 
-        this.str_unit_price = this.selectedLine.unit_price.toString();
-        this.str_qty = this.selectedLine.qty.toString();
-        this.str_discount = (this.selectedLine.discount * 100).toString();
-        this.str_free_qty = this.selectedLine.free_qty.toString();
-        this.str_vat_rate = (this.selectedLine.vat_rate * 100).toString();
     }
 
 
     /**
-     * We received an event from the pad
-     * special keys : 0-9, '%', 'backspace', '+/-', '+', '-'
+     * Handle keypress event from the keypad.
+     * Special keys : 0-9, '%', 'backspace', '+/-', '+', '-'
      */
     public async onPadPressed(key: any) {
 
@@ -207,199 +178,143 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
         }
 
 
-        /*
-            adapt local values based on the received key and current pane
-        */
+        // retrieve current string from keypad
+        let keypad_str:string = '0';
 
-        if (this.selected_field == "qty") {
-            // Reset the quantity to zero after we type one number
-            if(this.str_qty == "1") this.str_qty = "";
-            if (['+', '-'].indexOf(key) >= 0) {
-                if (key == "-") {
-                    if(this.str_qty.includes('-')) {
-                        this.str_qty = this.str_qty.replace('-', '');
-                    }
-                    else {
-                        this.str_qty = '-' + this.str_qty;
-                    }
-                }
-                else if (key == "+") {
-                    if(this.str_qty.includes('-')) {
-                        this.str_qty = this.str_qty.replace('-', '');
-                    }
-                }
-            }
-            else if (key == 'backspace') {
-                if (this.str_qty.length) {
-                    // remove last char
-                    this.str_qty = this.str_qty.slice(0, -1);
-                    if (!this.str_qty.length) {
-                        this.str_qty = "0";
-                    }
-                }
-            }
-            else if (/^[0-9]{1}/.test(key)) {
-                // char is a digit: append it
-                this.str_qty += key;
+        let now: number = Date.now();
+        
+        // after a while, the stroke replaces the value
+        // otherwise, the key is append to the value
+        if(now - this.last_stroke < 2000) {
+            switch (this.selected_field) {
+                case 'qty':
+                    keypad_str = this.selectedLine.qty.toString();                
+                    break;
+                case 'free_qty':
+                    keypad_str = this.selectedLine.free_qty.toString();
+                    break;
+                case 'unit_price':
+                    keypad_str = this.selectedLine.unit_price.toString();                
+                    break;
+                case 'discount':
+                    keypad_str = (this.selectedLine.discount * 100).toString();
+                    break;
+                case 'vat_rate':
+                    keypad_str = (this.selectedLine.vat_rate * 100).toString();
+                    break;
             }
         }
-        if (this.selected_field == "free_qty") {
-            if (['+', '-'].indexOf(key) >= 0) {
-                if (key == "-") {
-                    if(this.str_free_qty.includes('-')) {
-                        this.str_free_qty = this.str_free_qty.replace('-', '');
-                    }
-                    else {
-                        this.str_free_qty = '-' + this.str_free_qty;
-                    }
+        this.last_stroke = now;
+
+        // adapt string based on received key
+        if (key == ",") {
+            if(!keypad_str.includes('.')) {
+                keypad_str += ".001";
+            }
+        }
+        else if (['+', '-'].indexOf(key) >= 0) {
+            if (key == "-") {
+                if (keypad_str.includes('-')) {
+                    keypad_str = keypad_str.replace('-', '');
                 }
-                else if (key == "+") {
-                    if(this.str_free_qty.includes('-')) {
-                        this.str_free_qty = this.str_free_qty.replace('-', '');
-                    }
+                else {
+                    keypad_str = '-' + keypad_str;
                 }
             }
-            else if (key == 'backspace') {
-                if (this.str_free_qty.length) {
-                    // remove last char
-                    this.str_free_qty = this.str_free_qty.slice(0, -1);
-                    if (!this.str_free_qty.length) {
-                        this.str_free_qty = "0";
-                    }
-                }
+            else if (key == "+" && keypad_str.includes('-')) {
+                keypad_str = keypad_str.replace('-', '');
             }
-            else if (/^[0-9]{1}/.test(key)) {
-                // char is a digit: append it
-                this.str_free_qty += key;
-            }
-        }        
-        else if (this.selected_field == "unit_price") {
-            if (key == ",") {
-                if(!this.str_unit_price.includes('.')) {
-                    this.str_unit_price += ".";
-                }
-            }
-            else if (['+', '-'].indexOf(key) >= 0) {
-                if (key == "-") {
-                    if (this.str_unit_price.includes('-')) {
-                        this.str_unit_price = this.str_unit_price.replace('-', '');
-                    }
-                    else {
-                        this.str_unit_price = '-' + this.str_unit_price;
-                    }
-                }
-                else if (key == "+" && this.str_unit_price.includes('-')) {
-                    this.str_unit_price = this.str_unit_price.replace('-', '');
-                }
-            }
-            else if (key == 'backspace') {
-                if (this.str_unit_price.length) {
-                    // remove last char
-                    this.str_unit_price = this.str_unit_price.slice(0, -1);
-                    if (!this.str_unit_price.length) {
-                        this.str_unit_price = "0";
-                    }
-                    // remove decimal separator if unnecessary
-                    else if(this.str_unit_price.includes('.')) {
-                        let num_val = parseFloat(this.str_unit_price);
-                        if(Number.isInteger(num_val)) {
-                            this.str_unit_price = num_val.toString();
+        }
+        else if (key == 'backspace') {
+            if (keypad_str.length) {
+                // remove last char(s)
+
+                if(keypad_str.includes('.')) {
+                    let dec_part: string = keypad_str.split(".")[1];
+                    if(dec_part.length > 2) {
+                        keypad_str = keypad_str.slice(0, -2);
+                        let last = keypad_str.slice(-1);
+                        if(last == '0') {
+                            keypad_str = keypad_str.slice(0, -1);
                         }
                     }
+                    else {
+                        keypad_str = keypad_str.slice(0, -1);
+                    }
                 }
-            }
-            else if (/^[0-9]{1}/.test(key)) {
-                this.str_unit_price += key;
+                else {
+                    keypad_str = keypad_str.slice(0, -1);
+                }
+
+                if (!keypad_str.length) {
+                    keypad_str = "0";
+                }
+                // remove decimal separator if unnecessary
+                else if(keypad_str.includes('.')) {
+                    let num_val = parseFloat(keypad_str);
+                    if(Number.isInteger(num_val)) {
+                        keypad_str = num_val.toString();
+                    }
+                }
             }
         }
-        else if (this.selected_field == "discount") {
-            if (['+', '-'].indexOf(key) >= 0) {
-                if(key == "-") {
-                    if(this.str_discount.includes('-')) {
-                        this.str_discount = this.str_discount.replace('-', '');
-                    }
-                    else {
-                        this.str_discount = '-' + this.str_discount;
-                    }
+        else if (/^[0-9]{1}/.test(key)) {
+            if(keypad_str.includes('.')) {
+                let value: number = parseFloat(keypad_str);
+                let int_part = Math.trunc(value);
+                let dec_part = parseInt(keypad_str.split(".")[1], 10);
+
+                // first decimal
+                if(dec_part < 100) {
+                    dec_part -= Math.trunc(dec_part/1000) * 1000;
+                    dec_part += parseInt(key, 10) * 100;
+                    keypad_str = int_part + '.' + dec_part + '1';
                 }
-                else if(key == "+") {
-                    if (this.str_discount.includes('-')) {
-                        this.str_discount = this.str_discount.replace('-', '');
-                    }
-                }
-            }
-            else if (key == 'backspace') {
-                if (this.str_discount.length) {
-                    // remove last char
-                    this.str_discount = this.str_discount.slice(0, -1);
-                    if (!this.str_discount.length) {
-                        this.str_discount = "0";
-                    }
+                // second decimal
+                else {
+                    console.log(dec_part);
+                    let first_dec = Math.trunc(dec_part/100);
+                    console.log(first_dec);
+                    keypad_str = int_part + '.' + first_dec + key + '1';
                 }
             }
-            else if (/^[0-9]{1}/.test(key)) {
-                this.str_discount += key;
-            }
+            else {
+                keypad_str += key;
+            }                
         }
-        else if (this.selected_field == "vat_rate") {
-            if (['+', '-'].indexOf(key) >= 0) {
-                if(key == "-") {
-                    if(this.str_vat_rate.includes('-')) {
-                        this.str_vat_rate = this.str_vat_rate.replace('-', '');
-                    }
-                    else {
-                        this.str_vat_rate = '-' + this.str_vat_rate;
-                    }
-                }
-                else if(key == "+") {
-                    if (this.str_vat_rate.includes('-')) {
-                        this.str_vat_rate = this.str_vat_rate.replace('-', '');
-                    }
-                }
-            }
-            else if (key == 'backspace') {
-                if (this.str_vat_rate.length) {
-                    // remove last char
-                    this.str_vat_rate = this.str_vat_rate.slice(0, -1);
-                    if (!this.str_vat_rate.length) {
-                        this.str_vat_rate = "0";
-                    }
-                }
-            }
-            else if (/^[0-9]{1}/.test(key)) {
-                this.str_vat_rate += key;
-            }
-        }        
-
-
-        /*
-            trigger an immediate update (UI only)
-        */
-        console.log(this.str_discount, this.str_vat_rate, this.str_qty, this.str_free_qty, this.str_unit_price);
 
         // update local copy
-        this.selectedLine = <OrderLine> {...this.selectedLine,
-            discount: parseFloat(this.str_discount) / 100,
-            vat_rate: parseFloat(this.str_vat_rate) / 100,
-            qty: parseInt(this.str_qty, 10),
-            free_qty: parseInt(this.str_free_qty, 10),
-            unit_price: Math.round(parseFloat(this.str_unit_price)*100) / 100
-        };
-
-        // refresh selected line Component
-        this.selectedLineComponent.update(this.selectedLine);
-        
-
-        /*
-            relay to currently selected child with a debounce
-        */
-
-        if (this.debounce) {
-            clearTimeout(this.debounce);
+        switch (this.selected_field) {
+            case 'qty':
+                this.selectedLine = <OrderLine> {...this.selectedLine, qty: parseInt(keypad_str, 10)};
+                break;
+            case 'free_qty':
+                this.selectedLine = <OrderLine> {...this.selectedLine, free_qty: parseInt(keypad_str, 10)};
+                break;
+            case 'unit_price':
+                let unit_price: number = parseFloat(keypad_str);
+                let int_part = Math.trunc(unit_price);
+                let dec_part = (unit_price - int_part) * 1000;
+                if(dec_part > 0) {
+                    unit_price = parseFloat(unit_price.toFixed(3));
+                }
+                else {
+                    unit_price = parseInt(keypad_str);
+                }
+                this.selectedLine = <OrderLine> {...this.selectedLine, unit_price: unit_price};
+                break;
+            case 'discount':
+                this.selectedLine = <OrderLine> {...this.selectedLine, discount: parseFloat(keypad_str) / 100};
+                break;
+            case 'vat_rate':
+                this.selectedLine = <OrderLine> {...this.selectedLine, vat_rate: parseFloat(keypad_str) / 100};
+                break;
         }
-        this.debounce = setTimeout(async () => {
-            this.selectedLineComponent.onChange();
-        }, 1500);
+
+        // synchronously refresh selected line Component
+        this.selectedLineComponent.update(this.selectedLine);
+        // trigger a relay to server
+        this.selectedLineComponent.onchange();
     }
 
     public onGetInvoice(value: any) {
@@ -416,66 +331,120 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
         this.current_pane = event;
     }
 
+
+    /**
+     * Possible values are : qty, free_qty, unit_price, discount, vat_rate
+     * @param event 
+     */
     public onSelectField(event: any) {
         this.selected_field = event;
     }
 
-    public async onAddBookingOrderLine(funding: any) {
-        if (this.instance.order_lines_ids.length == 0) {
-            this.error_message = false;
-            try {
-                const line = await this.api.create((new OrderLine()).entity, { order_id: this.instance.id, unit_price: funding.due_amount, qty: 1, has_funding: true, funding_id: funding.id, name: funding.name });
-                await this.api.update(this.instance.entity, [this.instance.id], { order_lines_ids: [line.id] });
-                this.load(this.instance.id);
-                // this.onSelectLine(line);                
-            }
-            catch(response) {
-                // unexpected error
-            }
-        }else{
-            this.error_message = true;
+    /**
+     * Handler of request for adding a funding to the order
+     * @param funding 
+     */
+    public async onAddFunding(funding: any) {
+        let has_error: boolean = false;
+
+        if (this.instance.order_lines_ids.length > 0) {
+            has_error = true;
+            // display an error message : a funding must be alone on an order 
+            const dialog = this.dialog.open(SbDialogNotifyDialog, {
+                width: '33vw',
+                data: {
+                    title: "Opération impossible", 
+                    message: "Les commandes ne peuvent comporter à la fois des produits et des financements. Si vous souhaitez ajouter ce financement, retirez d'abord les produits.", 
+                    ok: 'Fermer'
+                }
+            });            
         }
-        // Changement temporaire pour reload le composant
+
+        // make sure the funding hasn't been added already
+        this.instance.order_lines_ids.forEach((element: any) => {
+            if (element.funding_id == funding.id) {
+                has_error = true;
+                // display an error message : a funding must be alone on an order 
+                const dialog = this.dialog.open(SbDialogNotifyDialog, {
+                    width: '33vw',
+                    data: {
+                        title: "Opération impossible", 
+                        message: "Un même financement ne peut pas être placé plusieurs fois sur une commande.", 
+                        ok: 'Fermer'
+                    }
+                });            
+            }
+        });
+
+        if(has_error) {
+            return;
+        }
+
+        try {
+            // create a new line
+            const line = await this.api.create((new OrderLine()).entity, { order_id: this.instance.id, unit_price: funding.due_amount, qty: 1, has_funding: true, funding_id: funding.id, name: funding.name });
+            // add line to current order
+            await this.api.update(this.instance.entity, [this.instance.id], { order_lines_ids: [line.id] });
+            await this.load(this.instance.id);
+            // this.onSelectLine(line);
+        }
+        catch(response) {
+            // unexpected error
+        }
     }
 
+    /**
+     * Handler of request for adding a funding to the order
+     * @param product 
+     */
     public async onAddProduct(product: any) {
-        if (!this.instance.order_lines_ids[0]?.has_funding) {
-            let has_funding = false;
-            this.error_message = false;
-            this.instance.order_lines_ids.forEach((element: any) => {
-                if (element.has_funding == true) {
-                    has_funding = true;
-                }
-            });
-            if (!has_funding) {
-                try {
-                    const line = await this.api.create((new OrderLine()).entity, {
-                        order_id: this.instance.id,
-                        unit_price: 0,      // we don't know the price yet (will be resolved by back-end)
-                        qty: 1,
-                        name: product.sku,
-                        product_id: product.id
-                    });
-                    await this.api.update(this.instance.entity, [this.instance.id], { order_lines_ids: [line.id] });
-                    await this.load(this.instance.id);
-                    // select line upon next digest
-                    setTimeout( () => {
-                        this.onSelectLine(line);
-                    });
-                }
-                catch(response) {
-                    // unexpected error
-                }
+
+        let has_error: boolean = false;
+
+        this.instance.order_lines_ids.forEach((element: any) => {
+            if (element.has_funding == true) {
+                has_error = true;
+                const dialog = this.dialog.open(SbDialogNotifyDialog, {
+                    width: '33vw',
+                    data: {
+                        title: "Opération impossible", 
+                        message: "Les commandes ne peuvent comporter à la fois des produits et des financements. Si vous souhaitez ajouter ce produit, retirez d'abord le financement.", 
+                        ok: 'Fermer'
+                    }
+                });            
+
             }
+        });
+
+        if(has_error) {
+            return;
         }
-        else {
-            this.error_message = true;
+        try {
+            const line = await this.api.create((new OrderLine()).entity, {
+                order_id: this.instance.id,
+                unit_price: 0,      // we don't know the price yet (will be resolved by back-end)
+                qty: 1,
+                name: product.sku,
+                product_id: product.id
+            });
+            await this.api.update(this.instance.entity, [this.instance.id], { order_lines_ids: [line.id] });
+            await this.load(this.instance.id);
+            // select line upon next digest
+            setTimeout( () => {
+                this.onSelectLine(line);
+            });
         }
+        catch(response) {
+            // unexpected error
+        }
+
     }
 
 
-    public async customer_change(event : any){
+    public async onchangeCustomer(event : any){
         await this.api.update(this.instance.entity, [this.instance.id], { customer_id: event.id });
-        this.load(this.instance.id);
+        await this.load(this.instance.id);
+        // update item selection component (we do it manually because since this.instance is not replaced, ngOnchange won't be triggered)
+        this.selection.update();
     }
 }

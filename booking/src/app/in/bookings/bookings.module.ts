@@ -2,10 +2,9 @@ import { NgModule } from '@angular/core';
 import { DateAdapter, MAT_DATE_LOCALE } from '@angular/material/core';
 import { Platform } from '@angular/cdk/platform';
 
-
 import { SharedLibModule, AuthInterceptorService, CustomDateAdapter } from 'sb-shared-lib';
 
-import { BookingRoutingModule } from './bookings-routing.module';
+import { BookingsRoutingModule } from './bookings-routing.module';
 
 import { BookingsComponent } from './bookings.component';
 
@@ -13,7 +12,7 @@ import { BookingsComponent } from './bookings.component';
 @NgModule({
   imports: [
     SharedLibModule,
-    BookingRoutingModule
+    BookingsRoutingModule
   ],
   declarations: [
     BookingsComponent

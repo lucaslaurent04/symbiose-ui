@@ -7,29 +7,25 @@ import { SessionsNewComponent } from './in/sessions/new/new.component';
 
 
 const routes: Routes = [
-  /* routes specific to current app */
-  {
-    path: 'sessions',
-    loadChildren: () => import(`./in/sessions/sessions.module`).then(m => m.AppInSessionsModule) 
-  },
-  {
-    path: 'session/:session_id',
-    loadChildren: () => import(`./in/session/session.module`).then(m => m.AppInSessionModule) 
-  },
-  {
-    path: 'sessions/new',
-    component: SessionsNewComponent
-},
-  {
-    /*
-     default route, for bootstrapping the App
-      1) load necessary info
-      2) ask for permissions (and store choices)
-      3) redirect to applicable page (/auth/sign or /in)
-     */
-    path: '',
-    component: AppComponent
-  }, 
+    /* routes specific to current app */
+    {
+        path: 'sessions',
+        loadChildren: () => import(`./in/sessions/sessions.module`).then(m => m.AppInSessionsModule) 
+    },
+    {
+        path: 'session/:session_id',
+        loadChildren: () => import(`./in/session/session.module`).then(m => m.AppInSessionModule) 
+    },
+    {
+        /*
+        default route, for bootstrapping the App
+        1) load necessary info
+        2) ask for permissions (and store choices)
+        3) redirect to applicable page (/auth/sign or /in)
+        */
+        path: '',
+        component: AppComponent
+    }
 ];
 
 @NgModule({

@@ -2,7 +2,7 @@
 
 <div class="container" *ngIf="ready">
     <div class="header-wrap">
-        <div class="header">Session › {{session.name}} <small>[{{session.name}}]</small> › Commandes en cours</div>
+        <div class="header">Session › {{session.name}} <small>[{{session.id}}]</small> › Commandes en cours</div>
         <div style="display: flex; align-items: center;">
             <button mat-raised-button color="accent" (click)="onclickCloseSession()" style="margin-right: 10px;">Fermer la session</button>
             <button mat-icon-button class="screen" (click)="onclickFullscreen()"><mat-icon>open_in_full</mat-icon></button>

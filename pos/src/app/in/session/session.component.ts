@@ -2,7 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService, ContextService } from 'sb-shared-lib';
 
-import { CashdeskSession } from './session.model';
+import { CashdeskSession } from './_models/session.model';
 
 
 @Component({

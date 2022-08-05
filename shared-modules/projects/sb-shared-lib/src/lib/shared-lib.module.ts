@@ -11,16 +11,16 @@ import { DateSelectionComponent } from './components/date-selection/date-selecti
 
 import { SbMany2OneSelectComponent } from './components/sb-m2o-select/sb-m2o-select.component';
 import { SbDialogConfirmDialog, SbDialogConfirmModel } from './components/sb-dialog-confirm/sb-dialog-confirm.dialog';
+import { SbDialogNotifyDialog, SbDialogNotifyModel } from './components/sb-dialog-notify/sb-dialog-notify.dialog';
 
 import { VarDirective } from './directives/var.directive';
 import { ClickOutDirective } from './directives/clickOut.directive';
 
 
-import { HttpClientModule } from '@angular/common/http';
-
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-
 import { CommonModule } from '@angular/common';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { HttpClientModule, HttpClient } from '@angular/common/http';
+
 
 import { MatNativeDateModule, MatRippleModule } from '@angular/material/core';
 import { MatFormFieldModule } from '@angular/material/form-field';
@@ -55,7 +55,6 @@ import { MatButtonToggleModule } from '@angular/material/button-toggle';
 import { MatPaginatorModule } from '@angular/material/paginator';
 
 
-import { HttpClient } from '@angular/common/http';
 import { TranslateModule, TranslateLoader, TranslateService } from '@ngx-translate/core';
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 
@@ -79,7 +78,7 @@ const angularModules = [
 const sharedComponents = [
   SharedLibComponent, LoaderComponent, HeaderComponent, FooterComponent, AppSideBarComponent, AppSideMenuComponent,
   DateSelectionComponent,
-  SbMany2OneSelectComponent, SbDialogConfirmDialog,
+  SbMany2OneSelectComponent, SbDialogConfirmDialog, SbDialogNotifyDialog,
   MenuListItemComponent,
   VarDirective, ClickOutDirective
 ];

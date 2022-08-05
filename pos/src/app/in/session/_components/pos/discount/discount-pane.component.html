@@ -1,16 +1,13 @@
 <div class="listHeader">
-    <button class="headerButton" mat-mini-fab color="primary" (click)="onClose()">
-        <mat-icon style="margin-left: 5px;">arrow_back_ios</mat-icon>
-    </button>
     <p style="font-weight: bolder;">Détails du prix</p>
-    <!-- <button class="headerButton" mat-mini-fab color="primary" (click)="onButton('info')">
-        <mat-icon>info</mat-icon>
-    </button> -->
+    <button style="margin-left: auto;" mat-mini-fab color="primary" (click)="onClose()">
+        <mat-icon>arrow_back</mat-icon>
+    </button>
 </div><hr>
 <mat-selection-list style="overflow: auto;" #lines [multiple]="false"
     (click)="onSelectField(lines.selectedOptions.selected)">
-    <mat-list-option *ngFor="let line of liners; index as i" 
-                    [value]="i" 
+    <mat-list-option *ngFor="let line of liners; index as i"
+                    [value]="i"
                     [disabled]="line.disabled"
                     [class.disabled]="line.disabled">
         <div class="optionDetails">

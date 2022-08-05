@@ -3,8 +3,9 @@ import { FormControl } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
 import { ApiService, ContextService, TreeComponent } from 'sb-shared-lib';
-import { OrderPayment, OrderPaymentPart, Customer } from '../../../payments.model';
-
+import { OrderPayment } from '../../../_models/payment.model';
+import { OrderPaymentPart } from '../../../_models/payment-part.model';
+import { Customer } from '../../../_models/customer.model';
 
 // declaration of the interface for the map associating relational Model fields with their components
 interface OrderPaymentPartComponentsMap {
@@ -47,7 +48,6 @@ export class SessionOrderPaymentsPaymentPartComponent extends TreeComponent<Orde
             "voucher":      "voucher"
         };
         const value = this.instance.payment_method;
-        console.log('##', value);
         return map.hasOwnProperty(value)?map[value]:'montant';
     }
 

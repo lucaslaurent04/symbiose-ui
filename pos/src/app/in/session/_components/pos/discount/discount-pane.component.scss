@@ -1,33 +1,38 @@
 :host {
+
     .listHeader{
         display: flex;
-        justify-content: space-around;
         align-items: center;
-        padding: 0;
+        padding: 5px 10px;
+        height: 69px;
+
         .mat-mini-fab{
             &::ng-deep .mat-button-wrapper{
                 padding: 0;
             }
         }
-        .listHeader{
-            box-shadow: none;
-        }
         
     }
 
-    .mat-selection-list{
-        .mat-list-option{
+    .mat-selection-list {
+
+        padding-top: 0;
+        
+        .mat-list-option {
             margin-bottom: 0; 
             height: max-content;
-            .optionDetails{
+
+            .optionDetails {
                 display: flex; 
                 justify-content: space-between;
-                .lineName, .lineUnit{
+
+                .lineName, .lineUnit {
                     font-weight: bold;
                 }
             }  
         }
-        .disabled{
+
+        .disabled {
             background-color: #3f51b5;
             color: white;
         }

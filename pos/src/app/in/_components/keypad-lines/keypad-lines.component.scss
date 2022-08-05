@@ -17,16 +17,30 @@
         padding: 0.4rem;
         text-align: center;
     }
-    .client{
+
+    .client {
         display: flex; 
         justify-content: space-between;
-        align-items: center;
-        padding: 0.4rem;
+        align-items: center;        
         background-color: lightgray;
         border-radius: 4px;
         width: 382px;
+        height: 65px;
         font-weight: bold;
-        .mat-mini-fab{
+
+        .client-display {
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            width: 100%;
+            padding: 0.4rem;
+        }
+
+        .client-select {
+            width: 100%;
+        }
+
+        .mat-mini-fab {
             &::ng-deep .mat-button-wrapper{
                 padding: 0;
             }
@@ -38,10 +52,12 @@
             width: 247px; 
         }
     }
-    .pos-lowerPart{
+
+    .pos-lowerPart {
         display: flex;
         justify-content: center;
         width: max-content;
+
         .details-payment{              
             display: grid;
             grid-template-columns: repeat(1, 100px);
@@ -87,7 +103,7 @@
 
             }
 
-            .payment{
+            .payment {
                 display: flex;
                 justify-content: space-evenly;
                 flex-direction: column;
@@ -100,38 +116,4 @@
             }
         }
     } 
-}  
-.pos{
-    border-right: 1px solid lightgray;
-    width: 430px;
-    
-    .pos-lines{
-        height: 50vh;
-        .mat-selection-list{
-            overflow: auto;
-            .mat-list-option{
-                margin-bottom: 0.35rem; 
-                height: max-content;
-                .productName{
-                    font-weight: bolder;
-                }
-            }
-        }
-        .total{
-            display: flex;
-            flex-direction: column;
-            border-top: black 1px solid;
-            float: right;
-            width: 25%;
-            @media only screen and (max-width: 1500px) {
-                width: 100%;
-            }
-            .totalNumber{
-                font-weight: bold; 
-                font-size: 1.25rem; 
-                overflow: auto;
-            }
-        }    
-    }
-     
 }

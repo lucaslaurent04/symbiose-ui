@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Inject, Input, OnInit, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Inject, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { th } from 'date-fns/locale';
 import { data } from 'jquery';
@@ -33,8 +33,8 @@ export class AppKeypadLinesComponent implements OnInit {
     @Output() onDisplayDetails = new EventEmitter();
     @Output() onKeyPressed = new EventEmitter();
     @Output() onTypeMode = new EventEmitter();
-    @Output() customer_change : any = new EventEmitter();
-    @Input() customer_name : string;
+    @Output() customerChange : any = new EventEmitter();
+    @Input() customer : any;
     @Input() back_button = "payment";
 
     constructor(private dialog: MatDialog) { }
@@ -89,9 +89,9 @@ export class AppKeypadLinesComponent implements OnInit {
     }
 
     onselectCustomer(customer: any) {
-        this.customer_name = customer.name;
+        this.customer = customer;
         this.displayClient = true;
-        this.customer_change.emit(customer);
+        this.customerChange.emit(customer);
     }
 
     onKeypress(event: any) {

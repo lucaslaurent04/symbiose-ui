@@ -89,8 +89,6 @@
 
             .view {
                 margin-top: 30px;
-                
-
 
                 @media print {
                     position: fixed;
@@ -110,7 +108,7 @@
                 padding: 3rem;
                 background-color: white;
 
-                font-size: 1.1rem;
+                font-size: 18px;
                 overflow: auto;
 
                 hr {
@@ -118,14 +116,19 @@
                     margin: 0;
                 }
 
-                .ticketDetails{
+                .ticket-details{
                     text-align: center;
-                    p{
+                    font-size: 15px;
+                    p {
                         margin: 0.5px !important;
+                    }
+
+                    .company-name {
+                        font-weight: 600;
                     }
                 }
 
-                .customerDetails{
+                .customer-details{
                     text-align: center;
                     margin-top: 1px;
 
@@ -134,17 +137,22 @@
                     }
                 }
 
+                .order-details {
+                    text-align: center; 
+                    margin-top: 10px;
+
+                    font-size: 15px;
+
+                    p {
+                        padding: 0;
+                        margin: 0;
+                    }
+                }
+
                 .dotts{
                     float: right; 
                     font-weight: lighter; 
                     margin: 0.2rem;
-                }
-
-                .centerItems{
-                    font-weight: lighter; 
-                    text-align: center; 
-                    width: 100%; 
-                    margin-top: 0;
                 }
 
                 h2 {
@@ -159,10 +167,15 @@
                         list-style-type: none;
                         display: flex;
                         justify-content: space-between;
+                        align-items: center;
+
+                        span:last-of-type {
+                            margin-left: auto;
+                        }
                     }
                 }
 
-                .subTotal{
+                .subTotal {
                     display: flex;
                     justify-content: space-between;
                 }                    
@@ -172,7 +185,5 @@
         }    
         
     }
-
-    
-    
+   
 }

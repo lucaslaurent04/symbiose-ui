@@ -34,6 +34,7 @@ class Center {
         public name: string = '',
         public email: string = '',
         public organisation_id: number = 0,
+        public center_office_id: number = 0,
         public template_category_id: number = 0
     ) {}
 }
@@ -129,7 +130,7 @@ export class BookingInvoiceComponent implements OnInit, AfterContentInit {
     public title: string = '';
     public message: string = '';
     public sender: string = '';
-    public recipient: string = '';    
+    public recipient: string = '';
 
 
     public vm: vmModel;
@@ -190,7 +191,7 @@ export class BookingInvoiceComponent implements OnInit, AfterContentInit {
         this.vm.title.formControl.valueChanges.pipe(debounceTime(300)).subscribe( (title:string) => this.title = title);
         this.vm.message.formControl.valueChanges.pipe(debounceTime(500)).subscribe( (message:string) => this.message = message);
         this.vm.sender.formControl.valueChanges.subscribe( (sender:string) => this.sender = sender);
-        this.vm.recipient.formControl.valueChanges.subscribe( (recipient:string) => this.recipient = recipient);                
+        this.vm.recipient.formControl.valueChanges.subscribe( (recipient:string) => this.recipient = recipient);
     }
 
     /**
@@ -386,14 +387,14 @@ export class BookingInvoiceComponent implements OnInit, AfterContentInit {
             let center:any = new Center();
             for(let field of Object.getOwnPropertyNames(center) ) {
                 if(item.hasOwnProperty(field)) {
-                center[field] = item[field];
+                    center[field] = item[field];
                 }
             }
             this.center = <Center> center;
             if(this.center.organisation_id) {
                 await this.loadOrganisation();
             }
-            if(this.center.use_office_details && this.center.center_office_id) {
+            if(this.center.center_office_id) {
                 await this.loadCenterOffice();
             }
         }
@@ -429,26 +430,26 @@ export class BookingInvoiceComponent implements OnInit, AfterContentInit {
 
     public refreshSenderAddresses() {
 
-        // reset array
+        // reset array and set email addresses in order of preference
         this.vm.sender.addresses = [];
         this.vm.sender.formControl.reset();
 
         // 1) email of Center's Office, if any
-        if(this.center.use_office_details && this.office && this.office.email.length) {
+        if(this.office && this.office.email && this.office.email.length) {
             if(!this.vm.sender.addresses.includes(this.office.email)) {
                 this.vm.sender.addresses.push(this.office.email);
             }
         }
 
         // 2) email of the organisation
-        if(this.organisation.email && this.organisation.email.length) {
+        if(this.organisation && this.organisation.email && this.organisation.email.length) {
             if(!this.vm.sender.addresses.includes(this.organisation.email)) {
                 this.vm.sender.addresses.push(this.organisation.email);
             }
         }
 
         // 3) email of the center
-        if(this.center.email && this.center.email.length) {
+        if(this.center && this.center.email && this.center.email.length) {
             if(!this.vm.sender.addresses.includes(this.center.email)) {
                 this.vm.sender.addresses.push(this.center.email);
             }
@@ -461,7 +462,8 @@ export class BookingInvoiceComponent implements OnInit, AfterContentInit {
             }
         }
 
-        if(this.vm.sender.addresses.length == 1) {
+        // by default, use the first preferred email address
+        if(this.vm.sender.addresses.length >= 1) {
             this.vm.sender.formControl.setValue(this.vm.sender.addresses[0]);
         }
 
@@ -512,7 +514,7 @@ this.vm.recipient.addresses.push(this.user.login);
     }
 
     public onRemoveDocument(index:any) {
-        this.documents.splice(index, 1);        
+        this.documents.splice(index, 1);
     }
 
     public getLangId(lang:string) {
@@ -604,7 +606,7 @@ this.vm.recipient.addresses.push(this.user.login);
 
     public onclickBooking() {
         let descriptor:any = {
-            context_silent: true, // do not update sidebar            
+            context_silent: true, // do not update sidebar
             context: {
                 entity: 'lodging\\sale\\booking\\Booking',
                 type: 'form',
@@ -622,12 +624,12 @@ this.vm.recipient.addresses.push(this.user.login);
 
         // prevent angular lifecycles while a context is open
         this.cd.detach();
-        this.context.change(descriptor);        
+        this.context.change(descriptor);
     }
 
     public onclickCustomer() {
         let descriptor:any = {
-            context_silent: true, // do not update sidebar            
+            context_silent: true, // do not update sidebar
             context: {
                 entity: 'sale\\customer\\Customer',
                 type: 'form',
@@ -645,6 +647,6 @@ this.vm.recipient.addresses.push(this.user.login);
 
         // prevent angular lifecycles while a context is open
         this.cd.detach();
-        this.context.change(descriptor);          
+        this.context.change(descriptor);
     }
 }

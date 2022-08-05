@@ -36,7 +36,7 @@ export class BookingsComponent implements OnInit, AfterViewInit, OnDestroy {
     ) {}
 
     public ngOnDestroy() {
-        console.log('BookingComponent::ngOnDestroy');
+        console.log('BookingsComponent::ngOnDestroy');
         this.ngUnsubscribe.next();
         this.ngUnsubscribe.complete();
     }
@@ -44,7 +44,7 @@ export class BookingsComponent implements OnInit, AfterViewInit, OnDestroy {
     public ngAfterViewInit() {
         console.log('BookingsComponent::ngAfterViewInit');
 
-        this.context.setTarget('#sb-container');
+        this.context.setTarget('#sb-container-bookings');
         const descriptor = this.context.getDescriptor();
         if(!Object.keys(descriptor.context).length) {
             console.log('BookingComponent : requesting change', this.default_descriptor);
@@ -75,8 +75,6 @@ export class BookingsComponent implements OnInit, AfterViewInit, OnDestroy {
                 this.context.change(this.default_descriptor);
             }
         });
-
-
     }
 
 }

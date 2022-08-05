@@ -1,22 +1,3 @@
-export class Order {
-    // index signature
-    [key: string]: any;
-    // model entity
-    public get entity():string { return 'lodging\\sale\\pos\\Order'};    
-    // constructor with public properties
-    constructor(
-        public id: number = 0,
-        public created: Date = new Date(),
-        public name: string = '',
-        public status: string = '',
-        public total: number = 0,
-        public price: number = 0,
-        public customer_id: any = 0,
-        public has_invoice: boolean = false,
-        public order_lines_ids: any[] = []
-    ) {}
-}
-
 export class OrderLine {
     // index signature
     [key: string]: any;

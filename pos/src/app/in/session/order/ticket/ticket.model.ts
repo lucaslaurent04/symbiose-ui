@@ -12,9 +12,11 @@ export class Order {
         public total: number = 0,
         public price: number = 0,
         public total_paid: number = 0,
-        public customer_id: any = 0,
+        public customer_id: any = {},
         public has_invoice: boolean = false,
-        public order_payments_ids: any[] = [],
+        public invoice_id: any = {},
+        public session_id: any = {},
+        public order_payment_parts_ids: any[] = [],
         public order_lines_ids: any[] = []
     ) {}
 }

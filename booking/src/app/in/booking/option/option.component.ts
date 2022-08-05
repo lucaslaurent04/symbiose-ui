@@ -6,6 +6,8 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { FormControl, Validators } from '@angular/forms';
 import { UserClass } from 'sb-shared-lib/lib/classes/user.class';
 import { debounceTime, filter } from 'rxjs/operators';
+import { DatePipe } from '@angular/common';
+
 
 class Booking {
     constructor(
@@ -34,6 +36,7 @@ class Center {
         public name: string = '',
         public email: string = '',
         public organisation_id: number = 0,
+        public center_office_id: number = 0,
         public template_category_id: number = 0
     ) {}
 }
@@ -148,6 +151,7 @@ export class BookingOptionComponent implements OnInit, AfterContentInit {
         private route: ActivatedRoute,
         private context:ContextService,
         private snack: MatSnackBar,
+        private datepipe: DatePipe,
         private zone: NgZone) {
 
 
@@ -229,7 +233,7 @@ export class BookingOptionComponent implements OnInit, AfterContentInit {
 
                     if(params.hasOwnProperty('booking_id')){
                         this.booking_id = <number> parseInt(params['booking_id'], 10);
-                        await this.loadBooking();
+                        await this.load();
                     }
 
                     // #memo - this is only necessary when directly browsing to the URL /booking/:id/quote
@@ -282,7 +286,12 @@ export class BookingOptionComponent implements OnInit, AfterContentInit {
                         }
                     }
                     else if(part.name == 'body') {
-                        this.vm.message.formControl.setValue(part.value);
+                        let value = part.value;
+                        // convert vars from template
+                        value = value.replace(/{center}/gm, this.center.name);
+                        value = value.replace(/{date_from}/gm, this.datepipe.transform(this.booking.date_from, 'shortDate'));
+                        value = value.replace(/{date_to}/gm, this.datepipe.transform(this.booking.date_to, 'shortDate'));                        
+                        this.vm.message.formControl.setValue(value);
                     }else if(part.name == 'mention') {
                         this.vm.mention.formControl.setValue(part.value);
                     }
@@ -322,7 +331,7 @@ export class BookingOptionComponent implements OnInit, AfterContentInit {
         }
     }
 
-    private async loadBooking() {
+    private async load() {
         const result:Array<any> = <Array<any>> await this.api.read("lodging\\sale\\booking\\Booking", [this.booking_id], Object.getOwnPropertyNames(new Booking()));
         if(result && result.length) {
             const item:any = result[0];
@@ -385,20 +394,21 @@ export class BookingOptionComponent implements OnInit, AfterContentInit {
     }
 
     private async loadCenter() {
+        console.log('BookingOptionComponent::loadCenter', this.booking.center_id);
         const result = <Array<any>> await this.api.read("lodging\\identity\\Center", [this.booking.center_id], Object.getOwnPropertyNames(new Center()));
         if(result && result.length) {
             const item:any = result[0];
             let center:any = new Center();
             for(let field of Object.getOwnPropertyNames(center) ) {
                 if(item.hasOwnProperty(field)) {
-                center[field] = item[field];
+                    center[field] = item[field];
                 }
             }
             this.center = <Center> center;
             if(this.center.organisation_id) {
                 await this.loadOrganisation();
             }
-            if(this.center.use_office_details && this.center.center_office_id) {
+            if(this.center.center_office_id) {
                 await this.loadCenterOffice();
             }
         }
@@ -434,26 +444,26 @@ export class BookingOptionComponent implements OnInit, AfterContentInit {
 
     public refreshSenderAddresses() {
 
-        // reset array
+        // reset array and set email addresses in order of preference
         this.vm.sender.addresses = [];
         this.vm.sender.formControl.reset();
 
-        // 1) email of Center's Office, if any
-        if(this.center.use_office_details && this.office && this.office.email.length) {
+        // 1) email of Center's Office, if any (event if this.center.use_office_details is not set)
+        if(this.office && this.office.email && this.office.email.length) {
             if(!this.vm.sender.addresses.includes(this.office.email)) {
                 this.vm.sender.addresses.push(this.office.email);
             }
         }
 
         // 2) email of the organisation
-        if(this.organisation.email && this.organisation.email.length) {
+        if(this.organisation && this.organisation.email && this.organisation.email.length) {
             if(!this.vm.sender.addresses.includes(this.organisation.email)) {
                 this.vm.sender.addresses.push(this.organisation.email);
             }
         }
 
         // 3) email of the center
-        if(this.center.email && this.center.email.length) {
+        if(this.center && this.center.email && this.center.email.length) {
             if(!this.vm.sender.addresses.includes(this.center.email)) {
                 this.vm.sender.addresses.push(this.center.email);
             }
@@ -466,7 +476,8 @@ export class BookingOptionComponent implements OnInit, AfterContentInit {
             }
         }
 
-        if(this.vm.sender.addresses.length == 1) {
+        // by default, use the first preferred email address
+        if(this.vm.sender.addresses.length >= 1) {
             this.vm.sender.formControl.setValue(this.vm.sender.addresses[0]);
         }
 

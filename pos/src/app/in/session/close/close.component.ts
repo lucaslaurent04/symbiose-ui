@@ -3,7 +3,7 @@ import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dial
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService, ContextService } from 'sb-shared-lib';
 
-import { CashdeskSession } from 'src/app/in/session/session.model';
+import { CashdeskSession } from 'src/app/in/session/_models/session.model';
 import { SessionCloseVerificationDialog } from './_components/verification.dialog/verification.component';
 
 @Component({

@@ -2,7 +2,10 @@ import { Component, OnInit, AfterViewInit, Input, Output, EventEmitter, ChangeDe
 import { FormControl } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService, ContextService, TreeComponent } from 'sb-shared-lib';
-import { Order, OrderPayment, OrderPaymentPart, OrderLine, Customer } from '../../payments.model';
+import { Order } from '../../_models/order.model';
+import { OrderPayment } from '../../_models/payment.model';
+import { OrderPaymentPart } from '../../_models/payment-part.model';
+import { Customer } from '../../_models/customer.model';
 import { SessionOrderPaymentsPaymentPartComponent } from './part/payment-part.component';
 import { SessionOrderPaymentsOrderLineComponent } from './line/order-line.component';
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';

@@ -34,6 +34,7 @@ class Center {
         public name: string = '',
         public email: string = '',
         public organisation_id: number = 0,
+        public center_office_id: number = 0,
         public template_category_id: number = 0
     ) {}
 }
@@ -388,7 +389,7 @@ export class BookingQuoteComponent implements OnInit, AfterContentInit {
             if(this.center.organisation_id) {
                 await this.loadOrganisation();
             }
-            if(this.center.use_office_details && this.center.center_office_id) {
+            if(this.center.center_office_id) {
                 await this.loadCenterOffice();
             }
         }
@@ -401,7 +402,7 @@ export class BookingQuoteComponent implements OnInit, AfterContentInit {
             let office:any = new CenterOffice();
             for(let field of Object.getOwnPropertyNames(office) ) {
                 if(item.hasOwnProperty(field)) {
-                office[field] = item[field];
+                    office[field] = item[field];
                 }
             }
             this.office = <CenterOffice> office;
@@ -424,26 +425,26 @@ export class BookingQuoteComponent implements OnInit, AfterContentInit {
 
     public refreshSenderAddresses() {
 
-        // reset array
+        // reset array and set email addresses in order of preference
         this.vm.sender.addresses = [];
         this.vm.sender.formControl.reset();
 
         // 1) email of Center's Office, if any
-        if(this.center.use_office_details && this.office && this.office.email.length) {
+        if(this.office && this.office.email && this.office.email.length) {
             if(!this.vm.sender.addresses.includes(this.office.email)) {
                 this.vm.sender.addresses.push(this.office.email);
             }
         }
 
         // 2) email of the organisation
-        if(this.organisation.email && this.organisation.email.length) {
+        if(this.organisation && this.organisation.email && this.organisation.email.length) {
             if(!this.vm.sender.addresses.includes(this.organisation.email)) {
                 this.vm.sender.addresses.push(this.organisation.email);
             }
         }
 
         // 3) email of the center
-        if(this.center.email && this.center.email.length) {
+        if(this.center && this.center.email && this.center.email.length) {
             if(!this.vm.sender.addresses.includes(this.center.email)) {
                 this.vm.sender.addresses.push(this.center.email);
             }
@@ -456,7 +457,8 @@ export class BookingQuoteComponent implements OnInit, AfterContentInit {
             }
         }
 
-        if(this.vm.sender.addresses.length == 1) {
+        // by default, use the first preferred email address
+        if(this.vm.sender.addresses.length >= 1) {
             this.vm.sender.formControl.setValue(this.vm.sender.addresses[0]);
         }
 
@@ -503,7 +505,7 @@ export class BookingQuoteComponent implements OnInit, AfterContentInit {
     }
 
     public onRemoveDocument(index:any) {
-        this.documents.splice(index, 1);        
+        this.documents.splice(index, 1);
     }
 
     public getLangId(lang:string) {

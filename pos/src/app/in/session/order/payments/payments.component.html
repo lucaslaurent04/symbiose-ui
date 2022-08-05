@@ -2,7 +2,7 @@
     <mat-spinner></mat-spinner>
 </div>
 <div class="header-wrap">
-    <div class="header">Session › {{session.name}} <small>[{{session.id}}]</small> › <a [attr.href]="'#/session/'+session.id+'/orders'">Commandes en cours</a></div>
+    <div class="header">Session › {{instance.session_id.name}} <small>[{{instance.session_id.id}}]</small> › <a [attr.href]="'#/session/'+instance.session_id.id+'/orders'">Commandes en cours</a></div>
     <div style="display: flex; align-items: center;">
         <button mat-raised-button color="accent" (click)="onclickCloseSession()" style="margin-right: 10px;">Fermer la session</button>
         <button mat-icon-button class="screen" (click)="onclickFullscreen()"><mat-icon>open_in_full</mat-icon></button>    
@@ -24,8 +24,8 @@
                         </div>
                     </div>
 
-                    <div *ngIf="session.status != 'pending'">Cette session n'est plus active.</div>
-                    <ng-container *ngIf="session.status == 'pending'">
+                    <div *ngIf="instance.session_id.status != 'pending'">Cette session n'est plus active.</div>
+                    <ng-container *ngIf="instance.session_id.status == 'pending'">
                         <div class="payments">
                             <session-order-payments-order-payment  
                                 *ngFor="let payment of instance.order_payments_ids; index as index"
@@ -127,7 +127,7 @@
                         <tr mat-row *matRowDef="let row; columns: ['select', 'name', 'qty', 'price'];"(click)="selection.toggle(row)"></tr>
                     </table>
 
-                    <div class="validate-button" *ngIf="instance.price <= instance.total_paid"><button mat-flat-button color="accent" (click)="onclickValidate()">Finaliser</button></div>
+                    <div class="validate-button" *ngIf="instance.price <= instance.total_paid"><button mat-flat-button color="accent" (click)="onclickFinish()">Finaliser</button></div>
 
                 </mat-tab>                
 

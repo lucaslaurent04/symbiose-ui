@@ -53,7 +53,7 @@ export class AppRootComponent implements OnInit {
         try {
             await this.auth.authenticate();
         }
-        catch(err) {
+        catch(response) {
             window.location.href = '/apps';
             return;
         }

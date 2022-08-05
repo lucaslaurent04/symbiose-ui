@@ -28,7 +28,7 @@ export class SessionOrderLinesDiscountPaneComponent implements OnInit {
         if(values) {
             this.liners = [{
                 name: "Gratuités",
-                unit : "Qty",
+                unit : "p.",
                 value : values.free_qty,
                 field : 'free_qty',
                 color : "",
@@ -44,7 +44,7 @@ export class SessionOrderLinesDiscountPaneComponent implements OnInit {
             },
             {
                 name: "Quantité",
-                unit : "units",
+                unit : "p.",
                 value : values.qty,
                 field: "qty",
                 color : "#3f51b5",
@@ -59,7 +59,7 @@ export class SessionOrderLinesDiscountPaneComponent implements OnInit {
                 disabled : false
             },
             {
-                name: "Taxes",
+                name: "TVA",
                 unit : "%",
                 value : (values.vat_rate*100).toFixed(0),
                 field: "vat_rate",

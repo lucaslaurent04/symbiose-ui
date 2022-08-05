@@ -1,8 +1,9 @@
 import { Component, OnInit, AfterViewInit, ChangeDetectorRef, ViewChildren, QueryList, Input, SimpleChanges, ViewChild } from '@angular/core';
 import { ActivatedRoute, BaseRouteReuseStrategy, Router } from '@angular/router';
 import { ApiService, ContextService, TreeComponent, RootTreeComponent } from 'sb-shared-lib';
-import { CashdeskSession } from './../../session.model';
-import { Order, OrderLine, OrderPayment, OrderPaymentPart } from './payments.model';
+import { CashdeskSession } from '../../_models/session.model';
+import { Order } from './_models/order.model';
+import { OrderPayment } from './_models/payment.model';
 import { SessionOrderPaymentsOrderPaymentComponent } from './_components/payment/order-payment.component';
 import { SessionOrderLinesComponent } from '../../order/lines/lines.component';
 import { OrderService } from 'src/app/in/orderService';
@@ -73,9 +74,10 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
         this.invoice = invoice;
     }
 
-    public async onclickValidate() {
+    public async onclickFinish() {
         try {
             await this.api.fetch('?do=lodging_order_do-pay', {id : this.instance.id });
+            this.router.navigate(['/session/'+this.instance.session_id.id+'/order/'+this.instance.id+'/ticket']);
         }
         catch(response) {
             console.warn(response);
@@ -85,9 +87,8 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
     public ngOnInit() {        
         // fetch the IDs from the route
         this.route.params.subscribe(async (params) => {
-            if (params && params.hasOwnProperty('session_id') && params.hasOwnProperty('order_id')) {
+            if (params && params.hasOwnProperty('order_id')) {
                 try {
-                    await this.loadSession(<number>params['session_id']);
                     await this.load(<number>params['order_id']);
                     this.ready = true;
                 }
@@ -98,20 +99,6 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
         });
     }
 
-    private async loadSession(session_id: number) {
-        if (session_id > 0) {
-            try {
-                const result: any = await this.api.read(CashdeskSession.entity, [session_id], Object.getOwnPropertyNames(new CashdeskSession()));
-                if (result && result.length) {
-                    this.session = <CashdeskSession> result[0];
-                }
-            }
-            catch (response) {
-                throw 'unable to retrieve given session';
-            }
-        }
-    }
-
 
     /**
      * Load an Order object using the sale_pos_order_tree controller
@@ -120,7 +107,7 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
     async load(order_id: number) {
         if (order_id > 0) {
             try {
-                const data = await this.api.fetch('/?get=sale_pos_order_tree', { id: order_id, variant: 'payments' });
+                const data = await this.api.fetch('/?get=lodging_sale_pos_order_tree', { id: order_id, variant: 'payments' });
                 if (data) {
                     this.update(data);
                 }
