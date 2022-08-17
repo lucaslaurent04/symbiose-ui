@@ -5,7 +5,6 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService, ContextService, TreeComponent } from 'sb-shared-lib';
 import { OrderPayment } from '../../../_models/payment.model';
 import { OrderLine } from '../../../_models/order-line.model';
-import {ThemePalette} from '@angular/material/core';
 
 
 // declaration of the interface for the map associating relational Model fields with their components

@@ -1,11 +1,10 @@
-import { Component, OnInit, AfterViewInit, ChangeDetectorRef, ViewChildren, QueryList, Input, SimpleChanges, ViewChild } from '@angular/core';
-import { ActivatedRoute, BaseRouteReuseStrategy, Router } from '@angular/router';
+import { Component, OnInit, AfterViewInit } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService, ContextService, TreeComponent, RootTreeComponent } from 'sb-shared-lib';
 import { CashdeskSession } from '../../_models/session.model';
 import { Order, OrderLine, OrderPayment, OrderPaymentPart } from './ticket.model';
 
 import { SessionOrderLinesComponent } from '../lines/lines.component';
-import { OrderService } from 'src/app/in/orderService';
 import { BookingLineClass } from 'src/app/model';
 
 import { MatTableDataSource } from '@angular/material/table';
@@ -26,7 +25,7 @@ interface OrderComponentsMap {
 export class SessionOrderTicketComponent extends TreeComponent<Order, OrderComponentsMap> implements RootTreeComponent, OnInit, AfterViewInit {
     // @ViewChildren(SessionOrderPaymentsOrderPaymentComponent) SessionOrderPaymentsOrderPaymentComponents: QueryList<SessionOrderPaymentsOrderPaymentComponent>;
     // @ViewChildren(SessionOrderLinesComponent) SessionOrderLinesComponents: QueryList<SessionOrderLinesComponent>;
-    
+
 
     public ready: boolean = false;
 
@@ -36,8 +35,7 @@ export class SessionOrderTicketComponent extends TreeComponent<Order, OrderCompo
         private router: Router,
         private route: ActivatedRoute,
         private api: ApiService,
-        private context: ContextService,
-        public orderservice: OrderService
+        private context: ContextService
     ) {
         super(new Order());
     }
@@ -49,7 +47,7 @@ export class SessionOrderTicketComponent extends TreeComponent<Order, OrderCompo
         this.componentsMap = map;
     }
 
-    public ngOnInit() {        
+    public ngOnInit() {
         // fetch the IDs from the route
         this.route.params.subscribe(async (params) => {
             if (params && params.hasOwnProperty('order_id')) {
@@ -68,13 +66,13 @@ export class SessionOrderTicketComponent extends TreeComponent<Order, OrderCompo
      * Load an Order object using the sale_pos_order_tree controller
      * @param order_id
      */
-    async load(order_id: number) {        
+    async load(order_id: number) {
         if (order_id > 0) {
             try {
                 const data = await this.api.fetch('/?get=lodging_sale_pos_order_tree', { id: order_id, variant: 'ticket' });
                 if (data) {
                     this.update(data);
-                }                
+                }
             }
             catch (response) {
                throw 'unable to retrieve given order';
@@ -119,22 +117,22 @@ export class SessionOrderTicketComponent extends TreeComponent<Order, OrderCompo
         const elem:any = document.documentElement;
         if (elem.requestFullscreen) {
             elem.requestFullscreen();
-        } 
+        }
         else if (elem.mozRequestFullScreen) {
             elem.mozRequestFullScreen();
-        } 
-        else if (elem.webkitRequestFullscreen) {            
+        }
+        else if (elem.webkitRequestFullscreen) {
             elem.webkitRequestFullscreen();
-        } 
+        }
         else if (elem.msRequestFullscreen) {
             elem.msRequestFullscreen();
         }
-    }     
+    }
 
     public async onPrint() {
         window.print();
     }
-    
+
     public async customer_change(event: any){
         await this.api.update(this.instance.entity, [this.instance.id], { customer_id: event.id });
         this.load(this.instance.id);

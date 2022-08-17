@@ -1,11 +1,11 @@
 <div class="pos-pad">
 
-    <div class="client">
-        <div *ngIf="displayClient == true" class="client-display">
+    <div class="customer">
+        <div *ngIf="!select_customer" class="customer-display">
             <span>{{customer.name}}</span> 
-            <button mat-icon-button (click)="displayClient = false" color="primary"><mat-icon>cancel</mat-icon></button>
+            <button mat-icon-button (click)="select_customer = true" color="primary"><mat-icon>cancel</mat-icon></button>
         </div>
-        <div *ngIf="displayClient == false" class="client-select">
+        <div *ngIf="select_customer" class="customer-select">
             <sb-m2o-select
                 [entity]="'sale\\customer\\Customer'"
                 [placeholder]="'Commencez à taper le nom'"
@@ -18,19 +18,24 @@
     <div class="pos-lowerPart">
 
         <div class="details-payment">                
-            <mat-button-toggle-group [(ngModel)]="invoice" class="payment">
-                <mat-button-toggle style="width: 100%; height: 100%; display: flex; align-items: center;" [class.selected]="invoice == true" (click)="onInvoice()" mat-raised-button [value]="invoice"> <p style="height: 100%;"><span>Facture</span></p> </mat-button-toggle>
+            <mat-button-toggle-group [(ngModel)]="hasInvoice" class="payment">
+                <mat-button-toggle mat-raised-button style="width: 100%; height: 100%; display: flex; align-items: center;" 
+                [class.selected]="hasInvoice" 
+                (click)="onclickInvoice()" 
+                [value]="hasInvoice"> <p style="height: 100%;"><span>Facture</span></p> </mat-button-toggle>
             </mat-button-toggle-group>
             
-            <button mat-raised-button class="payment payment-button" (click)="getPosLineDisplay('payment')">
+            <button mat-raised-button class="payment payment-button" (click)="onclickNext('payment')">
                 <mat-icon>play_circle_filled</mat-icon>
                 <p>Paiement</p>
             </button> 
         </div>
 
         <div style="display: flex;">
-            <app-pad-generic (keyPressed)="onKeypress($event)"></app-pad-generic>
-            <app-pad-type-toggle (newItemEvent)="checkActionType($event)" (newOnBackspace)="onKeypress($event)"></app-pad-type-toggle>
+            <app-pad-generic (keyPress)="onclickKey($event)"></app-pad-generic>
+            <app-pad-type-toggle #togglePad 
+                (selectedModeChange)="checkActionType($event)" 
+                (keyPress)="onclickKey($event)"></app-pad-type-toggle>
         </div>
     </div>
 

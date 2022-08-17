@@ -6,8 +6,8 @@ import { Order } from './_models/order.model';
 import { OrderLine } from './_models/order-line.model';
 import { SessionOrderLinesOrderLineComponent } from './_components/order-line/order-line.component';
 import { SessionOrderLinesSelectionComponent } from './_components/selection/selection.component';
-import { OrderService } from 'src/app/in/orderService';
 import { MatDialog } from '@angular/material/dialog';
+import { AppKeypadLinesComponent } from 'src/app/in/_components/keypad-lines/keypad-lines.component';
 
 
 // declaration of the interface for the map associating relational Model fields with their components
@@ -24,10 +24,9 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
 
     @ViewChildren(SessionOrderLinesOrderLineComponent) sessionOrderLinesOrderLineComponents: QueryList<SessionOrderLinesOrderLineComponent>;
     @ViewChild('selection') selection: SessionOrderLinesSelectionComponent;
+    @ViewChild('keypad') keypad: AppKeypadLinesComponent;
 
     public ready: boolean = false;
-
-    public invoice: boolean;
 
     private last_stroke: number = Date.now();
 
@@ -50,8 +49,7 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
         private route: ActivatedRoute,
         private api: ApiService,
         private dialog: MatDialog,
-        private context: ContextService,
-        public orderservice: OrderService
+        private context: ContextService
     ) {
         super(new Order());
     }
@@ -123,37 +121,30 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
         this.load(this.instance.id);
     }
 
-    public onclickCloseSession() {
-        this.router.navigate(['/session/'+this.instance.session_id.id+'/close']);
-    }
-
     public onclickFullscreen() {
         const elem:any = document.documentElement;
         if (elem.requestFullscreen) {
             elem.requestFullscreen();
-        } 
+        }
         else if (elem.mozRequestFullScreen) {
             elem.mozRequestFullScreen();
-        } 
-        else if (elem.webkitRequestFullscreen) {            
+        }
+        else if (elem.webkitRequestFullscreen) {
             elem.webkitRequestFullscreen();
-        } 
+        }
         else if (elem.msRequestFullscreen) {
             elem.msRequestFullscreen();
         }
-    }    
+    }
 
     public onSelectLine(line: any) {
-        console.log('##### onSelectLine', line);
-
-        console.log(this.sessionOrderLinesOrderLineComponents.toArray());
         let index = this.sessionOrderLinesOrderLineComponents.toArray().findIndex( (l:any) => l.instance.id == line.id );
-        console.log(index);
 
         this.selectedLineComponent = this.sessionOrderLinesOrderLineComponents.toArray()[index];
         // create a clone of the selected line
         this.selectedLine = <OrderLine> {...this.selectedLineComponent.instance};
-
+        // reset the defaut mode on keypad
+        this.keypad.reset();
     }
 
 
@@ -182,19 +173,19 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
         let keypad_str:string = '0';
 
         let now: number = Date.now();
-        
+
         // after a while, the stroke replaces the value
         // otherwise, the key is append to the value
         if(now - this.last_stroke < 2000) {
             switch (this.selected_field) {
                 case 'qty':
-                    keypad_str = this.selectedLine.qty.toString();                
+                    keypad_str = this.selectedLine.qty.toString();
                     break;
                 case 'free_qty':
                     keypad_str = this.selectedLine.free_qty.toString();
                     break;
                 case 'unit_price':
-                    keypad_str = this.selectedLine.unit_price.toString();                
+                    keypad_str = this.selectedLine.unit_price.toString();
                     break;
                 case 'discount':
                     keypad_str = (this.selectedLine.discount * 100).toString();
@@ -280,7 +271,7 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
             }
             else {
                 keypad_str += key;
-            }                
+            }
         }
 
         // update local copy
@@ -317,14 +308,24 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
         this.selectedLineComponent.onchange();
     }
 
-    public onGetInvoice(value: any) {
-        this.invoice = value;
+    public async onRequestInvoiceChange(value: any) {
+        // update invoice flag of current Order
+        await this.api.update(this.instance.entity, [this.instance.id], { has_invoice: value });
+        await this.load(this.instance.id);
     }
 
-    public onDisplayDetails(value: any) {
-        // this.current_pane = value;
-        let newRoute = this.router.url.replace('lines', 'payments');
-        this.router.navigateByUrl(newRoute);
+    public async onclickNext(value: any) {
+        // update order status
+        try {
+            await this.api.update(this.instance.entity, [this.instance.id], { status: 'payment' });
+            // this.current_pane = value;
+            let newRoute = this.router.url.replace('lines', 'payments');
+            this.router.navigateByUrl(newRoute);
+        }
+        catch(response) {
+            // unexpected error
+            console.log(response);
+        }
     }
 
     public switchPane(event: string) {
@@ -334,47 +335,48 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
 
     /**
      * Possible values are : qty, free_qty, unit_price, discount, vat_rate
-     * @param event 
+     * @param event
      */
     public onSelectField(event: any) {
         this.selected_field = event;
+        this.last_stroke = 0;
     }
 
     /**
      * Handler of request for adding a funding to the order
-     * @param funding 
+     * @param funding
      */
     public async onAddFunding(funding: any) {
         let has_error: boolean = false;
-
-        if (this.instance.order_lines_ids.length > 0) {
-            has_error = true;
-            // display an error message : a funding must be alone on an order 
-            const dialog = this.dialog.open(SbDialogNotifyDialog, {
-                width: '33vw',
-                data: {
-                    title: "Opération impossible", 
-                    message: "Les commandes ne peuvent comporter à la fois des produits et des financements. Si vous souhaitez ajouter ce financement, retirez d'abord les produits.", 
-                    ok: 'Fermer'
-                }
-            });            
-        }
 
         // make sure the funding hasn't been added already
         this.instance.order_lines_ids.forEach((element: any) => {
             if (element.funding_id == funding.id) {
                 has_error = true;
-                // display an error message : a funding must be alone on an order 
+                // display an error message : a funding must be alone on an order
                 const dialog = this.dialog.open(SbDialogNotifyDialog, {
                     width: '33vw',
                     data: {
-                        title: "Opération impossible", 
-                        message: "Un même financement ne peut pas être placé plusieurs fois sur une commande.", 
+                        title: "Opération impossible",
+                        message: "Un même financement ne peut pas être placé plusieurs fois sur une commande.",
                         ok: 'Fermer'
                     }
-                });            
+                });
             }
         });
+
+        if (!has_error && this.instance.order_lines_ids.length > 0) {
+            has_error = true;
+            // display an error message : a funding must be alone on an order
+            const dialog = this.dialog.open(SbDialogNotifyDialog, {
+                width: '33vw',
+                data: {
+                    title: "Opération impossible",
+                    message: "Les commandes ne peuvent comporter à la fois des produits et des financements. Si vous souhaitez ajouter ce financement, retirez d'abord les produits.",
+                    ok: 'Fermer'
+                }
+            });
+        }
 
         if(has_error) {
             return;
@@ -384,7 +386,7 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
             // create a new line
             const line = await this.api.create((new OrderLine()).entity, { order_id: this.instance.id, unit_price: funding.due_amount, qty: 1, has_funding: true, funding_id: funding.id, name: funding.name });
             // add line to current order
-            await this.api.update(this.instance.entity, [this.instance.id], { order_lines_ids: [line.id] });
+            await this.api.update(this.instance.entity, [this.instance.id], { customer_id: funding.booking_id.customer_id, order_lines_ids: [line.id] });
             await this.load(this.instance.id);
             // this.onSelectLine(line);
         }
@@ -395,7 +397,7 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
 
     /**
      * Handler of request for adding a funding to the order
-     * @param product 
+     * @param product
      */
     public async onAddProduct(product: any) {
 
@@ -407,11 +409,11 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
                 const dialog = this.dialog.open(SbDialogNotifyDialog, {
                     width: '33vw',
                     data: {
-                        title: "Opération impossible", 
-                        message: "Les commandes ne peuvent comporter à la fois des produits et des financements. Si vous souhaitez ajouter ce produit, retirez d'abord le financement.", 
+                        title: "Opération impossible",
+                        message: "Les commandes ne peuvent comporter à la fois des produits et des financements. Si vous souhaitez ajouter ce produit, retirez d'abord le financement.",
                         ok: 'Fermer'
                     }
-                });            
+                });
 
             }
         });

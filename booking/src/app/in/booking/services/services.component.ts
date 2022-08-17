@@ -93,7 +93,7 @@ export class BookingServicesComponent implements OnInit, AfterViewInit  {
 
         // fetch the booking ID from the route
         this.route.params.subscribe( async (params) => {
-            console.log('BookingEditComponent : recevied routeParams change', params);
+            console.log('BookingEditComponent : received routeParams change', params);
             if(params && params.hasOwnProperty('booking_id')) {
                 this.booking_id = <number> params['booking_id'];
 

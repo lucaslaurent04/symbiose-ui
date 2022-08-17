@@ -2,7 +2,6 @@ import { NgModule } from '@angular/core';
 import { CommonModule } from '@angular/common';
 
 import { SharedLibModule } from 'sb-shared-lib';
-import { OrderService } from './in/orderService';
 
 
 import { AppKeypadLinesComponent, PosOpeningDialog } from './in/_components/keypad-lines/keypad-lines.component';
@@ -20,7 +19,7 @@ import { AppPadValueIncrementsComponent } from './in/_components/pad/value-incre
         AppPadGenericComponent,
         AppPadTypeToggleComponent,
         AppPadValueIncrementsComponent,
-        PosOpeningDialog    
+        PosOpeningDialog
     ],
     imports: [
         CommonModule,
@@ -28,7 +27,6 @@ import { AppPadValueIncrementsComponent } from './in/_components/pad/value-incre
     ],
     exports: [CommonModule, SharedLibModule, AppPadGenericComponent, AppPadValueIncrementsComponent, AppKeypadLinesComponent, AppKeypadPaymentComponent, PosOpeningDialog],
     providers: [
-        OrderService    
     ]
 })
 export class AppSharedModule { }

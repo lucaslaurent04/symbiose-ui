@@ -13,6 +13,11 @@
         <div class="app-sidebar"  [class.show]="show_side_bar">
             <!-- app-sidebar -->
             <div class="side-inner">
+                <div style="height: 48px; display: flex; align-items: center; position: relative; background-color: white; border-bottom: solid 1px lightgrey; border-right: solid 1px lightgrey;">
+                    <input matInput placeholder="Filtre de rubrique" [(ngModel)]="filter" (keyup)="onchangeFilter()" style="border: 0; outline: 0; padding: 0 40px 0 10px; width: 100%;;">
+                    <button mat-icon-button *ngIf="filter?.length" style="position: absolute; right: 5px"  (click)="filter=''; onchangeFilter()"><mat-icon>close</mat-icon></button>
+                    <mat-icon *ngIf="!filter?.length" style="position: absolute; right: 5px">search</mat-icon>
+               </div>
                 <mat-nav-list>
                     <app-menu-list-item *ngFor="let item of navMenuItems"
                         [i18n]="translationsMenuLeft"

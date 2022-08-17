@@ -8,8 +8,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 })
 export class AppPadGenericComponent implements OnInit {
     @Output() newItemEvent = new EventEmitter();
-    @Output() keyPressed = new EventEmitter();
-    @Input() disabled_key: any; 
+    @Output() keyPress = new EventEmitter();
+    @Input() disabledKeys: string[] = []; 
 
     constructor(private router: Router) { }
     
@@ -31,14 +31,10 @@ export class AppPadGenericComponent implements OnInit {
 
     onKeypress(value: any) {
         this.numberPassed = value;
-        this.keyPressed.emit(value);
+        this.keyPress.emit(value);
     }
 
     onDoubleClick() {
-        if (this.operator == '+') {
-            this.operator = '-'
-        } else {
-            this.operator = '+';
-        }
+        this.operator = (this.operator == '-')?'+':'-';
     }
 }

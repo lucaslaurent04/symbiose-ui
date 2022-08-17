@@ -7,20 +7,20 @@ import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 })
 export class AppPadValueIncrementsComponent implements OnInit {
 
-  constructor() { }
-  @Output()  OnaddedNumber = new EventEmitter();
-  @Output() OnBackspace = new EventEmitter();
+    @Output() incrementClick = new EventEmitter();
+    @Output() keyPress = new EventEmitter();
 
-  addedNumber = 0;
+    constructor() { }
 
-  onSelectionChange(value: number) {
-    this.OnaddedNumber.emit(value);
-  }
+    public onclickIncrement(value: number) {
+        this.incrementClick.emit(value);
+    }
 
-  onBackSpace(){
-    this.OnBackspace.emit("backspace");
-  }
-  ngOnInit(): void {
-  }
+    public onclickKey(){
+        this.keyPress.emit("backspace");
+    }
+
+    ngOnInit(): void {
+    }
 
 }

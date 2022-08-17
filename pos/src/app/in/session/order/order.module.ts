@@ -13,7 +13,6 @@ import { SessionOrderPaymentsPaymentPartComponent } from './payments/_components
 
 import { SessionOrderTicketComponent } from './ticket/ticket.component';
 
-import { PaymentComponent } from '../_components/pos/payment/payment.component';
 import { SessionOrderLinesDiscountPaneComponent } from '../_components/pos/discount/discount-pane.component';
 
 
@@ -24,7 +23,7 @@ import { AppSharedModule } from '../../../shared.module';
 
 @NgModule({
   imports: [
-    SharedLibModule,    
+    SharedLibModule,
     SessionOrderRoutingModule,
     AppSharedModule
   ],
@@ -36,8 +35,7 @@ import { AppSharedModule } from '../../../shared.module';
     SessionOrderLinesOrderLineComponent,
     SessionOrderPaymentsOrderLineComponent,
     SessionOrderPaymentsPaymentPartComponent,
-    
-    PaymentComponent,
+
     SessionOrderLinesDiscountPaneComponent,
 
     SessionOrderTicketComponent,

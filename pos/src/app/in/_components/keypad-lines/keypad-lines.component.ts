@@ -1,9 +1,8 @@
-import { Component, EventEmitter, Inject, Input, OnChanges, OnInit, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, Inject, Input, OnChanges, OnInit, Output, SimpleChanges, ViewChild } from '@angular/core';
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { th } from 'date-fns/locale';
 import { data } from 'jquery';
-
-
+import { AppPadTypeToggleComponent } from '../pad/type-toggle/type-toggle.component';
 
 
 @Component({
@@ -13,89 +12,57 @@ import { data } from 'jquery';
 })
 export class AppKeypadLinesComponent implements OnInit {
 
-    public products: any = [{ id: 1, price: "5", name: "Esteban", quantity: "1.00", discount: "" }, { id: 2, price: "7.5", name: "Graccus", quantity: "1.00", discount: "" }];
-    public selectedProduct = 0;
-    public invoice = false;
-    public actionType: any = "qty";
-    public displayClient = true;
-    public quantityTest = "";
-    public priceTest = "";
-    public discountTest = "";
-    public numberPassed = 0;
-    public numberPassedIndex = -1;
-    public total = 0;
-    public taxes = 0;
-    public posLineDisplay: string = "main";
-    public operator: string = '+';
-    public paymentValue: string;
+    @ViewChild('togglePad') togglePad: AppPadTypeToggleComponent;
+    
+    @Input() customer : any;    
+    @Input() hasInvoice : boolean;    
 
-    @Output() onGetInvoice = new EventEmitter();
-    @Output() onDisplayDetails = new EventEmitter();
-    @Output() onKeyPressed = new EventEmitter();
+    @Output() requestInvoiceChange = new EventEmitter();
+    @Output() nextClick = new EventEmitter();
+    @Output() keyPress = new EventEmitter();
     @Output() onTypeMode = new EventEmitter();
     @Output() customerChange : any = new EventEmitter();
-    @Input() customer : any;
-    @Input() back_button = "payment";
+
+    
+    public actionType: any = "qty";
+    public select_customer = false;
+    public posLineDisplay: string = "main";
+    public operator: string = '+';
+
 
     constructor(private dialog: MatDialog) { }
 
     ngOnInit(): void {
-        this.total = 0;
-        this.products.forEach((element: any) => {
-            this.total += Number(element.price) * Number(element.quantity);
-        })
+        this.reset();
     }
 
-    onInvoice() {
-        this.invoice = !this.invoice;
-        this.onGetInvoice.emit(this.invoice);
+    public reset() {
+        this.select_customer = false;
+        this.togglePad?.reset();        
     }
 
-    changeClient() {
-        // could be used to change clients
+    public onclickInvoice() {
+        this.hasInvoice = !this.hasInvoice;
+        this.requestInvoiceChange.emit(this.hasInvoice);
     }
 
-    getPosLineDisplay(value: string) {
-        this.onDisplayDetails.emit(value);
-        // this.discountValue = "0";
-        // this.posLineDisplay = value;
+    public onclickNext(value: string) {
+        this.nextClick.emit(value);
     }
 
-    getDiscountValue(value: any) {
-    }
 
-    getPaymentSelection(value: string) {
-
-    }
-
-    getPaymentValue(value: any) {
-    }
-
-    onDisplayProductInfo() {
-    }
-
-    onSelectedProductChange(element: any) {
-        this.selectedProduct = element[0].value;
-        // Products infos
-        const dialogRef = this.dialog.open(PosOpeningDialog, {
-            data: this.selectedProduct
-        });
-        dialogRef.afterClosed().subscribe(
-        )
-    }
-
-    checkActionType(event: any) {
+    public checkActionType(event: any) {
         this.onTypeMode.emit(event);
     }
 
-    onselectCustomer(customer: any) {
+    public onselectCustomer(customer: any) {
         this.customer = customer;
-        this.displayClient = true;
+        this.select_customer = false;
         this.customerChange.emit(customer);
     }
 
-    onKeypress(event: any) {
-        this.onKeyPressed.emit(event);
+    public onclickKey(event: any) {
+        this.keyPress.emit(event);
     }
 }
 

@@ -6,9 +6,9 @@
 
 /*
 
-    # TreeComponents 
+    # TreeComponents
 
-    For components requiring cascade updates (bottom-up and/or top-down), we use specific components : 
+    For components requiring cascade updates (bottom-up and/or top-down), we use specific components :
     * TreeComponent
     * RootTreeComponent (a RootTreeComponent is also a TreeComponent)
 
@@ -41,21 +41,21 @@
     }
     ```
 
-    In case an update is made within a TreeComponent (node), it (the component) is in charge of: 
-        * updating the server-model by sending a request to the back-end 
+    In case an update is made within a TreeComponent (node), it (the component) is in charge of:
+        * updating the server-model by sending a request to the back-end
         * relaying the event to its parent (trough `@output emit()`) (optionally this can be skipped is no change in display is expected)
         * if the TreeComponent is the RootTreeComponent, it reloads the tree, using the load() method.
 
     When the RootTreeComponent receives the response from the back-end, it passes the received object to its `update()` method.
     The `update()` method is defined in the TreeComponent class (and is therefore common to all TreeComponent components), and can be overloaded by any TreeComponent.
 
-    
+
     TreeComponents must implement a `model` @input property, defined this way : ```@Input() set model(values: any) { this.update(values) }```
     In addition TreeComponents can implement two @output properties : `updated`and `deleted`
 
-    When a TreeComponent receives a new model (from its `update()` method), it performs the following processing: 
+    When a TreeComponent receives a new model (from its `update()` method), it performs the following processing:
         * simple fields are updated (which triggers the update of the bound widgets components)
-        * relational fields are processed one by one: 
+        * relational fields are processed one by one:
             a) if an ID is present in the View-model but not in the Server-model, it is withdrawn from the view (deleted)
             b) if an ID is present in the Server-model but not in the View-model, it is added to the view (created)
             c) if an ID is present in both Server-model and View-model, the subtree is passed to the `update()` method of th related TreeComponent
@@ -76,7 +76,7 @@
         @Output() updated = new EventEmitter();
         @Output() deleted = new EventEmitter();
 
-        @ViewChildren(SubItemComponent) SubItemComponents: QueryList<SubItemComponent>;     
+        @ViewChildren(SubItemComponent) SubItemComponents: QueryList<SubItemComponent>;
 
 
         public ngAfterViewInit() {
@@ -87,7 +87,7 @@
             this.componentsMap = map;
         }
 
-        public update(values:any) {        
+        public update(values:any) {
             super.update(values);
         }
 
@@ -99,7 +99,7 @@
         public async onchange() {
             this.updated.emit();
         }
-    
+
     }
 */
 
@@ -108,25 +108,25 @@
 */
 
 export interface TreeComponentInterface {
-    /** 
+    /**
      * Update instance with raw objet.
      * A tree component is in charge of updating itself (and sub-components, if necessary).
-     */ 
+     */
     update(values: any): void;
-    /** 
+    /**
      * Return instance identifier.
-     */ 
+     */
     getId(): number;
     /**
      * Model instance of the tree node.
-     */     
+     */
     instance: any;
 }
 
 export interface RootTreeComponent extends TreeComponentInterface {
     /**
      * Load the instance of the node, according to the Type of the TreeComponent.
-     * @param id 
+     * @param id
      */
     load(id: number): void;
 }

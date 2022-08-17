@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { RouterModule, Routes } from '@angular/router';
 import { SessionCloseComponent } from './close/close.component';
+import { SessionMoveComponent } from './move/move.component';
 import { SessionComponent } from './session.component';
 
 const routes: Routes = [
@@ -15,6 +16,10 @@ const routes: Routes = [
     {
         path: 'order/:order_id',
         loadChildren: () => import(`./order/order.module`).then(m => m.AppInSessionOrderModule)
+    },
+    {
+        path: 'move',
+        component: SessionMoveComponent
     },
     {
         path: 'close',

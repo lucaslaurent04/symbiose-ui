@@ -7,24 +7,27 @@ import { Component, EventEmitter, OnInit, Output } from '@angular/core';
 })
 export class AppPadTypeToggleComponent implements OnInit {
 
-    @Output() newItemEvent = new EventEmitter();
-    @Output() newOnBackspace = new EventEmitter();
+    @Output() selectedModeChange = new EventEmitter();
+    @Output() keyPress = new EventEmitter();
 
-    public value = "qty";
+    public mode = 'qty'; // 'qty' or 'unit_price'
 
     constructor() { }
 
-    onSelectionChange(value: string) {
-        this.newItemEvent.emit(value);
+    onchangeMode(mode: string) {
+        this.selectedModeChange.emit(mode);
     }
 
-    onKeypress(value: string) {
-        this.newOnBackspace.emit(value);
+    onpressKey(value: string) {
+        this.keyPress.emit(value);
     }
 
     ngOnInit(): void {
     }
 
-    onDelete() {
+    public reset() {
+        this.mode = 'qty';
+        this.selectedModeChange.emit(this.mode);
     }
+
 }

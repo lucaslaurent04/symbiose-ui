@@ -7,7 +7,9 @@ import { SharedLibModule, AuthInterceptorService, CustomDateAdapter } from 'sb-s
 import { SessionsRoutingModule } from './sessions-routing.module';
 
 import { SessionsComponent } from './sessions.component';
-import { PosClosingCoins, SessionsNewComponent } from './new/new.component';
+import { SessionsNewComponent } from './new/new.component';
+import { SessionsNewInventoryDialog } from './new/_components/inventory/inventory.dialog';
+
 import { AppSharedModule } from '../../shared.module';
 
 
@@ -20,7 +22,7 @@ import { AppSharedModule } from '../../shared.module';
   declarations: [
     SessionsComponent,
     SessionsNewComponent,
-    PosClosingCoins
+    SessionsNewInventoryDialog
   ],
   providers: [
     { provide: DateAdapter, useClass: CustomDateAdapter, deps: [MAT_DATE_LOCALE, Platform] }

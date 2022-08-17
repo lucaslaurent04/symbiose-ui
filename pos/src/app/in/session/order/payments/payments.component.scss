@@ -125,7 +125,7 @@
                         &::-webkit-scrollbar-thumb {
                             background: var(--mdc-theme-primary, #6200ee);
                             border-radius: 10px;
-                        }
+                        }                        
                     }
 
                     .order-lines {
@@ -136,8 +136,7 @@
                         height: 42vh;
                         overflow: auto;
                         background-color: white;
-                        padding-top: 45px;
-                        padding-left: 5px;
+                        padding: 25px 15px 0 15px;
 
                         @media only screen and (max-width: 1500px) {
                             height: 40vh;
@@ -160,7 +159,7 @@
                         }
                         .close-button {
                             position: absolute;
-                            top: 5px;
+                            top: 10px;
                             right: 5px;
                         }
                     }

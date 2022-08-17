@@ -9,13 +9,12 @@ import { Customer } from '../../_models/customer.model';
 import { SessionOrderPaymentsPaymentPartComponent } from './part/payment-part.component';
 import { SessionOrderPaymentsOrderLineComponent } from './line/order-line.component';
 import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-import { isThisMinute } from 'date-fns';
 
 
 // declaration of the interface for the map associating relational Model fields with their components
 interface OrderPaymentComponentsMap {
     order_payment_parts_ids: QueryList<SessionOrderPaymentsPaymentPartComponent>
-    order_lines_ids: QueryList<SessionOrderPaymentsOrderLineComponent>    
+    order_lines_ids: QueryList<SessionOrderPaymentsOrderLineComponent>
 };
 
 @Component({
@@ -35,64 +34,51 @@ export class SessionOrderPaymentsOrderPaymentComponent extends TreeComponent<Ord
     @Output() selectedPaymentPartIndex = new EventEmitter();
     @Output() displayPaymentProducts = new EventEmitter();
 
-    @ViewChildren(SessionOrderPaymentsPaymentPartComponent) SessionOrderPaymentsPaymentPartComponents: QueryList<SessionOrderPaymentsPaymentPartComponent>; 
-    @ViewChildren(SessionOrderPaymentsOrderLineComponent) SessionOrderPaymentsOrderLineComponents: QueryList<SessionOrderPaymentsOrderLineComponent>; 
+    @ViewChildren(SessionOrderPaymentsPaymentPartComponent) sessionOrderPaymentsPaymentPartComponents: QueryList<SessionOrderPaymentsPaymentPartComponent>;
+    @ViewChildren(SessionOrderPaymentsOrderLineComponent) sessionOrderPaymentsOrderLineComponents: QueryList<SessionOrderPaymentsOrderLineComponent>;
 
 
     public ready: boolean = false;
-    public paymentPart : any;
-    public qty:FormControl = new FormControl();
-    public unit_price:FormControl = new FormControl();
+
     public display = "";
-    public index : number;
+    public index : number = 0;
     public focused: any;
     public line_quantity : any = "";
-
-
 
 
     constructor(
         private router: Router,
         private route: ActivatedRoute,
         private cd: ChangeDetectorRef,
-        private api: ApiService,    
+        private api: ApiService,
         private context: ContextService,
         private dialog: MatDialog
-    ) { 
-        super( new OrderPayment() ) 
+    ) {
+        super( new OrderPayment() )
     }
 
 
     public ngAfterViewInit() {
         // init local componentsMap
         let map:OrderPaymentComponentsMap = {
-            order_payment_parts_ids: this.SessionOrderPaymentsPaymentPartComponents,
-            order_lines_ids: this.SessionOrderPaymentsOrderLineComponents
+            order_payment_parts_ids: this.sessionOrderPaymentsPaymentPartComponents,
+            order_lines_ids: this.sessionOrderPaymentsOrderLineComponents
         };
         this.componentsMap = map;
     }
 
-    public onclickOk() {
-        console.log(this.componentsMap.order_lines_ids);
-        console.log(this.SessionOrderPaymentsOrderLineComponents.toArray());
-    }
-
     public ngOnInit() {
         // this.line_quantity.valueChanges.subscribe( (value:number)  => console.log('okay') );
-        this.qty.valueChanges.subscribe( (value:number)  => this.instance.qty = value );
-        this.unit_price.valueChanges.subscribe( (value:number)  => this.instance.unit_price = value );
     }
 
     public update(values:any) {
-        console.log('line item update', values.order_lines_ids[0]);
-        
+        console.log('line item update', values);
         super.update(values);
+    }
 
-        // update widgets and sub-components, if necessary
-        this.qty.setValue(this.instance.qty);
-        this.unit_price.setValue(this.instance.unit_price);
-
-        // this.cd.detectChanges();
+    public getPaymentPart() : SessionOrderPaymentsPaymentPartComponent {
+        let children = this.sessionOrderPaymentsPaymentPartComponents.toArray();
+        return children[this.index];
     }
 
     public canAddPart() {
@@ -120,65 +106,82 @@ export class SessionOrderPaymentsOrderPaymentComponent extends TreeComponent<Ord
         // relay to parent component
         this.updated.emit();
     }
-    
+
     public async ondeletePart(part_id:number) {
         // relay to parent component
         this.updated.emit();
     }
 
-    public async onvalidate(paymentPart : any) {
-        this.paymentPart = paymentPart;
-    }
-
     public async ondeleteLine(line_id:number) {
-        await this.api.update(this.instance.entity, [this.instance.id], {order_lines_ids: [-line_id]});
-        this.instance.order_lines_ids.splice(this.instance.order_lines_ids.findIndex((e:any)=>e.id == line_id),1);
-        // this.updated.emit();
+        try {
+            await this.api.update(this.instance.entity, [this.instance.id], {order_lines_ids: [-line_id]});
+            this.instance.order_lines_ids.splice(this.instance.order_lines_ids.findIndex((e:any)=>e.id == line_id), 1);
+        }
+        catch(response) {
+            console.log('unexepected error', response);
+
+        }
     }
 
     public async onclickCreateNewPart() {
-        await this.api.create((new OrderPaymentPart()).entity, {order_payment_id: this.instance.id});
-        this.updated.emit();
+        try {
+            await this.api.create((new OrderPaymentPart()).entity, {order_payment_id: this.instance.id, amount: this.calcDueRemaining()});
+            this.updated.emit();
+        }
+        catch(response) {
+            console.log('unexpected error', response);
+        }
     }
 
     public onDisplayProducts() {
         this.displayPaymentProducts.emit();
     }
 
-    public async setNewLineValue(digits : number){        
-        // change the value of the line, only if it's lower ! and add it to the right side again !
-        this.instance.order_lines_ids.forEach((line : any) => {
-            if(line.id == this.index){
-                let newLineQty = line.qty.toString() + digits.toString();
-                if(line.qty>= newLineQty){
-                    this.line_quantity = newLineQty;
-                    console.log(this.line_quantity, 'changeed')
-                }else if (line.qty>= digits){
-                    this.line_quantity = digits;
-                    console.log(this.line_quantity, 'changeed')
-
-                }
-                this.changeQuantity(line);
-            }
-        });
-    }
-
     public selectLine(index:number){
         this.index = index;
-        console.log(this.index);
     }
 
     public onSelectedPaymentPart(index : number){
         this.selectedPaymentPartIndex.emit(index);
     }
 
-    public async onConfirmOrderPayment(){
-        this.api.update(this.instance.entity, [this.instance.id], {  status: 'paid' });
-        this.instance.status = 'paid';
-        this.validated.emit();
+    public async onConfirmOrderPayment() {
+        // check if there is any pending payment part
+        let found: boolean = false;
+        for(let partComponent of this.sessionOrderPaymentsPaymentPartComponents) {
+            // if found, force validation
+            if(partComponent.instance.status == 'pending') {
+                partComponent.onValidate();
+                found = true;
+            }
+        }
+        if(found) {
+            return;
+        }
+
+        try {
+            let funding_id: number = 0;
+            // check if payment relates to a funding
+            for(let line of this.instance.order_lines_ids) {
+                if(line.has_funding && line.funding_id) {
+                    funding_id = line.funding_id;
+                    await this.api.update((new OrderPaymentPart).entity, this.instance.order_payment_parts_ids.map((a:any) => a.id), {funding_id: line.funding_id});
+                    break;
+                }
+            }
+            // attach payment to found funding, if any
+            if(funding_id > 0) {
+                await this.api.update(this.instance.entity, [this.instance.id], {funding_id: funding_id});
+            }
+            // delegate payment validation to parent component
+            this.validated.emit();
+        }
+        catch(response) {
+            console.log('unexpected error', response)
+        }
     }
 
-    public async changeQuantity(line : any){        
+    public async changeQuantity(line : any){
         // Remove the number of elements indicated, and create a new object with the difference
         if(parseInt(this.line_quantity) <line.qty) {
             await this.api.create('lodging\\sale\\pos\\OrderLine', {
@@ -200,8 +203,8 @@ export class SessionOrderPaymentsOrderPaymentComponent extends TreeComponent<Ord
             await this.api.update('lodging\\sale\\pos\\OrderLine', [line.id], {
                 qty : parseInt(this.line_quantity)
             });
-        }  
-        line.qty = this.line_quantity;  
-        this.updatedQty.emit();    
+        }
+        line.qty = this.line_quantity;
+        this.updatedQty.emit();
     }
 }

@@ -9,24 +9,29 @@
     flex-direction: column;
     width: 100%;
 
-    .client-resa {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        flex-direction: column;
-        padding: 0.4rem;
-        text-align: center;
-    }
-    .client {
+    .customer {
         display: flex; 
         justify-content: space-between;
-        align-items: center;
-        padding: 0.4rem;
+        align-items: center;        
         background-color: lightgray;
         border-radius: 4px;
         width: 382px;
+        height: 65px;
         font-weight: bold;
-        .mat-mini-fab{
+
+        .customer-display {
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            width: 100%;
+            padding: 0.4rem;
+        }
+
+        .customer-select {
+            width: 100%;
+        }
+
+        .mat-mini-fab {
             &::ng-deep .mat-button-wrapper{
                 padding: 0;
             }
@@ -38,6 +43,7 @@
             width: 247px; 
         }
     }
+    
     .pos-lowerPart{
         display: flex;
         justify-content: center;

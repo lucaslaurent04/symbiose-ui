@@ -1,7 +1,6 @@
+import { CdkAriaLive } from '@angular/cdk/a11y';
 import { Component, OnInit } from '@angular/core';
-
 import { Router } from '@angular/router';
-
 import { ContextService, ApiService, AuthService} from 'sb-shared-lib';
 
 
@@ -18,6 +17,9 @@ export class AppRootComponent implements OnInit {
 
     public show_side_menu: boolean = false;
     public show_side_bar: boolean = true;
+    
+    // original (full & translated) menu for left pane
+    private leftMenu: any = {};
 
     public topMenuItems:any[] = [];
     public navMenuItems: any = [];
@@ -74,18 +76,57 @@ export class AppRootComponent implements OnInit {
 
         // load menus from server
         try {
-            const left_menu:any = await this.api.getMenu('sale', 'pos.left');
-            this.navMenuItems = left_menu.items;
-            this.translationsMenuLeft = left_menu.translation;
+            
+            const data = await this.api.getMenu('sale', 'pos.left');
+            // store full translated menu
+            this.leftMenu = this.translateMenu(data.items, data.translation);
+            // fill left pane with unfiltered menu
+            this.navMenuItems = this.leftMenu;
+            // this.translationsMenuLeft = this.leftMenu.translation;
 
             const top_menu:any = await this.api.getMenu('sale', 'pos.top');
             this.topMenuItems = top_menu.items;
             this.translationsMenuTop = top_menu.translation;
         }
         catch(response) {
-            console.log('unable to load menu');
+            console.log('unable to load menu', response);
         }
+    }
 
+    private translateMenu(menu:any, translation: any) {
+        let result: any[] = [];
+        for(let item of menu) {
+            if(item.id && translation.hasOwnProperty(item.id)) {
+                item.label = translation[item.id].label;
+            }
+            if(item.children && item.children.length) {
+                this.translateMenu(item.children, translation);
+            }
+            result.push(item);
+        }
+        return result;
+    }
+
+    private getFilteredMenu(menu:any[], filter: string = '') {
+        let result: any[] = [];
+
+        for(let item of menu) {
+            if(item.label.match(new RegExp(filter, 'i'))) {
+                result.push(item);
+            }
+            else if(item.children && item.children.length) {
+                let sub_result: any[] = this.getFilteredMenu(item.children, filter);
+                for(let item of sub_result) {
+                    result.push(item);
+                }
+            }            
+        }
+        return result;
+    }
+
+    public onchangeFilter(event: any) {
+        console.log('onchangefilter', event.target.value);
+        this.navMenuItems = this.getFilteredMenu(this.leftMenu, event.target.value);
     }
 
     public onToggleItem(item:any) {

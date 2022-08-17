@@ -11,8 +11,8 @@
         <div class="actions">
             <div class="actions-std"></div>
             <div class="actions-view">
-                <a *ngIf="instance.has_invoice" target="_blank" [attr.href]="'/?get=lodging_booking_print-contract&view_id=print.default&lang='">
-                    <button mat-stroked-button>Voir la facture</button>
+                <a *ngIf="instance.has_invoice" target="_blank" [attr.href]="'/?get=lodging_booking_print-invoice&view_id=print.default&id='+instance.invoice_id+'&lang=fr'" style="margin-right: 10px;">
+                    <button mat-stroked-button color="primary">Voir la facture</button>
                 </a>
                 <button mat-flat-button color="accent" (click)="onPrint()">Imprimer le ticket</button>
             </div>
@@ -39,46 +39,46 @@
             </div>
 
             <ul>
-                <li *ngFor="let orderLines of instance?.order_lines_ids; index as i">
-                    <span>{{orderLines?.name}}</span> <span>{{orderLines?.price | number : '1.2-2'}} €</span>
+                <li *ngFor="let orderLines of instance?.order_lines_ids; index as i" style="display: flex; align-items: center; justify-content: space-between;">
+                    <div style="flex: 0 0 15%">{{orderLines?.qty}}</div> <div style="flex: 1;">{{orderLines?.name}}</div> <div>{{orderLines?.price | number : '1.2-2'}} €</div>
                 </li>
                 <span class="dotts">------</span>
             </ul>
 
             <div class="total">
-                <div style="display: flex; justify-content: space-between; width: 100%;"> 
+                <div style="display: flex; justify-content: space-between; width: 100%;">
                     <span><b>TOTAL</b></span>
-                    <span><b>{{instance?.price | number : '1.2-2'}} € </b>TTC</span>
+                    <span><b>{{instance?.price | number : '1.2-2'}} € </b></span>
                 </div>
             </div>
             <hr>
             <ul>
                 <ng-container *ngFor="let part of getPaymentModesMap() | keyvalue">
                     <li *ngIf="part.key !== 'booking'">
-                        <span>{{part.key}}</span> 
+                        <span>{{part.key}}</span>
                         <span>{{part.value | number : '1.2-2'}} €</span>
                     </li>
-                </ng-container>                
+                </ng-container>
                 <span class="dotts">------</span>
             </ul>
             <div>
-                <div style="display: flex; justify-content: space-between; width: 100%;"> 
-                    <span style="font-weight: bolder; font-size: 1.1rem;"> RENDU</span> 
+                <div style="display: flex; justify-content: space-between; width: 100%;">
+                    <span style="font-weight: bolder; font-size: 1.1rem;"> RENDU</span>
                     <span>{{(instance?.total_paid - instance?.price) | number : '1.2-2' }} €</span>
                 </div>
             </div>
 
             <ul>
                 <li *ngFor="let line of getVatMap() | keyvalue">
-                    <span>{{line.key}}%</span>  
+                    <span>{{line.key}}%</span>
                     <span>{{line.value | number : '1.2-2'}} €</span>
                 </li>
                 <li>
-                    <span>Total des taxes:</span> 
+                    <span>TOTAL TAXES:</span>
                     <span>{{instance.price - instance.total | number : '1.2-2'}} €</span>
                 </li>
             </ul>
-            
+
             <hr>
 
             <div class="order-details">

@@ -4,15 +4,20 @@
     <div class="header-wrap">
         <div class="header">Session › {{session.name}} <small>[{{session.id}}]</small> › Commandes en cours</div>
         <div style="display: flex; align-items: center;">
-            <button mat-raised-button color="accent" (click)="onclickCloseSession()" style="margin-right: 10px;">Fermer la session</button>
             <button mat-icon-button class="screen" (click)="onclickFullscreen()"><mat-icon>open_in_full</mat-icon></button>
         </div>
     </div>
     <div class="body">
         <div class="actions">
-            <div class="actions-std"><button mat-flat-button color="accent" (click)="onclickNewOrder()">Nouvelle commande</button></div>
-            <div class="actions-view"></div></div>
-            
+            <div class="actions-std">
+                <button mat-flat-button color="accent" (click)="onclickNewOrder()">Nouvelle commande</button>
+                <button mat-flat-button color="primary" (click)="onclickNewOrder()" style="margin-left: 120px;">Mouvement de caisse</button>
+            </div>
+            <div class="actions-view">
+                <button mat-raised-button  (click)="onclickCloseSession()" style="transform: scale(1.5); margin-right: 45px;">Fermer la session</button>
+            </div>
+        </div>
+
         <div class="view">
             <div *ngIf="session.status != 'pending'">Cette session n'est plus active.</div>
             <div *ngIf="session.status == 'pending'" class="orders-container">
@@ -28,10 +33,13 @@
                     <div class="item-col">{{order.created | date:'short'}}</div>
                     <div class="item-col">{{order.name}}</div>
                     <div class="item-col">{{order.customer_id.name}}</div>
-                    <div class="item-col">{{order.price | currency:'EUR'}}</div>                    
-                    <div class="item-col"><button mat-flat-button color="primary" (click)="onclickSelectOrder(order.id)">Continuer</button></div>
+                    <div class="item-col">{{order.price | currency:'EUR'}}</div>
+                    <div class="item-col" style="display: flex; justify-content: space-around;">
+                        <button mat-icon-button color="primary" (click)="onclickSelectOrder(order.id)"><mat-icon>play_circle</mat-icon></button>
+                        <button [disabled]="order.total > 0" mat-icon-button (click)="onclickDeleteOrder(order.id)"><mat-icon>delete</mat-icon></button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>    
+    </div>
 </div>
