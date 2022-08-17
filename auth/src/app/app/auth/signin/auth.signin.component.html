@@ -10,7 +10,7 @@
                 <div class="form-row">
                     <mat-form-field appearance="fill">
                         <mat-label>{{'AUTH_SIGNIN_USERNAME' | translate}}</mat-label>
-                        <input type="text" matInput formControlName="username" />
+                        <input type="text" matInput formControlName="username"/>
                         <mat-error *ngIf="f.username.errors">{{'AUTH_ERROR_MISSING_USERNAME' | translate}}</mat-error>
                     </mat-form-field>                
                 </div>
@@ -18,7 +18,7 @@
                 <div class="form-row">
                     <mat-form-field appearance="fill" class="password">
                         <mat-label>{{'AUTH_SIGNIN_PASSWORD' | translate}}</mat-label>
-                        <input [type]="(hidepass)?'password':'text'" matInput formControlName="password" />
+                        <input [type]="(hidepass)?'password':'text'" matInput formControlName="password" autocomplete="password" />
                         <mat-icon matSuffix (click)="hidepass = !hidepass">{{(hidepass)?'visibility_off':'visibility'}}</mat-icon>
                         <mat-error *ngIf="f.password.errors">{{'AUTH_ERROR_MISSING_PASSWORD' | translate}}</mat-error>
                     </mat-form-field>                
