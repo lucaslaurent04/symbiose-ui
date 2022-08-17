@@ -40,7 +40,7 @@ interface vmModel {
 export class BookingServicesBookingGroupLineDiscountComponent extends TreeComponent<BookingPriceAdapter, BookingGroupLineDiscountComponentsMap> implements OnInit, OnChanges, AfterViewInit  {
     // server-model relayed by parent
     @Input() set model(values: any) { this.update(values) }
-    @Input() parent: BookingLine;    
+    @Input() parent: BookingLine;
     @Input() group: BookingLineGroup;
     @Output() updated = new EventEmitter();
     @Output() deleted = new EventEmitter();
@@ -68,7 +68,6 @@ export class BookingServicesBookingGroupLineDiscountComponent extends TreeCompon
                 formControl:    new FormControl('', Validators.required),
             }
         };
-
     }
 
 
@@ -91,10 +90,10 @@ export class BookingServicesBookingGroupLineDiscountComponent extends TreeCompon
 
     public async update(values:any) {
         console.log('discount update', values);
-        super.update(values); 
+        super.update(values);
 
         // assign VM values
-        
+
         if(this.instance.type == 'percent' && this.instance.value < 1){
             this.vm.value.formControl.setValue( (this.instance.value * 100) );
         }
@@ -110,16 +109,16 @@ export class BookingServicesBookingGroupLineDiscountComponent extends TreeCompon
         console.log(event);
         // true is €, false, is %
         let type = (event)?"amount":"percent";
-    
+
         if(type == this.instance.type) return;
         try {
             await this.api.update(this.instance.entity, [this.instance.id], {type: type});
-            // relay change to parent component                
+            // relay change to parent component
             this.updated.emit();
         }
         catch(response) {
             this.api.errorFeedback(response);
-        }        
+        }
     }
 
     public async onchangeValue(event:any) {
@@ -134,13 +133,13 @@ export class BookingServicesBookingGroupLineDiscountComponent extends TreeCompon
             }
             if(value == this.instance.value) return;
             await this.api.update(this.instance.entity, [this.instance.id], {value: value});
-            // relay change to parent component                
+            // relay change to parent component
             this.updated.emit();
         }
         catch(response) {
             this.api.errorFeedback(response);
         }
-            
+
     }
 
 }

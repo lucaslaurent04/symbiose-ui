@@ -11,10 +11,10 @@
         <div class="actions">
             <div class="actions-std">
                 <button mat-flat-button color="accent" (click)="onclickNewOrder()">Nouvelle commande</button>
-                <button mat-flat-button color="primary" (click)="onclickNewOrder()" style="margin-left: 120px;">Mouvement de caisse</button>
+                <a [attr.href]="'#/session/'+session.id+'/move'"><button mat-flat-button color="primary" style="margin-left: 120px;">Mouvement de caisse</button></a>
             </div>
             <div class="actions-view">
-                <button mat-raised-button  (click)="onclickCloseSession()" style="transform: scale(1.5); margin-right: 45px;">Fermer la session</button>
+                <button mat-raised-button (click)="onclickCloseSession()" style="transform: scale(1.5); margin-right: 45px;">Fermer la session</button>
             </div>
         </div>
 

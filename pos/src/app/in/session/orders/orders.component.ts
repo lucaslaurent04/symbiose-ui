@@ -76,8 +76,6 @@ export class SessionOrdersComponent implements OnInit, AfterViewInit {
     }
 
     public async onclickNewOrder() {
-        // this.router.navigate([this.router.url+'/new']);
-
         // create a new order
         try {
             const order:any = await this.api.create(Order.entity, { session_id: this.session.id });
@@ -87,7 +85,6 @@ export class SessionOrdersComponent implements OnInit, AfterViewInit {
         catch(response) {
             console.log(response);
         }
-
     }
 
     public onclickSelectOrder(order_id:number) {

@@ -21,7 +21,7 @@ interface BookingComponentsMap {
   styleUrls: ['booking.component.scss']
 })
 export class BookingServicesBookingComponent extends TreeComponent<Booking, BookingComponentsMap> implements RootTreeComponent, OnInit, OnChanges, AfterViewInit {
-    @ViewChildren(BookingServicesBookingGroupComponent) BookingServicesBookingGroups: QueryList<BookingServicesBookingGroupComponent>; 
+    @ViewChildren(BookingServicesBookingGroupComponent) bookingServicesBookingGroups: QueryList<BookingServicesBookingGroupComponent>;
     @Input() booking_id: number;
 
     public ready: boolean = false;
@@ -45,11 +45,11 @@ export class BookingServicesBookingComponent extends TreeComponent<Booking, Book
             }
         }
     }
-    
+
     public ngAfterViewInit() {
         // init local componentsMap
         let map:BookingComponentsMap = {
-            booking_lines_groups_ids: this.BookingServicesBookingGroups
+            booking_lines_groups_ids: this.bookingServicesBookingGroups
         };
         this.componentsMap = map;
     }
@@ -78,12 +78,12 @@ export class BookingServicesBookingComponent extends TreeComponent<Booking, Book
     }
 
     /**
-     * 
-     * @param values 
+     *
+     * @param values
      */
     public update(values:any) {
         super.update(values);
-    }    
+    }
 
 
     public async oncreateGroup() {
@@ -110,7 +110,7 @@ export class BookingServicesBookingComponent extends TreeComponent<Booking, Book
                 values.is_extra = true;
                 values.date_from = new Date().toISOString();
                 values.date_to =  new Date().toISOString();
-            }            
+            }
             const group = await this.api.create("lodging\\sale\\booking\\BookingLineGroup", values);
             // reload booking tree
             this.load(this.instance.id);

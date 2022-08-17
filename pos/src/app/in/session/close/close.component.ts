@@ -22,7 +22,8 @@ export class SessionCloseComponent implements OnInit, AfterViewInit {
 
 
     public total_orders: number = 0;
-    public total_cash: number = 0;
+    public total_sales: number = 0;
+    public total_moves: number = 0;
     public total_inventory: number = 0;
 
     public inventory: any;
@@ -81,7 +82,12 @@ export class SessionCloseComponent implements OnInit, AfterViewInit {
                     });
 
                     this.session.operations_ids.forEach((operation: any) => {
-                        this.total_cash += operation.amount;
+                        if(operation.type == 'sale') {
+                            this.total_sales += operation.amount;
+                        }
+                        else if(operation.type == 'move') {
+                            this.total_moves += operation.amount;
+                        }
                     });
                 }
             }
@@ -101,13 +107,15 @@ export class SessionCloseComponent implements OnInit, AfterViewInit {
 
         dialogRef.afterClosed().subscribe(
             (value: any) => {
-                this.total_inventory = value.total;
-                this.inventory = value.inventory;
-                // reset closing note
-                this.closing_note = "Note de fermeture: \n";
-                for(let item of this.inventory) {
-                    if(item.number != '') {
-                        this.closing_note +=  item.number + 'x' + item.value + "€\n";
+                if(value) {
+                    this.total_inventory = value.total;
+                    this.inventory = value.inventory;
+                    // reset closing note
+                    this.closing_note = "Note de fermeture: \n";
+                    for(let item of this.inventory) {
+                        if(item.number != '') {
+                            this.closing_note +=  item.number + 'x' + item.value + "€\n";
+                        }
                     }
                 }
             }
@@ -115,11 +123,11 @@ export class SessionCloseComponent implements OnInit, AfterViewInit {
     }
 
     public calcExpected() {
-        return this.total_cash + this.session.amount_opening;
+        return this.total_sales + this.total_moves + this.session.amount_opening;
     }
 
     public calcDifference() {
-        return this.total_inventory - (this.total_cash + this.session.amount_opening);
+        return this.total_inventory - this.calcExpected();
     }
 
     public async onSessionCloseClick() {

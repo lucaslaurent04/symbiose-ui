@@ -34,8 +34,12 @@
                                 <div>{{session.amount_opening | number : '1.2-2'}}€</div>
                             </div>
                             <div style="display: flex;">
-                                <div style="flex: 1">Paiement en espèces</div>
-                                <div>{{total_cash | number : '1.2-2'}}€</div>
+                                <div style="flex: 1">Paiements en espèces</div>
+                                <div>{{total_sales | number : '1.2-2'}}€</div>
+                            </div>
+                            <div style="display: flex;">
+                                <div style="flex: 1">Mouvements</div>
+                                <div>{{total_moves | number : '1.2-2'}}€</div>
                             </div>
                             <div style="display: flex; border-top: solid 1px lightgrey; margin-top: 10px; padding-top: 10px;">
                                 <div style="flex: 1">TOTAL</div>

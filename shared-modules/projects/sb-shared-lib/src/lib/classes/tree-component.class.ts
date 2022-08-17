@@ -64,7 +64,7 @@
 
 
     Example:
-
+    ```
     interface ItemComponentsMap {
         sub_items_ids: QueryList<SubItemComponent>
     }
@@ -78,6 +78,11 @@
 
         @ViewChildren(SubItemComponent) SubItemComponents: QueryList<SubItemComponent>;
 
+        constructor(
+            private cd: ChangeDetectorRef
+        ) {
+            super( new Item() );
+        }
 
         public ngAfterViewInit() {
             // init local componentsMap
@@ -101,6 +106,11 @@
         }
 
     }
+    ```
+
+    !!! Important note
+        Keep in mind that children are handled as DOM objects and are therfore only available if present in the DOM.
+        This means that, when dealing with Tree components, it is preferable to hide elements rather than condition their rendering (ngIf).
 */
 
 /*
@@ -125,6 +135,7 @@ export interface TreeComponentInterface {
 
 export interface RootTreeComponent extends TreeComponentInterface {
     /**
+     * RootTreeComponent must have a `load()` method.
      * Load the instance of the node, according to the Type of the TreeComponent.
      * @param id
      */
@@ -143,7 +154,7 @@ export class TreeComponent<I, T> implements TreeComponentInterface {
     public instance: any;
     // expose instance id to children components
     public getId(): number { return this.instance.id }
-
+    // specific constructor, to be invoked as `super(new <I>())` in inherited Components
     constructor(instance: I) {
         this.instance = instance;
     }
@@ -168,9 +179,9 @@ export class TreeComponent<I, T> implements TreeComponentInterface {
                 else {
                     // pass-1 - remove items not present anymore
                     // check items in local-model against server-model
-                    if(Object.keys(this.instance[field]).length) {
+                    if(this.instance[field].length) {
                         // empty array or object
-                        if(Object.keys(values[field]).length == 0) {
+                        if(values[field].length == 0) {
                             this.instance[field] = values[field];
                         }
                         // existing array or object
@@ -187,12 +198,12 @@ export class TreeComponent<I, T> implements TreeComponentInterface {
                         }
                     }
                     // pass-2 - add missing items
-                    // check items in server-model against local-model
-                    for(let i = 0; i < Object.keys(values[field]).length; ++i) {
+                    // check items in server-model against local-model (can only be an array)
+                    for(let i = 0; i < values[field].length; ++i) {
                         let value = values[field][i];
-                        const found_index = this.instance[field].findIndex( (item:any) => item.id == value.id);
+                        const found = this.instance[field].find( (item:any) => item.id == value.id);
                         // item not in local-model
-                        if(found_index < 0) {
+                        if(!found) {
                             // add item to local-model
                             this.instance[field].splice(i, 0, value);
                         }
@@ -200,9 +211,12 @@ export class TreeComponent<I, T> implements TreeComponentInterface {
                         else if(this.componentsMap.hasOwnProperty(field)) {
                             // #memo - no update of the instance's field here, to prevent refreshing the view
                             // relay to child object
-                            const subitem:any = this.componentsMap[field].find( (item:any) => item.getId() == this.instance[field][found_index].id);
+                            const subitem:any = this.componentsMap[field].find( (item:any) => item.getId() == found.id);
                             if(subitem) {
                                 subitem.update(value);
+                            }
+                            else {
+                                // subitem not in DOM (did we use ngIf somewhere ?)
                             }
                         }
                     }

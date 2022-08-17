@@ -17,7 +17,8 @@
     </div>
 
     <!-- one liner : summarized group / sojourn -->
-    <div *ngIf="folded" style="height: 35px; padding: 8px 125px 0 35px; cursor: pointer;" (click)="toggleFold()">
+    <!-- #memo - blocks are hidden instead of ngIf-ied to allow dynamic DOM updates -->
+    <div [class.hidden]="!folded" style="height: 35px; padding: 8px 125px 0 35px; cursor: pointer;" (click)="toggleFold()">
         <div style="display: flex;">
             <div style="flex: 0 1 40%; white-space: nowrap; overflow: hidden; margin-right: 20px;">
                 {{instance.name}}
@@ -41,7 +42,7 @@
         </div>
     </div>
 
-    <div *ngIf="!folded">
+    <div [class.hidden]="folded">
 
         <!-- identification-->
         <div class="part">
@@ -403,7 +404,7 @@
                                 <div class="product-cell">GTÉ</div>
                                 <div class="product-cell">P.U.</div>
                                 <div class="product-cell">RÉDUC</div>
-                                <div class="product-cell">TAX</div>
+                                <div class="product-cell">TVA</div>
                                 <div class="product-cell">PRIX</div>
                                 <!-- actions -->
                                 <div class="product-cell" style="max-width: 35px;"></div>

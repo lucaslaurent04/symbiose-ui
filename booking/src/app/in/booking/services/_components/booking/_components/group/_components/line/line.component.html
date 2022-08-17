@@ -203,16 +203,14 @@
                             </small>
                         </div>
                     </div>
-                    <!-- auto discounts details -->
+                    <!-- price adapters details -->
                     <div class="row row-thin" *ngIf="!vProduct.adapters.folded">
                         <div style="width: 100%;">
                             <div *ngFor="let adapter of instance.auto_discounts_ids; let index = index;" style="display: flex;">
-                                <span style="flex: 0 1 50%; text-transform: capitalize;"><span
-                                        *ngIf="adapter.discount_id.name">{{adapter.discount_id.name}}</span><span
-                                        *ngIf="!adapter.discount_id.name">Garanti </span>: </span>
-                                <span style="margin-left: auto;" *ngIf="adapter.type == 'amount'">{{adapter.value | number: '1.2-2'}} €</span>
-                                <span style="margin-left: auto;" *ngIf="adapter.type == 'percent'">{{adapter.value | percent}}</span>
-                                <span style="margin-left: auto;" *ngIf="adapter.type == 'freebie'">{{adapter.value}} u.</span>
+                                <booking-services-booking-group-line-priceadapter
+                                    [model]="adapter"
+                                    [parent]="instance">
+                                </booking-services-booking-group-line-priceadapter>
                             </div>
                         </div>
                     </div>

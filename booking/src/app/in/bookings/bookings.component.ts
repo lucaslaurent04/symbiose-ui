@@ -1,7 +1,7 @@
 import { Component, OnInit, AfterViewInit, OnDestroy, HostListener, ElementRef } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Subject } from 'rxjs';
-import { delay, takeUntil } from 'rxjs/operators';
+import { takeUntil } from 'rxjs/operators';
 import { ContextService } from 'sb-shared-lib';
 
 
@@ -14,7 +14,7 @@ export class BookingsComponent implements OnInit, AfterViewInit, OnDestroy {
 
     // rx subject for unsubscribing subscriptions on destroy
     private ngUnsubscribe = new Subject<void>();
-    
+
     public ready: boolean = false;
 
     // flag telling if the route to which the component is associated with is currently active (amongst routes defined in first parent routing module)

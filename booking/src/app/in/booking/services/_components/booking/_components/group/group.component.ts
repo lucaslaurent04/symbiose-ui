@@ -21,7 +21,7 @@ import { BookingAgeRangeAssignment } from '../../_models/booking_agerange_assign
 
 // declaration of the interface for the map associating relational Model fields with their components
 interface BookingLineGroupComponentsMap {
-    booking_lines_ids: QueryList<BookingServicesBookingGroupLineComponent>
+    booking_lines_ids: QueryList<BookingServicesBookingGroupLineComponent>,
     accomodations_ids: QueryList<BookingServicesBookingGroupAccomodationComponent>,
     meal_preferences_ids: QueryList<BookingServicesBookingGroupMealPrefComponent>,
     age_range_assignments_ids: QueryList<BookingServicesBookingGroupAgeRangeComponent>
@@ -102,10 +102,10 @@ export class BookingServicesBookingGroupComponent extends TreeComponent<BookingL
 
     public folded:boolean = true;
 
-    @ViewChildren(BookingServicesBookingGroupLineComponent) BookingServicesBookingLineComponents: QueryList<BookingServicesBookingGroupLineComponent>;
-    @ViewChildren(BookingServicesBookingGroupAccomodationComponent) BookingServicesBookingGroupAccomodationComponents: QueryList<BookingServicesBookingGroupAccomodationComponent>;
-    @ViewChildren(BookingServicesBookingGroupMealPrefComponent) BookingServicesBookingGroupMealPrefComponents: QueryList<BookingServicesBookingGroupMealPrefComponent>;
-    @ViewChildren(BookingServicesBookingGroupAgeRangeComponent) BookingServicesBookingGroupAgeRangeComponents: QueryList<BookingServicesBookingGroupAgeRangeComponent>;
+    @ViewChildren(BookingServicesBookingGroupLineComponent) bookingServicesBookingLineComponents: QueryList<BookingServicesBookingGroupLineComponent>;
+    @ViewChildren(BookingServicesBookingGroupAccomodationComponent) bookingServicesBookingGroupAccomodationComponents: QueryList<BookingServicesBookingGroupAccomodationComponent>;
+    @ViewChildren(BookingServicesBookingGroupMealPrefComponent) bookingServicesBookingGroupMealPrefComponents: QueryList<BookingServicesBookingGroupMealPrefComponent>;
+    @ViewChildren(BookingServicesBookingGroupAgeRangeComponent) bookingServicesBookingGroupAgeRangeComponents: QueryList<BookingServicesBookingGroupAgeRangeComponent>;
 
     public ready: boolean = false;
 
@@ -183,10 +183,10 @@ export class BookingServicesBookingGroupComponent extends TreeComponent<BookingL
     public ngAfterViewInit() {
         // init local componentsMap
         let map:BookingLineGroupComponentsMap = {
-            booking_lines_ids: this.BookingServicesBookingLineComponents,
-            accomodations_ids: this.BookingServicesBookingGroupAccomodationComponents,
-            meal_preferences_ids: this.BookingServicesBookingGroupMealPrefComponents,
-            age_range_assignments_ids: this.BookingServicesBookingGroupAgeRangeComponents
+            booking_lines_ids: this.bookingServicesBookingLineComponents,
+            accomodations_ids: this.bookingServicesBookingGroupAccomodationComponents,
+            meal_preferences_ids: this.bookingServicesBookingGroupMealPrefComponents,
+            age_range_assignments_ids: this.bookingServicesBookingGroupAgeRangeComponents
         };
         this.componentsMap = map;
     }
@@ -270,9 +270,9 @@ export class BookingServicesBookingGroupComponent extends TreeComponent<BookingL
 
     public async ondeleteMealPref(pref_id:number) {
         try {
-            await this.api.update(this.instance.entity, [this.instance.id], {meal_preferences_ids: [-pref_id]});            
+            await this.api.update(this.instance.entity, [this.instance.id], {meal_preferences_ids: [-pref_id]});
             this.instance.meal_preferences_ids.splice(this.instance.meal_preferences_ids.findIndex((e:any)=>e.id == pref_id),1);
-            // no relay to parent            
+            // no relay to parent
         }
         catch(response) {
             this.api.errorFeedback(response);
@@ -340,7 +340,7 @@ export class BookingServicesBookingGroupComponent extends TreeComponent<BookingL
 
 
 
-    public async onchangeTimeFrom() {        
+    public async onchangeTimeFrom() {
         if(this.instance.time_from.substring(0, 5) != this.vm.timerange.checkin.formControl.value) {
             console.log('BookingEditCustomerComponent::onchangeTimeFrom', this.vm.timerange.checkin.formControl.value);
             try {
@@ -355,7 +355,7 @@ export class BookingServicesBookingGroupComponent extends TreeComponent<BookingL
 
     public async onchangeTimeTo() {
         if(this.instance.time_to.substring(0, 5) != this.vm.timerange.checkout.formControl.value) {
-            console.log('BookingEditCustomerComponent::onchangeTimeTo');            
+            console.log('BookingEditCustomerComponent::onchangeTimeTo');
             try {
                 await this.api.update(this.instance.entity, [this.instance.id], {time_to: this.vm.timerange.checkout.formControl.value});
                 // do not relay change to parent component
@@ -363,7 +363,7 @@ export class BookingServicesBookingGroupComponent extends TreeComponent<BookingL
             catch(response) {
                 this.api.errorFeedback(response);
             }
-        }        
+        }
     }
 
     public async onchangeNbPers() {
@@ -426,7 +426,7 @@ export class BookingServicesBookingGroupComponent extends TreeComponent<BookingL
     }
 
     public async onchangeIsSojourn(is_sojourn:any) {
-        if(this.instance.is_sojourn != is_sojourn) {        
+        if(this.instance.is_sojourn != is_sojourn) {
             try {
                 this.instance.is_sojourn = is_sojourn;
                 if(is_sojourn) {
@@ -541,9 +541,9 @@ export class BookingServicesBookingGroupComponent extends TreeComponent<BookingL
     }
 
     public async ondeleteAgeRange(age_range_id:number) {
-        try {            
+        try {
             await this.api.update(this.instance.entity, [this.instance.id], {age_range_assignments_ids: [-age_range_id]});
-            this.instance.age_range_assignments_ids.splice(this.instance.age_range_assignments_ids.findIndex((e:any)=>e.id == age_range_id),1);            
+            this.instance.age_range_assignments_ids.splice(this.instance.age_range_assignments_ids.findIndex((e:any)=>e.id == age_range_id),1);
             // no relay to parent
         }
         catch(response) {

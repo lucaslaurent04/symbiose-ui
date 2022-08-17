@@ -9,10 +9,12 @@ import { Observable, ReplaySubject } from 'rxjs';
 import { debounceTime, map, mergeMap } from 'rxjs/operators';
 
 import { BookingServicesBookingGroupLineDiscountComponent } from './_components/discount/discount.component';
+import { BookingServicesBookingGroupLinePriceadapterComponent } from './_components/priceadapter/priceadapter.component';
 
 // declaration of the interface for the map associating relational Model fields with their components
 interface BookingLineComponentsMap {
-    manual_discounts_ids: QueryList<BookingServicesBookingGroupLineDiscountComponent>
+    manual_discounts_ids: QueryList<BookingServicesBookingGroupLineDiscountComponent>,
+    auto_discounts_ids: QueryList<BookingServicesBookingGroupLinePriceadapterComponent>
 };
 
 interface vmModel {
@@ -65,7 +67,8 @@ export class BookingServicesBookingGroupLineComponent extends TreeComponent<Book
     @Output() deleted = new EventEmitter();
 
 
-    @ViewChildren(BookingServicesBookingGroupLineDiscountComponent) BookingServicesBookingGroupLineDiscountComponents: QueryList<BookingServicesBookingGroupLineDiscountComponent>;
+    @ViewChildren(BookingServicesBookingGroupLineDiscountComponent) bookingServicesBookingGroupLineDiscountComponents: QueryList<BookingServicesBookingGroupLineDiscountComponent>;
+    @ViewChildren(BookingServicesBookingGroupLinePriceadapterComponent) bookingServicesBookingGroupLinePriceadapterComponents: QueryList<BookingServicesBookingGroupLinePriceadapterComponent>;
 
     public ready: boolean = false;
 
@@ -142,7 +145,8 @@ export class BookingServicesBookingGroupLineComponent extends TreeComponent<Book
     public ngAfterViewInit() {
         // init local componentsMap
         let map:BookingLineComponentsMap = {
-            manual_discounts_ids: this.BookingServicesBookingGroupLineDiscountComponents,
+            manual_discounts_ids: this.bookingServicesBookingGroupLineDiscountComponents,
+            auto_discounts_ids: this.bookingServicesBookingGroupLinePriceadapterComponents,
         };
         this.componentsMap = map;
     }

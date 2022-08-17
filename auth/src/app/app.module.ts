@@ -21,21 +21,21 @@ import { AuthResetComponent } from './app/auth/reset/auth.reset.component';
 
 
 @NgModule({
-  declarations: [
-    AppRootComponent, AuthRecoverComponent, AuthSigninComponent, AuthResetComponent
-  ],
-  imports: [
-    AppRoutingModule,
-    BrowserModule,
-    BrowserAnimationsModule,
-    SharedLibModule,
-    MatNativeDateModule,
-    PlatformModule,
-  ],
-  providers: [
-    // add HTTP interceptor to inject AUTH header to any outgoing request
-    { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptorService, multi: true },
-  ],
-  bootstrap: [AppRootComponent]
+    declarations: [
+        AppRootComponent, AuthRecoverComponent, AuthSigninComponent, AuthResetComponent
+    ],
+    imports: [
+        AppRoutingModule,
+        BrowserModule,
+        BrowserAnimationsModule,
+        SharedLibModule,
+        MatNativeDateModule,
+        PlatformModule,
+    ],
+    providers: [
+        // add HTTP interceptor to inject AUTH header to any outgoing request
+        { provide: HTTP_INTERCEPTORS, useClass: AuthInterceptorService, multi: true },
+    ],
+    bootstrap: [AppRootComponent]
 })
 export class AppModule { }

@@ -18,6 +18,7 @@ import { BookingServicesBookingGroupAccomodationAssignmentComponent } from './se
 import { BookingServicesBookingGroupMealPrefComponent } from './services/_components/booking/_components/group/_components/mealpref/mealpref.component';
 import { BookingServicesBookingGroupAgeRangeComponent } from './services/_components/booking/_components/group/_components/agerange/agerange.component';
 import { BookingServicesBookingGroupLineDiscountComponent } from './services/_components/booking/_components/group/_components/line/_components/discount/discount.component';
+import { BookingServicesBookingGroupLinePriceadapterComponent } from './services/_components/booking/_components/group/_components/line/_components/priceadapter/priceadapter.component';
 
 import { BookingCompositionComponent, BookingCompositionDialogConfirm } from './composition/composition.component';
 import { BookingCompositionLinesComponent } from './composition/components/booking.composition.lines/booking.composition.lines.component';
@@ -34,13 +35,14 @@ import { BookingOptionComponent } from './option/option.component';
   ],
   declarations: [
     BookingComponent, BookingServicesComponent,
-    BookingServicesBookingComponent, BookingServicesBookingGroupComponent, 
+    BookingServicesBookingComponent, BookingServicesBookingGroupComponent,
     BookingServicesBookingGroupLineComponent, BookingServicesBookingGroupAccomodationComponent, BookingServicesBookingGroupAccomodationAssignmentComponent,
     BookingServicesBookingGroupMealPrefComponent, BookingServicesBookingGroupAgeRangeComponent,
     BookingServicesBookingGroupLineDiscountComponent,
+    BookingServicesBookingGroupLinePriceadapterComponent,
     BookingCompositionComponent, BookingCompositionDialogConfirm,
     BookingCompositionLinesComponent,
-    BookingQuoteComponent, 
+    BookingQuoteComponent,
     BookingContractComponent,
     BookingInvoiceComponent,
     BookingOptionComponent
