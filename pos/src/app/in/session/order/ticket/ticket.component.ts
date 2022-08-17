@@ -1,11 +1,10 @@
-import { Component, OnInit, AfterViewInit, ChangeDetectorRef, ViewChildren, QueryList, Input, SimpleChanges, ViewChild } from '@angular/core';
-import { ActivatedRoute, BaseRouteReuseStrategy, Router } from '@angular/router';
+import { Component, OnInit, AfterViewInit } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { ApiService, ContextService, TreeComponent, RootTreeComponent } from 'sb-shared-lib';
 import { CashdeskSession } from '../../_models/session.model';
 import { Order, OrderLine, OrderPayment, OrderPaymentPart } from './ticket.model';
 
 import { SessionOrderLinesComponent } from '../lines/lines.component';
-import { OrderService } from 'src/app/in/orderService';
 import { BookingLineClass } from 'src/app/model';
 
 import { MatTableDataSource } from '@angular/material/table';
@@ -51,8 +50,11 @@ export class SessionOrderTicketComponent extends TreeComponent<Order, OrderCompo
         private router: Router,
         private route: ActivatedRoute,
         private api: ApiService,
+
         private context: ContextService,
-        public orderservice: OrderService,
+        // public orderservice: OrderService,
+
+
     ) {
         super(new Order());
     }
@@ -65,6 +67,7 @@ export class SessionOrderTicketComponent extends TreeComponent<Order, OrderCompo
     }
 
     public ngOnInit() {
+
 
         // qz.websocket.connect().then(function(){
         //     alert("Connected");
@@ -248,6 +251,7 @@ export class SessionOrderTicketComponent extends TreeComponent<Order, OrderCompo
         // }
     }
 
+<<<<<<< HEAD
     // public jspmWSStatus() {
     //     if (JSPrintManager.websocket_status === WSStatus.Open) {
     //         return true;
@@ -262,6 +266,8 @@ export class SessionOrderTicketComponent extends TreeComponent<Order, OrderCompo
     //     }
     //   }
 
+=======
+>>>>>>> 7fe5f73b08a263679534e51598e598ac8a891ce4
     public async customer_change(event: any){
         await this.api.update(this.instance.entity, [this.instance.id], { customer_id: event.id });
         this.load(this.instance.id);

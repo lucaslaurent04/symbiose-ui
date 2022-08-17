@@ -180,7 +180,7 @@ export class PlanningComponent implements OnInit, AfterViewInit {
             <div>
                 <span style="font-weight: bold; font-size: 15px;">Hors service</span>
                 <br>
-                <span style="font-weight: light; font-size: 14px;">(Unité bloquée manuellement)</span>
+                <span style="font-weight: light; font-size: 14px;">Unité bloquée manuellement.</span>
             </div>
             <div class="dialog-info" style="background-color: #0288d1;">
             <div style="display: flex; box-sizing: border-box;">
@@ -196,13 +196,13 @@ export class PlanningComponent implements OnInit, AfterViewInit {
             <div>
                 <span style="font-weight: bold; font-size: 15px;">En option</span>
                     <br>
-                <span style="font-weight: light; font-size: 14px;">(Avec '?')</span>     
+                <span style="font-weight: light; font-size: 14px;">(Toujours avec '?')</span>     
             </div>
             <div class="dialog-info" style="background-color: #ff9633;"> 
                 <div style="display: flex; box-sizing: border-box;">
                     <div style="flex: 0 1 20%;">111111</div>
                     <div style="margin-left: auto">
-                        <span class="material-icons" style="transform: scale(0.6); font-size: 20px;">check</span>
+                        <span class="material-icons" style="transform: scale(0.6); font-size: 20px;">attach_money</span>
                     </div>
                 </div>
                 <div>
@@ -210,9 +210,8 @@ export class PlanningComponent implements OnInit, AfterViewInit {
                 </div>        
             </div>
             <div>
-                <span style="font-weight: bold; font-size: 15px;">Confirmée</span>
-                    <br>
-                <span style="font-weight: light; font-size: 14px;">(Paiement ok si '/$', paiement en attente si '$')</span>   
+                <span style="font-weight: bold; font-size: 15px;">Confirmée</span><br />
+                <span style="font-weight: light; font-size: 14px;">('$' : Paiement reçu, <span style="text-decoration: line-through;">$</span> : paiement en attente)</span>   
             </div>
             <div class="dialog-info" style="background-color: #0FA200;"> 
                 <div style="display: flex; box-sizing: border-box;">
@@ -226,9 +225,8 @@ export class PlanningComponent implements OnInit, AfterViewInit {
                 </div>
             </div>
             <div>
-                <span style="font-weight: bold; font-size: 15px;">Validée</span>
-                    <br>
-                <span style="font-weight: light; font-size: 14px;">(Avec 'v')</span>  
+                <span style="font-weight: bold; font-size: 15px;">Validée</span><br>
+                <span style="font-weight: light; font-size: 14px;">(Toujours avec '✓')</span>  
             </div>
             <div class="dialog-info" style="background-color: #0fc4a7;"> 
                 <div style="display: flex; box-sizing: border-box;">
@@ -242,7 +240,8 @@ export class PlanningComponent implements OnInit, AfterViewInit {
                 </div>
             </div>
             <div>
-                <span style="font-weight: bold; font-size: 15px;">En cours d'occupation</span>
+                <span style="font-weight: bold; font-size: 15px;">En cours d'occupation</span><br />
+                <span style="font-weight: light; font-size: 14px;">Le client occupe l'unité locative.</span>
             </div>
             <div class="dialog-info" style="background-color: #988a7d;"> 
                 <div style="display: flex; box-sizing: border-box;">
@@ -252,13 +251,14 @@ export class PlanningComponent implements OnInit, AfterViewInit {
                     </div>
                 </div>
                 <div>
-                    <div style="flex: 0 1 20%; margin-top: -4px;"> Johnny Knoxville</div>
+                    <div style="flex: 0 1 20%; margin-top: -4px;">Johnny Knoxville</div>
                 </div>        
             </div>
             <div>
-                <span style="font-weight: bold; font-size: 15px;">Terminée / Client parti</span>
+                <span style="font-weight: bold; font-size: 15px;">Terminée</span><br />
+                <span style="font-weight: light; font-size: 14px;">Le client a quitté l'unité locative.</span>
             </div>
-            <div class="dialog-info" style="background-color: #C80651; opacity: 0.5;"> 
+            <div class="dialog-info" style="border: solid 1px lightgrey; color: lightgrey; !important"> 
                 <div style="display: flex; box-sizing: border-box;">
                     <div style="flex: 0 1 20%;">111111</div>
                     <div style="margin-left: auto">
@@ -266,11 +266,12 @@ export class PlanningComponent implements OnInit, AfterViewInit {
                     </div>
                 </div>
                 <div>
-                    <div style="flex: 0 1 20%; margin-top: -4px;"> Johnny Knoxville</div>
+                    <div style="flex: 0 1 20%; margin-top: -4px;">Johnny Knoxville</div>
                 </div>
             </div>
             <div>
-                <span style="font-size: 15px;"><b>Couleur transparente</b> : Unité parente partiellement louée (non disponible entièrement)- Une ou plusieurs sous-unités sont louées</span>
+                <span style="font-size: 15px;"><b>(Couleur transparente)</b></span><br />
+                <span style="font-weight: light; font-size: 14px;">Unité enfant: l'unité parente est louée<br /> Unité parente : au moins 1 unité enfant louée</span>
             </div>
         </div>
     </div>

@@ -5,11 +5,10 @@ export class CashdeskSession {
       public id: number = 0,
       public name: string = '',
       public created: Date = new Date(),
-      public amount: number = 0,
+      public amount_opening: number = 0,
       public status: string = '',
-      public user_id: number = 0,
       public cashdesk_id: number = 0,
-      public center_id: number = 0,
-      public orders_ids: [] = []
+      public orders_ids: [] = [],
+      public operations_ids: [] = []
     ) {}
 }

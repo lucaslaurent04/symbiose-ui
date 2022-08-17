@@ -1,35 +1,41 @@
 <div class="pos-pad">
-    <div class="client">
-        <div *ngIf="displayClient == true" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
-            <span>Client: {{customer_name}}</span> <button (click)="displayClient = false" mat-mini-fab color="primary" style="box-shadow: none;"><mat-icon *ngIf="!customer_name">add</mat-icon><mat-icon *ngIf="customer_name?.length > 1">cancel</mat-icon></button>
+
+    <div class="customer">
+        <div *ngIf="!select_customer" class="customer-display">
+            <span>{{customer.name}}</span>
+            <button mat-icon-button (click)="select_customer = true" color="primary"><mat-icon>cancel</mat-icon></button>
         </div>
-        <div *ngIf="displayClient == false">
+        <div *ngIf="select_customer" class="customer-select">
             <sb-m2o-select
-                            [entity]="'sale\\customer\\Customer'"
-                            [placeholder]="'Commencez à taper le nom'"
-                            [hint]="'Client pour la commande'"
-                            [noResult]="'rien trouvé'"
-                            (itemSelected)="onselectCustomer($event)">Client</sb-m2o-select>
+                [entity]="'sale\\customer\\Customer'"
+                [placeholder]="'Commencez à taper le nom'"
+                [hint]="'Client pour la commande'"
+                [noResult]="'rien trouvé'"
+                (itemSelected)="onselectCustomer($event)">Client</sb-m2o-select>
         </div>
     </div>
     <div class="pos-lowerPart">
 
         <div class="details-payment">
              
-            <mat-button-toggle-group [(ngModel)]="invoice" class="payment">
-                <mat-button-toggle style="width: 100%; height: 100%; display: flex; align-items: center;" [class.selected]="invoice == true" (click)="onInvoice()" mat-raised-button [value]="invoice"> <p style="height: 100%;"><span>Facture</span></p> </mat-button-toggle>
+            <mat-button-toggle-group [(ngModel)]="hasInvoice" class="payment">
+                <mat-button-toggle mat-raised-button style="width: 100%; height: 100%; display: flex; align-items: center;" 
+                    [class.selected]="hasInvoice == true" 
+                    (click)="onclickInvoice()" 
+                    [value]="hasInvoice"> <p style="height: 100%;"><span>Facture</span></p> </mat-button-toggle>
             </mat-button-toggle-group>
             
-            <button  mat-raised-button class="payment payment-button" (click)="getPosLineDisplay(back_button)">
+            <button  mat-raised-button class="payment payment-button" (click)="onclickNext()">
                 <mat-icon>play_circle_filled</mat-icon>
-                <p *ngIf="back_button =='order'">Commande</p>
-                <p *ngIf="back_button =='payment'">Paiement</p>
+                <p>Commande</p>
             </button>
         </div>
 
         <div style="display: flex;">
-            <app-pad-generic [disabled_key]="disabled_key" (keyPressed)="checkNumberPassed($event)"></app-pad-generic>
-            <app-pad-value-increments (OnaddedNumber)="checkNumberPassed($event)" (OnBackspace)="onBackSpace($event)"></app-pad-value-increments>
+            <app-pad-generic (keyPress)="onclickKey($event)"  [disabledKeys]="disabledKeys"></app-pad-generic>
+            <app-pad-value-increments #incrementsPad
+                (incrementClick)="onclickKey($event)" 
+                (keyPress)="onclickKey($event)"></app-pad-value-increments>
         </div>
     </div>  
 </div>

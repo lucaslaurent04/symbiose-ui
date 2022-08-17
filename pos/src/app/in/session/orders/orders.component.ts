@@ -22,7 +22,7 @@ export class SessionOrdersComponent implements OnInit, AfterViewInit {
         private router: Router,
         private route: ActivatedRoute,
         private zone: NgZone,
-        private api: ApiService,    
+        private api: ApiService,
         private context: ContextService
     ) {}
 
@@ -34,7 +34,7 @@ export class SessionOrdersComponent implements OnInit, AfterViewInit {
         console.log('SessionOrdersComponent init');
         // fetch the ID from the route
         this.route.params.subscribe( async (params) => {
-            
+
             if(params && params.hasOwnProperty('session_id')) {
                 try {
                     await this.load(<number> params['session_id']);
@@ -46,7 +46,7 @@ export class SessionOrdersComponent implements OnInit, AfterViewInit {
             }
         });
     }
-  
+
     private async load(id: number) {
         if(id > 0) {
             try {
@@ -66,7 +66,7 @@ export class SessionOrdersComponent implements OnInit, AfterViewInit {
                     }
                     catch(response) {
                         console.warn('unable to retrieve orders');
-                    }        
+                    }
                 }
             }
             catch(response) {
@@ -86,12 +86,17 @@ export class SessionOrdersComponent implements OnInit, AfterViewInit {
         }
         catch(response) {
             console.log(response);
-        }            
+        }
 
     }
 
-    public onclickSelectOrder(order_id:any) {
+    public onclickSelectOrder(order_id:number) {
         this.router.navigate(['/session/'+this.session.id+'/order/'+order_id]) ;
+    }
+
+    public async onclickDeleteOrder(order_id: number) {
+        await this.api.remove(Order.entity, [order_id], true);
+        this.load(this.session.id);
     }
 
     public onclickCloseSession() {
@@ -102,15 +107,15 @@ export class SessionOrdersComponent implements OnInit, AfterViewInit {
         const elem:any = document.documentElement;
         if (elem.requestFullscreen) {
             elem.requestFullscreen();
-        } 
+        }
         else if (elem.mozRequestFullScreen) {
             elem.mozRequestFullScreen();
-        } 
-        else if (elem.webkitRequestFullscreen) {            
+        }
+        else if (elem.webkitRequestFullscreen) {
             elem.webkitRequestFullscreen();
-        } 
+        }
         else if (elem.msRequestFullscreen) {
             elem.msRequestFullscreen();
         }
-    }    
+    }
 }

@@ -6,7 +6,8 @@ import { AppSharedModule } from '../../shared.module';
 import { SessionRoutingModule } from './session-routing.module';
 import { SessionComponent } from './session.component';
 import { SessionCloseComponent } from './close/close.component';
-import { SessionCloseVerificationDialog } from './close/_components/verification.dialog/verification.component';
+import { SessionMoveComponent } from './move/move.component';
+import { SessionCloseInventoryDialog } from './close/_components/inventory/inventory.dialog';
 
 @NgModule({
   imports: [
@@ -17,7 +18,8 @@ import { SessionCloseVerificationDialog } from './close/_components/verification
   declarations: [
     SessionComponent,
     SessionCloseComponent,
-    SessionCloseVerificationDialog
+    SessionMoveComponent,
+    SessionCloseInventoryDialog
   ],
   providers: [
     { provide: DateAdapter, useClass: CustomDateAdapter, deps: [MAT_DATE_LOCALE, Platform] }

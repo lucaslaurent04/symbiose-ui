@@ -87,34 +87,27 @@ export class SessionOrderLinesSelectionComponent implements OnInit {
         }
     }
 
+    /**
+     * Loads the products using dedicated controller to feed only with products having a price for current center.
+     * 
+     * @param filter 
+     */
     private async loadProducts(filter: string = '') {
         try {
-            // 1) retrieve all models in the POS category
-            const categories = await this.api.collect('sale\\catalog\\Category', [['code', '=', 'POS']], ['id', 'code', 'product_models_ids']);
-            const category = categories.pop();
-            // 2) fetch all products belonging to the targeted models
-            this.products = await this.api.collect('lodging\\sale\\catalog\\Product', [
-                    ['name', 'ilike', '%'+filter+'%'],
-                    ['can_sell', '=', true],
-                    ['product_model_id', 'in', category.product_models_ids]
-                ],
-                ['sku', 'label', 'product_model_id.name']
-            );
-
+            this.products = await this.api.fetch('/?get=lodging_sale_catalog_product_collect', { center_id: this.order.session_id.center_id.id, filter: filter });
             this.productsDataSource = new MatTableDataSource(this.products);
             this.productsDataSource.paginator = this.productsPaginator;
-
         }
         catch(response) {
             console.log('error while retrieveing products.', response);
         }
-
     }
 
     private async loadBookings(filter: string = '') {
         
         let domain: any[] = [
-            ['name', 'ilike', '%'+filter+'%'], 
+            ['name', 'ilike', '%'+filter+'%'],
+            ['status', 'not in', ['quote', 'credit_balance', 'balanced']],
             ['center_id', '=', this.order.session_id.center_id.id]
         ];
         
@@ -139,7 +132,7 @@ export class SessionOrderLinesSelectionComponent implements OnInit {
 
     private async loadFundings(booking: any) {
         try {
-            this.fundings = await this.api.collect('lodging\\sale\\booking\\Funding', [[['booking_id', '=', booking.id], ['is_paid', '=', false]]], ['name', 'description', 'due_amount', 'due_date']);
+            this.fundings = await this.api.collect('lodging\\sale\\booking\\Funding', [[['booking_id', '=', booking.id], ['is_paid', '=', false]]], ['name', 'description', 'due_amount', 'due_date', 'booking_id.customer_id']);
             this.fundingsDataSource = new MatTableDataSource(this.fundings);
             this.fundingsDataSource.paginator = this.fundingsPaginator;
         }

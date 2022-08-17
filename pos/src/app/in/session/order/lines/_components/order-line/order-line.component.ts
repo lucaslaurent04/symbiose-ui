@@ -70,7 +70,8 @@ export class SessionOrderLinesOrderLineComponent extends TreeComponent<OrderLine
     public async onchange() {
         await this.api.update(this.instance.entity, [this.instance.id], { 
             qty: this.instance.qty, 
-            unit_price: this.instance.unit_price, 
+            // remove trailing 3rd digit, if any
+            unit_price:  parseFloat((+this.instance.unit_price).toFixed(2)),
             discount: this.instance.discount, 
             free_qty: this.instance.free_qty, 
             vat_rate: this.instance.vat_rate 

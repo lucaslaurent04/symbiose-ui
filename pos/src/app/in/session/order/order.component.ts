@@ -79,7 +79,7 @@ export class SessionOrderComponent implements OnInit, AfterContentInit {
           if(params.hasOwnProperty('id')){
             /*
             this.order_id = <number> parseInt(params['id']);
-            await this.loadOrder();  
+            await this.loadOrder();
             */
           }
 
@@ -91,37 +91,6 @@ export class SessionOrderComponent implements OnInit, AfterContentInit {
     });
 
 
-  }
-
-
-
-  private async loadOrder() {
-    /*
-    const result:Array<any> = <Array<any>> await this.api.read("lodging\\sale\\booking\\Booking", [this.booking_id], Object.getOwnPropertyNames(new Booking()));
-    if(result && result.length) {
-      const item:any = result[0];
-      let booking:any = new Booking();
-      for(let field of Object.getOwnPropertyNames(booking) ) {
-        if(item.hasOwnProperty(field)) {
-          booking[field] = item[field];
-        }
-      }
-      this.booking = <Booking> booking;
-      if(this.booking.customer_id) {
-        await this.loadCustomer();      
-      }
-      if(this.booking.contacts_ids && this.booking.contacts_ids.length) {
-        await this.loadContacts();
-        this.refreshRecipientAddresses();
-      }
-      if(this.booking.center_id) {
-        await this.loadCenter();
-        this.refreshSenderAddresses();
-        // load templates
-        this.fetchTemplates();
-      }
-    }
-    */
   }
 
 }

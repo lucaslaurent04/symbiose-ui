@@ -148,7 +148,7 @@
                 <div class="part-container">
                     <div class="row row-title row-thin">
                         <span>
-                            Variations des quantités 
+                            Variations des quantités
                             <button *ngIf="!vProduct.variations.folded" mat-mini-fab color="primary"
                                 style="transform: scale(0.66);"
                                 (click)="vm.qty_vars.reset(); vProduct.variations.folded = true"
@@ -163,9 +163,9 @@
                             <div *ngFor="let delta of vm.qty_vars.values | keyvalue; let index = index;"
                                 style="display: flex; align-items: center; height: 38px;">
                                 <div style="flex: 0 1 35%; display: flex;">
-                                    <span style="text-decoration: underline"> Jour {{index+1}}</span>
-                                    <span style="margin-left: 12px; width: 100px;">({{getOffsetDate(index+1) | date : 'EEE d LLL'}})</span>
-                                </div>                                
+                                    <span style="text-decoration: underline"> Jour {{index + 1 + instance.product_id.product_model_id.schedule_offset}}</span>
+                                    <span style="margin-left: 12px; width: 100px;">({{getOffsetDate(index + instance.product_id.product_model_id.schedule_offset) | date : 'EEE d LLL'}})</span>
+                                </div>
                                 <div style="width: 65px; margin-left: 24px;">
                                     <mat-form-field>
                                         <input style="text-align: right;" matInput type="number" min="0"
@@ -197,11 +197,11 @@
                     <div class="row row-title row-thin" style="display: flex;">
                         <div>Avantage ({{ (instance.fare_benefit/(instance.fare_benefit+instance.price)) | percent}}):&nbsp;<span>{{ instance.fare_benefit | number: '1.2-2'}} € </span></div>
                         <div style="margin-left: auto;" *ngIf="!vProduct.adapters.folded">
-                            <small>                                
-                                {{instance.auto_discounts_ids[0].discount_list_id.name}} (min:{{instance.auto_discounts_ids[0].discount_list_id.rate_min | percent}} 
+                            <small>
+                                {{instance.auto_discounts_ids[0].discount_list_id.name}} (min:{{instance.auto_discounts_ids[0].discount_list_id.rate_min | percent}}
                                 max:{{instance.auto_discounts_ids[0].discount_list_id.rate_max | percent}})
                             </small>
-                        </div>                        
+                        </div>
                     </div>
                     <!-- auto discounts details -->
                     <div class="row row-thin" *ngIf="!vProduct.adapters.folded">
@@ -236,7 +236,7 @@
                 <div class="part-container">
                     <div class="row row-title row-thin">
                         <span>
-                            Réductions 
+                            Réductions
                             <button mat-mini-fab color="primary" style="transform: scale(0.66);"
                                 (click)="oncreateDiscount(); vProduct.discounts.folded = false"
                                 title="Ajouter une réduction">
@@ -256,7 +256,7 @@
                                     </button></div>
                                     <booking-services-booking-group-line-discount
                                         [model]="discount"
-                                        [parent]="instance" 
+                                        [parent]="instance"
                                         (updated)="onupdateDiscount(discount.id)"
                                         (deleted)="ondeleteDiscount(discount.id)">
                                     </booking-services-booking-group-line-discount>

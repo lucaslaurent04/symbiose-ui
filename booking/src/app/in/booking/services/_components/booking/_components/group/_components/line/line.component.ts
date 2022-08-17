@@ -116,13 +116,13 @@ export class BookingServicesBookingGroupLineComponent extends TreeComponent<Book
     }
 
     /**
-     * 
+     *
      * We need to perform some processing here, in addition with update(), because some inputs are only available here?
-     * @param changes 
+     * @param changes
      */
     public ngOnChanges(changes: SimpleChanges) {
         if(changes.model) {
-            if(!this.instance.qty_vars.length) {                
+            if(!this.instance.qty_vars.length) {
                 let factor:number = this.group.nb_nights;
                 if(this.instance.product_id.product_model_id.has_duration) {
                     factor = this.instance.product_id.product_model_id.duration;
@@ -172,7 +172,7 @@ export class BookingServicesBookingGroupLineComponent extends TreeComponent<Book
         // unit_price
         this.vm.unit_price.formControl.setValue(this.instance.unit_price);
         // vat
-        this.vm.vat.formControl.setValue(this.instance.vat_rate);  
+        this.vm.vat.formControl.setValue(this.instance.vat_rate);
         // qty_vars
         if(this.instance.qty_vars.length) {
             this.vm.qty_vars.values = JSON.parse(this.instance.qty_vars);
@@ -312,7 +312,7 @@ export class BookingServicesBookingGroupLineComponent extends TreeComponent<Book
         }
         if(this.instance.vat_rate != vat_rate) {
             // notify back-end about the change
-            try {                
+            try {
                 await this.api.update(this.instance.entity, [this.instance.id], {vat_rate: vat_rate});
                 // relay change to parent component
                 this.updated.emit();
@@ -374,11 +374,11 @@ export class BookingServicesBookingGroupLineComponent extends TreeComponent<Book
         }
     }
 
-    public async ondeleteDiscount(discount_id: any) {    
+    public async ondeleteDiscount(discount_id: any) {
         try {
             this.instance.manual_discounts_ids.splice(this.instance.manual_discounts_ids.findIndex((e:any)=>e.id == discount_id),1);
             await this.api.update(this.instance.entity, [this.instance.id], {manual_discounts_ids: [-discount_id]});
-            this.updated.emit();            
+            this.updated.emit();
         }
         catch(response) {
             this.api.errorFeedback(response);
@@ -392,7 +392,7 @@ export class BookingServicesBookingGroupLineComponent extends TreeComponent<Book
 
     public getOffsetDate(offset:number) {
         let date = new Date(this.group.date_from.getTime());
-        date.setDate(date.getDate() + offset + 90);
+        date.setDate(date.getDate() + offset);
         return date;
     }
 

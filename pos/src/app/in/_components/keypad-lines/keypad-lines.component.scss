@@ -9,16 +9,7 @@
     flex-direction: column;
     width: 100%;
 
-    .client-resa {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        flex-direction: column;
-        padding: 0.4rem;
-        text-align: center;
-    }
-
-    .client {
+    .customer {
         display: flex; 
         justify-content: space-between;
         align-items: center;        
@@ -28,7 +19,7 @@
         height: 65px;
         font-weight: bold;
 
-        .client-display {
+        .customer-display {
             display: flex; 
             justify-content: space-between; 
             align-items: center; 
@@ -36,7 +27,7 @@
             padding: 0.4rem;
         }
 
-        .client-select {
+        .customer-select {
             width: 100%;
         }
 

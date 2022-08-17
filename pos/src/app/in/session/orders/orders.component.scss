@@ -36,7 +36,7 @@
             justify-content: space-between;
             border-bottom: solid 1px lightgrey;
             height: 48px;
-            
+
             .header {
                 padding-left: 12px;
                 height: 48px;
@@ -44,13 +44,13 @@
                 font-size: 22px;
             }
         }
-    
+
         .body {
             height: calc(100vh - 123px);
             width: 100%;
             overflow-y: scroll;
             padding: 12px;
-            
+
             .actions {
                 display: flex;
 
@@ -59,7 +59,7 @@
                 }
 
                 .actions-std {
-                    flex: 0 1 30%;
+                    flex: 0 1 50%;
                     button {
                         transform: scale(1.5);
                         margin-left: 45px;
@@ -69,17 +69,17 @@
 
                 .actions-view {
                     margin-left: auto;
-                    
+
                     button:not(:last-child) {
                         margin-right: 12px;
                     }
                 }
-        
+
             }
 
             .view {
                 margin-top: 30px;
-                
+
                 .orders-container {
                     .order-row {
                         padding: 0 12px;
@@ -116,24 +116,24 @@
             }
 
         }
-    
+
         .body::-webkit-scrollbar {
             width: 6px;
             overflow-y: scroll;
             background: transparent;
-        
+
         }
-        
+
         .body::-webkit-scrollbar-thumb {
             background: var(--mdc-theme-primary, #6200ee);
             border-radius: 10px;
-        }        
+        }
 
-        
+
     }
 
     .container.hidden {
         display: none;
-    }      
-    
+    }
+
 }
