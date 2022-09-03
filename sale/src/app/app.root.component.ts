@@ -8,14 +8,14 @@ import * as $ from 'jquery';
 import { type } from 'jquery';
 
 
-/* 
+/*
 This is the component that is bootstrapped by app.module.ts
 */
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.root.component.html',
-  styleUrls: ['./app.root.component.scss']  
+  styleUrls: ['./app.root.component.scss']
 })
 export class AppRootComponent implements OnInit {
 
@@ -30,13 +30,13 @@ export class AppRootComponent implements OnInit {
 
 
   constructor(
-    private router: Router, 
-    private context:ContextService, 
+    private router: Router,
+    private context:ContextService,
     private api:ApiService,
     private auth:AuthService
   ) {}
 
-  
+
   public async ngOnInit() {
 
     try {
@@ -85,7 +85,7 @@ export class AppRootComponent implements OnInit {
    * Items are handled as descriptors.
    * They always have a `route` property (if not, it is added and set to '/').
    * And might have an additional `context` property.
-   * @param item 
+   * @param item
    */
     public onSelectItem(item:any) {
         let descriptor:any = {};
@@ -102,7 +102,7 @@ export class AppRootComponent implements OnInit {
         }
 
         if(item.hasOwnProperty('context')) {
-            descriptor.context = { 
+            descriptor.context = {
                 ...{
                     type:    'list',
                     name:    'default',
@@ -113,7 +113,7 @@ export class AppRootComponent implements OnInit {
                 },
                 ...item.context
             };
-            
+
             if( item.context.hasOwnProperty('view') ) {
                 let parts = item.context.view.split('.');
                 if(parts.length) descriptor.context.type = <string>parts.shift();
@@ -123,9 +123,9 @@ export class AppRootComponent implements OnInit {
             if( item.context.hasOwnProperty('purpose') && item.context.purpose == 'create') {
                 // descriptor.context.type = 'form';
                 descriptor.context.mode = 'edit';
-            } 
+            }
 
-        }    
+        }
 
         this.context.change(descriptor);
     }
@@ -138,5 +138,5 @@ export class AppRootComponent implements OnInit {
 
   public toggleSideBar() {
     this.show_side_bar = !this.show_side_bar;
-  }  
+  }
 }

@@ -21,9 +21,8 @@ const routes: Routes = [
         path: 'ticket',
         component: SessionOrderTicketComponent
     },
-
-    { 
-        path: '',   redirectTo: 'lines', pathMatch: 'full'    
+    {
+        path: '',   redirectTo: 'lines', pathMatch: 'full'
     }
 ];
 

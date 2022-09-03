@@ -81,7 +81,7 @@
                             <mat-slide-toggle
                                 color="accent"
                                 [ngModel]="instance.is_sojourn"
-                                (change)="onchangeIsSojourn($event.checked)">Séjour ?
+                                (change)="onchangeIsSojourn($event.checked)">Séjour
                             </mat-slide-toggle>
                             <textarea matInput hidden></textarea>
                         </mat-form-field>
@@ -93,7 +93,7 @@
                             <mat-slide-toggle
                                 color="accent"
                                 [ngModel]="instance.is_event"
-                                (change)="onchangeIsEvent($event.checked)">Événement ?
+                                (change)="onchangeIsEvent($event.checked)">Événement
                             </mat-slide-toggle>
                             <textarea matInput hidden></textarea>
                         </mat-form-field>
@@ -443,7 +443,7 @@
         <!-- accomodations -->
         <div class="part">
 
-            <div class="part-toggle">
+            <div class="part-toggle" style="padding: 20px 0px 0px 20px;">
                 <button mat-icon-button *ngIf="!vGroup.accomodations.folded" (click)="vGroup.accomodations.folded = !vGroup.accomodations.folded">
                     <mat-icon style="font-size: 15px;">keyboard_arrow_up</mat-icon>
                 </button>
@@ -453,14 +453,21 @@
             </div>
 
             <div class="part-container" *ngIf="vGroup.accomodations.folded">
-                <div class="row">
-                    <div style="margin-top: 8px;">Unités locatives </div>
+                <div class="row" style="align-items: center;">
+                    <div style="height: 72px; line-height: 72px;">Unités locatives </div>
                 </div>
             </div>
 
             <div class="part-container" *ngIf="!vGroup.accomodations.folded">
-                <div class="row">
-                    <div style="margin-top: 8px;">Unités locatives </div>
+                <div class="row" style="align-items: center;">
+                    <div style="flex: 1 0 200px;">Unités locatives </div>
+                    <mat-form-field floatLabel="always" class="invisible">
+                        <mat-slide-toggle color="accent"
+                                          [ngModel]="instance.has_locked_rental_units"
+                                          (change)="onchangeHasLockedRentalUnits($event.checked)">Verrouiller la répartition des unités locatives
+                        </mat-slide-toggle>
+                        <textarea matInput hidden></textarea>
+                    </mat-form-field>
                 </div>
                 <div class="row" style="display: block;">
                     <div class="accomodation-item" *ngFor="let accomodation of instance.accomodations_ids; let index = index;">

@@ -32,7 +32,7 @@ export class AppComponent implements OnInit, AfterViewInit, OnDestroy  {
     ) {}
 
     public ngOnDestroy() {
-        console.log('BookingsComponent::ngOnDestroy');
+        console.log('AppComponent::ngOnDestroy');
         this.ngUnsubscribe.next();
         this.ngUnsubscribe.complete();
     }

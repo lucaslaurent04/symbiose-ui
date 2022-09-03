@@ -3,7 +3,7 @@
     <div [class.hidden]="!loading" class="loader"><mat-spinner></mat-spinner></div>
 
     <div class="header">
-        <div class="header-inner">Réservation <small>[{{booking.name}} - {{booking.id}}]</small> <span> › </span> Envoi de facture</div>
+        <div class="header-inner"><a href="#/bookings">Réservations</a><span> › </span> <a href="#/booking/{{booking.id}}">Réservation <small>[{{booking.name}} - {{booking.id}}]</small></a> <span> › </span> Envoi de facture</div>
 
         <div class="lang-selector">
             <mat-form-field appearance="fill">

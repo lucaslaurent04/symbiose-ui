@@ -1,6 +1,5 @@
 import { Component, AfterContentInit, OnInit, NgZone, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute, Router, RouterEvent, NavigationEnd } from '@angular/router';
-import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { ApiService, EnvService, AuthService, ContextService } from 'sb-shared-lib';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { FormControl, Validators } from '@angular/forms';
@@ -142,7 +141,6 @@ export class BookingOptionComponent implements OnInit, AfterContentInit {
 
 
     constructor(
-        private dialog: MatDialog,
         private api: ApiService,
         private auth: AuthService,
         private env: EnvService,
@@ -290,7 +288,7 @@ export class BookingOptionComponent implements OnInit, AfterContentInit {
                         // convert vars from template
                         value = value.replace(/{center}/gm, this.center.name);
                         value = value.replace(/{date_from}/gm, this.datepipe.transform(this.booking.date_from, 'shortDate'));
-                        value = value.replace(/{date_to}/gm, this.datepipe.transform(this.booking.date_to, 'shortDate'));                        
+                        value = value.replace(/{date_to}/gm, this.datepipe.transform(this.booking.date_to, 'shortDate'));
                         this.vm.message.formControl.setValue(value);
                     }else if(part.name == 'mention') {
                         this.vm.mention.formControl.setValue(part.value);

@@ -1,4 +1,5 @@
-import { Component, OnInit, AfterViewInit, ElementRef, QueryList, ViewChild, ViewChildren, NgZone  } from '@angular/core';
+import { Component, OnInit, NgZone, AfterViewInit, OnDestroy } from '@angular/core';
+import { Subject } from 'rxjs';
 import { AuthService, ApiService, ContextService } from 'sb-shared-lib';
 import { Router } from '@angular/router';
 
@@ -11,34 +12,50 @@ import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dial
   styleUrls: ['app.component.scss']
 })
 export class AppComponent implements OnInit, AfterViewInit  {
+    // rx subject for unsubscribing subscriptions on destroy
+    private ngUnsubscribe = new Subject<void>();
 
-public ready: boolean = false;
+    public ready: boolean = false;
 
-constructor(
-  private context: ContextService,
-  private zone: NgZone
-) {}
+    // flag telling if the route to which the component is associated with is currently active (amongst routes defined in first parent routing module)
+    private active = false;
 
-private getDescriptor() {
-  return {
-      context: {
-          "entity": "sale\\pay\\Payment",
-          "view": "dashboard.default"
-      }
-  };
-}
+    private default_descriptor: any = {
+        // route is current ng route
+        context: {
+            "entity": "sale\\pay\\Payment",
+            "view": "dashboard.default"
+        }
+    };
 
-public ngOnInit() {
-    this.context.ready.subscribe( (ready:boolean) => {
-        this.ready = ready;
-    });
-}
+    constructor(
+        private context: ContextService,
+        private zone: NgZone
+    ) {}
 
-public ngAfterViewInit() {
-    console.log('AppComponent::ngAfterViewInit');
+    public ngOnDestroy() {
+        console.log('AppComponent::ngOnDestroy');
+        this.ngUnsubscribe.next();
+        this.ngUnsubscribe.complete();
+    }
 
-    this.context.setTarget('#sb-container-sale');
+    public ngOnInit() {
+        console.log('AppComponent::ngOnInit');
+        this.context.ready.subscribe( (ready:boolean) => {
+            this.ready = ready;
+        });
+    }
 
-    this.context.change(this.getDescriptor());
-}  
+    public ngAfterViewInit() {
+        console.log('AppComponent::ngAfterViewInit');
+
+        this.context.setTarget('#sb-container-sale');
+        const descriptor = this.context.getDescriptor();
+        if(!Object.keys(descriptor.context).length) {
+            console.log('AppComponent : requesting change', this.default_descriptor);
+            this.context.change(this.default_descriptor);
+        }
+
+        this.active = true;
+    }
 }

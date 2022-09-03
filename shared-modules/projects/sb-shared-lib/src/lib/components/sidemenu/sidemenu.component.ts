@@ -162,10 +162,10 @@ export class AppSideMenuComponent implements OnInit {
                                     }
                                     break;
                                 }
-                            }                            
+                            }
 
                             // 2) look for an object ID
-                            for(let condition of domain) {                                                            
+                            for(let condition of domain) {
                                 if(condition[0] == 'id') {
                                     let candidate = parseInt(condition[2], 10);
                                     if (!isNaN(candidate)) {
@@ -234,7 +234,7 @@ export class AppSideMenuComponent implements OnInit {
                         if(!Object.keys(view).length) {
                             // fallback to default view
                             view = await apiService.getView(this.object_class, view_type + '.default');
-                            if(!Object.keys(view).length) {                                
+                            if(!Object.keys(view).length) {
                                 throw 'unknown_view';
                             }
                         }
@@ -399,7 +399,7 @@ export class AppSideMenuComponent implements OnInit {
         }
         catch (response) {
             console.warn(response);
-        }        
+        }
     }
 
     private async updateAlerts() {
@@ -437,7 +437,7 @@ export class AppSideMenuComponent implements OnInit {
                 this.updated.emit(true);
             }
             else {
-                this.selected_tab_id = 'object-routes';                        
+                this.selected_tab_id = 'object-routes';
             }
 
         }
@@ -445,7 +445,7 @@ export class AppSideMenuComponent implements OnInit {
             console.warn(err);
         }
     }
-        
+
     public onHelpFullScreen() {
         console.log('onHelpFullScreen');
         if (screenfull.isEnabled) {
@@ -545,7 +545,7 @@ export class AppSideMenuComponent implements OnInit {
 
         // route targets another app
         if (item.hasOwnProperty('app')) {
-            // interpolate the 
+            // interpolate the
             // open link in new tab
             window.open('/'+item.app+'/#'+descriptor.route, '_blank');
             return;
@@ -608,7 +608,7 @@ export class AppSideMenuComponent implements OnInit {
         }
         return 'black';
 
-        
+
     }
 
 }

@@ -1,5 +1,5 @@
 <div class="container">
-  <div class="booking-header">Paiements <span> › </span> Import </div>
+  <div class="booking-header">Paiements <span> › </span> Import en masse</div>
   <div class="booking-body">
 
     <div class="body-actions" style="display: flex;">
@@ -38,7 +38,7 @@
         <div class="statements-list">
           <div class="statement-item" *ngFor="let statement of bank_statements">
             <div style="flex: 1 0 25%;">{{statement.bank_account_number}}</div>
-            <div style="flex: 1 0 15%;">{{statement.bank_account_bic}}</div>          
+            <div style="flex: 1 0 15%;">{{statement.bank_account_bic}}</div>
             <div style="flex: 1 0 15%;">{{statement.date | date: 'dd/MM/YYYY'}}</div>
             <div style="flex: 1 0 15%;">{{statement.old_balance}} €</div>
             <div style="flex: 1 0 15%;">{{statement.new_balance}} €</div>
@@ -52,7 +52,7 @@
         </p>
         <ul>
           <li *ngFor="let file of invalid_files">{{file}}</li>
-        </ul>        
+        </ul>
       </div>
 
       <div *ngIf="duplicate_files.length">
@@ -62,7 +62,7 @@
         <ul>
           <li *ngFor="let file of duplicate_files">{{file}}</li>
         </ul>
-        
+
       </div>
 
     </div>

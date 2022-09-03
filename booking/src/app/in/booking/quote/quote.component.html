@@ -5,8 +5,7 @@
     </div>
 
     <div class="header">
-        <div class="header-inner">Réservation <small>[{{booking.name}} - {{booking.id}}]</small> <span> › </span> Envoi
-            du Devis</div>
+        <div class="header-inner"><a href="#/bookings">Réservations</a><span> › </span> <a href="#/booking/{{booking.id}}">Réservation <small>[{{booking.name}} - {{booking.id}}]</small></a> <span> › </span> Envoi du Devis</div>
 
         <div class="lang-selector">
             <mat-form-field appearance="fill">
@@ -43,7 +42,6 @@
                 <button mat-flat-button color="accent" (click)="onSend()" [disabled]="is_sent">Envoyer</button>
             </div>
         </div>
-
 
         <div class="row">
             <div class="column">
@@ -123,7 +121,7 @@
         <div class="row" style="margin-top: 30px;">
             <div class="column" style="width: 100%; flex-direction: column;">
 
-                <div style="display: flex;"><mat-icon>attach_file</mat-icon> Pièces jointes ({{center.name}})</div>                
+                <div style="display: flex;"><mat-icon>attach_file</mat-icon> Pièces jointes ({{center.name}})</div>
                 <div *ngFor="let attachment of vm.attachments.items" style="margin-left: 10px; display: flex; align-items: center;">
 
                     <div><b>{{attachment.name}}</b> ({{attachment.document_id.name}})</div>
@@ -151,7 +149,7 @@
                         <mat-icon>add</mat-icon>
                     </button>
                 </div>
-                
+
             </div>
         </div>
     </div>

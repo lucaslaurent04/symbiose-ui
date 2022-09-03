@@ -24,10 +24,7 @@ interface BookingGroupAccomodationAssignmentComponentsMap {
 
 interface vmModel {
     params: {
-        center_id: number,
-        date_from: string,
-        date_to: string,
-        product_id: number
+        booking_line_id: number
     },
     qty: {
         formControl: FormControl
@@ -50,8 +47,6 @@ export class BookingServicesBookingGroupAccomodationAssignmentComponent extends 
 
     public ready: boolean = false;
 
-    public assigned_rental_units_ids: number[] = [];
-
     public vm: vmModel;
 
     constructor(
@@ -65,10 +60,7 @@ export class BookingServicesBookingGroupAccomodationAssignmentComponent extends 
 
         this.vm = {
             params: {
-                center_id:      0,
-                date_from:      '',
-                date_to:        '',
-                product_id:     0
+                booking_line_id:0
             },
             qty: {
                 formControl:    new FormControl('', [Validators.required, this.validateQty.bind(this)]),
@@ -79,7 +71,7 @@ export class BookingServicesBookingGroupAccomodationAssignmentComponent extends 
     private validateQty(c: FormControl) {
         // qty cannot be bigger than the rental unit capacity
         // qty cannot be bigger than the number of persons
-        return (this.instance && this.group && 
+        return (this.instance && this.group &&
             c.value <= this.instance.rental_unit_id.capacity && c.value <= this.group.nb_pers ) ? null : {
             validateQty: {
                 valid: false
@@ -93,14 +85,6 @@ export class BookingServicesBookingGroupAccomodationAssignmentComponent extends 
     }
 
     public ngAfterContentInit() {
-        this.assigned_rental_units_ids = [];
-        for(let accomodation of this.group.accomodations_ids) {
-            for(let assignment of accomodation.rental_unit_assignments_ids) {
-                if(assignment.id != this.instance.id) {
-                    this.assigned_rental_units_ids.push(assignment.rental_unit_id.id);
-                }                    
-            }
-        }
     }
 
     public ngAfterViewInit() {
@@ -110,16 +94,12 @@ export class BookingServicesBookingGroupAccomodationAssignmentComponent extends 
         this.componentsMap = map;
 
         this.vm.params = {
-            center_id: this.booking.center_id.id,
-            date_from: this.group.date_from.toISOString(),
-            date_to: this.group.date_to.toISOString(),
-            product_id: this.accomodation.product_id.id
+            booking_line_id: this.instance.booking_line_id
         }
     }
 
 
     public ngOnInit() {
-
         this.ready = true;
     }
 
@@ -128,7 +108,7 @@ export class BookingServicesBookingGroupAccomodationAssignmentComponent extends 
         super.update(values);
 
         // assign VM values
-        
+
         this.vm.qty.formControl.setValue(this.instance.qty);
 
     }

@@ -1,4 +1,4 @@
-import { Component, ChangeDetectionStrategy, ChangeDetectorRef, Output, EventEmitter, ViewChild, OnInit, AfterViewInit, ViewChildren, QueryList, ElementRef, AfterViewChecked } from '@angular/core';
+import { Component, ChangeDetectionStrategy, ChangeDetectorRef, Output, EventEmitter, ViewChild, OnInit, OnChanges, AfterViewInit, ViewChildren, QueryList, ElementRef, AfterViewChecked, Input, SimpleChanges } from '@angular/core';
 
 import { ChangeReservationArg } from 'src/app/model/changereservationarg';
 import { HeaderDays } from 'src/app/model/headerdays';
@@ -27,7 +27,8 @@ class RentalUnit {
     styleUrls: ['./planning.calendar.component.scss'],
     changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class PlanningCalendarComponent implements OnInit, AfterViewInit, AfterViewChecked {
+export class PlanningCalendarComponent implements OnInit, OnChanges, AfterViewInit, AfterViewChecked {
+    @Input() rowsHeight: number;
     @Output() filters = new EventEmitter<ChangeReservationArg>();
     @Output() showBooking = new EventEmitter();
     @Output() showRentalUnit = new EventEmitter();
@@ -44,7 +45,7 @@ export class PlanningCalendarComponent implements OnInit, AfterViewInit, AfterVi
 
     public headerdays: HeaderDays;
 
-    public cells_width: number;
+    public cellsWidth: number;
 
     public consumptions: any = [];
     public rental_units: any = [];
@@ -82,11 +83,18 @@ export class PlanningCalendarComponent implements OnInit, AfterViewInit, AfterVi
         private params: CalendarParamService,
         private api: ApiService,
         private dialog: MatDialog,
+        private elementRef: ElementRef,
         private cd: ChangeDetectorRef) {
             this.headers = {};
             this.rental_units = [];
             this.previous_duration = 0;
     }
+
+     ngOnChanges(changes: SimpleChanges): void {
+        if(changes.rowsHeight)     {
+            this.elementRef.nativeElement.style.setProperty('--rows_height', this.rowsHeight+'px');
+        }
+     }
 
     async ngOnInit() {
 
@@ -94,6 +102,8 @@ export class PlanningCalendarComponent implements OnInit, AfterViewInit, AfterVi
             console.log('PlanningCalendarComponent cal params change', this.params);
             this.onRefresh();
         });
+
+        this.elementRef.nativeElement.style.setProperty('--rows_height', this.rowsHeight+'px');
     }
 
     async ngAfterViewInit() {
@@ -105,11 +115,11 @@ export class PlanningCalendarComponent implements OnInit, AfterViewInit, AfterVi
     async ngAfterViewChecked() {
 
         for(let cell of this.calTableHeadCells) {
-            this.cells_width = cell.nativeElement.offsetWidth;
+            this.cellsWidth = cell.nativeElement.offsetWidth;
             break;
         }
 
-        let ten_percent = this.cells_width * 0.1;
+        let ten_percent = this.cellsWidth * 0.1;
         if(ten_percent < 100) {
             // set width to 100px
             this.calTableRefColumn.nativeElement.style.width = '100px';
@@ -141,6 +151,13 @@ export class PlanningCalendarComponent implements OnInit, AfterViewInit, AfterVi
         });
     }
 
+    public calcDateIndex(day: Date): string {
+        let timestamp = day.getTime();
+        let offset = day.getTimezoneOffset()*60*1000;
+        let moment = new Date(timestamp-offset);
+        return moment.toISOString().substring(0, 10);
+    }
+
     public isWeekEnd(day:Date) {
         return (day.getDay() == 0 || day.getDay() == 6);
     }
@@ -151,46 +168,43 @@ export class PlanningCalendarComponent implements OnInit, AfterViewInit, AfterVi
     }
 
     public hasConsumption(rentalUnit:RentalUnit, day: Date):any {
-        let date_index:string = day.toISOString().substring(0, 10);
-        return (this.consumptions.hasOwnProperty(rentalUnit.id) && this.consumptions[rentalUnit.id].hasOwnProperty(date_index));
+        if(!this.consumptions.hasOwnProperty(rentalUnit.id)) {
+            return false;
+        }
+        return this.consumptions[rentalUnit.id].hasOwnProperty(this.calcDateIndex(day));
     }
 
     public getConsumption(rentalUnit:RentalUnit, day: Date): any {
-        let result = {};
-
-        let date_index:string = day.toISOString().substring(0, 10);
-
-        if(this.consumptions.hasOwnProperty(rentalUnit.id) && this.consumptions[rentalUnit.id].hasOwnProperty(date_index)) {
-            result = this.consumptions[rentalUnit.id][date_index];
+        if(this.consumptions.hasOwnProperty(rentalUnit.id)) {
+            let date_index:string = this.calcDateIndex(day);
+            if(this.consumptions[rentalUnit.id].hasOwnProperty(date_index)) {
+                return this.consumptions[rentalUnit.id][date_index];
+            }
         }
-
-        return result;
+        return {};
     }
 
     public getDescription(rentalUnit:RentalUnit, day: Date): string {
-        let result:string = '';
-
-        let date_index:string = day.toISOString().substring(0, 10);
-
-        if(this.consumptions.hasOwnProperty(rentalUnit.id) && this.consumptions[rentalUnit.id].hasOwnProperty(date_index)) {
-            if(this.consumptions[rentalUnit.id][date_index].hasOwnProperty('booking_id')
-            && this.consumptions[rentalUnit.id][date_index]['booking_id'].hasOwnProperty('description')) {
-                result = this.consumptions[rentalUnit.id][date_index].booking_id.description;
-            }        
+        if(this.consumptions.hasOwnProperty(rentalUnit.id)) {
+            let date_index:string = this.calcDateIndex(day);
+            if(this.consumptions[rentalUnit.id].hasOwnProperty(date_index)) {
+                if(this.consumptions[rentalUnit.id][date_index].hasOwnProperty('booking_id')
+                && this.consumptions[rentalUnit.id][date_index]['booking_id'].hasOwnProperty('description')) {
+                    return this.consumptions[rentalUnit.id][date_index].booking_id.description;
+                }
+            }
         }
-        return result;
+        return '';
     }
 
     public getHolidayClasses(day: Date): string[] {
         let result = [];
-        let date_index:string = day.toISOString().substring(0, 10);
+        let date_index:string = this.calcDateIndex(day);
         if(this.holidays.hasOwnProperty(date_index) && this.holidays[date_index].length) {
             result = this.holidays[date_index];
         }
         return result.map( (o:any) => o.type);
     }
-
-    
 
     private async onFiltersChange() {
         this.createHeaderDays();
@@ -239,10 +253,9 @@ export class PlanningCalendarComponent implements OnInit, AfterViewInit, AfterVi
                 this.holidays = {};
                 let d = new Date();
                 for (let d = new Date(this.params.date_from.getTime()); d <= this.params.date_to; d.setDate(d.getDate() + 1)) {
-                    let date_index = d.toISOString().substring(0, 10);
+                    let date_index:string = this.calcDateIndex(d);
                     let date_int  = parseInt(date_index.replace(/-/gi, ''), 10);
-                    this.holidays[date_index] = holidays
-                        .filter( (h:any) => (date_int >= h['date_from_int'] && date_int <= h['date_to_int']) );
+                    this.holidays[date_index] = holidays.filter( (h:any) => (date_int >= h['date_from_int'] && date_int <= h['date_to_int']) );
                 }
             }
         }
@@ -285,8 +298,8 @@ export class PlanningCalendarComponent implements OnInit, AfterViewInit, AfterVi
     private createHeaderDays() {
 
         if(this.previous_duration != this.params.duration) {
-            // temporarily reset cells_width to an arbitrary ow value
-            this.cells_width = 12;
+            // temporarily reset cellsWidth to an arbitrary ow value
+            this.cellsWidth = 12;
         }
 
         this.previous_duration = this.params.duration;
@@ -333,7 +346,7 @@ export class PlanningCalendarComponent implements OnInit, AfterViewInit, AfterVi
     public onhoverDate(day:Date) {
         let result;
         if(day) {
-            let date_index:string = day.toISOString().substring(0, 10);
+            let date_index:string = this.calcDateIndex(day);
             if(this.holidays.hasOwnProperty(date_index) && this.holidays[date_index].length) {
                 result = this.holidays[date_index];
             }
@@ -346,7 +359,7 @@ export class PlanningCalendarComponent implements OnInit, AfterViewInit, AfterVi
         this.showBooking.emit(event);
     }
 
-    public onSelectedRentalUnit(rental_unit: any) {        
+    public onSelectedRentalUnit(rental_unit: any) {
         clearTimeout(this.mousedownTimeout);
         this.showRentalUnit.emit(rental_unit);
     }
@@ -355,7 +368,7 @@ export class PlanningCalendarComponent implements OnInit, AfterViewInit, AfterVi
         this.hovered_rental_unit = rental_unit;
 
         if(day) {
-            let date_index:string = day.toISOString().substring(0, 10);
+            let date_index:string = this.calcDateIndex(day);
             if(this.holidays.hasOwnProperty(date_index) && this.holidays[date_index].length) {
                 this.hovered_holidays = this.holidays[date_index];
             }
@@ -370,7 +383,7 @@ export class PlanningCalendarComponent implements OnInit, AfterViewInit, AfterVi
     }
 
     public onmouseleaveTable() {
-        clearTimeout(this.mousedownTimeout);        
+        clearTimeout(this.mousedownTimeout);
         this.selection.is_active = false;
         this.selection.width = 0;
     }
@@ -396,9 +409,7 @@ export class PlanningCalendarComponent implements OnInit, AfterViewInit, AfterVi
             for (let i = 0; i < days-1; i++) {
                 let currdate = new Date(from.date.getTime());
                 currdate.setDate(currdate.getDate() + i);
-
                 if(this.hasConsumption(rental_unit, currdate)) {
-                    console.log("consumption found");
                     valid = false;
                     break;
                 }
@@ -515,27 +526,3 @@ export class PlanningCalendarComponent implements OnInit, AfterViewInit, AfterVi
         $event.preventDefault();
     }
 }
-
-
-/*
-
-LEGEND :
-
-    rouge : hors service (unité bloquée manuellement)
-    bleu : en option (avec '?')
-    orange : confirmée (paiement ok si '/$', paiement en attente si '$')
-    vert : validée  (avec 'v')
-    turquoise : en cours d'occupation
-    gris : terminée / client parti
-    
-    couleur transparente : unité parente partiellement louée (non disponible entièrement) - une ou plusieurs sous-unités sont louées
-
-    yellow: '#ff9633',
-    turquoise: '#0fc4a7',
-    green: '#0FA200',
-    blue: '#0288d1',
-    violet: '#9575cd',
-    red: '#C80651',
-    grey: '#988a7d',
-
-*/

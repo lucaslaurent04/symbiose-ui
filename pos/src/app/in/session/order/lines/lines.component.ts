@@ -88,6 +88,12 @@ export class SessionOrderLinesComponent extends TreeComponent<Order, OrderCompon
                 if (data) {
                     this.update(data);
                 }
+                if(this.instance.status == 'payment') {
+                    this.router.navigate(['/session/'+this.instance.session_id.id+'/order/'+this.instance.id+'/payments']);
+                }
+                if(this.instance.status == 'paid') {
+                    this.router.navigate(['/session/'+this.instance.session_id.id+'/order/'+this.instance.id+'/ticket']);
+                }
             }
             catch (response) {
                 console.log(response);

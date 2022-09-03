@@ -47,7 +47,6 @@
         border-radius: 10px;
     }
 
-
     table.cal-table {
         position: relative;
         z-index: 1;
@@ -70,7 +69,7 @@
 
         thead {
             -webkit-user-select: none; /* Safari */
-            user-select: none; 
+            user-select: none;
 
             .stat-column {
                 /* room status column header*/
@@ -179,7 +178,7 @@
 
         }
 
-        
+
 
     }
 
@@ -202,11 +201,11 @@
         background-color: transparent;
 
         .cell-overlay {
-            position: absolute; 
-            z-index: 2; 
-            top: 0; 
-            left: 0; 
-            height: 100%; 
+            position: absolute;
+            z-index: 2;
+            top: 0;
+            left: 0;
+            height: 100%;
             width: 100%;
         }
         .is-today {
@@ -219,7 +218,7 @@
             left: 50%;
             z-index: -1;
         }
-        
+
         &.is-weekend {
             background-color: rgba(0,0,0,0.05);
         }
@@ -265,9 +264,25 @@
         user-select: none;
 
         &.rental-unit {
+            position: relative;
             cursor: pointer;
+
+            span.rental-unit-name {
+                position: absolute;
+                top: 50%;
+                transform: translateY(-50%);
+            }
         }
+
         &.status {
+            position: relative;
+            i {
+                font-size: calc(8px + (var(--rows_height) / 4));
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                transform: translateY(-50%) translateX(-50%);
+            }
             color: crimson;
         }
 
@@ -277,6 +292,7 @@
     tr td.cell-room:first-child {
         text-align: left;
         padding-left: 5px !important;
+        font-size: calc(8px + (var(--rows_height) / 4));
     }
 
     tr td.cell-room:hover {
@@ -292,7 +308,7 @@
     }
 
     tr.rows {
-        height: 30px;
+        height: var(--rows_height);
     }
 
     tr.rows.highlight {
@@ -300,27 +316,27 @@
     }
 
 
-  tr.rows td {
-    padding: 0;
-    text-align: center;
-    border-right: solid 1px #e0e0e0;
-    border-top: solid 1px #e0e0e0;
-  }
+    tr.rows td {
+        padding: 0;
+        text-align: center;
+        border-right: solid 1px #e0e0e0;
+        border-top: solid 1px #e0e0e0;
+    }
 
-  tr.rows td:last-child {
-    border-right: 0;
-  }
+    tr.rows td:last-child {
+        border-right: 0;
+    }
 
-  th:first-child, td:first-child {
-    padding-left: 2px;
-  }
+    th:first-child, td:first-child {
+        padding-left: 2px;
+    }
 
-  th:last-child, td:last-child {
-    padding-right: 2px;
-  }
+    th:last-child, td:last-child {
+        padding-right: 2px;
+    }
 
-  .rows span {
-    font-size: 13px;
-  }
+    .rows span {
+        font-size: 13px;
+    }
 
 }

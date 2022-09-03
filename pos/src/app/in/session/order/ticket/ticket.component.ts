@@ -9,14 +9,6 @@ import { BookingLineClass } from 'src/app/model';
 
 import { MatTableDataSource } from '@angular/material/table';
 import {DataSource, SelectionModel} from '@angular/cdk/collections';
-import { JSPrintManager, ClientPrintJob, InstalledPrinter, PrintFilePDF, FileSourceType, WSStatus, DefaultPrinter } from 'jsprintmanager';
-import {jsPDF} from "jspdf";
-import * as html2canvas from "html2canvas";
-import * as qz from 'qz-tray';
-
-
-
-
 
 
 
@@ -177,102 +169,7 @@ export class SessionOrderTicketComponent extends TreeComponent<Order, OrderCompo
     }
 
     public async onPrint() {
-
         window.print();
-        // this.selectedPrinter = this.printers[0];
-        // console.log(this.printers);
-        // if (this.selectedPrinter !== 'undefined' && this.jspmWSStatus()) {
-        //     // Create a ClientPrintJob
-        //     const cpj = new ClientPrintJob();
-        //     // Set Printer type (Refer to the help, there many of them!)
-        //     if ( this.isDefaultPrinterSelected ) {
-        //     cpj.clientPrinter = new DefaultPrinter();
-        //     } else {
-        //     cpj.clientPrinter = new InstalledPrinter(this.selectedPrinter);
-        //     }
-
-        //     // Set content to print...
-        //     //Set PDF file... for more advanced PDF settings please refer to
-        //     //https://www.neodynamic.com/Products/Help/JSPrintManager4.0/apiref/classes/jspm.printfilepdf.html
-        //     const h2c : any = html2canvas;
-        //     //getting the pdf with css and html and good size
-        //     h2c(document.querySelector('.view')).then(function (canvas:any) {
-        //         var img = canvas.toDataURL("image/png");
-        //         const doc = new jsPDF('p', 'mm', [canvas.height/canvas.width*105,105]);
-        //         // var width = doc.internal.pageSize.getWidth();
-        //         // var height = doc.internal.pageSize.getHeight();
-        //         var wid: number
-        //         var hgt: number
-        //         var img = canvas.toDataURL("image/png", wid = canvas.width, hgt = canvas.height);
-        //         var hratio = hgt/wid
-
-        //         var width = doc.internal.pageSize.width;    
-        //         var height = width * hratio
-        //         doc.addImage(img,'JPEG',0,0, width, height);
-
-
-        //         var config = qz.configs.create("Printer Name");
-                
-                
-        //         var end = doc.output();
-
-        //         var data = [{
-        //             type: 'pixel',
-        //             format: 'pdf',
-        //             flavor: 'base64',
-        //             data: end 
-        //         }]
-
-        //         qz.print(config, data).catch(function(e :any) { console.error(e); });
-        //         // doc.addImage(img, 'JPEG', 0, 0, width ,height );
-        //         // doc.save('test.pdf');        
-        //     });
-            
-            
-            
-            // doc.html(pdfjs, {
-            //     callback: function(doc) {
-            //         // console.log(doc.output());
-            //         var my_file = new PrintFilePDF(doc.output(), FileSourceType.URL, 'MyFile.pdf', 1);
-
-            //         cpj.files.push(my_file);
-
-            //         // Send print job to printer!
-            //         cpj.sendToClient();
-            //         doc.save("ok.pdf");
-            //     },
-            //     x: 100,
-            //     y: 100
-            // });
-
-           
-            // console.log(doc);
-            
-        // }
-    }
-
-<<<<<<< HEAD
-    // public jspmWSStatus() {
-    //     if (JSPrintManager.websocket_status === WSStatus.Open) {
-    //         return true;
-    //     } else if (JSPrintManager.websocket_status === WSStatus.Closed) {
-    //         alert('JSPrintManager (JSPM) is not installed or not running! Download JSPM Client App from https://neodynamic.com/downloads/jspm');
-    //         return false;
-    //     } else if (JSPrintManager.websocket_status === WSStatus.Blocked) {
-    //         alert('JSPM has blocked this website!');
-    //         return false;
-    //     }else{
-    //         return false;
-    //     }
-    //   }
-
-=======
->>>>>>> 7fe5f73b08a263679534e51598e598ac8a891ce4
-    public async customer_change(event: any){
-        await this.api.update(this.instance.entity, [this.instance.id], { customer_id: event.id });
-        this.load(this.instance.id);
     }
 
 }
-
-

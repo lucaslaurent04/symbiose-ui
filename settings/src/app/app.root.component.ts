@@ -92,7 +92,8 @@ export class AppRootComponent implements OnInit {
         let result: any[] = [];
 
         for(let item of menu) {
-            if(item.label.match(new RegExp(filter, 'i'))) {
+            // check for a match, case and diacritic insensitive
+            if(item.label.normalize("NFD").replace(/[\u0300-\u036f]/g, "").match(new RegExp(filter, 'i'))) {
                 result.push(item);
             }
             else if(item.children && item.children.length) {
@@ -100,18 +101,22 @@ export class AppRootComponent implements OnInit {
                 for(let item of sub_result) {
                     result.push(item);
                 }
-            }            
+            }
         }
         return result;
     }
 
     public onchangeFilter() {
-        this.navMenuItems = this.getFilteredMenu(this.leftMenu, this.filter);
+        this.navMenuItems = this.getFilteredMenu(
+                this.leftMenu,
+                // remove trailing space + remove diacritic marks
+                this.filter.trim().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+            );
     }
 
     public onToggleItem(item:any) {
         console.log('SettingsAppRoot::onToggleItem', item);
-        
+
         // check item for route and context details
         this.onSelectItem(item);
 

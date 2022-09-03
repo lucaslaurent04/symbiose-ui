@@ -489,11 +489,24 @@ export class BookingServicesBookingGroupComponent extends TreeComponent<BookingL
         }
     }
 
-    public async onchangeIsLocked(is_locked: any) {
-        if(this.instance.is_locked != is_locked) {
-            this.vm.pack.is_locked = is_locked;
+    public async onchangeIsLocked(locked: any) {
+        if(this.instance.is_locked != locked) {
+            this.vm.pack.is_locked = locked;
             try {
-                await this.api.update(this.instance.entity, [this.instance.id], {is_locked: is_locked});
+                await this.api.update(this.instance.entity, [this.instance.id], {is_locked: locked});
+                // relay change to parent component
+                this.updated.emit();
+            }
+            catch(response) {
+                this.api.errorFeedback(response);
+            }
+        }
+    }
+
+    public async onchangeHasLockedRentalUnits(locked: any) {
+        if(this.instance.has_locked_rental_units != locked) {
+            try {
+                await this.api.update(this.instance.entity, [this.instance.id], {has_locked_rental_units: locked});
                 // relay change to parent component
                 this.updated.emit();
             }

@@ -3,7 +3,7 @@ import { Router } from '@angular/router';
 import { AuthService } from 'sb-shared-lib';
 
 /*
-This is the component that is bootstrapped by app.module.ts
+    This is the component that is bootstrapped by app.module.ts
 */
 
 
@@ -34,20 +34,23 @@ export class AppRootComponent implements OnInit {
 
         // request authentication
         try {
+            console.log('trying to authenticate');
             await this.auth.authenticate();
+            console.log('after authenticate');
         }
         catch(err) {
-            // user is not authenticated : hide loader and go to /signin (or received route)
+            // user is not authenticated : hide loader and go to /signin or received route if hash is present
             this.ready = true;
             try {
                 let hash = window.location.hash;
-                if(!hash.length) {
+                const route = hash.substring(2);
+                if(!route.length) {
                     throw new Error('empty_hash');
                 }
-                const route = hash.substring(2);
                 this.router.navigate([route]);
             }
             catch(err) {
+                // empty hash or non-existing route: default to /signin
                 this.router.navigate(['/signin']);
             }
         }

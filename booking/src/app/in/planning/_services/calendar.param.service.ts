@@ -46,7 +46,6 @@ export class CalendarParamService {
         if(this.timeout) {
             clearTimeout(this.timeout);
         }
-        console.log('############### update range');
         // add a debounce in case range is updated several times in a row
         this.timeout = setTimeout( () => {
             console.log('update', this._date_from, this._date_to);

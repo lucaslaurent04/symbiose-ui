@@ -7,7 +7,10 @@
     </div>
     <div class="planning-body" #planningBody [class.fullscreen]="fullscreen" >
         <div #planningCalendar class="calendar-wrapper">
-            <planning-calendar (showBooking)="onShowBooking($event)" (showRentalUnit)="onShowRentalUnit($event)"></planning-calendar>
+            <planning-calendar
+                [rowsHeight]="rowsHeight"
+                (showBooking)="onShowBooking($event)"
+                (showRentalUnit)="onShowRentalUnit($event)"></planning-calendar>
         </div>
     </div>
 

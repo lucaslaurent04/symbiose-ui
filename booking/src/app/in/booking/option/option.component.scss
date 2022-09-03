@@ -4,7 +4,7 @@
     height: 100%;
     overflow: hidden;
     box-sizing: border-box;
-    
+
 
     ::ng-deep quill-editor .ql-container {
         height: 200px !important;
@@ -18,7 +18,7 @@
     .hidden {
         display: none !important;
     }
-    
+
     .container {
         position: relative;
         height: 100%;
@@ -51,6 +51,11 @@
                 max-height: 48px;
                 text-overflow: ellipsis;
                 padding-right: 150px;
+
+                a {
+                    color: var(--mdc-theme-primary);
+                    text-decoration: none;
+                }
             }
 
             .lang-selector {
@@ -67,22 +72,22 @@
                     padding-bottom: 8px;
                 }
             }
-            
+
         }
-    
+
         .body {
             height: calc(100vh - 123px);
             width: 100%;
             overflow-y: scroll;
             overflow-x: hidden;
             padding: 12px;
-                        
+
             .body-actions {
                 display: flex;
                 margin-left: 12px;
                 max-height: 56px;
                 padding-top: 10px;
-            
+
                 .actions-std {
                     flex: 0 1 50%;
                 }
@@ -105,12 +110,12 @@
             }
 
             .row {
-                display: flex;                
+                display: flex;
             }
 
             .column {
                 flex: 1;
-                display: flex;                
+                display: flex;
 
                 .cell {
                     flex: 0 1 40%;
@@ -131,23 +136,23 @@
                 }
             }
         }
-        
+
         .body::-webkit-scrollbar {
             width: 6px;
             overflow-y: scroll;
             background: transparent;
-        
+
         }
-        
+
         .body::-webkit-scrollbar-thumb {
             background: var(--mdc-theme-primary, #6200ee);
             border-radius: 10px;
-        }        
+        }
     }
 
     .container.hidden {
         display: none;
-    }  
-    
-    
+    }
+
+
 }

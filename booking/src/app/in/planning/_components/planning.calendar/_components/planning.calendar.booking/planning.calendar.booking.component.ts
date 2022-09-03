@@ -1,4 +1,5 @@
 import { Component, Input, Output, ElementRef, EventEmitter, OnInit, OnChanges, SimpleChanges, ViewChild, AfterViewInit, ChangeDetectorRef } from '@angular/core';
+import { es } from 'date-fns/locale';
 
 const millisecondsPerDay:number = 24 * 60 * 60 * 1000;
 
@@ -11,6 +12,7 @@ export class PlanningCalendarBookingComponent implements OnInit, OnChanges  {
     @Input()  day: Date;
     @Input()  consumption: any;
     @Input()  width: number;
+    @Input()  height: number;
     @Output() hover = new EventEmitter<any>();
     @Output() selected = new EventEmitter<any>();
 
@@ -24,6 +26,9 @@ export class PlanningCalendarBookingComponent implements OnInit, OnChanges  {
         if (changes.consumption || changes.width) {
             this.datasourceChanged();
         }
+        if(changes.height) {
+            this.elementRef.nativeElement.style.setProperty('--height', this.height+'px');
+        }
     }
 
     /**
@@ -31,33 +36,44 @@ export class PlanningCalendarBookingComponent implements OnInit, OnChanges  {
      */
     private getTime(time:string) {
         let parts = time.split(':');
-        return parseInt(parts[0])*3600 + parseInt(parts[1])*60 + parseInt(parts[2]);
+        return (parseInt(parts[0])*3600) + (parseInt(parts[1])*60) + parseInt(parts[2]);
+    }
+
+    private calcDateInt(day: Date) {
+        let timestamp = day.getTime();
+        let offset = day.getTimezoneOffset()*60*1000;
+        let moment = new Date(timestamp-offset);
+        return parseInt(moment.toISOString().substring(0, 10).replace(/-/g, ''), 10);
+    }
+
+    private isSameDate(date1:Date, date2:Date) {
+        return (this.calcDateInt(date1) == this.calcDateInt(date2));
     }
 
     private datasourceChanged() {
 
         const unit = this.width/(24*3600);
 
-        let date = new Date(this.consumption.date);
         // offset since the start of the current day
         let offset:number = 0;
         let width:string = '100%';
 
-        if( this.consumption.date_from != this.consumption.date_to || this.consumption.schedule_from != '00:00:00' || this.consumption.schedule_to != '24:00:00') {
+        // #todo - we shoud have info about last visible date
+        let time_to = this.getTime(this.consumption.schedule_to);
 
+        if(this.isSameDate(new Date(this.consumption.date_from), this.day)) {
             let time_from = this.getTime(this.consumption.schedule_from);
-            let time_to = this.getTime(this.consumption.schedule_to);
-
-            let date_from = new Date(this.consumption.date_from.substring(0, 10));
-            let date_to = new Date(this.consumption.date_to.substring(0, 10));
-
-            let days = Math.abs(date_to.getTime() - date_from.getTime()) / millisecondsPerDay;
-
             offset  = unit * time_from;
-            width = Math.abs(unit * (((24*3600)-time_from) + (24*3600*(days-1)) + (time_to))).toString() + 'px';
-
+            let days = this.calcDateInt(new Date(this.consumption.date_to)) - this.calcDateInt(new Date(this.consumption.date_from)) - 1;
+            width = Math.abs(unit * (((24*3600)-time_from) + (24*3600*days) + (time_to))).toString() + 'px';
+        }
+        else {
+            let days = this.calcDateInt(new Date(this.consumption.date_to)) - this.calcDateInt(this.day);
+            width = Math.abs(unit * ((24*3600*days) + (time_to))).toString() + 'px';
         }
 
+        this.elementRef.nativeElement.style.setProperty('--height', this.height+'px');
+        // #memo - width can be expressed in px or %
         this.elementRef.nativeElement.style.setProperty('--width', width);
         this.elementRef.nativeElement.style.setProperty('--offset', offset+'px');
     }

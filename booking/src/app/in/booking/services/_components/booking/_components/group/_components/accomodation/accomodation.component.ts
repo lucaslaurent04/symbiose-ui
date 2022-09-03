@@ -102,7 +102,8 @@ export class BookingServicesBookingGroupAccomodationComponent extends TreeCompon
                 booking_line_group_id: this.group.id,
                 booking_line_id: this.instance.id
             });
-            this.instance.rental_unit_assignments_ids.push({id: assignment.id, qty: 1});
+            // don't update parent but inject directly as subobject
+            this.instance.rental_unit_assignments_ids.push({id: assignment.id, booking_line_id: this.instance.id, qty: 1});
         }
         catch(response) {
             this.api.errorFeedback(response);

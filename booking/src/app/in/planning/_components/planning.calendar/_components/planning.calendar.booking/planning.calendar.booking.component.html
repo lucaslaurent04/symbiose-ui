@@ -1,6 +1,11 @@
 <div class="reservedBox">
 
-    <div class="booking-details" [class.part]="consumption.type == 'part'" [style.background-color]="getColor()" (mouseenter)="onEnterConsumption(consumption)"  (mouseleave)="onLeaveConsumption(consumption)">
+    <div class="booking-details"
+        [class.not-first]="consumption.date != consumption.date_from"
+        [class.part]="consumption.type == 'part'"
+        [style.background-color]="getColor()"
+        (mouseenter)="onEnterConsumption(consumption)"
+        (mouseleave)="onLeaveConsumption(consumption)">
 
         <div *ngIf="consumption.type != 'ooo'" (click)="onShowBooking(consumption)" >
             <div style="display: flex;">

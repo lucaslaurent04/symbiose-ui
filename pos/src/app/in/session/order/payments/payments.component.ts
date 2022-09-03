@@ -108,6 +108,9 @@ export class SessionOrderPaymentsComponent extends TreeComponent<Order, OrderCom
                 if (data) {
                     this.update(data);
                 }
+                if(this.instance.status == 'paid') {
+                    this.router.navigate(['/session/'+this.instance.session_id.id+'/order/'+this.instance.id+'/ticket']);
+                }
                 // fetch order lines (ordered products that haven't been paid yet)
                 this.orderLines = await this.api.collect('sale\\pos\\OrderLine', [[['order_id', '=', this.instance.id], ['order_payment_id', '=', 0]],[['order_id', '=', this.instance.id], ['order_payment_id', '=', null]] ], ['funding_id', 'has_funding', 'qty', 'price', 'total', 'order_payment_id'], 'id', 'asc', 0, 100);
                 this.dataSource = new MatTableDataSource(this.orderLines);

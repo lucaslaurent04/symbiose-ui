@@ -52,7 +52,7 @@ export class AuthService {
     /**
      * As retrieving user is asynchronous, the getObservable method should be preferred.
      * @deprecated
-     */     
+     */
     public getUser(): UserClass {
         return this._user;
     }
@@ -84,7 +84,7 @@ export class AuthService {
 
             // update local user object and notify subscribers
             this.user = <UserClass> data;
-            if(this._user.hasOwnProperty('language')) {        
+            if(this._user.hasOwnProperty('language')) {
                 this.env.setEnv('locale', this._user.language);
             }
         }
@@ -125,25 +125,24 @@ export class AuthService {
     public hasGroup(group: string): boolean {
         let result = false;
         const target_group = group.replace('*', '');
-        // get list of groups current user is assigned to        
+        // get list of groups current user is assigned to
         if(this.user.groups) {
             for(let group_name of this.user.groups) {
-                // check if given group is part of the array    
+                // check if given group is part of the array
                 if(group_name.indexOf(target_group) === 0) {
                     result = true;
                     break;
-                }            
+                }
             }
         }
         return result;
     }
 
-
     public async signOut() {
         // update local user object and notify subscribers
         this.user = new UserClass();
         const environment:any = await this.env.getEnv();
-        // send a request to remove the cookie and revoke access_token
+        // send a request to revoke access_token and remove the HTTP cookie
         return this.http.get<any>(environment.backend_url + '/?do=user_signout').toPromise();
     }
 

@@ -1,6 +1,5 @@
 import { Component, AfterContentInit, OnInit, NgZone, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute, Router, RouterEvent, NavigationEnd } from '@angular/router';
-import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { ApiService, EnvService, AuthService, ContextService } from 'sb-shared-lib';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { FormControl, Validators } from '@angular/forms';
@@ -137,7 +136,6 @@ export class BookingInvoiceComponent implements OnInit, AfterContentInit {
 
 
     constructor(
-        private dialog: MatDialog,
         private api: ApiService,
         private auth: AuthService,
         private env: EnvService,

@@ -14,7 +14,12 @@
             <!-- app-sidebar -->
             <div class="side-inner">
                 <div style="height: 48px; display: flex; align-items: center; position: relative; background-color: white; border-bottom: solid 1px lightgrey; border-right: solid 1px lightgrey;">
-                    <input matInput placeholder="Filtre de rubrique" [(ngModel)]="filter" (keyup)="onchangeFilter()" style="border: 0; outline: 0; padding: 0 40px 0 10px; width: 100%;;">
+                    <input style="border: 0; outline: 0; padding: 0 40px 0 10px; width: 100%; height: 100%; font-size: 16px;"
+                        matInput
+                        placeholder="Filtre de rubrique"
+                        autocomplete="off"
+                        [(ngModel)]="filter"
+                        (keyup)="onchangeFilter()">
                     <button mat-icon-button *ngIf="filter?.length" style="position: absolute; right: 5px"  (click)="filter=''; onchangeFilter()"><mat-icon>close</mat-icon></button>
                     <mat-icon *ngIf="!filter?.length" style="position: absolute; right: 5px">search</mat-icon>
                </div>

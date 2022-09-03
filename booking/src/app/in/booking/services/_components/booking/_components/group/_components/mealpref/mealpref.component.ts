@@ -2,7 +2,6 @@ import { Component, Inject, OnInit, OnChanges, NgZone, Output, Input, EventEmitt
 import { AuthService, ApiService, ContextService, TreeComponent } from 'sb-shared-lib';
 
 import { FormControl, Validators } from '@angular/forms';
-import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
 import { MatAutocomplete, MatAutocompleteSelectedEvent } from '@angular/material/autocomplete';
 
 import { BookingLineGroup } from '../../../../_models/booking_line_group.model';
@@ -53,7 +52,6 @@ export class BookingServicesBookingGroupMealPrefComponent extends TreeComponent<
     constructor(
         private api: ApiService,
         private auth: AuthService,
-        private dialog: MatDialog,
         private zone: NgZone,
         private snack: MatSnackBar
     ) {

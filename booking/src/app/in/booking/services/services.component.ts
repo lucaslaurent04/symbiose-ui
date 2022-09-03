@@ -1,7 +1,5 @@
 import { Component, OnInit, AfterViewInit, Inject, ElementRef, QueryList, ViewChild, ViewChildren, NgZone, Renderer2  } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { MatDialog, MatDialogRef, MAT_DIALOG_DATA } from '@angular/material/dialog';
-
 import { BookingApiService } from 'src/app/in/booking/_services/booking.api.service';
 import { AuthService, ContextService, EqualUIService } from 'sb-shared-lib';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -53,7 +51,6 @@ export class BookingServicesComponent implements OnInit, AfterViewInit  {
         private auth: AuthService,
         private api: BookingApiService,
         private router: Router,
-        private dialog: MatDialog,
         private route: ActivatedRoute,
         private snack: MatSnackBar,
         private zone: NgZone,

@@ -25,6 +25,7 @@ export class BookingLineGroup {
         public nb_nights: number = 0,
         public is_sojourn: boolean = false,
         public is_event: boolean = false,
+        public has_locked_rental_units: boolean = false,
         public pack_id: any = {},
         public sojourn_type_id: number = 0,
         public rate_class_id: any = {},

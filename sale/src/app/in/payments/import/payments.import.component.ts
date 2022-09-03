@@ -31,22 +31,22 @@ class BankStatement {
 export class PaymentsImportComponent implements OnInit, AfterContentInit {
 
   @ViewChild('fileUpload') file_upload: ElementRef;
-  
+
   public loading = true;
   public has_result = false;
 
   public invalid_files:String[] = [];
-  public duplicate_files:String[] = [];  
+  public duplicate_files:String[] = [];
   public bank_statements:BankStatement[] = [];
 
   constructor(
     private dialog: MatDialog,
-    private api: ApiService, 
+    private api: ApiService,
     private route: ActivatedRoute,
     private context:ContextService,
     private snack: MatSnackBar,
     private zone: NgZone) {
-    
+
   }
 
   /**
@@ -59,7 +59,7 @@ export class PaymentsImportComponent implements OnInit, AfterContentInit {
   }
 
   ngOnInit() {
-    
+
   }
 
   private reset() {
@@ -67,7 +67,7 @@ export class PaymentsImportComponent implements OnInit, AfterContentInit {
     this.duplicate_files = [];
     this.bank_statements = [];
   }
- 
+
   public onGenerate() {
     const dialogRef = this.dialog.open(PaymentsImportDialogConfirm, {
       width: '50vw',
@@ -97,18 +97,18 @@ export class PaymentsImportComponent implements OnInit, AfterContentInit {
       if(file) {
 
         const data:any = await this.readFile(file);
-  
+
         try {
-  
+
           const response:any = await this.api.call('?do=lodging_payments_import', {
               name: file.name,
               type: file.type,
               data: data
           });
-  
+
           for(let statement of response) {
             this.bank_statements.push(<BankStatement>statement);
-          }          
+          }
         }
         catch (response:any) {
           console.log(response);
@@ -120,16 +120,16 @@ export class PaymentsImportComponent implements OnInit, AfterContentInit {
               }
               else if(error.errors.hasOwnProperty('INVALID_PARAM')) {
                 this.invalid_files.push(file.name);
-              }  
-            }  
-          }          
+              }
+            }
+          }
           this.api.errorFeedback(response);
-        }  
-      }      
+        }
+      }
     }
     this.loading = false;
     this.has_result = true;
-    // reset input 
+    // reset input
     this.file_upload.nativeElement.value = "";
   }
 
@@ -171,4 +171,4 @@ export class PaymentsImportDialogConfirm {
     public dialogRef: MatDialogRef<PaymentsImportDialogConfirm>,
     @Inject(MAT_DIALOG_DATA) public data: SalePaymentsImportDialogConfirmData
   ) {}
-}  
+}
