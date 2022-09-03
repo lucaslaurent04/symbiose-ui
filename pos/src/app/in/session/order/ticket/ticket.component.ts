@@ -32,11 +32,6 @@ export class SessionOrderTicketComponent extends TreeComponent<Order, OrderCompo
 
     public focus: string;
 
-    public printers : any [] = [];
-    public selectedPrinter : any;
-    public realPrinter : any = "";
-    isDefaultPrinterSelected = false;
-
 
     constructor(
         private router: Router,
@@ -44,9 +39,6 @@ export class SessionOrderTicketComponent extends TreeComponent<Order, OrderCompo
         private api: ApiService,
 
         private context: ContextService,
-        // public orderservice: OrderService,
-
-
     ) {
         super(new Order());
     }
@@ -59,34 +51,6 @@ export class SessionOrderTicketComponent extends TreeComponent<Order, OrderCompo
     }
 
     public ngOnInit() {
-
-
-        // qz.websocket.connect().then(function(){
-        //     alert("Connected");
-        // })
-    
-        // let realPrinter;
-
-        // qz.printers.find("Microsoft Print").then(function(found:any) {
-        //     realPrinter = found;
-        //     console.log(realPrinter);
-        //  });
-         
-        //  this.realPrinter = realPrinter;
-
-        // JSPrintManager.auto_reconnect = true;
-        // JSPrintManager.start();
-        // JSPrintManager.WS.onStatusChanged = () => {
-        //     if (this.jspmWSStatus()) {
-        //         // get client installed printers
-        //         JSPrintManager.getPrinters().then((myPrinters: any) => {
-        //           this.printers = myPrinters;
-        //           console.log(this.printers);
-        //         });
-        //     }
-        // };
-
-
         // fetch the IDs from the route
         this.route.params.subscribe(async (params) => {
             if (params && params.hasOwnProperty('order_id')) {
