@@ -1,7 +1,6 @@
-import { Component, OnInit, AfterViewInit, Input, Output, EventEmitter, ChangeDetectorRef, ViewChildren, QueryList } from '@angular/core';
+import { Component, OnInit, AfterViewInit, Input, Output, EventEmitter, ChangeDetectorRef, ViewChildren, QueryList, ViewChild } from '@angular/core';
 import { FormControl, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-
 import { ApiService, ContextService, TreeComponent } from 'sb-shared-lib';
 import { BookingLineGroup } from '../../_models/booking_line_group.model';
 import { BookingLine } from '../../_models/booking_line.model';
@@ -17,14 +16,15 @@ import { Observable, ReplaySubject } from 'rxjs';
 import { debounceTime, map, mergeMap } from 'rxjs/operators';
 import { BookingMealPref } from '../../_models/booking_mealpref.model';
 import { BookingAgeRangeAssignment } from '../../_models/booking_agerange_assignment.model';
+import { MatAutocomplete } from '@angular/material/autocomplete';
 
 
 // declaration of the interface for the map associating relational Model fields with their components
 interface BookingLineGroupComponentsMap {
     booking_lines_ids: QueryList<BookingServicesBookingGroupLineComponent>,
-    accomodations_ids: QueryList<BookingServicesBookingGroupAccomodationComponent>,
     meal_preferences_ids: QueryList<BookingServicesBookingGroupMealPrefComponent>,
-    age_range_assignments_ids: QueryList<BookingServicesBookingGroupAgeRangeComponent>
+    age_range_assignments_ids: QueryList<BookingServicesBookingGroupAgeRangeComponent>,
+    sojourn_product_models_ids: QueryList<BookingServicesBookingGroupAccomodationComponent>
 };
 
 
@@ -101,6 +101,8 @@ export class BookingServicesBookingGroupComponent extends TreeComponent<BookingL
     @Output() deleted = new EventEmitter();
 
     public folded:boolean = true;
+
+    @ViewChild('packAutocomplete') packAutocomplete: MatAutocomplete;
 
     @ViewChildren(BookingServicesBookingGroupLineComponent) bookingServicesBookingLineComponents: QueryList<BookingServicesBookingGroupLineComponent>;
     @ViewChildren(BookingServicesBookingGroupAccomodationComponent) bookingServicesBookingGroupAccomodationComponents: QueryList<BookingServicesBookingGroupAccomodationComponent>;
@@ -184,9 +186,9 @@ export class BookingServicesBookingGroupComponent extends TreeComponent<BookingL
         // init local componentsMap
         let map:BookingLineGroupComponentsMap = {
             booking_lines_ids: this.bookingServicesBookingLineComponents,
-            accomodations_ids: this.bookingServicesBookingGroupAccomodationComponents,
             meal_preferences_ids: this.bookingServicesBookingGroupMealPrefComponents,
-            age_range_assignments_ids: this.bookingServicesBookingGroupAgeRangeComponents
+            age_range_assignments_ids: this.bookingServicesBookingGroupAgeRangeComponents,
+            sojourn_product_models_ids: this.bookingServicesBookingGroupAccomodationComponents
         };
         this.componentsMap = map;
     }
@@ -279,10 +281,14 @@ export class BookingServicesBookingGroupComponent extends TreeComponent<BookingL
         }
     }
 
-
     public async onupdateMealPref() {
         // relay to parent
         // this.updated.emit();
+    }
+
+    public async onupdateAgeRange() {
+        // relay to parent
+        this.updated.emit();
     }
 
     public async oncreateLine() {
@@ -375,7 +381,11 @@ export class BookingServicesBookingGroupComponent extends TreeComponent<BookingL
                 this.updated.emit();
             }
             catch(response) {
-                this.api.errorFeedback(response);
+                // restore value
+                this.vm.participants_count.formControl.setValue(this.instance.nb_pers);
+                // display error
+                this.api.errorSnack('nb_pers', "Le nombre de personnes ne correspond pas aux tranches d'âge");
+                // this.api.errorFeedback(response);
             }
         }
     }
@@ -457,35 +467,35 @@ export class BookingServicesBookingGroupComponent extends TreeComponent<BookingL
         }
     }
 
-    public async onchangeHasPack(has_pack:any) {
+    public onchangeHasPack(has_pack:any) {
         if(this.instance.has_pack != has_pack) {
-            try {
-                let fields: any = {has_pack: has_pack};
-                if(has_pack === false) {
-                    this.vm.pack.name = '';
-                    fields['pack_id'] = null;
-                }
-                await this.api.update(this.instance.entity, [this.instance.id], fields);
+            let fields: any = {has_pack: has_pack};
+            if(has_pack === false) {
+                this.vm.pack.name = '';
+                fields['pack_id'] = null;
+            }
+            this.api.update(this.instance.entity, [this.instance.id], fields)
+            .then( () => {
                 // relay change to parent component
                 this.updated.emit();
-            }
-            catch(response) {
+            })
+            .catch(response => {
                 this.api.errorFeedback(response);
-            }
+            });
         }
     }
 
-    public async onchangePackId(pack:any) {
+    public onchangePackId(pack:any) {
         if(this.instance.pack_id.id != pack.id) {
             this.vm.pack.name = pack.name;
-            try {
-                await this.api.update(this.instance.entity, [this.instance.id], {pack_id: pack.id});
+            this.api.update(this.instance.entity, [this.instance.id], {pack_id: pack.id})
+            .then( () => {
                 // relay change to parent component
                 this.updated.emit();
-            }
-            catch(response) {
+            })
+            .catch(response => {
                 this.api.errorFeedback(response);
-            }
+            });
         }
     }
 
@@ -531,11 +541,13 @@ export class BookingServicesBookingGroupComponent extends TreeComponent<BookingL
     }
 
     private packRestore() {
-        if(Object.keys(this.instance.pack_id).length) {
-            this.vm.pack.name = this.instance.pack_id.name;
-        }
-        else {
-            this.vm.pack.name = '';
+        if(this.vm.pack.name == '') {
+            if(Object.keys(this.instance.pack_id).length) {
+                this.vm.pack.name = this.instance.pack_id.name;
+            }
+            else {
+                this.vm.pack.name = '';
+            }
         }
     }
 
@@ -557,7 +569,8 @@ export class BookingServicesBookingGroupComponent extends TreeComponent<BookingL
         try {
             await this.api.update(this.instance.entity, [this.instance.id], {age_range_assignments_ids: [-age_range_id]});
             this.instance.age_range_assignments_ids.splice(this.instance.age_range_assignments_ids.findIndex((e:any)=>e.id == age_range_id),1);
-            // no relay to parent
+            // relay to parent
+            this.updated.emit();
         }
         catch(response) {
             this.api.errorFeedback(response);

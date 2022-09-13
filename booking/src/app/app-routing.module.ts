@@ -12,27 +12,27 @@ const routes: Routes = [
     /* routes specific to current app */
     {
         path: 'bookings',
-        loadChildren: () => import(`./in/bookings/bookings.module`).then(m => m.AppInBookingsModule) 
+        loadChildren: () => import(`./in/bookings/bookings.module`).then(m => m.AppInBookingsModule)
     },
     {
         path: 'booking/:booking_id',
-        loadChildren: () => import(`./in/booking/booking.module`).then(m => m.AppInBookingModule) 
+        loadChildren: () => import(`./in/booking/booking.module`).then(m => m.AppInBookingModule)
     },
     {
         path: 'repairings',
-        loadChildren: () => import(`./in/repairings/repairings.module`).then(m => m.AppInRepairingsModule) 
+        loadChildren: () => import(`./in/repairings/repairings.module`).then(m => m.AppInRepairingsModule)
     },
     {
         path: 'identity/:identity_id',
-        loadChildren: () => import(`./in/identity/identity.module`).then(m => m.AppInIdentityModule) 
+        loadChildren: () => import(`./in/identity/identity.module`).then(m => m.AppInIdentityModule)
     },
     {
         path: 'consumptions',
-        loadChildren: () => import(`./in/consumptions/consumptions.module`).then(m => m.AppInConsumptionsModule) 
+        loadChildren: () => import(`./in/consumptions/consumptions.module`).then(m => m.AppInConsumptionsModule)
     },
     {
         path: 'planning',
-        loadChildren: () => import(`./in/planning/planning.module`).then(m => m.AppInPlanningModule) 
+        loadChildren: () => import(`./in/planning/planning.module`).then(m => m.AppInPlanningModule)
     },
     {
         /*
@@ -43,7 +43,7 @@ const routes: Routes = [
             */
         path: '',
         component: AppComponent
-    }  
+    }
 ];
 
 @NgModule({

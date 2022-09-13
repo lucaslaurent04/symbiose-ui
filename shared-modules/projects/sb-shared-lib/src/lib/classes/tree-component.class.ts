@@ -197,6 +197,10 @@ export class TreeComponent<I, T> implements TreeComponentInterface {
                             }
                         }
                     }
+                    // empty array for an objet means empty object
+                    else if(!values[field].length && !Array.isArray(this.instance[field])) {
+                        this.instance[field] = {};
+                    }
                     // pass-2 - add missing items
                     // check items in server-model against local-model (can only be an array)
                     for(let i = 0; i < values[field].length; ++i) {

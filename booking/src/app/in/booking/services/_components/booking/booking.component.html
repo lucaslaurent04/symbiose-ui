@@ -1,5 +1,5 @@
+<div class="overlay-container" *ngIf="loading"><mat-spinner></mat-spinner></div>
 <div class="container">
-
     <div class="outer-wrapper" style="width: 100%">
         <div class="header">
             <div *ngIf="['quote','checkedin','checkedout'].indexOf(instance.status) >= 0" style="flex: 1;">Ajouter un groupe de services <button mat-mini-fab color="primary" style="transform: scale(0.66);" (click)="oncreateGroup()"> <mat-icon>add</mat-icon></button></div>
@@ -23,5 +23,4 @@
             </div>
         </div>
     </div>
-
 </div>

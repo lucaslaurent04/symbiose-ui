@@ -24,13 +24,12 @@ interface vmModel {
         value: any
     },
     qty: {
-        formControl: FormControl,
-        change:      () => void
+        formControl: FormControl
     }
 };
 
 @Component({
-  selector: 'booking-services-booking-group-agerange',
+  selector: 'booking-services-booking-group-agerangeassignment',
   templateUrl: 'agerange.component.html',
   styleUrls: ['agerange.component.scss']
 })
@@ -60,8 +59,7 @@ export class BookingServicesBookingGroupAgeRangeComponent extends TreeComponent<
                 value:          {}
             },
             qty: {
-                formControl:    new FormControl('', [Validators.required, this.validateQty.bind(this)]),
-                change:         () => this.onchange()
+                formControl:    new FormControl('', [Validators.required, this.validateQty.bind(this)])
             }
         };
     }
@@ -69,8 +67,10 @@ export class BookingServicesBookingGroupAgeRangeComponent extends TreeComponent<
     private validateQty(c: FormControl) {
         // qty cannot be zero
         // qty cannot be bigger than the number of persons
-        return (this.instance && this.group &&
-            c.value > 0 && c.value <= this.group.nb_pers ) ? null : {
+        return (this.instance
+            && this.group
+            && c.value > 0
+            && c.value <= this.group.nb_pers ) ? null : {
             validateQty: {
                 valid: false
             }
@@ -105,13 +105,6 @@ export class BookingServicesBookingGroupAgeRangeComponent extends TreeComponent<
 
     }
 
-
-    public selectAgeRange(age_range:any) {
-        console.log(age_range);
-        this.vm.age_range.value = age_range;
-        this.onchange();
-    }
-
     public async update(values:any) {
         console.log('assignment update', values);
         super.update(values);
@@ -120,15 +113,30 @@ export class BookingServicesBookingGroupAgeRangeComponent extends TreeComponent<
         this.vm.qty.formControl.setValue(this.instance.qty);
     }
 
-    private async onchange() {
+    public async onupdateAgeRange(age_range:any) {
+        this.vm.age_range.value = age_range;
         // notify back-end about the change
         try {
             let age_range = this.vm.age_range.value;
             await this.api.update(this.instance.entity, [this.instance.id], {
                 age_range_id: age_range.id,
+            });
+            // relay change to parent component (update nb_pers)
+            this.updated.emit();
+        }
+        catch(response) {
+            this.api.errorFeedback(response);
+        }
+    }
+
+    public async onupdateQty() {
+        // notify back-end about the change
+        try {
+            await this.api.update(this.instance.entity, [this.instance.id], {
                 qty: this.vm.qty.formControl.value
             });
-            // do not relay change to parent component
+            // relay change to parent component (update nb_pers)
+            this.updated.emit();
         }
         catch(response) {
             this.api.errorFeedback(response);

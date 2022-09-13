@@ -45,11 +45,12 @@ export class BookingComponent implements OnInit, AfterViewInit, OnDestroy {
 
         this.context.setTarget('#sb-container-booking');
 
-        const descriptor = this.context.getDescriptor();
-        if(!Object.keys(descriptor.context).length) {
+        // if we just changed route, we want to ignore the previous context
+        // const descriptor = this.context.getDescriptor();
+        // if(!Object.keys(descriptor.context).length) {
             this.default_descriptor.context.domain = ["id", "=", this.booking_id];
             this.context.change(this.default_descriptor);
-        }
+        //}
     }
 
     public ngOnInit() {
@@ -62,8 +63,13 @@ export class BookingComponent implements OnInit, AfterViewInit, OnDestroy {
         /*
             routing module is AppRoutingModule, siblings are /planning and /bookings
         */
-        this.route.params.pipe(takeUntil(this.ngUnsubscribe)).subscribe( async (params) => {            
-            this.booking_id = <number> parseInt(params['booking_id'], 10);            
+        this.route.params.pipe(takeUntil(this.ngUnsubscribe)).subscribe( async (params) => {
+            this.booking_id = <number> parseInt(params['booking_id'], 10);
+            if(this.ready) {
+                this.default_descriptor.context.domain = ["id", "=", this.booking_id];
+                this.default_descriptor.context.reset = true;
+                this.context.change(this.default_descriptor);
+            }
         });
     }
 

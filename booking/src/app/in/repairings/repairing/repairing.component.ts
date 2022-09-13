@@ -63,7 +63,7 @@ export class RepairingsRepairingComponent implements OnInit, AfterViewInit, OnDe
         /*
             routing module is AppRoutingModule, siblings are /planning and /bookings
         */
-        this.route.params.pipe(takeUntil(this.ngUnsubscribe)).subscribe( async (params) => {            
+        this.route.params.pipe(takeUntil(this.ngUnsubscribe)).subscribe( async (params) => {
             this.repairing_id = <number> parseInt(params['repairing_id'], 10);
         });
 

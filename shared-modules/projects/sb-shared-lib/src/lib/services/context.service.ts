@@ -61,7 +61,7 @@ export class ContextService {
         this.ready = new ReplaySubject<any>(1);
         this.observable = new ReplaySubject<any>(1);
 
-        /* 
+        /*
             listen to context changes from eQ: notify components that need sync (e.g. sidemenu)
         */
 
@@ -115,7 +115,7 @@ export class ContextService {
         // notify subscribers that we're loading something
         this.ready.next(false);
 
-        /* 
+        /*
             pass-1 update the context part of the local descriptor (to allow subscribers to route change to get the current value)
         */
         if(descriptor.hasOwnProperty('context')) {
@@ -141,7 +141,7 @@ export class ContextService {
         */
         // else if(descriptor.hasOwnProperty('context') && Object.keys(descriptor.context).length) {
         else if(descriptor.hasOwnProperty('context')) {
-            console.log("ContextService: processing received context", descriptor);            
+            console.log("ContextService: processing received context", descriptor);
             // ignore route, if present
             let context:any = {...descriptor.context};
             // inject current target (might have been updated by distinct controllers)

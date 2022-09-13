@@ -8,7 +8,7 @@
   .hidden {
     display: none !important;
   }
-  
+
   .part {
     display: flex;
 
@@ -16,7 +16,7 @@
       flex: 0 1;
       display: inline-block;
       vertical-align: top;
-      padding: 5px 0px 0px 20px;      
+      padding: 5px 0px 0px 20px;
     }
 
     .part-container {
@@ -52,9 +52,9 @@
         }
 
         .cell {
-            flex: 1; 
+            flex: 1;
             overflow: hidden;
-        }    
+        }
      }
     }
   }
@@ -71,15 +71,15 @@
 
   mat-form-field.header {
     margin-top: -5px;
-  
+
     input {
       font-size: 22px;
     }
   }
 
-  mat-form-field.invisible {
+  mat-form-field.invisible-label {
     ::ng-deep.mat-form-field-underline {
-      display: none !important; 
+      display: none !important;
     }
   }
 
@@ -110,10 +110,10 @@
     .product-cell:last-child {
       outline: none;
     }
-    
+
     .product-cell:first-child {
-      flex: 1 0 40%;    
-    }    
+      flex: 1 0 40%;
+    }
   }
 
   .products-list {
@@ -125,27 +125,27 @@
     .product-item {
       position: relative;
       background-color: white;
-  
+
       .product-handle {
         position: absolute;
         top: 10px;
         left: 5px;
         z-index: 3;
       }
-  
+
       .product-remove {
         position: absolute;
         right: -5px;
         top: 10px;
         z-index: 2;
       }
-    
-    }    
-    
+
+    }
+
   }
 
 
-  
+
 }
 
 .cdk-drag-preview {

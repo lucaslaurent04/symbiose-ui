@@ -125,9 +125,10 @@ export class BookingServicesBookingGroupLineComponent extends TreeComponent<Book
      */
     public ngOnChanges(changes: SimpleChanges) {
         if(changes.model) {
+            // #todo - qty depends on age_range
             if(!this.instance.qty_vars.length) {
                 let factor:number = this.group.nb_nights;
-                if(this.instance.product_id.product_model_id.has_duration) {
+                if(this.instance.product_id?.product_model_id?.has_duration) {
                     factor = this.instance.product_id.product_model_id.duration;
                 }
                 let values = new Array(factor);
@@ -181,6 +182,29 @@ export class BookingServicesBookingGroupLineComponent extends TreeComponent<Book
         if(this.instance.qty_vars.length) {
             this.vm.qty_vars.values = JSON.parse(this.instance.qty_vars);
         }
+    }
+
+    /**
+     * Retrieves the number of persons that
+     * If the group has a matching age_range, the related qty is given. Otherwise, the method returns nb_pers from the group.
+     */
+    private getNbPers(): number {
+        let nb_pers = this.group.nb_pers;
+        if(this.instance.product_id.has_age_range) {
+            for(let assignment of this.group.age_range_assignments_ids) {
+                if(assignment.age_range_id == this.instance.product_id.age_range_id) {
+                    nb_pers = assignment.qty;
+                }
+            }
+        }
+        return nb_pers;
+    }
+
+    /**
+     * Computes the default value for a qty_var that hasn't been set by user.
+     */
+    public calcQtyVar(index: number) {
+        return this.getNbPers() + this.vm.qty_vars.values[index];
     }
 
     public async ondeleteLine(line_id:number) {
@@ -266,7 +290,9 @@ export class BookingServicesBookingGroupLineComponent extends TreeComponent<Book
 
     private async qtyVarsChange(index:number, $event:any) {
         let value:number = parseInt($event.srcElement.value, 10);
-        this.vm.qty_vars.values[index] = (value-this.group.nb_pers);
+
+        this.vm.qty_vars.values[index] = (value-this.getNbPers());
+
         // update line
         let qty_vars = JSON.stringify(Object.values(this.vm.qty_vars.values));
         // notify back-end about the change

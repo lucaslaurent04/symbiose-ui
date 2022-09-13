@@ -13,13 +13,13 @@
 
     <div class="part-container" *ngIf="vGroup.rental_units.folded">
         <div class="row">
-            <div class="row-products-title">{{instance.product_id.name}} ({{instance.product_id.id}}) : <b>{{vm.assignments.total}} p.</b></div>
+            <div class="row-products-title">{{instance.product_model_id.name}} <small>[{{instance.product_model_id.id}}]</small> : <b>{{instance.qty}} p.</b></div>
         </div>
     </div>
 
     <div class="part-container" *ngIf="!vGroup.rental_units.folded">
         <div class="row">
-            <div class="row-products-title">{{instance.product_id.name}} : <b>{{vm.assignments.total}} p.</b>
+            <div class="row-products-title">{{instance.product_model_id.name}} : <b>{{instance.qty}} p.</b>
                 <button mat-mini-fab color="primary" style="transform: scale(0.65);" (click)="oncreateAssignment()"><mat-icon>add</mat-icon></button>
             </div>
         </div>

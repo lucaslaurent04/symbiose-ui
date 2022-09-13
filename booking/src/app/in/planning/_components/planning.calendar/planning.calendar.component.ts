@@ -210,8 +210,15 @@ export class PlanningCalendarComponent implements OnInit, OnChanges, AfterViewIn
         this.createHeaderDays();
 
         try {
-            const domain: any[] = [...this.params.rental_units_filter];
-            domain.push(["center_id", "in",  this.params.centers_ids]);
+            const domain: any[] = JSON.parse(JSON.stringify(this.params.rental_units_filter));
+            if(!domain.length) {
+                domain.push([['can_rent', '=', true], ["center_id", "in",  this.params.centers_ids]]);
+            }
+            else {
+                for(let i = 0, n = domain.length; i < n; ++i) {
+                    domain[i].push(["center_id", "in",  this.params.centers_ids]);
+                }
+            }
             const rental_units = await this.api.collect(
                 "lodging\\realestate\\RentalUnit",
                 domain,
@@ -234,7 +241,6 @@ export class PlanningCalendarComponent implements OnInit, OnChanges, AfterViewIn
         }
 
         try {
-
             let holidays:any = await this.api.collect(
                 "calendar\\Holiday",
                 [

@@ -19,9 +19,9 @@ import { MatOption } from '@angular/material/core';
 export class PlanningCalendarNavbarComponent implements OnInit, AfterViewInit, AfterViewChecked {
     @Input() consumption: any;
     @Input() rental_unit: any;
-    @Input() holidays: any;    
+    @Input() holidays: any;
     @Output() changedays = new EventEmitter<ChangeReservationArg>();
-    @Output() refresh = new EventEmitter<Boolean>();    
+    @Output() refresh = new EventEmitter<Boolean>();
     @ViewChild('centerSelector') centerSelector: MatSelect;
 
     dateFrom: Date;
@@ -31,14 +31,6 @@ export class PlanningCalendarNavbarComponent implements OnInit, AfterViewInit, A
     centers: any[] = [];
     selected_centers_ids: any[] = [];
 
-    private rental_untis_filter_default: any[] = [['can_rent', '=', true]];
-
-    public filters: any = {
-        has_children: 'crossed',
-        has_parent: 'crossed',        
-        is_accomodation: 'crossed'
-    };
-
     vm: any = {
         duration:   '31',
         date_range: new FormGroup({
@@ -46,7 +38,6 @@ export class PlanningCalendarNavbarComponent implements OnInit, AfterViewInit, A
             date_to: new FormControl()
         })
     };
-
 
     constructor(
         private api: ApiService,
@@ -58,14 +49,13 @@ export class PlanningCalendarNavbarComponent implements OnInit, AfterViewInit, A
 
 
     ngAfterViewInit() {
-        this.params.init();
     }
 
 
     ngAfterViewChecked() {
     }
 
-    
+
     ngOnInit() {
 
         /*
@@ -110,7 +100,7 @@ export class PlanningCalendarNavbarComponent implements OnInit, AfterViewInit, A
     }
 
 
-    public async onchangeDateRange() {    
+    public async onchangeDateRange() {
         let start = this.vm.date_range.get("date_from").value;
         let end = this.vm.date_range.get("date_to").value;
 
@@ -220,34 +210,7 @@ export class PlanningCalendarNavbarComponent implements OnInit, AfterViewInit, A
             else {
                 item.deselect();
             }
-        });        
-    }
-
-    public toggleFilter($event: any, filter:string) {
-        $event.stopPropagation();
-            
-        if(this.filters[filter] === 'crossed') {
-           this.filters[filter] = 'unchecked'; 
-        }
-        else if(this.filters[filter] === 'unchecked') {
-            this.filters[filter] = 'checked'; 
-        }
-        else if(this.filters[filter] == 'checked') {
-            this.filters[filter] = 'crossed'; 
-        }
-
-        // re-generate domain
-        let domain: any[] = [...this.rental_untis_filter_default];
-        for(let filter of Object.keys(this.filters)) {
-            let value  = this.filters[filter];
-            if(value == 'checked') {
-                domain.push([filter, '=', true]);
-            }
-            else if(value == 'unchecked') {
-                domain.push([filter, '=', false]);
-            }
-        }
-        this.params.rental_units_filter = domain;
+        });
     }
 
     public calcHolidays() {

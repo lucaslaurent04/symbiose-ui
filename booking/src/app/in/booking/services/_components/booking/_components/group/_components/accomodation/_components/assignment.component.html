@@ -1,18 +1,16 @@
 <div class="cell">
-
     <sb-m2o-select
         [entity]="'lodging\\realestate\\RentalUnit'"
         [id]="instance.rental_unit_id.id"
         [fields]="['capacity']"
         [controller]="'lodging_booking_rentalunits'"
-        [params]="vm.params"
+        [params]="params"
         [placeholder]="'Commencez à taper le nom'"
         [noResult]="'rien trouvé'"
         [required]="true"
         [displayWith]="displayRentalUnit"
         (itemSelected)="onchangeRentalUnit($event)">Unité locative
     </sb-m2o-select>
-
 </div>
 <div class="cell">
     <mat-form-field style="max-width: 100px;">

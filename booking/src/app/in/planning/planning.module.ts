@@ -9,6 +9,7 @@ import { PlanningRoutingModule } from './planning-routing.module';
 
 import { PlanningComponent } from './planning.component';
 import { PlanningLegendDialogComponent } from './_components/legend.dialog/legend.component';
+import { PlanningPreferencesDialogComponent } from './_components/preferences.dialog/preferences.component';
 import { PlanningCalendarComponent } from './_components/planning.calendar/planning.calendar.component';
 import { PlanningCalendarBookingComponent } from './_components/planning.calendar/_components/planning.calendar.booking/planning.calendar.booking.component';
 import { PlanningCalendarNavbarComponent } from './_components/planning.calendar/_components/planning.calendar.navbar/planning.calendar.navbar.component';
@@ -31,7 +32,8 @@ import { OverlayModule } from '@angular/cdk/overlay';
     PlanningCalendarBookingComponent,
     PlanningCalendarNavbarComponent,
     ConsumptionCreationDialog,
-    PlanningLegendDialogComponent
+    PlanningLegendDialogComponent,
+    PlanningPreferencesDialogComponent
   ],
   providers: [
     { provide: DateAdapter, useClass: CustomDateAdapter, deps: [MAT_DATE_LOCALE, Platform] }

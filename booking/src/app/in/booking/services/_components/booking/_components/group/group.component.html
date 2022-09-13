@@ -34,11 +34,8 @@
                     {{instance.date_from | date: 'dd/MM/YY'}}
                 </ng-container>
             </div>
-            <div style="flex: 0 1 15%; white-space: nowrap; overflow: hidden;">{{instance.nb_pers}} pers.
-            </div>
-            <div style="margin-left: auto; white-space: nowrap; overflow: hidden;">{{instance.price | number : '1.2-2'}}
-                €
-            </div>
+            <div style="flex: 0 1 15%; white-space: nowrap; overflow: hidden;">{{instance.nb_pers}} pers.</div>
+            <div style="margin-left: auto; white-space: nowrap; overflow: hidden;">{{instance.price | number : '1.2-2'}}€</div>
         </div>
     </div>
 
@@ -77,7 +74,7 @@
 
                     <!-- is sojourn -->
                     <div *ngIf="!instance.is_event" class="cell" style="flex: 0.5 1 0; max-width: 150px; min-width: 50px;">
-                        <mat-form-field floatLabel="always" class="invisible">
+                        <mat-form-field floatLabel="always" class="invisible-label">
                             <mat-slide-toggle
                                 color="accent"
                                 [ngModel]="instance.is_sojourn"
@@ -89,7 +86,7 @@
 
                     <!-- is event -->
                     <div *ngIf="!instance.is_sojourn" class="cell" style="flex: 0.5 1 0; max-width: 185px; min-width: 60px;" >
-                        <mat-form-field floatLabel="always" class="invisible">
+                        <mat-form-field floatLabel="always" class="invisible-label">
                             <mat-slide-toggle
                                 color="accent"
                                 [ngModel]="instance.is_event"
@@ -142,8 +139,12 @@
                     <div *ngIf="vGroup.identification.folded" class="cell" style="flex: 0.5 1 0; max-width: 155px; min-width: 60px;">
                         <mat-form-field>
                             <mat-label>Participants</mat-label>
-                            <input type="number" matInput (blur)="onchangeNbPers()"
-                                [value]="instance.nb_pers" [formControl]="vm.participants_count.formControl">
+                            <input
+                                type="number"
+                                matInput
+                                (blur)="onchangeNbPers()"
+                                [value]="instance.nb_pers"
+                                [formControl]="vm.participants_count.formControl">
                             <mat-hint>Nombre de personnes</mat-hint>
                             <mat-error *ngIf="vm.participants_count.formControl.hasError('required')">
                                 Doit être supérieur à 0.
@@ -294,12 +295,12 @@
                         </div>
                         <div style="padding-left: 12px;">
                             <div *ngFor="let agerange of instance.age_range_assignments_ids; let index = index;" style="display: flex;">
-                                <booking-services-booking-group-agerange
+                                <booking-services-booking-group-agerangeassignment
                                     [model]="agerange"
                                     [group]="instance"
                                     [booking]="booking"
-                                    (updated)="onupdateMealPref()"
-                                ></booking-services-booking-group-agerange>
+                                    (updated)="onupdateAgeRange()"
+                                ></booking-services-booking-group-agerangeassignment>
 
                                 <div class="product-remove">
                                     <button mat-icon-button
@@ -318,10 +319,11 @@
 
                     <!-- has pack -->
                     <div class="cell" style="max-width: 200px;">
-                        <mat-form-field floatLabel="always" class="invisible">
-                            <mat-slide-toggle color="primary" [ngModel]="instance.has_pack"
-                                (change)="onchangeHasPack($event.checked)">Utiliser un pack ?
-                            </mat-slide-toggle>
+                        <mat-form-field floatLabel="always" class="invisible-label">
+                            <mat-slide-toggle
+                                color="primary"
+                                [ngModel]="instance.has_pack"
+                                (change)="onchangeHasPack($event.checked)">Utiliser un pack ?</mat-slide-toggle>
                             <textarea matInput hidden></textarea>
                         </mat-form-field>
                     </div>
@@ -330,15 +332,22 @@
                     <div class="cell" style="max-width: 450px;" *ngIf="instance.has_pack">
                         <mat-form-field>
                             <mat-label>Pack de référence</mat-label>
-                            <input matInput type="text" [matAutocomplete]="packAutocomplete" [value]="vm.pack.name"
+                            <input
+                                matInput
+                                type="text"
+                                [matAutocomplete]="packAutocomplete"
+                                [value]="vm.pack.name"
                                 (keyup)="vm.pack.inputChange($event)"
                                 (focus)="vm.pack.focus()"
-                                (blur)="vm.pack.restore()" placeholder="Commencez à taper le nom" />
+                                (blur)="vm.pack.restore()"
+                                placeholder="Commencez à taper le nom" />
                             <button mat-button *ngIf="vm.pack.name.length" matSuffix mat-icon-button aria-label="Clear" (click)="vm.pack.reset()">
                                 <mat-icon>close</mat-icon>
                             </button>
 
-                            <mat-autocomplete #packAutocomplete="matAutocomplete" [displayWith]="calcPack"
+                            <mat-autocomplete
+                                #packAutocomplete="matAutocomplete"
+                                [displayWith]="calcPack"
                                 (optionSelected)="onchangePackId($event.option.value)">
                                 <div *ngIf="vm.pack.filteredList | async; let list">
                                     <mat-option *ngFor="let pack of list" [value]="pack">
@@ -356,7 +365,7 @@
 
                     <!-- locked pack -->
                     <div class="cell" *ngIf="instance.has_pack">
-                        <mat-form-field floatLabel="always" class="invisible">
+                        <mat-form-field floatLabel="always" class="invisible-label">
                             <mat-slide-toggle [ngModel]="vm.pack.is_locked"
                                 (change)="onchangeIsLocked($event.checked)" title="Liste des produits du pack non-modifiable">Liste verrouillée
                             </mat-slide-toggle>
@@ -461,7 +470,7 @@
             <div class="part-container" *ngIf="!vGroup.accomodations.folded">
                 <div class="row" style="align-items: center;">
                     <div style="flex: 1 0 200px;">Unités locatives </div>
-                    <mat-form-field floatLabel="always" class="invisible">
+                    <mat-form-field floatLabel="always" class="invisible-label">
                         <mat-slide-toggle color="accent"
                                           [ngModel]="instance.has_locked_rental_units"
                                           (change)="onchangeHasLockedRentalUnits($event.checked)">Verrouiller la répartition des unités locatives
@@ -470,13 +479,13 @@
                     </mat-form-field>
                 </div>
                 <div class="row" style="display: block;">
-                    <div class="accomodation-item" *ngFor="let accomodation of instance.accomodations_ids; let index = index;">
-                        <booking-services-booking-group-accomodation
-                        [model]="accomodation"
-                        [group]="instance"
-                        [booking]="booking"
-                        (updated)="onupdateAccomodation()"
-                        ></booking-services-booking-group-accomodation>
+                    <div class="accomodation-item" *ngFor="let accomodation of instance.sojourn_product_models_ids; let index = index;">
+                        <booking-services-booking-group-rentalunitassignment
+                            [model]="accomodation"
+                            [group]="instance"
+                            [booking]="booking"
+                            (updated)="onupdateAccomodation()"
+                        ></booking-services-booking-group-rentalunitassignment>
                     </div>
                 </div>
             </div>

@@ -7,10 +7,11 @@ import { ChangeReservationArg } from 'src/app/model/changereservationarg';
 import { ApiService, AuthService, ContextService } from 'sb-shared-lib';
 import { CalendarParamService } from './_services/calendar.param.service';
 import { PlanningCalendarComponent } from './_components/planning.calendar/planning.calendar.component';
-import { PlanningLegendDialogComponent } from './_components/legend.dialog/legend.component';
 import {MatDialog, MatDialogRef, MAT_DIALOG_DATA} from '@angular/material/dialog';
 
 import * as screenfull from 'screenfull';
+import { PlanningLegendDialogComponent } from './_components/legend.dialog/legend.component';
+import { PlanningPreferencesDialogComponent } from './_components/preferences.dialog/preferences.component';
 
 interface DateRange {
   from: Date,
@@ -24,7 +25,7 @@ interface DateRange {
 })
 export class PlanningComponent implements OnInit, AfterViewInit {
     @ViewChild('planningBody') planningBody: ElementRef;
-    @ViewChild('planningCalendar') planningCalendar: ElementRef;
+    @ViewChild('planningCalendar') planningCalendar: PlanningCalendarComponent;
 
     public centers_ids: number[];
     public rowsHeight: number = 40;
@@ -40,8 +41,6 @@ export class PlanningComponent implements OnInit, AfterViewInit {
         private context: ContextService,
         private params: CalendarParamService,
         private cd: ChangeDetectorRef,
-        private zone: NgZone,
-        private elementRef: ElementRef,
         public dialog: MatDialog
     ) {
         this.centers_ids = [];
@@ -80,10 +79,48 @@ export class PlanningComponent implements OnInit, AfterViewInit {
         }, true);
 
         // retrieve rowsHeigth from local storage
-        let stored_rows_height  = localStorage.getItem('planning_rows_height');
-        if(stored_rows_height) {
-            this.rowsHeight = parseInt(stored_rows_height, 10);
+        let rows_height = localStorage.getItem('planning_rows_height');
+        if(rows_height) {
+            this.rowsHeight = parseInt(rows_height, 10);
         }
+        this.retrieveSettings();
+    }
+
+    private retrieveSettings() {
+        console.log('applying settings');
+        let rows_height = localStorage.getItem('planning_rows_height');
+        if(rows_height) {
+            this.rowsHeight = parseInt(rows_height, 10);
+        }
+        let show_parents = localStorage.getItem('planning_show_parents');
+        let show_children = localStorage.getItem('planning_show_children');
+        let is_accomodation = localStorage.getItem('planning_show_accomodations_only');
+        let domain: any[] = [];
+
+        if(show_parents && show_parents === 'true') {
+            domain.push([['can_rent', '=', true], ['has_parent', '=', false]]);
+        }
+        if(show_children && show_children === 'true') {
+            domain.push([['can_rent', '=', true], ['has_parent', '=', true]]);
+        }
+        if(is_accomodation && is_accomodation === 'true') {
+            if(!domain.length) {
+                domain.push([['can_rent', '=', true], ['is_accomodation', '=', true]]);
+            }
+            else {
+                for(let i = 0, n = domain.length; i < n; ++i) {
+                    domain[i].push(['is_accomodation', '=', true]);
+                }
+            }
+        }
+
+        this.params.rental_units_filter = domain;
+    }
+
+    // apply updated settings from localStorage
+    private applySettings() {
+        this.retrieveSettings();
+        this.planningCalendar.onRefresh();
     }
 
     /**
@@ -105,8 +142,25 @@ export class PlanningComponent implements OnInit, AfterViewInit {
         }
     }
 
-    public onOpenDialog(){
+    public onclickOpenLegendDialog(){
         const dialogRef = this.dialog.open(PlanningLegendDialogComponent, {});
+    }
+
+    public onclickOpenPrefsDialog() {
+        const dialogRef = this.dialog.open(PlanningPreferencesDialogComponent, {
+                width: '500px',
+                height: '500px'
+            });
+
+        dialogRef.afterClosed().subscribe(result => {
+            if(result) {
+                localStorage.setItem('planning_rows_height', result.rows_height.toString());
+                localStorage.setItem('planning_show_parents', result.show_parents.toString());
+                localStorage.setItem('planning_show_children', result.show_children.toString());
+                localStorage.setItem('planning_show_accomodations_only', result.show_accomodations_only.toString());
+                this.applySettings();
+            }
+        });
     }
 
     public onShowBooking(consumption: any) {

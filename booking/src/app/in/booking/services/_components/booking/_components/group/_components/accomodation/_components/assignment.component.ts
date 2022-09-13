@@ -23,9 +23,6 @@ interface BookingGroupAccomodationAssignmentComponentsMap {
 };
 
 interface vmModel {
-    params: {
-        booking_line_id: number
-    },
     qty: {
         formControl: FormControl
     }
@@ -47,6 +44,8 @@ export class BookingServicesBookingGroupAccomodationAssignmentComponent extends 
 
     public ready: boolean = false;
 
+    public params:any = {};
+
     public vm: vmModel;
 
     constructor(
@@ -59,9 +58,6 @@ export class BookingServicesBookingGroupAccomodationAssignmentComponent extends 
         super( new BookingAccomodationAssignment() );
 
         this.vm = {
-            params: {
-                booking_line_id:0
-            },
             qty: {
                 formControl:    new FormControl('', [Validators.required, this.validateQty.bind(this)]),
             }
@@ -93,8 +89,9 @@ export class BookingServicesBookingGroupAccomodationAssignmentComponent extends 
         };
         this.componentsMap = map;
 
-        this.vm.params = {
-            booking_line_id: this.instance.booking_line_id
+        this.params = {
+            booking_line_group_id: this.instance.booking_line_group_id,
+            product_model_id: this.accomodation.product_model_id.id
         }
     }
 

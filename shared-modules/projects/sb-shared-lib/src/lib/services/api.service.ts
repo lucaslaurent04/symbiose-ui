@@ -391,4 +391,12 @@ export class ApiService {
         }
     }
 
+    // #todo - remove this
+    /**
+     * Temporary for non translated errors
+     */
+    public async errorSnack(field: string, message: string) {
+        this.snack.open(field+': '+message, this.translate.instant('SB_ERROR_ERROR').toUpperCase());
+    }
+
 }

@@ -169,7 +169,7 @@
                                 <div style="width: 65px; margin-left: 24px;">
                                     <mat-form-field>
                                         <input style="text-align: right;" matInput type="number" min="0"
-                                            [value]="group.nb_pers + vm.qty_vars.values[index]"
+                                            [value]="calcQtyVar(index)"
                                             (blur)="vm.qty_vars.change(index, $event)">
                                     </mat-form-field>
                                 </div>

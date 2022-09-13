@@ -59,13 +59,13 @@ export class CalendarParamService {
         }, 150);
     }
 
-    public init() {
+    private init() {
         this._duration = 31;
         this._date_from = new Date();
         this._date_to = new Date(this._date_from.getTime());
         this._date_to.setDate(this._date_from.getDate() + this._duration);
         this._centers_ids = [];
-        this._rental_units_filter = [['can_rent', '=', true]];
+        this._rental_units_filter = [];
         this.state = this.getState();
     }
 
@@ -89,7 +89,7 @@ export class CalendarParamService {
     }
 
     public set rental_units_filter(filter: any[]) {
-        this._rental_units_filter = filter;
+        this._rental_units_filter = JSON.parse(JSON.stringify(filter));
         this.updateRange();
     }
 

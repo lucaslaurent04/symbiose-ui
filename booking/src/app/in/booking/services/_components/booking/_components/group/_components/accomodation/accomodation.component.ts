@@ -21,7 +21,7 @@ interface vmModel {
 
 
 @Component({
-    selector: 'booking-services-booking-group-accomodation',
+    selector: 'booking-services-booking-group-rentalunitassignment',
     templateUrl: 'accomodation.component.html',
     styleUrls: ['accomodation.component.scss']
 })
@@ -96,14 +96,17 @@ export class BookingServicesBookingGroupAccomodationComponent extends TreeCompon
      */
     public async oncreateAssignment() {
         try {
-            const assignment:any = await this.api.create("lodging\\sale\\booking\\BookingLineRentalUnitAssignement", {
+            const assignment:any = await this.api.create("lodging\\sale\\booking\\SojournProductModelRentalUnitAssignement", {
                 qty: 1,
                 booking_id: this.booking.id,
                 booking_line_group_id: this.group.id,
-                booking_line_id: this.instance.id
+                sojourn_product_model_id: this.instance.id
             });
             // don't update parent but inject directly as subobject
-            this.instance.rental_unit_assignments_ids.push({id: assignment.id, booking_line_id: this.instance.id, qty: 1});
+//            this.instance.rental_unit_assignments_ids.push({id: assignment.id, booking_line_id: this.instance.id, qty: 1});
+            // relay to parent
+            this.updated.emit();
+
         }
         catch(response) {
             this.api.errorFeedback(response);

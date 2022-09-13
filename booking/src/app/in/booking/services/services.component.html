@@ -1,6 +1,6 @@
 <div class="overlay-container" *ngIf="!ready"><mat-spinner></mat-spinner></div>
 <div class="container" [class.hidden]="!ready">
-    <div class="booking-header">Réservation <small>[{{booking.name}} - {{booking.id}}]</small> <span> › </span> Services réservés</div>
+    <div class="booking-header"><a href="#/bookings">Réservations</a><span> › </span> <a href="#/booking/{{booking.id}}">Réservation <small>[{{booking.name}} - {{booking.id}}]</small></a> <span> › </span> Services réservés</div>
     <div class="booking-body">
 
         <div style="height: 46px; margin-top: 10px;display: flex;">

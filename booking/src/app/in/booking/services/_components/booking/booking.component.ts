@@ -25,6 +25,7 @@ export class BookingServicesBookingComponent extends TreeComponent<Booking, Book
     @Input() booking_id: number;
 
     public ready: boolean = false;
+    public loading: boolean = true;
 
     constructor(
         private api: ApiService,
@@ -33,10 +34,10 @@ export class BookingServicesBookingComponent extends TreeComponent<Booking, Book
         super( new Booking() );
     }
 
-    async ngOnChanges(changes: SimpleChanges) {
+    ngOnChanges(changes: SimpleChanges) {
         if(changes.booking_id && this.booking_id > 0) {
             try {
-                await this.load(this.booking_id);
+                this.load(this.booking_id);
                 this.ready = true;
                 console.log(this.instance)
             }
@@ -61,19 +62,22 @@ export class BookingServicesBookingComponent extends TreeComponent<Booking, Book
      * Load an Booking object using the sale_pos_order_tree controller
      * @param booking_id
      */
-    async load(booking_id: number) {
+    public load(booking_id: number) {
         if(booking_id > 0) {
-            try {
-                const result:any = await this.api.fetch('/?get=lodging_booking_tree', {id:booking_id});
+            // #memo - init generates multiple load which badly impacts the UX
+            // this.loading = true;
+            this.api.fetch('/?get=lodging_booking_tree', {id:booking_id})
+            .then( (result:any) => {
                 if(result) {
                     console.log('reveived updated booking', result);
                     this.update(result);
+                    this.loading = false;
                 }
-            }
-            catch(response) {
+
+            })
+            .catch(response => {
                 console.log(response);
-                throw 'unable to retrieve given booking';
-            }
+            });
         }
     }
 

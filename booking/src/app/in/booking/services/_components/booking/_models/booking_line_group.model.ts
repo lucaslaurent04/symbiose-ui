@@ -29,9 +29,9 @@ export class BookingLineGroup {
         public pack_id: any = {},
         public sojourn_type_id: number = 0,
         public rate_class_id: any = {},
-        public accomodations_ids: any[] = [],
         public booking_lines_ids: any[] = [],
         public meal_preferences_ids: any[] = [],
-        public age_range_assignments_ids: any[] = []
+        public age_range_assignments_ids: any[] = [],
+        public sojourn_product_models_ids: any[] = []
     ) {}
 }

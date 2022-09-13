@@ -335,8 +335,17 @@
         padding-right: 2px;
     }
 
-    .rows span {
-        font-size: 13px;
+    .rows {
+
+        span {
+            font-size: 13px;
+        }
+
+        span.rental-unit-name {
+            font-size: calc(8px + (var(--rows_height) / 5));
+        }
     }
+
+
 
 }
