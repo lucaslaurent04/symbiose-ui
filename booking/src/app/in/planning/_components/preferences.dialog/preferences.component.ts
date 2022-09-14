@@ -18,7 +18,13 @@ export class PlanningPreferencesDialogComponent {
         public dialogRef: MatDialogRef<PlanningPreferencesDialogComponent>,
     //   @Inject(MAT_DIALOG_DATA) public data: DialogData,
     ) {
-        this.rows_height = parseInt(localStorage.getItem('planning_rows_height'), 10);
+        let rows_height = localStorage.getItem('planning_rows_height');
+        if(rows_height) {
+            this.rows_height = parseInt(rows_height, 10);
+        }
+        else {
+            this.rows_height = 30;
+        }
         this.show_parents = (localStorage.getItem('planning_show_parents') === 'true');
         this.show_children = (localStorage.getItem('planning_show_children') === 'true');
         this.show_accomodations_only = (localStorage.getItem('planning_show_accomodations_only') === 'true');

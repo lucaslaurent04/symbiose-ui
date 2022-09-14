@@ -28,7 +28,7 @@ export class PlanningComponent implements OnInit, AfterViewInit {
     @ViewChild('planningCalendar') planningCalendar: PlanningCalendarComponent;
 
     public centers_ids: number[];
-    public rowsHeight: number = 40;
+    public rowsHeight: number = 30;
     public date_range: DateRange = <DateRange>{};
     public fullscreen: boolean = false;
 
