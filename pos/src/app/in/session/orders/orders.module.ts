@@ -18,7 +18,7 @@ import { AppInSessionOrderModule } from '../order/order.module';
   ],
   declarations: [
     SessionOrdersComponent,
-    SessionOrdersNewComponent    
+    SessionOrdersNewComponent
   ],
   providers: [
     { provide: DateAdapter, useClass: CustomDateAdapter, deps: [MAT_DATE_LOCALE, Platform] }

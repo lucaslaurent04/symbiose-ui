@@ -71,7 +71,7 @@ export class AuthService {
      * @throws HttpErrorResponse  In case an error is returned, the respons object is relayed as an Exception.
      */
     public async authenticate() {
-        console.log('AuthService::authenticate');
+        console.debug('AuthService::authenticate');
 
         // attempt to log the user in
         try {

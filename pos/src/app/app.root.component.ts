@@ -17,7 +17,7 @@ export class AppRootComponent implements OnInit {
 
     public show_side_menu: boolean = false;
     public show_side_bar: boolean = true;
-    
+
     // original (full & translated) menu for left pane
     private leftMenu: any = {};
 
@@ -40,9 +40,9 @@ export class AppRootComponent implements OnInit {
         private auth:AuthService
     ) {}
 
-    /** 
+    /**
      * Redirects the User to the signin page, upon reaching timeout.
-     * 
+     *
      */
     public async onTimeout() {
         await this.auth.signOut();
@@ -76,7 +76,7 @@ export class AppRootComponent implements OnInit {
 
         // load menus from server
         try {
-            
+
             const data = await this.api.getMenu('sale', 'pos.left');
             // store full translated menu
             this.leftMenu = this.translateMenu(data.items, data.translation);
@@ -119,7 +119,7 @@ export class AppRootComponent implements OnInit {
                 for(let item of sub_result) {
                     result.push(item);
                 }
-            }            
+            }
         }
         return result;
     }

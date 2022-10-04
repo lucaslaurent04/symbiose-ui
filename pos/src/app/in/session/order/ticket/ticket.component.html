@@ -22,13 +22,14 @@
         <div class="view" style="margin: auto;">
 
             <div class="ticket-details">
-
-                <p class="company-name">{{instance.session_id.center_id?.organisation_id?.legal_name}}</p>
-                <p>{{instance.session_id.center_id?.organisation_id?.address_street}}</p>
-                <p>{{instance.session_id.center_id?.organisation_id?.address_zip}} {{instance.session_id.center_id?.organisation_id?.address_city}}</p>
-                <p *ngIf="instance.session_id.center_id?.organisation_id?.has_vat">{{instance.session_id.center_id?.organisation_id?.vat_number}}</p>
-                <p>{{instance.session_id.center_id?.organisation_id?.phone}}</p>
-
+                <p class="company-name">{{instance.session_id.center_id?.center_office_id?.legal_name}}</p>
+                <small>
+                    <p class="company-name">{{instance.session_id.center_id?.organisation_id?.legal_name}}</p>
+                    <p>{{instance.session_id.center_id?.organisation_id?.address_street}}</p>
+                    <p>{{instance.session_id.center_id?.organisation_id?.address_zip}} {{instance.session_id.center_id?.organisation_id?.address_city}}</p>
+                    <p *ngIf="instance.session_id.center_id?.organisation_id?.has_vat">{{instance.session_id.center_id?.organisation_id?.vat_number}}</p>
+                    <p>{{instance.session_id.center_id?.organisation_id?.phone}}</p>
+                </small>
             </div>
             <hr>
             <div class="customer-details" *ngIf="instance.has_invoice">
@@ -84,6 +85,7 @@
             <div class="order-details">
                 <p>Commande {{instance.name}}</p>
                 <p>{{instance.created | date : 'medium'}}</p>
+                <small><p>Imprimé par {{user.name}}</p></small>
             </div>
 
         </div>

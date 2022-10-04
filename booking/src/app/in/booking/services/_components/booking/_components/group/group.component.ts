@@ -513,7 +513,8 @@ export class BookingServicesBookingGroupComponent extends TreeComponent<BookingL
         }
     }
 
-    public async onchangeHasLockedRentalUnits(locked: any) {
+    public async onchangeHasLockedRentalUnits(event: any) {
+        let locked = event.checked;
         if(this.instance.has_locked_rental_units != locked) {
             try {
                 await this.api.update(this.instance.entity, [this.instance.id], {has_locked_rental_units: locked});
@@ -521,6 +522,8 @@ export class BookingServicesBookingGroupComponent extends TreeComponent<BookingL
                 this.updated.emit();
             }
             catch(response) {
+                // restore value
+                event.source.checked = !event.source.checked;
                 this.api.errorFeedback(response);
             }
         }
@@ -594,9 +597,9 @@ export class BookingServicesBookingGroupComponent extends TreeComponent<BookingL
     public async onchangeRateClass(event:any) {
         console.log('BookingEditCustomerComponent::rateClassChange', event)
 
-        // from mat-autocomplete
-        if(event && event.option && event.option.value) {
-            let rate_class = event.option.value;
+        // from MatAutocomplete
+        let rate_class = event.option.value;
+        if(rate_class && rate_class.hasOwnProperty('id') && rate_class.id) {
             this.vm.rate_class.name = rate_class.name + ' - ' + rate_class.description;
             try {
                 await this.api.update(this.instance.entity, [this.instance.id], {rate_class_id: rate_class.id});

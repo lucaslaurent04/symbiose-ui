@@ -13,6 +13,12 @@
     <li class="nav-item d-md-down-none"><a class="nav-link" href="#"><i class="icon-list"></i></a></li>
     <li class="nav-item d-md-down-none"><a class="nav-link" href="#"><i class="icon-location-pin"></i></a></li>
     -->
-    <li class="nav-item dropdown" dropdown="" placement="bottom right"><a aria-haspopup="true" class="nav-link" data-toggle="dropdown" dropdowntoggle=""><img class="img-avatar" src="/assets/img/avatar.png"></a></li>
+    <li *ngIf="ready" class="nav-item dropdown"
+        dropdown=""
+        placement="bottom right"
+        ><a aria-haspopup="true"
+            class="nav-link"
+            data-toggle="dropdown"
+            dropdowntoggle=""><!-- <img class="img-avatar" src="/assets/img/avatar.png">--><span class="user-btn" [style.background]="calcUserBackground()">{{calcUserInitials()}}</span></a></li>
 </ul>
 <button type="button" class="navbar-toggler" (click)="toggleSideMenu()"><span class="navbar-toggler-icon"></span></button>

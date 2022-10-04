@@ -164,7 +164,7 @@ export class TreeComponent<I, T> implements TreeComponentInterface {
      */
     public update(values:any) {
         for(let field of Object.keys(this.instance)) {
-            if(values.hasOwnProperty(field) && values[field] !== null) {
+            if(values.hasOwnProperty(field)) {
                 // update local-model for simple fields
                 if(!Array.isArray(values[field])) {
                     // handle dates
@@ -172,7 +172,13 @@ export class TreeComponent<I, T> implements TreeComponentInterface {
                         this.instance[field] = new Date(values[field]);
                     }
                     else {
-                        this.instance[field] = values[field];
+                        // handle empty m2o fields
+                        if(typeof this.instance[field] == 'object' && values[field] == null) {
+                            this.instance[field] = {};
+                        }
+                        else {
+                            this.instance[field] = values[field];
+                        }
                     }
                 }
                 // update sub-objects of relational fields and relay to children
@@ -180,9 +186,9 @@ export class TreeComponent<I, T> implements TreeComponentInterface {
                     // pass-1 - remove items not present anymore
                     // check items in local-model against server-model
                     if(this.instance[field].length) {
-                        // empty array or object
+                        // empty array
                         if(values[field].length == 0) {
-                            this.instance[field] = values[field];
+                            this.instance[field] = [];
                         }
                         // existing array or object
                         else {
@@ -198,7 +204,7 @@ export class TreeComponent<I, T> implements TreeComponentInterface {
                         }
                     }
                     // empty array for an objet means empty object
-                    else if(!values[field].length && !Array.isArray(this.instance[field])) {
+                    else if(!values[field].length && typeof this.instance[field] == 'object' && !Array.isArray(this.instance[field])) {
                         this.instance[field] = {};
                     }
                     // pass-2 - add missing items

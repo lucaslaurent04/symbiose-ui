@@ -48,7 +48,7 @@
 
       <div *ngIf="invalid_files.length">
         <p>
-          Les fichiers extraits suivants ont été ignorés car ils ne correspondent à aucun compte connu:
+          Les fichiers extraits suivants ont été ignorés car ils sont invalides ou ne correspondent à aucun compte connu:
         </p>
         <ul>
           <li *ngFor="let file of invalid_files">{{file}}</li>

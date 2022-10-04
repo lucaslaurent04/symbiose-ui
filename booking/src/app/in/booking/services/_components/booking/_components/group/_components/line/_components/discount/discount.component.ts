@@ -89,20 +89,15 @@ export class BookingServicesBookingGroupLineDiscountComponent extends TreeCompon
     }
 
     public async update(values:any) {
-        console.log('discount update', values);
         super.update(values);
-
         // assign VM values
-
         if(this.instance.type == 'percent' && this.instance.value < 1){
             this.vm.value.formControl.setValue( (this.instance.value * 100) );
         }
         else {
             this.vm.value.formControl.setValue(this.instance.value);
         }
-
         this.vm.type.formControl.setValue(this.instance.type == 'amount');
-
     }
 
     public async onchangeType(event:any) {

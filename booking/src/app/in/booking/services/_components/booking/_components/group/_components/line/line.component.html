@@ -45,7 +45,7 @@
                         <span *ngIf="instance.qty_accounting_method == 'unit'">à l'unité</span>
                     </mat-hint>
 
-                    <button mat-button *ngIf="vm.product.name.length && !group.is_locked" matSuffix mat-icon-button
+                    <button mat-button *ngIf="vm.product.name?.length && !group.is_locked" matSuffix mat-icon-button
                         aria-label="Clear" (click)="vm.product.reset()">
                         <mat-icon>close</mat-icon>
                     </button>
@@ -163,8 +163,8 @@
                             <div *ngFor="let delta of vm.qty_vars.values | keyvalue; let index = index;"
                                 style="display: flex; align-items: center; height: 38px;">
                                 <div style="flex: 0 1 35%; display: flex;">
-                                    <span style="text-decoration: underline"> Jour {{index + 1 + instance.product_id.product_model_id.schedule_offset}}</span>
-                                    <span style="margin-left: 12px; width: 100px;">({{getOffsetDate(index + instance.product_id.product_model_id.schedule_offset) | date : 'EEE d LLL'}})</span>
+                                    <span style="text-decoration: underline"> Jour {{index + 1 + instance.product_id?.product_model_id?.schedule_offset}}</span>
+                                    <span style="margin-left: 12px; width: 100px;">({{getOffsetDate(index + instance.product_id?.product_model_id?.schedule_offset) | date : 'EEE d LLL'}})</span>
                                 </div>
                                 <div style="width: 65px; margin-left: 24px;">
                                     <mat-form-field>

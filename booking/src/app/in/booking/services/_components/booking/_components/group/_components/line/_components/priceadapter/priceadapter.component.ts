@@ -46,7 +46,6 @@ export class BookingServicesBookingGroupLinePriceadapterComponent extends TreeCo
     }
 
     public async update(values:any) {
-        console.log('price adapter update', values);
         super.update(values);
     }
 

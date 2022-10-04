@@ -35,13 +35,13 @@ export class BookingComponent implements OnInit, AfterViewInit, OnDestroy {
     ) {}
 
     public ngOnDestroy() {
-        console.log('BookingComponent::ngOnDestroy');
+        console.debug('BookingComponent::ngOnDestroy');
         this.ngUnsubscribe.next();
         this.ngUnsubscribe.complete();
     }
 
     public ngAfterViewInit() {
-        console.log('BookingComponent::ngAfterViewInit');
+        console.debug('BookingComponent::ngAfterViewInit');
 
         this.context.setTarget('#sb-container-booking');
 
@@ -54,7 +54,7 @@ export class BookingComponent implements OnInit, AfterViewInit, OnDestroy {
     }
 
     public ngOnInit() {
-        console.log('BookingComponent::ngOnInit');
+        console.debug('BookingComponent::ngOnInit');
 
         this.context.ready.pipe(takeUntil(this.ngUnsubscribe)).subscribe( (ready:boolean) => {
             this.ready = ready;

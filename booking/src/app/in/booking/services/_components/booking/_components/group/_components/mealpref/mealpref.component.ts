@@ -113,9 +113,7 @@ export class BookingServicesBookingGroupMealPrefComponent extends TreeComponent<
     }
 
     public async update(values:any) {
-        console.log('mealpref update', values);
         super.update(values);
-
         // assign VM values
         this.vm.qty.formControl.setValue(this.instance.qty);
         this.vm.type.formControl.setValue(this.instance.type);

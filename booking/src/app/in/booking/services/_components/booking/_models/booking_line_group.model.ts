@@ -17,6 +17,7 @@ export class BookingLineGroup {
         public is_locked: boolean = false,
         public is_autosale: boolean = false,
         public is_extra: boolean = false,
+        public has_schedulable_services: boolean = false,
         public date_from: Date = new Date(),
         public date_to: Date = new Date(),
         public time_from: string = '',

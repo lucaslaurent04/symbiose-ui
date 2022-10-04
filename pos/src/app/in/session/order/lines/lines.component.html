@@ -4,9 +4,9 @@
 
 <div class="container" *ngIf="ready">
     <div class="header-wrap">
-        <div class="header">Session › {{instance.session_id.name}} <small>[{{instance.session_id.id}}]</small> › <a [attr.href]="'#/session/'+instance.session_id.id+'/orders'">Commandes en cours</a></div>
+        <div class="header">Session › {{instance.session_id?.name}} <small>[{{instance.session_id?.id}}]</small> › <a [attr.href]="'#/session/'+instance.session_id?.id+'/orders'">Commandes en cours</a></div>
         <div style="display: flex; align-items: center;">
-            <a [attr.href]="'#/session/'+instance.session_id.id+'/close'"><button mat-raised-button color="accent" style="margin-right: 10px;">Fermer la session</button></a>
+            <a [attr.href]="'#/session/'+instance.session_id?.id+'/close'"><button mat-raised-button color="accent" style="margin-right: 10px;">Fermer la session</button></a>
             <button mat-icon-button class="screen" (click)="onclickFullscreen()"><mat-icon>open_in_full</mat-icon></button>
         </div>
     </div>
@@ -21,8 +21,8 @@
                             <span class="taxes"> Taxes : {{ taxes | number : '1.2-2'}}€ </span>
                         </div>
                     </div>
-                    <div *ngIf="instance.session_id.status != 'pending'">Cette session n'est plus active.</div>
-                    <ng-container *ngIf="instance.session_id.status == 'pending'">
+                    <div *ngIf="instance.session_id?.status != 'pending'">Cette session n'est plus active.</div>
+                    <ng-container *ngIf="instance.session_id?.status == 'pending'">
                         <div class="products">
                             <div [class.hidden]="current_pane !='discount'">
                                 <session-order-lines-discount-pane

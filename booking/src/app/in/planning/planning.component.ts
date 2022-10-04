@@ -131,7 +131,6 @@ export class PlanningComponent implements OnInit, AfterViewInit {
     }
 
     public async onFullScreen() {
-        console.log('onHelpFullScreen');
         if (screenfull.isEnabled) {
             this.cd.detach();
             await screenfull.request(this.planningBody.nativeElement);

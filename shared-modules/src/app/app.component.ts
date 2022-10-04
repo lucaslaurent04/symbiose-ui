@@ -7,24 +7,24 @@ import { AuthService } from '../../../projects/common/src/lib/auth.service';
   styleUrls: ['./app.component.scss']
 })
 export class AppComponent implements OnInit {
-  title = 'symbiose';
+    title = 'symbiose';
 
-  constructor(private auth: AuthService) {
+    constructor(private auth: AuthService) {
 
-  }
+    }
 
-  public ngOnInit() {
-    this.auth.getObservable().subscribe((user: any) => {
-      if(user.id <= 0) {
-        console.log('non identified');
-        // redirect to /auth App
-        location.href = '/auth';
-      }
-    });
-  }
+    public ngOnInit() {
+        this.auth.getObservable().subscribe((user: any) => {
+            if(user.id <= 0) {
+                console.warn('user non identified');
+                // redirect to /auth App
+                location.href = '/auth';
+            }
+        });
+    }
 
-  
-  public test() {
-    console.log(this.auth.user);
-  }
+
+    public test() {
+        console.debug(this.auth.user);
+    }
 }

@@ -125,8 +125,7 @@ export class BookingServicesBookingGroupLineComponent extends TreeComponent<Book
      */
     public ngOnChanges(changes: SimpleChanges) {
         if(changes.model) {
-            // #todo - qty depends on age_range
-            if(!this.instance.qty_vars.length) {
+            if(!this.instance.qty_vars || !this.instance.qty_vars.length) {
                 let factor:number = this.group.nb_nights;
                 if(this.instance.product_id?.product_model_id?.has_duration) {
                     factor = this.instance.product_id.product_model_id.duration;
@@ -165,10 +164,9 @@ export class BookingServicesBookingGroupLineComponent extends TreeComponent<Book
     }
 
     public async update(values:any) {
-        console.log('line update', values);
         super.update(values);
         // assign VM values
-        this.vm.product.name = this.instance.name;
+        this.vm.product.name = (this.instance.name)?this.instance.name:'';
         this.vm.total_price.value = this.instance.price;
         // qty
         this.vm.qty.formControl.setValue(this.instance.qty);
@@ -179,7 +177,7 @@ export class BookingServicesBookingGroupLineComponent extends TreeComponent<Book
         // vat
         this.vm.vat.formControl.setValue(this.instance.vat_rate);
         // qty_vars
-        if(this.instance.qty_vars.length) {
+        if(this.instance.qty_vars && this.instance.qty_vars.length) {
             this.vm.qty_vars.values = JSON.parse(this.instance.qty_vars);
         }
     }

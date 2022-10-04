@@ -76,7 +76,6 @@ export class AppSideMenuComponent implements OnInit {
 
         (async () => {
             this.environment = await this.env.getEnv();
-            console.log('received env val: ', this.environment);
         })();
 
         this.auth.getObservable().subscribe((user: any) => {
@@ -90,7 +89,7 @@ export class AppSideMenuComponent implements OnInit {
             debounceTime(500)
         )
         .subscribe( async (descriptor: any) => {
-            console.log('SideMenu::received descriptor from Context', descriptor);
+            console.debug('SideMenu::received descriptor from Context', descriptor);
 
             // #todo - check if context is distinct
 
@@ -106,7 +105,7 @@ export class AppSideMenuComponent implements OnInit {
             if (descriptor.hasOwnProperty('context') && !descriptor.context_silent
                 && descriptor.context.entity && descriptor.context.entity.length) {
 
-                console.log('SideMenu::searching for context menu', descriptor.context);
+                console.debug('SideMenu::searching for context menu', descriptor.context);
 
                 // 1) retrieve the details of the view that was requested
                 let view_type = (descriptor.context.hasOwnProperty('type')) ? descriptor.context.type : 'list';
@@ -205,7 +204,7 @@ export class AppSideMenuComponent implements OnInit {
                     this.updated.emit(false);
                 }
                 else {
-                    console.log('AppSideMenuComponent: updated values', this.view_id, this.object_class, this.object_id);
+                    console.debug('AppSideMenuComponent: updated values', this.view_id, this.object_class, this.object_id);
 
                     let object_fields = ['id', 'name', 'state', 'created', 'modified', 'status', 'order'];
 
@@ -425,7 +424,6 @@ export class AppSideMenuComponent implements OnInit {
                         let links = JSON.parse(item.links);
                         for(let link of links) {
                             let parts = link.replace(/\[([^\]]+)\]\(([^\)]+)\)/, '$2,$1').split(',');
-                            console.log(parts);
                             item.parsed_links.push({link: parts[0], text: parts[1]});
                         }
                     }
@@ -447,12 +445,12 @@ export class AppSideMenuComponent implements OnInit {
     }
 
     public onHelpFullScreen() {
-        console.log('onHelpFullScreen');
+        console.debug('SideMenuComponent::onHelpFullScreen');
         if (screenfull.isEnabled) {
             screenfull.toggle(this.helpFullScreen.nativeElement);
         }
         else {
-            console.log('screenfull not enabled');
+            console.warn('screenfull not enabled');
         }
     }
 
@@ -525,7 +523,7 @@ export class AppSideMenuComponent implements OnInit {
 
 
     public onObjectRoute(item: any) {
-        console.log('AppSideMenuComponent::onObjectRoute', item, this.view_id, this.object_class, this.object_id, this.object);
+        console.debug('AppSideMenuComponent::onObjectRoute', item, this.view_id, this.object_class, this.object_id, this.object);
 
         let descriptor: any = {};
         let target_id:any = 0;
@@ -586,7 +584,6 @@ export class AppSideMenuComponent implements OnInit {
         catch(response) {
             // ignore errors
         }
-
     }
 
     public getAlertIcon(alert: any) {

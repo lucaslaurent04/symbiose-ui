@@ -30,6 +30,7 @@
             <div style="font-size: 14px;">{{item.message_model_id.description}}</div>
             <div *ngIf="item.parsed_links.length" style="display: flex; overflow: hidden; align-items: center;"><mat-icon style="font-size: 22px;">visibility</mat-icon><a class="alert-link" *ngFor="let link of item.parsed_links" [attr.href]="link.link" target="_self">{{link.text}}</a></div>
             <div *ngIf="item.controller" style="margin-top: 10px;"><button mat-button (click)="onDismissAlert(item)">RÉESSAYER</button></div>
+            <div *ngIf="!item.controller" style="margin-top: 10px;"><button mat-button (click)="onDismissAlert(item)">IGNORER</button></div>
         </div>
         <div *ngIf="!object_checks_items.length" style="display: flex; justify-content: center;"><div style="opacity: 0.5;">Rien à signaler</div></div>
     </div>

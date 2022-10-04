@@ -117,7 +117,7 @@ export class BookingServicesBookingGroupAccomodationAssignmentComponent extends 
 
     public async onchangeRentalUnit(rental_unit:any) {
         if(rental_unit.id != this.instance.rental_unit_id.id) {
-            let qty = Math.min(rental_unit.capacity, this.group.nb_pers);
+            let qty = (this.instance.qty > 0)?Math.min(rental_unit.capacity, this.instance.qty):rental_unit.capacity;
 
             this.vm.qty.formControl.setValue(qty);
 

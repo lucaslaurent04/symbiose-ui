@@ -119,7 +119,7 @@ export class SbMany2OneSelectComponent implements OnInit, OnChanges {
                 }
             }
             catch(error:any) {
-                console.log('an unexpected error occured');
+                console.warn('an unexpected error occured');
             }
         }
     }
@@ -155,7 +155,7 @@ export class SbMany2OneSelectComponent implements OnInit, OnChanges {
                 filtered = data;
             }
             catch(error:any) {
-                console.log(error);
+                console.warn(error);
             }
         }
         return filtered;

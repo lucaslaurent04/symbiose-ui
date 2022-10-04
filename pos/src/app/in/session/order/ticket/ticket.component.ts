@@ -1,9 +1,9 @@
 import { Component, OnInit, AfterViewInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ApiService, ContextService, TreeComponent, RootTreeComponent } from 'sb-shared-lib';
+import { ApiService, AuthService, ContextService, TreeComponent, RootTreeComponent } from 'sb-shared-lib';
 import { CashdeskSession } from '../../_models/session.model';
 import { Order, OrderLine, OrderPayment, OrderPaymentPart } from './ticket.model';
-
+import { UserClass } from 'sb-shared-lib/lib/classes/user.class';
 import { SessionOrderLinesComponent } from '../lines/lines.component';
 import { BookingLineClass } from 'src/app/model';
 
@@ -29,15 +29,14 @@ export class SessionOrderTicketComponent extends TreeComponent<Order, OrderCompo
 
 
     public ready: boolean = false;
-
     public focus: string;
-
+    public user: UserClass = null;
 
     constructor(
         private router: Router,
         private route: ActivatedRoute,
         private api: ApiService,
-
+        private auth: AuthService,
         private context: ContextService,
     ) {
         super(new Order());
@@ -63,6 +62,11 @@ export class SessionOrderTicketComponent extends TreeComponent<Order, OrderCompo
                 }
             }
         });
+
+        this.auth.getObservable().subscribe( async (user: UserClass) => {
+            this.user = user;
+        });
+
     }
 
     /**

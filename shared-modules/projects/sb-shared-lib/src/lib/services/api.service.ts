@@ -94,7 +94,7 @@ export class ApiService {
                 return entry.promise;
             }
             else {
-                console.log('cache: invalidating ' + hash);
+                console.debug('cache: invalidating ' + hash);
                 delete this.cache[hash];
             }
         }
@@ -310,7 +310,7 @@ export class ApiService {
             }
         }
         catch(response) {
-            console.log('error retrieving menu', response);
+            console.warn('error retrieving menu', response);
         }
 
         try {
@@ -321,7 +321,7 @@ export class ApiService {
             // #todo : do not inject but replace labels recursively
         }
         catch(response) {
-            console.log('error retrieving translation', response);
+            console.warn('error retrieving translation', response);
         }
 
         return result;

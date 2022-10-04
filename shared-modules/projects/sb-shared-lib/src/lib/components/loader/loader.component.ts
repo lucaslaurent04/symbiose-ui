@@ -19,8 +19,8 @@ export class LoaderComponent implements OnInit {
 
   }
 
-  public async ngOnInit() {    
-    
+  public async ngOnInit() {
+
     this.auth.getObservable().subscribe( (user: UserClass) => {
       this.router.navigate(['/apps']);
     });
@@ -29,10 +29,10 @@ export class LoaderComponent implements OnInit {
       await this.auth.authenticate();
     }
     catch(error:any) {
-      console.log('loader : auth error', error);
+      console.debug('LoaderComponent : auth error', error);
       this.router.navigate(['/auth']);
     }
-    
+
   }
 
 }

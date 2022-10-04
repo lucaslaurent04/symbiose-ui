@@ -22,7 +22,7 @@ export class MenuListItemComponent implements OnInit {
     @Output() select = new EventEmitter<any>();
     @Output() toggle = new EventEmitter<any>();
 
-    public expanded: boolean = false;    
+    public expanded: boolean = false;
 
     constructor() {
         if (this.depth === undefined) {
@@ -34,7 +34,7 @@ export class MenuListItemComponent implements OnInit {
     }
 
     public onItemToggle(item: any) {
-        console.log('onItemToggle', item);
+        console.debug('MenuListItemComponent::onItemToggle', item);
         // if item is expanded, fold siblings, if any
         if(item.expanded) {
             // make sure item is visible
@@ -74,7 +74,7 @@ export class MenuListItemComponent implements OnInit {
     }
 
     public onItemSelected(item: any) {
-        console.log('onItemSelected', item);
+        console.debug('MenuListItemComponent::onItemSelected', item);
         if (item.type == 'entry') {
             this.select.emit(item);
         }

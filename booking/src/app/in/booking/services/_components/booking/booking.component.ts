@@ -39,7 +39,6 @@ export class BookingServicesBookingComponent extends TreeComponent<Booking, Book
             try {
                 this.load(this.booking_id);
                 this.ready = true;
-                console.log(this.instance)
             }
             catch(error) {
                 console.warn(error);
@@ -69,14 +68,14 @@ export class BookingServicesBookingComponent extends TreeComponent<Booking, Book
             this.api.fetch('/?get=lodging_booking_tree', {id:booking_id})
             .then( (result:any) => {
                 if(result) {
-                    console.log('reveived updated booking', result);
+                    console.debug('reveived updated booking', result);
                     this.update(result);
                     this.loading = false;
                 }
 
             })
             .catch(response => {
-                console.log(response);
+                console.warn(response);
             });
         }
     }

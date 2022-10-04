@@ -62,7 +62,8 @@ class Contact {
         public id: number = 0,
         public name: string = '',
         public email: string = '',
-        public phone: string = ''
+        public phone: string = '',
+        public type: string = ''
     ) {}
 }
 
@@ -84,6 +85,10 @@ interface vmModel {
         formControl:  FormControl
     },
     recipient: {
+        addresses:    string [],
+        formControl:  FormControl
+    },
+    recipients: {
         addresses:    string [],
         formControl:  FormControl
     },
@@ -118,6 +123,7 @@ export class BookingQuoteComponent implements OnInit, AfterContentInit {
     public contacts: any[] = [];
     public documents: any[] = [];
 
+    private readonly CONTACTS_PRESELECT = 'booking';
 
     public languages: any[] = [];
 
@@ -129,7 +135,10 @@ export class BookingQuoteComponent implements OnInit, AfterContentInit {
     public title: string = '';
     public message: string = '';
     public sender: string = '';
+    // address of email main recipient
     public recipient: string = '';
+    // list of secondary recipients (addresses comma separated)
+    public recipients: string[] = [];
 
 
     public vm: vmModel;
@@ -169,6 +178,10 @@ export class BookingQuoteComponent implements OnInit, AfterContentInit {
                 addresses:      [],
                 formControl:    new FormControl('', [Validators.required, Validators.email])
             },
+            recipients: {
+                addresses:      [],
+                formControl:    new FormControl()
+            },
             attachments: {
                 items:          []
             },
@@ -183,7 +196,6 @@ export class BookingQuoteComponent implements OnInit, AfterContentInit {
      */
     public ngAfterContentInit() {
         this.loading = false;
-
         // bind VM to model
         this.vm.lang.formControl.valueChanges.subscribe( (lang:string) => this.refreshLang(this.getLangId(lang)));
         this.vm.mode.formControl.valueChanges.subscribe( (mode:string) => this.mode = mode);
@@ -191,6 +203,7 @@ export class BookingQuoteComponent implements OnInit, AfterContentInit {
         this.vm.message.formControl.valueChanges.pipe(debounceTime(500)).subscribe( (message:string) => this.message = message);
         this.vm.sender.formControl.valueChanges.subscribe( (sender:string) => this.sender = sender);
         this.vm.recipient.formControl.valueChanges.subscribe( (recipient:string) => this.recipient = recipient);
+        this.vm.recipients.formControl.valueChanges.subscribe( (recipients:string[]) => this.recipients = recipients);
     }
 
     /**
@@ -465,8 +478,7 @@ export class BookingQuoteComponent implements OnInit, AfterContentInit {
     }
 
     private async refreshRecipientAddresses() {
-
-        console.log('refreshRecipientAddresses', this.customer, this.contacts);
+        console.debug('BookingQuoteComponent::refreshRecipientAddresses', this.customer, this.contacts);
 
         // reset array
         this.vm.recipient.addresses = [];
@@ -476,16 +488,28 @@ export class BookingQuoteComponent implements OnInit, AfterContentInit {
         if(this.customer && this.customer.email && this.customer.email.length) {
             if(!this.vm.recipient.addresses.includes(this.customer.email)) {
                 this.vm.recipient.addresses.push(this.customer.email);
+                this.vm.recipient.formControl.setValue(this.customer.email);
             }
         }
 
         // emails of the contacts
         if(this.contacts && this.contacts.length) {
+            let preselect: string[] = [];
             for(let contact of this.contacts) {
-                if(contact.email.length && !this.vm.recipient.addresses.includes(contact.email)) {
+                if(!contact.email.length) {
+                    continue;
+                }
+                if(!this.vm.recipient.addresses.includes(contact.email)) {
                     this.vm.recipient.addresses.push(contact.email);
                 }
+                if(!this.vm.recipients.addresses.includes(contact.email)) {
+                    if(contact.type == this.CONTACTS_PRESELECT) {
+                        preselect.push(contact.email);
+                    }
+                    this.vm.recipients.addresses.push(contact.email);
+                }
             }
+            this.vm.recipients.formControl.setValue(preselect);
         }
 
         // no email found
@@ -564,6 +588,7 @@ export class BookingQuoteComponent implements OnInit, AfterContentInit {
                 booking_id: this.booking_id,
                 sender_email: this.sender,
                 recipient_email: this.recipient,
+                recipients_emails: this.recipients,
                 title: this.title,
                 message: this.message,
                 lang: this.lang,

@@ -84,12 +84,19 @@
                         <mat-select [formControl]="vm.recipient.formControl" required>
                             <mat-option *ngFor="let address of vm.recipient.addresses" [value]="address">{{address}}</mat-option>
                         </mat-select>
-                        <mat-error *ngIf="vm.sender.formControl.invalid">
-                        Ne peut être vide.
-                        </mat-error>
+                        <mat-error *ngIf="vm.sender.formControl.invalid">Ne peut être vide.</mat-error>
+                        <mat-hint>Adresse email principale (champ À)</mat-hint>
                     </mat-form-field>
                 </div>
-
+                <div class="cell" style="margin-left: 20px;">
+                    <mat-form-field>
+                        <mat-label>Secondaires</mat-label>
+                        <mat-select  multiple [formControl]="vm.recipients.formControl" >
+                            <mat-option *ngFor="let address of vm.recipients.addresses" [value]="address">{{address}}</mat-option>
+                        </mat-select>
+                        <mat-hint>Adresses email en copie (champ CC)</mat-hint>
+                    </mat-form-field>
+                </div>
             </div>
         </div>
 
