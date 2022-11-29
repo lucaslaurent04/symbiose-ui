@@ -96,21 +96,7 @@ export class AuthService {
                 let error_code = Object.keys(body.errors)[0];
                 let error_id = body.errors[error_code];
                 if(error_id == 'auth_expired_token') {
-                    try {
-                        if(this.retries < this.MAX_RETRIES) {
-                            ++this.retries;
-                            // request a refresh of the access token
-                            await this.refreshToken();
-                            // try to auth once more
-                            await this.authenticate();
-                        }
-                        else {
-                            throw response;
-                        }
-                    }
-                    catch(error:any) {
-                        response = error;
-                    }
+                    // redirect to signin page
                 }
             }
 
@@ -192,28 +178,6 @@ export class AuthService {
                 email: email
             }
         }).toPromise();
-    }
-
-    /**
-     * Upon success an new acces token is received as httpOnly cookie (and stored by the browser). Otherwise no change is made.
-     *
-     * @returns Promise
-     * @throws HttpErrorResponse  HTTP error that occured during user login
-     */
-    private async refreshToken() {
-        try {
-        const environment:any = await this.env.getEnv();
-        const data = await this.http.get<any>(environment.backend_url+'/?get=auth_refresh', { params: {} })
-        .pipe(
-            catchError((err: HttpErrorResponse, caught: Observable<any>) => {
-            throw err;
-            })
-        )
-        .toPromise();
-        }
-        catch(err) {
-        throw err;
-        }
     }
 
 }

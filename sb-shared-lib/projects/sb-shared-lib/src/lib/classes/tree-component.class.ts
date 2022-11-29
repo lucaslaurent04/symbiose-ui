@@ -207,26 +207,36 @@ export class TreeComponent<I, T> implements TreeComponentInterface {
                     else if(!values[field].length && typeof this.instance[field] == 'object' && !Array.isArray(this.instance[field])) {
                         this.instance[field] = {};
                     }
-                    // pass-2 - add missing items
+                    // pass-2 - add missing items and update existing ones
                     // check items in server-model against local-model (can only be an array)
                     for(let i = 0; i < values[field].length; ++i) {
                         let value = values[field][i];
-                        const found = this.instance[field].find( (item:any) => item.id == value.id);
+                        let found_index = this.instance[field].findIndex( (item:any) => item.id == value.id);
                         // item not in local-model
-                        if(!found) {
+                        if(found_index < 0) {
                             // add item to local-model
                             this.instance[field].splice(i, 0, value);
                         }
                         // item is already in local-model: relay sub-object
-                        else if(this.componentsMap.hasOwnProperty(field)) {
-                            // #memo - no update of the instance's field here, to prevent refreshing the view
-                            // relay to child object
-                            const subitem:any = this.componentsMap[field].find( (item:any) => item.getId() == found.id);
-                            if(subitem) {
-                                subitem.update(value);
+                        else {
+                            let found = this.instance[field][found_index];
+                            if(this.componentsMap.hasOwnProperty(field)) {
+                                // #memo - no update of the instance's field here, to prevent refreshing the view
+                                // relay to child object
+                                const subitem:any = this.componentsMap[field].find( (item:any) => item.getId() == found.id);
+                                if(subitem) {
+                                    subitem.update(value);
+                                }
+                                else {
+                                    // subitem not in DOM (did we use ngIf somewhere ?)
+                                }
+                                // #memo - we cannot update the field in the instance (even if we should) since it would break the DOM logic
+                                // Angular would detect the change and redraw the component which is what we're trying to avoid
+                                // for that reason, in case of change of partial reload, we cannot rely on the instances subvalues
                             }
                             else {
-                                // subitem not in DOM (did we use ngIf somewhere ?)
+                                // sub item is an Object but not a component
+                                this.instance[field][found_index] = {...value};
                             }
                         }
                     }

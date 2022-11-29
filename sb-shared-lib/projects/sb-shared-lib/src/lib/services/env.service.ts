@@ -21,12 +21,12 @@ export class EnvService {
   constructor() {}
 
   /**
-   * 
+   *
    * @returns Promise
    */
   public getEnv() {
     if(!this.promise) {
-      this.promise = new Promise( async (resolve, reject) => {        
+      this.promise = new Promise( async (resolve, reject) => {
         try {
           const response:Response = await fetch('/assets/env/config.json');
           const env = await response.json();
@@ -36,7 +36,7 @@ export class EnvService {
         catch(response) {
           this.environment = {...this.default};
           resolve(this.environment);
-        }  
+        }
       });
     }
     return this.promise;

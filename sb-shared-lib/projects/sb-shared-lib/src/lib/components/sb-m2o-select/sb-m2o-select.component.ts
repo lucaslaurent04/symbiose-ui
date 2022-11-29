@@ -1,24 +1,26 @@
-import { Component, OnInit, OnChanges, Output, Input, EventEmitter, SimpleChanges, SimpleChange } from '@angular/core';
+import { Component, OnInit, AfterViewInit, OnChanges, Output, Input, ElementRef, EventEmitter, SimpleChanges, SimpleChange, ViewChild } from '@angular/core';
 import { FormControl, Validators } from '@angular/forms';
+import {MatAutocomplete} from '@angular/material/autocomplete';
 
 import { Observable, ReplaySubject } from 'rxjs';
-import { map, mergeMap, debounceTime } from 'rxjs/operators';
+import { map, mergeMap, debounceTime, startWith } from 'rxjs/operators';
 
 import { ApiService } from '../../services/api.service';
-import { Domain } from '../../classes/domain.class';
+import { Condition, Domain } from '../../classes/domain.class';
+import { splitAtColon } from '@angular/compiler/src/util';
 
 @Component({
   selector: 'sb-m2o-select',
   templateUrl: './sb-m2o-select.component.html',
   styleUrls: ['./sb-m2o-select.component.scss']
 })
-export class SbMany2OneSelectComponent implements OnInit, OnChanges {
+export class SbMany2OneSelectComponent implements OnInit, OnChanges, AfterViewInit {
     // full name of the entity to load
     @Input() entity: string = '';
     // id of the object to load as preset value
     @Input() id: number = 0;
     // extra fields to load (in addition to 'id', 'name')
-    @Input() fields?: string[] = [];  
+    @Input() fields?: string[] = [];
     // additional domain for filtering result set
     @Input() domain?: any[] = [];
     // specific controller to use for fetching data
@@ -31,6 +33,8 @@ export class SbMany2OneSelectComponent implements OnInit, OnChanges {
     @Input() placeholder?: string = '';
     // specific hint/helper for the widget
     @Input() hint?: string = '';
+    // specific hint/helper for the widget
+    @Input() autofocus?: boolean = false;
     // message to diisplay in case no match was found
     @Input() noResult?: string = '';
     // mark the field as readonly
@@ -39,7 +43,10 @@ export class SbMany2OneSelectComponent implements OnInit, OnChanges {
     @Input() displayWith?: (a:any) => string;
 
     @Output() itemSelected:EventEmitter<number> = new EventEmitter<number>();
+    @Output() blur:EventEmitter<any> = new EventEmitter();
 
+    @ViewChild('inputControl') inputControl: ElementRef;
+    @ViewChild('inputAutocomplete') inputAutocomplete: MatAutocomplete;
     // currently selected item
     public item: any = null;
 
@@ -53,6 +60,11 @@ export class SbMany2OneSelectComponent implements OnInit, OnChanges {
         this.inputQuery = new ReplaySubject(1);
     }
 
+    ngAfterViewInit() {
+        if(!this.disabled && this.autofocus) {
+            setTimeout( () => this.inputControl.nativeElement.focus() );
+        }
+    }
 
     ngOnInit(): void {
 
@@ -130,7 +142,10 @@ export class SbMany2OneSelectComponent implements OnInit, OnChanges {
             try {
                 let tmpDomain = new Domain([]);
                 if(name.length) {
-                    tmpDomain = new Domain(["name", "ilike", '%'+name+'%']);
+                    let parts = name.split(' ', 4);
+                    for(let part of parts) {
+                        tmpDomain.addCondition(new Condition('name', 'ilike', '%'+part+'%'));
+                    }
                 }
                 let domain = (new Domain(this.domain)).merge(tmpDomain).toArray();
 
@@ -186,12 +201,29 @@ export class SbMany2OneSelectComponent implements OnInit, OnChanges {
         this.inputFormControl.setValue(null);
     }
 
+    public onBlur() {
+        if(!this.inputAutocomplete.isOpen) {
+            this.blur.emit();
+            this.onRestore();
+        }
+        else {
+            console.debug('sb-m2o-select: autocomplete open ignoring blur');
+        }
+    }
+
     public onRestore() {
         if(this.item) {
             this.inputFormControl.setValue(this.item);
         }
         else {
             this.inputFormControl.setValue(null);
+        }
+    }
+
+    public oncloseAutocomplete() {
+        // #memo - input.onBlur is called before mat-autocomplete.onChange
+        if(!this.inputFormControl.value || !this.item) {
+            this.blur.emit();
         }
     }
 

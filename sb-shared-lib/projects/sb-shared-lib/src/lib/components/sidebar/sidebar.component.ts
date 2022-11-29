@@ -17,5 +17,5 @@ export class AppSideBarComponent implements OnInit {
   ngOnInit(): void {
   }
 
-  
+
 }

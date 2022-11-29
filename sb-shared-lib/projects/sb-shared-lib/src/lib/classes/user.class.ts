@@ -18,6 +18,8 @@ export class UserClass {
         public avatar: string = '',
         public apps: string[] = ['booking', 'catalog', 'pos', 'config', 'documents'],
         public centers_ids: number[] = [],
-        public center_offices_ids: number[] = []
+        public center_offices_ids: any[] = [],
+        public groups: string[] = [],
+        public center_office: any = {}
     ) {}
 }

@@ -100,6 +100,9 @@ export class Domain {
      * Add a condition at the Domain level : the condition is added to each clause of the Domain
      */
     public addCondition(condition: Condition) {
+        if(!this.clauses.length) {
+            this.clauses.push(new Clause());
+        }
         for(let clause of this.clauses) {
             clause.addCondition(condition);
         }
