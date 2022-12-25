@@ -34,7 +34,7 @@
         [displayWith]="itemDisplay"
         (optionSelected)="onChange($event)"
         (closed)="oncloseAutocomplete()"
-        [panelWidth]="'auto'">
+        [panelWidth]="panelWidth">
       <div *ngIf="resultList | async; let list">
         <mat-option *ngFor="let item of list" [value]="item" [title]="item.name">
         {{itemDisplay(item)}}

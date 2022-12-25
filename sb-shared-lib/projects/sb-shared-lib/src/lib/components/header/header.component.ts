@@ -1,6 +1,7 @@
 import { Component, OnInit, Output, Input, EventEmitter } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
+import { EnvService} from '../../services/env.service';
 
 @Component({
   selector: 'app-header',
@@ -22,15 +23,22 @@ export class HeaderComponent implements OnInit {
 
     public ready: boolean = false;
 
+    public app_logo_url: string = '';
+
     constructor(
         private router: Router,
-        private auth: AuthService
+        private auth: AuthService,
+        private env:EnvService
     ) { }
 
     ngOnInit(): void {
         this.auth.getObservable().subscribe((user: any) => {
             this.user = user;
             this.ready = true;
+        });
+
+        this.env.getEnv().then( (environment:any) => {
+            this.app_logo_url = (environment.app_logo_url)?environment.app_logo_url:'';
         });
     }
 

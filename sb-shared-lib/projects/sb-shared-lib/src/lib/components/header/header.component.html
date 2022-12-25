@@ -1,5 +1,5 @@
 
-<a class="navbar-brand" href="/apps"><img class="navbar-brand-full" src="/assets/img/brand/logo.svg" /></a>
+<a *ngIf="app_logo_url.length" class="navbar-brand" href="/apps"><img class="navbar-brand-full" src="{{app_logo_url}}" /></a>
 <button type="button" class="navbar-toggler" (click)="toggleSideBar()"><span class="navbar-toggler-icon"></span></button>
 <div class="navbar-app-section">{{section}}</div>
 <ul class="nav navbar-nav d-md-down-none">

@@ -17,12 +17,17 @@ declare global {
 
 /**
  * This service offers a getObservable() method allowing to access an Observable that any component can subscribe to.
- * Subscribers will allways receive the latest emitted value as a Context object.
+ * Subscribers will always receive the latest emitted value as a Context object.
  *
  */
 export class ContextService {
 
     private observable: ReplaySubject<any>;
+
+
+    public onupdateAlerts: ReplaySubject<any>;
+    public onupdateHistory: ReplaySubject<any>;
+
     public ready: ReplaySubject<any>;
 
     private route: string = '';
@@ -34,7 +39,7 @@ export class ContextService {
 
 
     /**
-     * Provide observable for subsribing on contexts updates.
+     * Provide observable for subscribing on contexts updates.
      * #memo - New subscribers will receive latest value set (history depth of 1).
      */
     public getObservable() {
@@ -53,13 +58,16 @@ export class ContextService {
     }
 
     constructor(
-        private router: Router,
-        @Inject(DOCUMENT) private document: Document,
-        private eq:EqualUIService
-    ) {
+            private router: Router,
+            @Inject(DOCUMENT) private document: Document,
+            private eq:EqualUIService
+        ) {
 
         this.ready = new ReplaySubject<any>(1);
         this.observable = new ReplaySubject<any>(1);
+
+        this.onupdateAlerts = new ReplaySubject<any>(1);
+        this.onupdateHistory = new ReplaySubject<any>(1);
 
         /*
             listen to context changes from eQ: notify components that need sync (e.g. sidemenu)
@@ -96,7 +104,7 @@ export class ContextService {
             }
         });
 
-  }
+    }
 
    /**
     * Request a change by providing a descriptor that holds a route and/or a context.
@@ -172,6 +180,18 @@ export class ContextService {
             // nothing to do: notify subscribers
             this.ready.next(true);
         }
+    }
+
+
+    /**
+     * Context acts as a facade for dispatching update requests.
+     */
+    public async updateHistory() {
+        this.onupdateHistory.next(true);
+    }
+
+    public async updateAlerts() {
+        this.onupdateAlerts.next(true);
     }
 
 }

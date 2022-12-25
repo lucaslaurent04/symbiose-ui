@@ -35,12 +35,14 @@ export class SbMany2OneSelectComponent implements OnInit, OnChanges, AfterViewIn
     @Input() hint?: string = '';
     // specific hint/helper for the widget
     @Input() autofocus?: boolean = false;
-    // message to diisplay in case no match was found
+    // message to display in case no match was found
     @Input() noResult?: string = '';
     // mark the field as readonly
     @Input() disabled?: boolean = false;
     // custom method for rendering the items
     @Input() displayWith?: (a:any) => string;
+    // css value for panel width (dropdown)
+    @Input() panelWidth?: string = 'auto';
 
     @Output() itemSelected:EventEmitter<number> = new EventEmitter<number>();
     @Output() blur:EventEmitter<any> = new EventEmitter();

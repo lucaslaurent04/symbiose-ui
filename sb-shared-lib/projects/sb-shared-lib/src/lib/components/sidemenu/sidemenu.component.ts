@@ -82,7 +82,11 @@ export class AppSideMenuComponent implements OnInit {
             this.user = user;
         });
 
+        // partial context update requests
+        this.context.onupdateAlerts.subscribe( () => this.updateAlerts() );
+        this.context.onupdateHistory.subscribe( () => this.updateHistory() );
 
+        // whole context update requests
         this.context.getObservable()
         .pipe(
             // delay requests to prevent slowing down main screen display
@@ -375,8 +379,8 @@ export class AppSideMenuComponent implements OnInit {
                         this.view_description = helper.result;
                     }
                 }
-                catch (err) {
-                    console.warn(err);
+                catch (response) {
+                    console.log('no help available for view_id '+this.view_id, response);
                 }
             }
 
@@ -588,20 +592,24 @@ export class AppSideMenuComponent implements OnInit {
 
     public getAlertIcon(alert: any) {
         switch(alert.severity) {
-            case 'notice': return 'info_outline';
-            case 'warning': return 'star_outline';
-            case 'important': return 'warning_amber';
-            case 'urgent': return 'priority_high';
+            case 'notice':
+                return 'info_outline';
+            case 'warning':
+                return 'warning_amber';
+            case 'important':
+                return 'error_outline';
+            case 'error':
+                return 'report_gmailerrorred';
         }
         return 'info_outline';
     }
 
     public getAlertColor(alert:any) {
         switch(alert.severity) {
-            case 'notice': return '#4e4ad6';
-            case 'warning': return '#41c01b';
-            case 'important': return '#eead26';
-            case 'urgent': return '#ff0000';
+            case 'notice':      return '#4e4ad6';   // blue
+            case 'warning':     return '#eead26';   // orange
+            case 'important':   return '#ff4500';   // orange-red
+            case 'error':       return '#ff0000';   // red
         }
         return 'black';
 

@@ -310,7 +310,7 @@ export class ApiService {
             }
         }
         catch(response) {
-            console.warn('error retrieving menu', response);
+            console.log('no menu found for menu_id '+menu_id, response);
         }
 
         try {
@@ -321,7 +321,7 @@ export class ApiService {
             // #todo : do not inject but replace labels recursively
         }
         catch(response) {
-            console.warn('error retrieving translation', response);
+            console.log('no translation found for menu_id '+menu_id, response);
         }
 
         return result;

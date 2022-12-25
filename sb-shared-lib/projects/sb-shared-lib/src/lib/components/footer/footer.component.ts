@@ -19,7 +19,6 @@ export class FooterComponent implements OnInit {
     constructor(
         private router: Router,
         private env:EnvService) {
-
     }
 
     ngOnInit(): void {
