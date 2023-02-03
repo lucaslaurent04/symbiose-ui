@@ -196,14 +196,14 @@ export class ApiService {
                 const environment:any = await this.env.getEnv();
                 const response:any = await this.http.get<any>(environment.backend_url+'/?get=model_collect', {
                     params: {
-                    entity: entity,
-                    domain: JSON.stringify(domain),
-                    fields: JSON.stringify(fields),
-                    order: order,
-                    sort: sort,
-                    start: start,
-                    limit: limit,
-                    lang: (lang.length)?lang:environment.lang
+                        entity: entity,
+                        domain: JSON.stringify(domain),
+                        fields: JSON.stringify(fields),
+                        order: order,
+                        sort: sort,
+                        start: start,
+                        limit: limit,
+                        lang: (lang.length)?lang:environment.lang
                     }
                 }).toPromise();
                 resolve(response);
@@ -295,7 +295,7 @@ export class ApiService {
         });
     }
 
-    public async getMenu(package_name: string, menu_id: string, locale: string = '') {
+    public async getMenu(package_name: string, menu_id: string, lang: string = '') {
         const environment:any = await this.env.getEnv();
 
         let result:any = {
@@ -304,7 +304,7 @@ export class ApiService {
         };
 
         try {
-            const menu:any = await this.fetch('/?get=model_menu&package='+package_name+'&menu_id='+menu_id+'&lang='+((locale.length)?locale:environment.locale));
+            const menu:any = await this.fetch('/?get=model_menu&package='+package_name+'&menu_id='+menu_id+'&lang='+((lang.length)?lang:environment.lang));
             if(menu && menu.layout && menu.layout.items) {
                 result.items = menu.layout.items;
             }
@@ -314,7 +314,7 @@ export class ApiService {
         }
 
         try {
-            const menu_i18n = await this.fetch('/?get=config_i18n-menu&package='+package_name+'&menu_id='+menu_id+'&lang='+((locale.length)?locale:environment.locale));
+            const menu_i18n = await this.fetch('/?get=config_i18n-menu&package='+package_name+'&menu_id='+menu_id+'&lang='+((lang.length)?lang:environment.lang));
             if(menu_i18n && menu_i18n.view) {
                 result.translation = menu_i18n.view;
             }

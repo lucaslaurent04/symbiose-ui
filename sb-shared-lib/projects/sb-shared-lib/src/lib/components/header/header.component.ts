@@ -61,7 +61,7 @@ export class HeaderComponent implements OnInit {
                 res += this.user.identity_id.lastname.charAt(0)
             }
         }
-        else if(this.user.hasOwnProperty('name')) {
+        else if(this.user.hasOwnProperty('name') && this.user.name.length > 0) {
             let parts = this.user.name.split(' ');
             if(parts.length > 0) {
                 res = parts[0].charAt(0);
@@ -69,6 +69,9 @@ export class HeaderComponent implements OnInit {
                     res += parts[1].charAt(0);
                 }
             }
+        }
+        else if(this.user.hasOwnProperty('login')) {
+            res = this.user.login.charAt(0);
         }
         return res;
     }

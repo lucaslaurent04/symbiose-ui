@@ -63,24 +63,24 @@ import { MarkdownModule } from 'ngx-markdown';
 import { NgxMaterialTimepickerModule } from 'ngx-material-timepicker';
 
 const materialModules = [
-  MatDatepickerModule, MatNativeDateModule, MatRippleModule, MatCardModule, MatListModule, MatButtonModule, MatSidenavModule,  MatIconModule, MatToolbarModule,
-  MatChipsModule, MatExpansionModule, MatTabsModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatTableModule, MatProgressSpinnerModule, MatSnackBarModule,
-  MatProgressBarModule, MatCheckboxModule, MatAutocompleteModule, MatMenuModule, MatBadgeModule, MatStepperModule, MatGridListModule, MatTreeModule, MatSlideToggleModule,
-  MatButtonToggleModule, MatPaginatorModule,
-  DragDropModule, TextFieldModule, MatDialogModule,
-  NgxMaterialTimepickerModule
+    MatDatepickerModule, MatNativeDateModule, MatRippleModule, MatCardModule, MatListModule, MatButtonModule, MatSidenavModule,  MatIconModule, MatToolbarModule,
+    MatChipsModule, MatExpansionModule, MatTabsModule, MatFormFieldModule, MatInputModule, MatSelectModule, MatTableModule, MatProgressSpinnerModule, MatSnackBarModule,
+    MatProgressBarModule, MatCheckboxModule, MatAutocompleteModule, MatMenuModule, MatBadgeModule, MatStepperModule, MatGridListModule, MatTreeModule, MatSlideToggleModule,
+    MatButtonToggleModule, MatPaginatorModule,
+    DragDropModule, TextFieldModule, MatDialogModule,
+    NgxMaterialTimepickerModule
  ];
 
 const angularModules = [
-  CommonModule, HttpClientModule, FormsModule, ReactiveFormsModule, TranslateModule
+    CommonModule, HttpClientModule, FormsModule, ReactiveFormsModule, TranslateModule
 ];
 
 const sharedComponents = [
-  SharedLibComponent, LoaderComponent, HeaderComponent, FooterComponent, AppSideBarComponent, AppSideMenuComponent,
-  DateSelectionComponent,
-  SbMany2OneSelectComponent, SbDialogConfirmDialog, SbDialogNotifyDialog,
-  MenuListItemComponent,
-  VarDirective, ClickOutDirective
+    SharedLibComponent, LoaderComponent, HeaderComponent, FooterComponent, AppSideBarComponent, AppSideMenuComponent,
+    DateSelectionComponent,
+    SbMany2OneSelectComponent, SbDialogConfirmDialog, SbDialogNotifyDialog,
+    MenuListItemComponent,
+    VarDirective, ClickOutDirective
 ];
 
 // AoT requires an exported function for factories
@@ -89,44 +89,44 @@ export function HttpLoaderFactory(http: HttpClient) {
 }
 
 @NgModule({
-  declarations: [...sharedComponents],
-  imports: [
-    ...angularModules,
-    ...materialModules,
-    QuillModule.forRoot({
-      modules: {
-        syntax: false,
-        toolbar: [
-          ['bold', 'italic', 'underline', 'strike'],
-          ['blockquote'],
-//          [{ 'header': [1, 2, 3, 4, 5, 6, false]}],
-          [{ 'list': 'ordered'}, { 'list': 'bullet' }],
-          [{ "align": '' }, { "align": 'center' }, { 'align': 'right' }],
-          [{ 'size': ['small', false, 'large', 'huge'] }]  
-        ]
-      }
-    }),
-    MarkdownModule.forRoot(),
-    TranslateModule.forRoot({
-      loader: {
-        provide: TranslateLoader,
-        useFactory: HttpLoaderFactory,
-        deps: [HttpClient],
-      },
-      isolate: false
-    })
-  ],
-  exports: [...sharedComponents, ...angularModules, ...materialModules, QuillModule]
+    declarations: [...sharedComponents],
+    imports: [
+        ...angularModules,
+        ...materialModules,
+        QuillModule.forRoot({
+            modules: {
+                syntax: false,
+                toolbar: [
+                    ['bold', 'italic', 'underline', 'strike'],
+                    ['blockquote'],
+            //          [{ 'header': [1, 2, 3, 4, 5, 6, false]}],
+                    [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                    [{ "align": '' }, { "align": 'center' }, { 'align': 'right' }],
+                    [{ 'size': ['small', false, 'large', 'huge'] }]
+                ]
+            }
+        }),
+        MarkdownModule.forRoot(),
+        TranslateModule.forRoot({
+            loader: {
+                provide: TranslateLoader,
+                useFactory: HttpLoaderFactory,
+                deps: [HttpClient],
+            },
+            isolate: false
+        })
+    ],
+    exports: [...sharedComponents, ...angularModules, ...materialModules, QuillModule]
 })
 export class SharedLibModule {
 
-  constructor(private translate: TranslateService, private env:EnvService) {
-    // translate.addLangs(["en", "fr", "nl"]);
-    translate.addLangs(["en", "fr"]);
-    (async () => {
-      const environment = await env.getEnv();
-      translate.setDefaultLang(environment.locale);
-    })();    
-  }
+    constructor(private translate: TranslateService, private env:EnvService) {
+        // translate.addLangs(["en", "fr", "nl"]);
+        translate.addLangs(["en", "fr"]);
+        (async () => {
+            const environment = await env.getEnv();
+            translate.setDefaultLang(environment.lang);
+        })();
+    }
 
 }

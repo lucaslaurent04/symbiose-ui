@@ -48,7 +48,7 @@
 
         <div class="object-history-item" *ngFor="let change of latest_changes; let index = index" >
             <div><strong>{{change.user_id.name}}</strong></div>
-            <div class="item-time"><span>{{change.modified | date : 'EEE dd MMMM yyyy HH:mm'}}</span></div>
+            <div class="item-time"><span style="display: flex;"><i class="material-icons">{{(change.action == 'create')?'add_circle_outline':'update'}}</i>{{change.modified | date : 'EEE dd MMMM yyyy HH:mm'}}</span></div>
         </div>
 
     </div>

@@ -52,7 +52,7 @@ export class EqualUIService {
     }
 
     /**
-     * Provide TranslationService to allow resolving view items transaltions.
+     * Provide TranslationService to allow resolving view items translations.
      * @returns The instance of eQ TranslationService.
      */
     public getTranslationService() {

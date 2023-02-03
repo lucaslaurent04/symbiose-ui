@@ -470,15 +470,20 @@ export class AppSideMenuComponent implements OnInit {
 
     public onUserSettings() {
         // this.router.navigate(['']);
+
+        let user_entity = "core\\User";
+        if(this.environment.hasOwnProperty('user_entity')) {
+            user_entity = this.environment.user_entity;
+        }
         let descriptor = {
             context: {
-            entity: 'lodging\\identity\\User',
-            type: 'form',
-            name: 'default',
-            domain: ['id', '=', this.user.id],
-            mode: 'edit',
-            purpose: 'view',
-            display_mode: 'popup'
+                entity: user_entity,
+                type: 'form',
+                name: 'default',
+                domain: ['id', '=', this.user.id],
+                mode: 'edit',
+                purpose: 'view',
+                display_mode: 'popup'
             }
         };
 
@@ -536,8 +541,8 @@ export class AppSideMenuComponent implements OnInit {
             let route = item.route;
             for (let object_field of Object.keys(this.object)) {
                 target_id = this.object[object_field];
-                // handle m2o sub-ojects (assuming id is always loaded)
-                if(typeof target_id == 'object') {
+                // handle m2o sub-objects (assuming id is always loaded)
+                if(typeof target_id == 'object' && target_id !== null && target_id.hasOwnProperty('id')) {
                     target_id = target_id.id;
                 }
                 route = route.replace('object.' + object_field, target_id);
@@ -560,7 +565,7 @@ export class AppSideMenuComponent implements OnInit {
                 for (let object_field of Object.keys(this.object)) {
                     target_id = this.object[object_field];
                     // handle m2o sub-ojects (assuming id is always loaded)
-                    if(typeof target_id == 'object') {
+                    if(typeof target_id == 'object' && target_id !== null && target_id.hasOwnProperty('id')) {
                         target_id = target_id.id;
                     }
                     domain = domain.replace('object.' + object_field, target_id);
