@@ -42,7 +42,7 @@ export class HeaderComponent implements OnInit {
         });
     }
 
-    public calcUserBackground() {
+    public calcUserBackground():string {
         const colors = ['#21b5b8', '#ea4e61', '#f7ab2a', '#83bb32'];
         let i = 0;
         if(this.user && this.user.hasOwnProperty('id')) {
@@ -51,27 +51,37 @@ export class HeaderComponent implements OnInit {
         return colors[i];
     }
 
-    public calcUserInitials() {
-        let res = '';
-        if(this.user && this.user.hasOwnProperty('identity_id') && this.user.identity_id) {
-            if(this.user.identity_id.hasOwnProperty('firstname')) {
-                res = this.user.identity_id.firstname.charAt(0);
-            }
-            if(this.user.identity_id.hasOwnProperty('lastname')) {
-                res += this.user.identity_id.lastname.charAt(0)
-            }
-        }
-        else if(this.user.hasOwnProperty('name') && this.user.name.length > 0) {
-            let parts = this.user.name.split(' ');
-            if(parts.length > 0) {
-                res = parts[0].charAt(0);
-                if(parts.length > 1) {
-                    res += parts[1].charAt(0);
+    public calcUserInitials():string {
+
+        let res:string = '';
+        if(this.user && typeof(this.user) == 'object' && this.user != null) {
+            if(this.user.hasOwnProperty('identity_id') && this.user.identity_id && typeof(this.user.identity_id) == 'object') {
+                if(this.user.identity_id.hasOwnProperty('firstname')) {
+                    res = this.user.identity_id.firstname.charAt(0);
+                }
+                if(this.user.identity_id.hasOwnProperty('lastname')) {
+                    res += this.user.identity_id.lastname.charAt(0)
                 }
             }
-        }
-        else if(this.user.hasOwnProperty('login')) {
-            res = this.user.login.charAt(0);
+
+            if(res.length == 0) {
+                if(this.user.hasOwnProperty('name') && this.user.name.length > 0) {
+                    let parts = this.user.name.split(' ');
+                    if(parts.length > 0) {
+                        res = parts[0].charAt(0);
+                        if(parts.length > 1) {
+                            res += parts[1].charAt(0);
+                        }
+                    }
+                }
+            }
+
+            if(res.length == 0) {
+                if(this.user.hasOwnProperty('login')) {
+                    res = this.user.login.charAt(0);
+                }
+            }
+
         }
         return res;
     }
