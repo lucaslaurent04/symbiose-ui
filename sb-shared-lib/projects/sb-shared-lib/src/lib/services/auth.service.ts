@@ -13,10 +13,10 @@ import { EnvService} from './env.service';
 
 /**
  * This service offers a getObservable() method allowing to access an Observable that any component can subscribe to.
- * Subscribers will allways receive the latest emitted value as a User object.
+ * Subscribers will always receive the latest emitted value as a User object.
  *
  * Only methods authenticate() and signout() update the observable. In the latter case, User object will have its id set to 0,
- * in the former, the User object will be populated with values reveived from the server.
+ * in the former, the User object will be populated with values received from the server.
  */
 export class AuthService {
     readonly MAX_RETRIES = 2;
@@ -68,7 +68,7 @@ export class AuthService {
      * Upon success, this method updates the `user` member of the class accordingly to the object received.
      * Otherwise, it throws an error holding the httpResponse.
      *
-     * @throws HttpErrorResponse  In case an error is returned, the respons object is relayed as an Exception.
+     * @throws HttpErrorResponse  In case an error is returned, the response object is relayed as an Exception.
      */
     public async authenticate() {
         console.debug('AuthService::authenticate');
@@ -78,7 +78,7 @@ export class AuthService {
             // make sure Environment has been fetched
             const environment = await this.env.getEnv();
             // #memo - /userinfo route can be adapted in back-end config (to steer to wanted controller)
-            const data = await this.http.get<any>(environment.backend_url + '/userinfo').toPromise();
+            const data = await this.http.get<any>(environment.backend_url + 'userinfo').toPromise();
 
             this.last_auth_time = new Date().getTime();
 
@@ -129,22 +129,22 @@ export class AuthService {
         this.user = new UserClass();
         const environment:any = await this.env.getEnv();
         // send a request to revoke access_token and remove the HTTP cookie
-        return this.http.get<any>(environment.backend_url + '/?do=user_signout').toPromise();
+        return this.http.get<any>(environment.backend_url + '?do=user_signout').toPromise();
     }
 
     /**
-     * Upon success, the response from the server should contain httpOnly cookies holding access_token and refresh_token.
+     * Upon success, the response from the server should contain httpOnly cookies holding access_token.
      *
-     * @param login string  email address of the user to log in
-     * @param password string untouched string of password given by user
+     * @param login     Email address of the user to log in.
+     * @param password  Untouched string of password given by user.
      *
      * @returns Promise
-     * @throws HttpErrorResponse  HTTP error that occured during user login
+     * @throws HttpErrorResponse  HTTP error that occurred during user login
      */
     public async signIn(login: string, password: string) {
         try {
             const environment:any = await this.env.getEnv();
-            const data = await this.http.get<any>(environment.backend_url+'/?do=user_signin', {
+            const data = await this.http.get<any>(environment.backend_url+'?do=user_signin', {
                 params: {
                     login: login,
                     password: password
@@ -165,15 +165,41 @@ export class AuthService {
         }
     }
 
+    /**
+     * Sends a request for new User account creation.
+     * Upon success, the response from the server should have a 201 status. No body is expected.
+     *
+     * @param login     Email address of the user to log in.
+     * @param password  Untouched string of password given by user.
+     * @param resend    Message identifier previously received and requested to be re-sent. Defaults to 0 for first request.
+     *
+     * @returns Promise
+     * @throws HttpErrorResponse  HTTP error that occurred during user login
+     */
+    public async signUp(username: string, email: string, password: string, resend: number = 0) {
+
+        const environment:any = await this.env.getEnv();
+
+        return this.http.get<any>(environment.backend_url+'?do=user_signup', {
+            params: {
+                username: username,
+                email: email,
+                password: password,
+                resend: resend
+            }
+        }).toPromise();
+
+    }
+
 
     /**
      * @param email string  email address related to the account to recover
      * @returns void
-     * @throws HttpErrorResponse  HTTP error that occured during user login
+     * @throws HttpErrorResponse  HTTP error that occurred during user login
      */
     public async passRecover(email: string) {
         const environment:any = await this.env.getEnv();
-        return this.http.get<any>(environment.backend_url+'/?do=user_pass-recover', {
+        return this.http.get<any>(environment.backend_url+'?do=user_pass-recover', {
             params: {
                 email: email
             }
