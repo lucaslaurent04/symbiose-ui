@@ -145,7 +145,7 @@ export class ContextService {
         }
         /*
             pass-2 switch context, if requested
-            context might depend on route change (controllers can request a change of target after being instanciated)
+            context might depend on route change (controllers can request a change of target after being instantiated)
         */
         // else if(descriptor.hasOwnProperty('context') && Object.keys(descriptor.context).length) {
         else if(descriptor.hasOwnProperty('context')) {
