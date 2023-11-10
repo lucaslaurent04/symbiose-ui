@@ -372,7 +372,7 @@ export class AppSideMenuComponent implements OnInit {
 
                 // 'help' : in all cases, request detailed documentation about the current view
                 try {
-                    const helper: any = await this.api.fetch('/?get=model_view-help&entity=' + object_class + '&view_id=' + this.view_id + '&lang=' + this.environment.lang);
+                    const helper: any = await this.api.fetch('?get=model_view-help&entity=' + object_class + '&view_id=' + this.view_id + '&lang=' + this.environment.lang);
                     // #todo : use a cache here
 
                     if (helper && helper.hasOwnProperty('result')) {
@@ -392,12 +392,12 @@ export class AppSideMenuComponent implements OnInit {
 
     private async updateHistory() {
         try {
+            // show only actions from users (no root/system)
             const collection = await this.api.collect('core\\Log', [
-                ['object_id', '=', this.object_id],
-                ['object_class', '=', this.object_class],
-                ['user_id', '>', 0]
-            ], ['action', 'user_id.name'], 'id', 'desc', 0, 10);
-
+                    ['object_id', '=', this.object_id],
+                    ['object_class', '=', this.object_class],
+                    ['user_id', '>', 1]
+                ], ['action', 'user_id.name'], 'id', 'desc', 0, 50);
             this.latest_changes = collection;
         }
         catch (response) {
@@ -412,7 +412,7 @@ export class AppSideMenuComponent implements OnInit {
         }
         try {
 
-            const data = await this.api.fetch('/?get=model_collect', {
+            const data = await this.api.fetch('?get=model_collect', {
                 entity: "core\\alert\\Message",
                 fields: JSON.stringify(["severity", "controller", "message_model_id.name", "message_model_id.label", "message_model_id.description", "links"]),
                 domain: JSON.stringify([["object_class", "=", this.object_class], ["object_id", "=", this.object_id]]),
@@ -494,7 +494,7 @@ export class AppSideMenuComponent implements OnInit {
     public async onObjectCheck(item: any) {
         if (item.hasOwnProperty('controller')) {
             try {
-                const data = await this.api.fetch('/?get=' + item.controller, {
+                const data = await this.api.fetch('?get=' + item.controller, {
                     id: this.object_id
                 });
                 // no error status : nothing went wrong
@@ -550,11 +550,15 @@ export class AppSideMenuComponent implements OnInit {
             descriptor.route = route;
         }
 
-        // route targets another app
-        if (item.hasOwnProperty('app')) {
-            // interpolate the
-            // open link in new tab
-            window.open('/'+item.app+'/#'+descriptor.route, '_blank');
+        if(item.hasOwnProperty('app')) {
+            // #memo - we're going to lose the context
+            let url = '/' + item.app;
+            // use interpolated route, if any
+            if(descriptor.hasOwnProperty('route') && descriptor.route) {
+                url += '/#' + descriptor.route
+            }
+            window.open(url, '_self');
+            // bye-bye
             return;
         }
 
