@@ -119,7 +119,7 @@ export function HttpLoaderFactory(http: HttpClient) {
     exports: [...sharedComponents, ...angularModules, ...materialModules, QuillModule]
 })
 export class SharedLibModule {
-
+    // #todo - this list should match the available locales
     constructor(private translate: TranslateService, private env:EnvService) {
         // translate.addLangs(["en", "fr", "nl"]);
         translate.addLangs(["en", "fr"]);
