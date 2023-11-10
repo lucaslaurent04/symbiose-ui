@@ -1,5 +1,5 @@
 <div [class.with-border]="item.children && item.children.length" [class.hidden]="item.hidden">
-    <a mat-list-item 
+    <a mat-list-item
         (click)="onItemSelected(item)"
         [class.expanded]="item.expanded"
         [title]="(i18n && i18n[item.id])?i18n[item.id].label:item.label"
@@ -13,11 +13,11 @@
         </span>
     </a>
     <div *ngIf="item.expanded">
-        <app-menu-list-item 
-            *ngFor="let child of item.children" 
-            [item]="child" 
-            [i18n]="i18n" 
-            [depth]="depth+1" 
+        <app-menu-list-item
+            *ngFor="let child of item.children"
+            [item]="child"
+            [i18n]="i18n"
+            [depth]="depth+1"
             [style]="{visibility:(item.expanded)?'visible':'hidden', opacity:(item.expanded)?1:0}"
             (select)="onItemSelected($event)"
             (toggle)="onItemToggle($event)">
