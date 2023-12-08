@@ -78,7 +78,7 @@ export class AuthService {
             // make sure Environment has been fetched
             const environment = await this.env.getEnv();
             // #memo - /userinfo route can be adapted in back-end config (to steer to wanted controller)
-            const data = await this.http.get<any>(environment.backend_url + 'userinfo').toPromise();
+            const data = await this.http.get<any>(environment.rest_api_url + 'userinfo').toPromise();
 
             this.last_auth_time = new Date().getTime();
 

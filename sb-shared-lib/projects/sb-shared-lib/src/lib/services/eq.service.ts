@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 
-
+// `EventsListener.js` (from `equal.bundle.js`) is exported in webpack.config.js as 'eQ' var
 declare global {
   interface Window { eQ: any }
 }
@@ -18,7 +18,8 @@ export class EqualUIService {
     }
 
     public async open(context: any) {
-        await this.eq.open(context);
+        // request context opening from an external service
+        return await this.eq.open(context, true);
     }
 
     public async popup(context: any, domContainerSelector: string = 'body') {
@@ -26,7 +27,8 @@ export class EqualUIService {
     }
 
     public async closeAll() {
-        await this.eq.closeAll();
+        // request closing all contexts from an external service
+        return await this.eq.closeAll(true);
     }
 
     public addSubscriber(events: string[], callback: (context:any) => void) {
@@ -34,9 +36,9 @@ export class EqualUIService {
     }
 
     /**
-     * Retrieve a JQuery object for action button (if any) from a given view 
-     * @param entity 
-     * @param view_id 
+     * Retrieve a JQuery object for action button (if any) from a given view
+     * @param entity
+     * @param view_id
      * @returns JQuery
      */
     public async getActionButton(entity: string, view_id: string, domain: any[]) {

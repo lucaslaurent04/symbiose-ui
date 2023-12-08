@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { catchError, map } from "rxjs/operators";
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { EnvService} from './env.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { TranslateService } from '@ngx-translate/core';
@@ -14,11 +14,17 @@ export class ApiService {
     private cache: any = {};
     private cache_validity: number = 1000; // cache validity in milliseconds
 
+    private headers: HttpHeaders;
+
     constructor(
         private http: HttpClient,
         private env:EnvService,
         private translate:TranslateService,
         private snack: MatSnackBar) {
+            this.headers = new HttpHeaders();
+            this.headers
+                .set('Cache-Control', 'no-cache')
+                .set('Pragma', 'no-cache');
     }
 
     /**
@@ -30,7 +36,7 @@ export class ApiService {
                 const environment:any = await this.env.getEnv();
                 // make sure not to double the trailing slash
                 let url = environment.backend_url+route.replace(/^\//g, '');
-                const response:any = await this.http.get<any>(url, {params: body}).toPromise();
+                const response:any = await this.http.get<any>(url, {headers:this.headers, params: body}).toPromise();
                 resolve(response);
             }
             catch(error) {
@@ -48,7 +54,7 @@ export class ApiService {
                 const environment:any = await this.env.getEnv();
                 // make sure not to double the trailing slash
                 let url = environment.backend_url+route.replace(/^\//g, '');
-                const response:any = await this.http.post<any>(url, body).toPromise();
+                const response:any = await this.http.post<any>(url, body, {headers:this.headers}).toPromise();
                 resolve(response);
             }
             catch(error) {

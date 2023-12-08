@@ -180,7 +180,7 @@ export class AppSideMenuComponent implements OnInit {
                     }
                 }
 
-                // 3) retrive the entity that was requested
+                // 3) retrieve the entity that was requested
                 let object_class: string = descriptor.context.entity;
 
                 // check if we are showing a view for a specific entity but we want the actions to apply on another entity

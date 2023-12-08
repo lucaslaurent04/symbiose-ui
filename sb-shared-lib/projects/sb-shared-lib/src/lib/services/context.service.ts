@@ -57,6 +57,10 @@ export class ContextService {
         this.target = target;
     }
 
+    public getTarget(): string {
+        return this.target;
+    }
+
     constructor(
             private router: Router,
             @Inject(DOCUMENT) private document: Document,
@@ -120,9 +124,6 @@ export class ContextService {
             clearTimeout(this.timeout);
         }
 
-        // notify subscribers that we're loading something
-        this.ready.next(false);
-
         /*
             pass-1 update the context part of the local descriptor (to allow subscribers to route change to get the current value)
         */
@@ -134,8 +135,14 @@ export class ContextService {
         // navigate to route, if requested (a route is present)
         if(descriptor.hasOwnProperty('route') && descriptor.route != this.route) {
             console.debug("ContextService: received route change request", descriptor, this);
-            // make sure no eQ context is left open
-            await this.eq.closeAll();
+            // make sure no eQ context is left open (call from external service)
+            let confirm_close:boolean = await this.eq.closeAll();
+            if(!confirm_close) {
+                // abort context change
+                return;
+            }
+            // notify subscribers that we're loading something
+            this.ready.next(false);
             // changing route resets the context
             if(!descriptor.hasOwnProperty('context')) {
                 this.context = {};
@@ -169,7 +176,11 @@ export class ContextService {
                 }
                 else {
                     console.debug("requesting context opening", context);
-                    await this.eq.open(context);
+                    let confirm_open = await this.eq.open(context);
+                    if(!confirm_open) {
+                        // abort context change
+                        return;
+                    }
                 }
             }
             // notify subscribers
