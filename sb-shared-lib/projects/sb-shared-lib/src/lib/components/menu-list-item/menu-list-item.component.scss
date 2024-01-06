@@ -1,5 +1,5 @@
 :host {
-    transition:visibility 0.9s linear, opacity 0.9s linear;  
+    transition:visibility 0.9s linear, opacity 0.9s linear;
 
     display: flex;
     flex-direction: column;
@@ -13,11 +13,11 @@
     .with-border {
         box-sizing: border-box;
 
-        box-shadow: 
-        1px 0px 0px 0px rgb(211, 211, 211), 
-        0px 1px 0px 0px rgb(211, 211, 211), 
+        box-shadow:
+        1px 0px 0px 0px rgb(211, 211, 211),
+        0px 1px 0px 0px rgb(211, 211, 211),
         1px 1px 0px 0px rgb(211, 211, 211),
-        1px 0px 0px 0px rgb(211, 211, 211) inset, 
+        1px 0px 0px 0px rgb(211, 211, 211) inset,
         0px 1px 0px 0px rgb(211, 211, 211) inset;
     }
 
@@ -25,8 +25,47 @@
         user-select: none;
     }
 
-    .menu-list-item.expanded {
-        background-color: rgba(63, 81, 181, 0.1) !important;
+    .item-entry {
+        height: 35px;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+
+        .inner-wrapper {
+            width: calc(100% - 10px);
+            margin: 0 5px;
+            border-radius: 10px;
+            height: 28px;
+            padding: 3px 15px;
+
+            display: flex;
+            align-items: center;
+            flex-direction: row;
+
+            &:hover {
+                background-color: rgba(63, 81, 181, 0.1) !important;
+            }
+
+            .item-title {
+                display: inline-block;
+                overflow: hidden;
+                white-space: nowrap;
+                text-overflow: ellipsis;
+            }
+
+            .item-icon {
+                display: inline-block;
+                margin-right: 5px;
+                flex: 0 1;
+            }
+
+        }
+
+        &.selected {
+            .inner-wrapper {
+                background-color: rgba(63, 81, 181, 0.1) !important;
+            }
+        }
     }
 
     .mat-list-item {
@@ -35,17 +74,21 @@
         overflow: hidden;
 
         &.selected {
-            background-color: rgba(63, 81, 181, 0.1) !important;            
+            background-color: rgba(63, 81, 181, 0.1) !important;
+        }
+
+        &.expanded {
+            background-color: rgba(63, 81, 181, 0.1) !important;
         }
 
         ::ng-deep .mat-list-item-content {
             display: flex;
             width: 100% !important;
-            padding: 0 0 0 12px;
+            padding: 0 0 0 5px;
         }
-        
+
         .item-icon {
-            margin-right: 10px;
+            margin-right: 5px;
             flex: 0 1;
         }
 
@@ -60,9 +103,11 @@
         }
 
         .item-children {
-            flex: 1; margin-left: auto; text-align: right; padding-top: 4px;
+            flex: 1;
+            margin-left: auto;
+            text-align: right;
+            padding-top: 4px;
         }
-        
     }
 
     &:hover,

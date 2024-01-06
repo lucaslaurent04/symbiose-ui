@@ -1,9 +1,11 @@
 <div [class.with-border]="item.children && item.children.length" [class.hidden]="item.hidden">
-    <a mat-list-item
-        (click)="onItemSelected(item)"
+    <!-- node (parent) -->
+    <a  mat-list-item
+        *ngIf="item.children && item.children.length"
+        (click)="onclickParentItem(item)"
         [class.expanded]="item.expanded"
-        [title]="(i18n && i18n[item.id])?i18n[item.id].label:item.label"
-        class="menu-list-item">
+        [class.has-children]="item.children && item.children.length"
+        [title]="(i18n && i18n[item.id])?i18n[item.id].label:item.label">
         <mat-icon *ngIf="item.icon" class="item-icon">{{item.icon}}</mat-icon>
         <span class="item-title" [class.has-icon]="item.icon">{{(i18n && i18n[item.id])?i18n[item.id].label:item.label}}</span>
         <span class="item-children" *ngIf="item.children && item.children.length">
@@ -12,6 +14,18 @@
             </mat-icon>
         </span>
     </a>
+
+    <a  class="item-entry"
+        *ngIf="!item.children || !item.children.length"
+        [class.selected]="item.selected"
+        (click)="onclickChildItem(item)"
+        [title]="(i18n && i18n[item.id])?i18n[item.id].label:item.label">
+        <div class="inner-wrapper">
+            <mat-icon *ngIf="item.icon" class="item-icon">{{item.icon}}</mat-icon>
+            <span class="item-title" [class.has-icon]="item.icon">{{(i18n && i18n[item.id])?i18n[item.id].label:item.label}}</span>
+        </div>
+    </a>
+
     <div *ngIf="item.expanded">
         <app-menu-list-item
             *ngFor="let child of item.children"
@@ -19,7 +33,7 @@
             [i18n]="i18n"
             [depth]="depth+1"
             [style]="{visibility:(item.expanded)?'visible':'hidden', opacity:(item.expanded)?1:0}"
-            (select)="onItemSelected($event)"
+            (select)="onItemSelect($event)"
             (toggle)="onItemToggle($event)">
         </app-menu-list-item>
     </div>
