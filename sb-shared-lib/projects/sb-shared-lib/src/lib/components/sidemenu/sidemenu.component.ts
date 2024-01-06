@@ -10,6 +10,7 @@ import { EqualUIService } from '../../services/eq.service';
 import * as screenfull from 'screenfull';
 import { HttpErrorResponse } from '@angular/common/http';
 import { TranslateService } from '@ngx-translate/core';
+import Domain from '../../classes/domain.class';
 
 @Component({
   selector: 'app-sidemenu',
@@ -112,17 +113,22 @@ export class AppSideMenuComponent implements OnInit {
                 console.debug('SideMenu::searching for context menu', descriptor.context);
 
                 // 1) retrieve the details of the view that was requested
-                let view_type = (descriptor.context.hasOwnProperty('type')) ? descriptor.context.type : 'list';
-                let view_name = (descriptor.context.hasOwnProperty('name')) ? descriptor.context.name : 'default';
-                let view_id = view_type + '.' + view_name;
+                let view_type, view_name, view_id;
 
                 if (descriptor.context.hasOwnProperty('view')) {
-                    view_id = descriptor.context.view;
+                    const parts = descriptor.context.view.split('.');
+                    view_type = (parts.length > 0)?parts[0]:'list';
+                    view_name = (parts.length > 1)?parts[1]:'default';
+                    view_id = view_type + '.' + view_name;
+                }
+                else {
+                    view_type = (descriptor.context.hasOwnProperty('type')) ? descriptor.context.type : 'list';
+                    view_name = (descriptor.context.hasOwnProperty('name')) ? descriptor.context.name : 'default';
+                    view_id = view_type + '.' + view_name;
                 }
 
                 // 2) retrieve the object id (provided in context domain or in route URL)
                 let object_id: number = 0;
-
 
                 if(view_type == 'form') {
                     // by convention the current object id, if present in route, is the latest numeric value (ex.: '/booking/13/contract/735')
@@ -141,38 +147,15 @@ export class AppSideMenuComponent implements OnInit {
                     // id in domain prevails over route
                     if (descriptor.context.hasOwnProperty('domain')) {
                         // domain is expected to hold a single ID condition (ex. ['id', '=', 3])
-                        let domain: any[] = [];
                         if(Array.isArray(descriptor.context.domain) && descriptor.context.domain.length) {
-
-                            // 1) linearize domain
-                            for(let item of descriptor.context.domain) {
-                                if(Array.isArray(item)) {
-                                    for(let subitem of item) {
-                                        if(Array.isArray(subitem)) {
-                                            domain.push([...subitem]);
+                            let domain = new Domain(descriptor.context.domain);
+                            for(let clause of domain.getClauses()) {
+                                for(let condition of clause.getConditions()) {
+                                    if(condition.getOperand() == 'id' && condition.getOperator() == '=') {
+                                        let candidate = parseInt(condition.getValue(), 10);
+                                        if(!isNaN(candidate)) {
+                                            object_id = candidate;
                                         }
-                                        else {
-                                            if(item.length == 3) {
-                                                domain.push([...item]);
-                                            }
-                                            break;
-                                        }
-                                    }
-                                }
-                                else {
-                                    if(descriptor.context.domain.length == 3) {
-                                        domain.push([...descriptor.context.domain]);
-                                    }
-                                    break;
-                                }
-                            }
-
-                            // 2) look for an object ID
-                            for(let condition of domain) {
-                                if(condition[0] == 'id') {
-                                    let candidate = parseInt(condition[2], 10);
-                                    if (!isNaN(candidate)) {
-                                        object_id = candidate;
                                     }
                                 }
                             }
@@ -211,7 +194,6 @@ export class AppSideMenuComponent implements OnInit {
                     console.debug('AppSideMenuComponent: updated values', this.view_id, this.object_class, this.object_id);
 
                     let object_fields = ['id', 'name', 'state', 'created', 'modified', 'status', 'order'];
-
                     let view_routes = [];
 
                     // load routes and look for references to object fields (to append those to the fields to load, `object_fields`)
