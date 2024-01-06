@@ -325,8 +325,11 @@ export class ApiService {
 
         try {
             const menu:any = await this.fetch('?get=model_menu&package='+package_name+'&menu_id='+menu_id);
-            if(menu && menu.layout && menu.layout.items) {
+            if(menu && menu.hasOwnProperty('layout') && menu.layout.hasOwnProperty('items')) {
                 result.items = menu.layout.items;
+            }
+            else {
+                console.info('invalid or empty menu: '+menu_id);
             }
         }
         catch(response) {
@@ -335,8 +338,16 @@ export class ApiService {
 
         try {
             const menu_i18n = await this.fetch('?get=config_i18n-menu&package='+package_name+'&menu_id='+menu_id+'&lang='+environment.locale);
-            if(menu_i18n && menu_i18n.view) {
-                result.translation = menu_i18n.view;
+            if(menu_i18n && menu_i18n.hasOwnProperty('view')) {
+                if(menu_i18n.view.hasOwnProperty('menu')) {
+                    result.translation = menu_i18n.view.menu;
+                }
+                else {
+                    result.translation = menu_i18n.view;
+                }
+            }
+            else {
+                console.info('invalid or translation for menu: '+menu_id);
             }
             // #todo : do not inject but replace labels recursively
         }
