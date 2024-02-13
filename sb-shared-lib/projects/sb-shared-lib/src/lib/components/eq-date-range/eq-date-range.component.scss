@@ -1,0 +1,82 @@
+:host {
+    display: inline-block;
+    width: 384px;
+    height: 88px;
+    max-height: 88px;
+    overflow: hidden;
+
+    .eq-date-range {
+        display: flex;
+        flex-direction: row;
+        align-items: baseline;
+        height: 100%;
+        box-sizing: content-box;
+
+        .text {
+            position: relative;
+            display: block;
+            width: 100%;
+            height: 100%;
+            font-size: 16px;
+
+            span {
+                position: absolute;
+                //top: 17px;
+                top: 26px;
+                left: 12px;
+                vertical-align: baseline;
+            }
+
+            &.is-null {
+                font-style: italic;
+            }
+        }
+
+
+        &.cursor {
+            cursor: text;
+        }
+
+        mat-form-field {
+            width: 100%;
+
+            &.disabled {
+                width: calc(100% + 80px);
+            }
+
+            &::ng-deep .mat-form-field-suffix {
+                width: 80px;
+            }
+
+            mat-label {
+                font-size: 16px;
+            }
+
+            input {
+                font-size: 16px;
+
+                &.is_null {
+                    font-style: italic;
+                }
+            }
+
+            mat-hint {
+                width: 100%;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+        }
+
+        button {
+            position: relative;
+
+        }
+
+        & .action {
+            bottom: 5px;
+        }
+
+    }
+
+}
