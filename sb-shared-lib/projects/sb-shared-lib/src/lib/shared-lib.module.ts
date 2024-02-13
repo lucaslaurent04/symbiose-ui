@@ -13,6 +13,16 @@ import { SbMany2OneSelectComponent } from './components/sb-m2o-select/sb-m2o-sel
 import { SbDialogConfirmDialog, SbDialogConfirmModel } from './components/sb-dialog-confirm/sb-dialog-confirm.dialog';
 import { SbDialogNotifyDialog, SbDialogNotifyModel } from './components/sb-dialog-notify/sb-dialog-notify.dialog';
 
+
+import { EqDateRangeComponent } from './components/eq-date-range/eq-date-range.component';
+import { EqDateTimeComponent } from './components/eq-date-time/eq-date-time.component';
+import { EqDateComponent } from './components/eq-date/eq-date.component';
+import { EqDialogConfirm } from './components/eq-dialog-confirm/eq-dialog-confirm';
+import { EqDialogNotify } from './components/eq-dialog-notify/eq-dialog-notify';
+import { EqM2oComponent } from './components/eq-m2o/eq-m2o.component';
+import { EqStringComponent } from './components/eq-string/eq-string.component';
+import { EqTextComponent } from './components/eq-text/eq-text.component';
+
 import { VarDirective } from './directives/var.directive';
 import { ClickOutDirective } from './directives/clickOut.directive';
 
@@ -78,7 +88,9 @@ const angularModules = [
 const sharedComponents = [
     SharedLibComponent, LoaderComponent, HeaderComponent, FooterComponent, AppSideBarComponent, AppSideMenuComponent,
     DateSelectionComponent,
+    // @deprecated
     SbMany2OneSelectComponent, SbDialogConfirmDialog, SbDialogNotifyDialog,
+    EqDateRangeComponent, EqDateTimeComponent, EqDateComponent, EqDialogConfirm, EqDialogNotify, EqM2oComponent, EqStringComponent, EqTextComponent,
     MenuListItemComponent,
     VarDirective, ClickOutDirective
 ];
