@@ -114,6 +114,15 @@ export class MenuListItemComponent implements OnInit, OnDestroy {
         this.select.emit(item);
     }
 
+    public containsParent(children: any) {
+        for(let child of children) {
+            if(child.hasOwnProperty('children')) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }
 
 /**
