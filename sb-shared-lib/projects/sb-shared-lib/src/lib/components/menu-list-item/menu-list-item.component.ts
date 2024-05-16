@@ -19,7 +19,7 @@ import { takeUntil } from 'rxjs/operators';
 })
 export class MenuListItemComponent implements OnInit, OnDestroy {
     @Input() item: any = {};
-    @Input() depth: number;
+    @Input() depth: number = 0;
     @Input() i18n: any;
     @Output() select = new EventEmitter<any>();
     @Output() toggle = new EventEmitter<any>();
@@ -27,9 +27,11 @@ export class MenuListItemComponent implements OnInit, OnDestroy {
     private ngUnsubscribe = new Subject<void>();
 
     constructor(private menu:MenuService) {
+        /*
         if (this.depth === undefined) {
             this.depth = 0;
         }
+        */
     }
 
     ngOnInit() {
@@ -87,18 +89,21 @@ export class MenuListItemComponent implements OnInit, OnDestroy {
         // relay selection
         this.onItemSelect(item);
 
-        let is_child_open = false;
-        for(let child of item.children) {
-            if(child.expanded) {
-                is_child_open = true;
+        // toggle if there are children items
+        if(item.hasOwnProperty('children') && item.children.length) {
+            let is_child_open = false;
+            for(let child of item.children) {
+                if(child.expanded) {
+                    is_child_open = true;
+                }
             }
-        }
-        if(!is_child_open) {
-            item.expanded = !item.expanded;
-            this.toggle.emit(item);
-        }
-        else {
-            this.onItemToggle(item);
+            if(!is_child_open) {
+                item.expanded = !item.expanded;
+                this.toggle.emit(item);
+            }
+            else {
+                this.onItemToggle(item);
+            }
         }
     }
 
@@ -115,7 +120,7 @@ export class MenuListItemComponent implements OnInit, OnDestroy {
     }
 
     public containsParent(children: any) {
-        for(let child of children) {
+        for(let child of children ?? []) {
             if(child.hasOwnProperty('children')) {
                 return true;
             }

@@ -100,12 +100,6 @@ export class HeaderComponent implements OnInit {
 
     public onSelectItem(item:any) {
         console.debug('HeaderComponent::onclick', item);
-
         this.select.emit(item);
-        /*
-        if(item && item.route) {
-            this.router.navigate([item.route]);
-        }
-        */
     }
 }

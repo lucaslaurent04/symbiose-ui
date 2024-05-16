@@ -92,9 +92,9 @@ export class ContextService {
             this.change({...descriptor, context_only: true});
         });
 
-        // listen to route changes and keep current route
+        // listen to route changes and remember current route
         this.router.events.subscribe( (event: any) => {
-            if (event instanceof NavigationEnd) {
+            if (event instanceof NavigationEnd && event.url != this.route) {
                 console.debug('ContextService : route change', event);
                 this.route = event.url;
                 // this.context = {};
@@ -148,7 +148,11 @@ export class ContextService {
                 this.context = {};
             }
             // change route (this will notify Router and ActivatedRoute subscribers)
-            this.router.navigate([descriptor.route]);
+            this.router.navigate(
+                    [descriptor.route],
+                    // #memo - we need history to be updated
+                    // {skipLocationChange: true }
+                );
         }
         /*
             pass-2 switch context, if requested

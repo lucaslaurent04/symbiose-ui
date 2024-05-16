@@ -1,7 +1,7 @@
 <div [class.parent]="item.children && item.children.length" [class.child]="!item.children || !item.children.length" [class.hidden]="item.hidden">
-    <!-- node (parent) -->
+    <!-- parent node (or orphan item at root level) -->
     <a  mat-list-item
-        *ngIf="item.children && item.children.length"
+        *ngIf="!depth || (item.children && item.children.length)"
         (click)="onclickParentItem(item)"
         [class.expanded]="item.expanded"
         [class.has-children]="item.children && item.children.length"
@@ -15,8 +15,9 @@
         </span>
     </a>
 
+    <!-- child node -->
     <a  class="item-entry"
-        *ngIf="!item.children || !item.children.length"
+        *ngIf="depth && (!item.children || !item.children.length)"
         [class.selected]="item.selected"
         (click)="onclickChildItem(item)"
         [title]="(i18n && i18n[item.id])?i18n[item.id].label:item.label">
