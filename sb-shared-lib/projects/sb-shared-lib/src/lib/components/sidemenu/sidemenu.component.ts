@@ -530,6 +530,16 @@ export class AppSideMenuComponent implements OnInit {
                 route = route.replace('object.' + object_field, target_id);
             }
             descriptor.route = route;
+
+            // handle absolute routes
+            if(item.hasOwnProperty('absolute') && item.absolute) {
+                let url_target = '_self';
+                if(item.hasOwnProperty('target')) {
+                    url_target = item.target;
+                }
+                window.open(route, url_target);
+                return;
+            }
         }
 
         if(item.hasOwnProperty('app')) {

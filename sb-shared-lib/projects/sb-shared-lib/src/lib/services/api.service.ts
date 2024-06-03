@@ -319,21 +319,30 @@ export class ApiService {
         const environment:any = await this.env.getEnv();
 
         let result:any = {
+            show_search: false,
             item: [],
             translation: {}
         };
 
         try {
             const menu:any = await this.fetch('?get=model_menu&package='+package_name+'&menu_id='+menu_id);
-            if(menu && menu.hasOwnProperty('layout') && menu.layout.hasOwnProperty('items')) {
-                result.items = menu.layout.items;
+            if(menu) {
+                if(menu.hasOwnProperty('search') && menu.search) {
+                    result.show_search = true;
+                }
+                if(menu.hasOwnProperty('layout') && menu.layout.hasOwnProperty('items')) {
+                    result.items = menu.layout.items;
+                }
+                else {
+                    console.warn('invalid menu (missing layout): '+menu_id);
+                }
             }
             else {
-                console.info('invalid or empty menu: '+menu_id);
+                console.warn('invalid or empty menu: '+menu_id);
             }
         }
         catch(response) {
-            console.log('no menu found for menu_id '+menu_id, response);
+            console.warn('no menu found for menu_id '+menu_id, response);
         }
 
         try {

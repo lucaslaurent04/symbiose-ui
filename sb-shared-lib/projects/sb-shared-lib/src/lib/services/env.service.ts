@@ -36,12 +36,13 @@ export class EnvService {
         if(!this.promise) {
             this.promise = new Promise( async (resolve, reject) => {
                 try {
-                    const response:Response = await fetch('/assets/env/config.json');
+                    const response:Response = await fetch('/envinfo');
                     const env = await response.json();
                     this.assignEnv({...this.default, ...env});
                     resolve(this.environment);
                 }
                 catch(response) {
+                    // config.json not found, fallback to default.json
                     this.assignEnv({...this.default});
                     resolve(this.environment);
                 }
