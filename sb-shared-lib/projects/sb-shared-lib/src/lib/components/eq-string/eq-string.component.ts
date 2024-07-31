@@ -1,174 +1,206 @@
 import {
-    Component,
-    ElementRef,
-    EventEmitter,
-    Input,
-    OnInit,
-    Output,
-    ViewChild,
-    DoCheck
+  Component,
+  ElementRef,
+  EventEmitter,
+  Input,
+  OnInit,
+  Output,
+  ViewChild,
+  DoCheck, AfterViewInit
 } from '@angular/core';
 import {FormControl, ValidatorFn, Validators} from '@angular/forms';
 
 @Component({
-    selector: 'eq-string',
-    templateUrl: './eq-string.component.html',
-    styleUrls: ['./eq-string.component.scss']
+  selector: 'eq-string',
+  templateUrl: './eq-string.component.html',
+  styleUrls: ['./eq-string.component.scss']
 })
-export class EqStringComponent implements OnInit, DoCheck {
-    @Output() valueChange: EventEmitter<string | null> = new EventEmitter<string | null>();
+export class EqStringComponent implements OnInit, DoCheck, AfterViewInit {
+  @Output() valueChange: EventEmitter<string | null> = new EventEmitter<string | null>();
 
-    @Input() value: string | null;
+  @Input() appearance: 'filled' | 'outline' = 'filled';
 
-    @Input() placeholder: string = '';
+  @Input() value: string | null;
 
-    // used for forcing the component as disabled
-    @Input() disabled: boolean = false;
+  @Input() placeholder: string = '';
 
-    @Input() required: boolean = false;
+  // used for forcing the component as disabled
+  @Input() disabled: boolean = false;
 
-    @Input() nullable: boolean = false;
+  @Input() required: boolean = false;
 
-    @Input() hint_always: boolean = false;
+  @Input() nullable: boolean = false;
 
-    @Input() mode: 'view' | 'edit' = 'view';
+  @Input() hint_always: boolean = false;
 
-    @Input() title?: string;
+  @Input() mode: 'view' | 'edit' = 'view';
 
-    @Input() hint: string = '';
+  @Input() title?: string;
 
-    @Input() size?: 'small' | 'normal' | 'large' | 'extra' = 'normal';
+  @Input() hint: string = '';
 
-    @Input() error?: string;
+  @Input() size?: 'small' | 'normal' | 'large' | 'extra' = 'normal';
 
-    @ViewChild('eqString') eqString: ElementRef<HTMLDivElement>;
-    @ViewChild('input') input: ElementRef<HTMLInputElement>;
+  @Input() error?: string;
 
-    // flag for marking the input as being edited
-    public is_active: boolean = false;
+  @ViewChild('eqString') eqString: ElementRef<HTMLDivElement>;
+  @ViewChild('input') input: ElementRef<HTMLInputElement>;
 
-    public formControl: FormControl;
+  // flag for marking the input as being edited
+  public is_active: boolean = false;
 
-    public is_null: boolean = false;
+  public formControl: FormControl;
 
-    ngOnInit(): void {
-        this.initFormControl();
-        this.initNullableValue();
+  public is_null: boolean = false;
+
+  ngOnInit(): void {
+    this.initFormControl();
+    this.initNullableValue();
+
+    console.log(this);
+  }
+
+  ngAfterViewInit(): void {
+    // set CSS property to :host
+    this.setMinHeightCSSProperty(this.size);
+  }
+
+  ngDoCheck(): void {
+    if (this.mode === 'view' || this.disabled) {
+      this.formControl.disable();
     }
 
-    ngDoCheck(): void {
-        if (this.mode === 'view' || this.disabled) {
-            this.formControl.disable();
-        }
+    if (this.mode === 'edit' && !this.disabled) {
+      // Angular does not detect changes on disabled form controls
+      this.formControl.markAsTouched({onlySelf: true});
 
-        if (this.mode === 'edit' && !this.disabled) {
-            // Angular does not detect changes on disabled form controls
-            this.formControl.markAsTouched({onlySelf: true});
+      this.formControl.enable();
+    }
+  }
 
-            this.formControl.enable();
-        }
+  private setMinHeightCSSProperty(size: 'small' | 'normal' | 'large' | 'extra'): void {
+    let hostHeight = 48;
+    const hintHeight = 16;
+
+    switch (size) {
+      case 'small':
+        hostHeight = 48;
+        break;
+      case 'normal':
+        hostHeight = 56;
+        break;
+      case 'large':
+        hostHeight = 64;
+        break;
+      case 'extra':
+        hostHeight = 74;
+        break;
     }
 
-    public initNullableValue(): void {
-        if (this.value === null || this.value === '[null]') {
-            this.toggleIsNull(true);
-        }
+    const height = hostHeight + hintHeight;
+
+    this.eqString.nativeElement.style.setProperty('min-height', `${height}px`);
+    this.eqString.nativeElement.style.setProperty('height', `${height}px`);
+    this.eqString.nativeElement.style.setProperty('max-height', `${height}px`);
+  }
+
+  public initNullableValue(): void {
+    if (this.value === null || this.value === '[null]') {
+      this.toggleIsNull(true);
+    }
+  }
+
+  public initFormControl(): void {
+    this.formControl = new FormControl(this.value);
+    const validators: ValidatorFn[] = [];
+
+    if (this.required) {
+      validators.push(Validators.required);
     }
 
-    public initFormControl(): void {
-        this.formControl = new FormControl(this.value);
-        const validators: ValidatorFn[] = [];
-
-        if (this.required) {
-            validators.push(Validators.required);
-        }
-
-        if (!this.nullable) {
-            validators.push(Validators.minLength(1));
-        }
-
-        this.formControl.setValidators(validators);
+    if (!this.nullable) {
+      validators.push(Validators.minLength(1));
     }
 
-    public getErrorMessage(): string {
-        if (this.error) {
-            return this.error;
-        }
-        return '';
-    }
+    this.formControl.setValidators(validators);
+  }
 
-    private updateValue(value: string | null): void {
-        if (value === null) {
-            this.is_null = true;
-            this.formControl.setValue('[null]');
-        }
-        else {
-            this.is_null = false;
-            this.formControl.setValue(value);
-        }
+  public getErrorMessage(): string {
+    if (this.error) {
+      return this.error;
     }
+    return '';
+  }
 
-    public onClear(event: MouseEvent): void {
-        event.stopImmediatePropagation();
-        event.preventDefault();
-        this.updateValue('');
-        this.formControl.markAsPending({onlySelf: true});
+  private updateValue(value: string | null): void {
+    if (value === null) {
+      this.is_null = true;
+      this.formControl.setValue('[null]');
+    } else {
+      this.is_null = false;
+      this.formControl.setValue(value);
     }
+  }
 
-    public activate(): void {
-        if (this.mode === 'edit' && !this.disabled) {
-            this.toggleActive(true);
-            this.input.nativeElement.focus();
-        }
-    }
+  public onClear(event: MouseEvent): void {
+    event.stopImmediatePropagation();
+    event.preventDefault();
+    this.updateValue('');
+    this.formControl.markAsPending({onlySelf: true});
+  }
 
-    public onCancel(event: MouseEvent): void {
-        event.preventDefault();
-        event.stopPropagation();
-        this.toggleIsNull(false);
-        this.updateValue(this.value);
-        this.toggleActive(false);
+  public activate(): void {
+    if (this.mode === 'edit' && !this.disabled) {
+      this.toggleActive(true);
+      this.input.nativeElement.focus();
     }
+  }
 
-    public onSave(event: MouseEvent): void {
-        event.preventDefault();
-        event.stopPropagation();
-        if (this.is_null) {
-            this.valueChange.emit(null);
-        }
-        else if (this.formControl.valid) {
-            this.valueChange.emit(this.formControl.value);
-        }
-        this.toggleActive(false);
-    }
+  public onCancel(event: MouseEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.toggleIsNull(false);
+    this.updateValue(this.value);
+    this.toggleActive(false);
+  }
 
-    public onBlur(event: FocusEvent): void {
-        event.preventDefault();
-        // we need to discard current instance because onblur event occurs before onSave
-        if (
-            this.eqString.nativeElement instanceof Element &&
-            !this.eqString.nativeElement.contains(event.relatedTarget as Node)
-        ) {
-            this.toggleIsNull(false);
-            this.updateValue(this.value);
-            this.toggleActive(false);
-        }
+  public onSave(event: MouseEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    if (this.is_null) {
+      this.valueChange.emit(null);
+    } else if (this.formControl.valid) {
+      this.valueChange.emit(this.formControl.value);
     }
+    this.toggleActive(false);
+  }
 
-    private toggleActive(editable: boolean): void {
-        this.is_active = editable;
-        if (this.mode === 'edit' && editable) {
-            this.input.nativeElement.focus();
-        }
+  public onBlur(event: FocusEvent): void {
+    event.preventDefault();
+    // we need to discard current instance because onblur event occurs before onSave
+    if (
+      this.eqString.nativeElement instanceof Element &&
+      !this.eqString.nativeElement.contains(event.relatedTarget as Node)
+    ) {
+      this.toggleIsNull(false);
+      this.updateValue(this.value);
+      this.toggleActive(false);
     }
+  }
 
-    public toggleIsNull(is_null: boolean): void {
-        this.is_null = is_null;
-        if (this.is_null) {
-            this.updateValue(null);
-        }
-        else {
-            this.updateValue('');
-        }
+  private toggleActive(editable: boolean): void {
+    this.is_active = editable;
+    if (this.mode === 'edit' && editable) {
+      this.input.nativeElement.focus();
     }
+  }
+
+  public toggleIsNull(is_null: boolean): void {
+    this.is_null = is_null;
+    if (this.is_null) {
+      this.updateValue(null);
+    } else {
+      this.updateValue('');
+    }
+  }
 }

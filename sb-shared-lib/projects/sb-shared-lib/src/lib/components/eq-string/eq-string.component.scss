@@ -1,135 +1,450 @@
 :host {
-    display: inline-block;
-    width: 100%;
-    height: 88px;
-    max-height: 88px;
-    overflow: hidden;
+	display: inline-block;
+	width: 100%;
 
-    .eq-string {
-        display: flex;
-        flex-direction: row;
-        align-items: baseline;
-        height: 100%;
-        box-sizing: content-box;
+	/* Base */
+	.eq-string {
+		display: flex;
+		flex-direction: row;
+		align-items: baseline;
+		height: 100%;
+		box-sizing: content-box;
 
-        &.cursor {
-            cursor: text;
-        }
+		&.cursor {
+			cursor: text;
+		}
 
-        .text {
-            position: relative;
-            display: block;
-            width: 100%;
-            height: 100%;
-            font-size: 16px;
+		.text {
+			position: relative;
+			display: block;
+			width: 100%;
+			height: 100%;
+			font-size: 16px;
 
-            span {
-                position: absolute;
-                width: 100%;
-                //top: 17px;
-                left: 12px;
-                vertical-align: baseline;
-            }
+			span {
+				position: absolute;
+				width: 100%;
+				transform: translateY(-50%);
+				left: 12px;
+				vertical-align: baseline;
+			}
 
-            div.hint {
-                position: absolute;
-                bottom: 4px;
-                left: 12px;
-                font-size: 75%;
-                width: 100%;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-                line-height: 1.125;
-            }
+			div.hint {
+				position: absolute;
+				bottom: 4px;
+				left: 12px;
+				font-size: 75%;
+				width: 100%;
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				line-height: 1.125;
+			}
 
-            &.is_null {
-                span {
-                    font-style: italic;
-                }
-            }
+			&.is_null {
+				span {
+					font-style: italic;
+				}
+			}
+		}
 
-            &.small {
-                span {
-                    top: 29px;
-                    font-size: 85%;
-                }
-            }
+		mat-form-field {
+			width: calc(100% - 80px);
 
-            &.normal {
-                span {
-                    top: 25.5px;
-                }
-            }
+			&.disabled {
+				width: 100%;
+			}
 
-            &.large {
-                span {
-                    top: 21px;
-                    font-size: 125%;
-                }
-            }
+			mat-label {
+				font-size: 16px;
+			}
 
-            &.extra {
-                span {
-                    top: 15px;
-                    font-size: 150%;
-                }
-            }
+			input {
+				font-size: 16px;
 
-        }
+				&.is_null {
+					font-style: italic;
+				}
+			}
 
-        mat-form-field {
-            width: calc(100% - 80px);
+			&::ng-deep {
+				.mat-form-field-wrapper {
+					height: -webkit-fill-available;
+					padding-bottom: 0;
+				}
 
-            &.disabled {
-                width: 100%;
-            }
+				.mat-form-field-flex {
+					height: -webkit-fill-available;
 
-            mat-label {
-                font-size: 16px;
-            }
+					& > .mat-form-field-infix {
+						/* hack to prevent default width of 180px */
+						width: 100% !important;
+					}
+				}
+			}
 
-            input {
-                font-size: 16px;
+			mat-hint {
+				width: 100%;
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
+			}
 
-                &.is_null {
-                    font-style: italic;
-                }
+			button {
+				position: relative;
+			}
+		}
 
-                &.small {
-                    font-size: 85%;
-                }
+		& .action {
+			bottom: 4px;
+		}
+	}
 
-                &.large {
-                    margin-top: -5px;
-                    font-size: 125%;
-                }
+	/* Only Sizes */
+	.eq-string {
+		&.small {
+			.text {
+				span {
+					font-size: 85%;
+				}
+			}
 
-                &.extra {
-                    margin-top: -10px;
-                    font-size: 150%;
-                }
-            }
+			mat-form-field {
+				input {
+					font-size: 85%;
+				}
+			}
+		}
 
-            /* hack to prevent default width of 180px */
-            &::ng-deep .mat-form-field-flex > .mat-form-field-infix {
-                width: 100% !important;
-            }
+		&.normal {
+			/* -- */
+		}
 
-            mat-hint {
-                width: 100%;
-                white-space: nowrap;
-                overflow: hidden;
-                text-overflow: ellipsis;
-            }
+		&.large {
+			.text {
+				span {
+					font-size: 117%;
+				}
+			}
 
-            button {
-                position: relative;
-            }
-        }
+			mat-form-field {
+				input {
+					font-size: 117%;
+				}
+			}
+		}
 
-        & .action {
-            bottom: 4px;
-        }
-    }
+		&.extra {
+			.text {
+				span {
+					font-size: 137%;
+				}
+			}
+
+			mat-form-field {
+				input {
+					font-size: 137%;
+				}
+			}
+		}
+	}
+
+	/* Only Appearance */
+	/* Filled */
+	.eq-string.edit.filled {
+		mat-form-field::ng-deep {
+
+			.mat-form-field-wrapper {
+				.mat-form-field-suffix button {
+					top: 4px;
+				}
+
+				.mat-form-field-underline {
+					height: 2px;
+					bottom: -1px;
+				}
+
+				.mat-form-field-subscript-wrapper {
+					height: 16px;
+					display: flex;
+					justify-content: flex-start;
+					align-items: center;
+					width: 100%;
+
+					.mat-form-field-hint-wrapper {
+						width: 100%;
+						white-space: nowrap;
+						overflow: hidden;
+						text-overflow: ellipsis;
+						padding-top: 3px;
+					}
+				}
+			}
+		}
+	}
+
+	/* Outline */
+	.eq-string.edit.outline {
+		mat-form-field {
+			&::ng-deep {
+				height: calc(100% - 16px);
+
+				.mat-form-field-wrapper {
+					.mat-form-field-subscript-wrapper {
+						height: 16px;
+						margin-top: 0;
+					}
+				}
+			}
+		}
+	}
+
+
+	/* Appearance and sizes */
+	/* Filled */
+	.eq-string.edit.filled {
+		&.small {
+			mat-form-field {
+				input {
+					position: relative;
+					top: 1px;
+				}
+
+				&::ng-deep .mat-form-field-wrapper {
+					height: 48px;
+					max-height: 48px;
+
+					.mat-form-field-flex {
+						.mat-form-field-infix {
+							top: -6px;
+						}
+					}
+
+					.mat-form-field-subscript-wrapper {
+						top: 40px;
+					}
+				}
+			}
+		}
+
+		&.normal {
+			mat-form-field {
+				&::ng-deep {
+					.mat-form-field-wrapper {
+						height: 56px;
+						max-height: 56px;
+
+						.mat-form-field-flex {
+							.mat-form-field-infix {
+								.mat-form-field-label-wrapper {
+									top: -16px;
+								}
+							}
+						}
+					}
+
+					.mat-form-field-subscript-wrapper {
+						margin-top: 0;
+						top: 56px;
+					}
+				}
+			}
+		}
+
+		&.large {
+			mat-form-field {
+				input {
+					margin-top: 5px;
+				}
+
+				&::ng-deep .mat-form-field-wrapper {
+					height: 64px;
+					max-height: 64px;
+
+					.mat-form-field-subscript-wrapper {
+						top: 56px;
+					}
+				}
+			}
+		}
+
+		&.extra {
+			mat-form-field {
+				input {
+					margin-top: 10px;
+				}
+
+				&::ng-deep .mat-form-field-wrapper {
+					height: 74px;
+					max-height: 74px;
+
+					.mat-form-field-subscript-wrapper {
+						top: 66px;
+					}
+				}
+			}
+		}
+	}
+
+	/* Outline */
+	.eq-string.edit.outline {
+
+		&.small {
+			mat-form-field {
+				input {
+					position: relative;
+					top: -12px;
+				}
+
+				&::ng-deep {
+					.mat-form-field-wrapper {
+						.mat-form-field-flex {
+							height: 48px;
+							max-height: 48px;
+						}
+
+						.mat-form-field-subscript-wrapper {
+							top: 47px;
+						}
+					}
+				}
+			}
+
+			mat-form-field::ng-deep .mat-form-field-wrapper .mat-form-field-flex .mat-form-field-suffix {
+				top: 8px;
+			}
+
+			button.mat-focus-indicator {
+				position: relative;
+				top: -12px;
+			}
+		}
+
+		&.normal {
+			button.mat-focus-indicator {
+				bottom: 8px;
+			}
+
+			mat-form-field {
+				input {
+					position: relative;
+					top: -8px;
+				}
+
+				&::ng-deep {
+					.mat-form-field-wrapper {
+						.mat-form-field-flex {
+							height: 56px;
+							max-height: 56px;
+
+							.mat-form-field-suffix {
+								top: 0;
+								button {
+									bottom: 0;
+								}
+							}
+						}
+
+						.mat-form-field-subscript-wrapper {
+							top: 55px;
+						}
+					}
+				}
+			}
+		}
+
+		&.large {
+			mat-form-field {
+				input {
+					position: relative;
+					top: -4px;
+				}
+
+				&::ng-deep {
+					.mat-form-field-wrapper {
+						.mat-form-field-flex {
+							height: 64px;
+							max-height: 64px;
+
+							.mat-field-suffix {
+								position: relative;
+								top: 4px;
+							}
+						}
+
+						.mat-form-field-subscript-wrapper {
+							top: 63px;
+						}
+					}
+				}
+			}
+		}
+
+		&.extra {
+			mat-form-field {
+				input {
+					position: relative;
+					top: -2px;
+				}
+
+				&::ng-deep {
+					.mat-form-field-wrapper {
+						.mat-form-field-flex {
+							height: 74px;
+							max-height: 74px;
+
+							.mat-field-suffix {
+								position: relative;
+								top: 0;
+							}
+						}
+
+						.mat-form-field-subscript-wrapper {
+							top: 73px;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	/* View Mode and appearance */
+	/* Filled */
+	.eq-string.view.filled {
+		&.small .text span {
+			top: 34px;
+		}
+
+		&.normal .text span {
+			top: 38px;
+		}
+
+		&.large .text span {
+			top: 45px;
+		}
+
+		&.extra .text span {
+			top: 51px;
+		}
+	}
+
+	/* Outline */
+	.eq-string.view.outline {
+		&.small .text span {
+			top: 25px;
+		}
+
+		&.normal .text span {
+			top: 30px;
+		}
+
+
+		&.large .text span {
+			top: 34px;
+		}
+
+		&.extra .text span {
+			top: 37px;
+		}
+	}
 }
