@@ -68,7 +68,8 @@
 			<mat-icon>toggle_on</mat-icon>
 		</button>
 
-		<mat-error *ngIf="formGroup.controls.start.hasError('matStartDateInvalid')">Invalid start date</mat-error>
+		<mat-error *ngIf="formGroup.controls.start.hasError('matStartDateInvalid')">Invalid start date
+		</mat-error>
 		<mat-error *ngIf="formGroup.controls.end.hasError('matEndDateInvalid')">Invalid end date</mat-error>
 
 		<mat-date-range-picker #dateRangePicker></mat-date-range-picker>
