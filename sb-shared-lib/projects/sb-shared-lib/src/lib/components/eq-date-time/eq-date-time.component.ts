@@ -1,4 +1,5 @@
 import {
+    AfterViewInit,
     ChangeDetectorRef,
     Component,
     ElementRef,
@@ -24,9 +25,11 @@ type dateTimeUsage =
     templateUrl: './eq-date-time.component.html',
     styleUrls: ['./eq-date-time.component.scss']
 })
-export class EqDateTimeComponent implements OnInit, OnChanges {
+export class EqDateTimeComponent implements OnInit, OnChanges, AfterViewInit {
 
     @Output() valueChange: EventEmitter<string | null> = new EventEmitter<string | null>();
+
+    @Input() appearance: 'filled' | 'outline' = 'outline';
 
     @Input() value: string | null;
 
@@ -58,7 +61,7 @@ export class EqDateTimeComponent implements OnInit, OnChanges {
 
     public is_null: boolean = false;
 
-    @ViewChild('eqDateTime') eqDateRange: ElementRef<HTMLDivElement>;
+    @ViewChild('eqDateTime') eqDateTime: ElementRef<HTMLDivElement>;
     @ViewChild('matFormField', {static: false}) matFormField: MatFormField;
     @ViewChild('inputDate', {static: false}) inputDate: ElementRef<HTMLInputElement>;
     @ViewChild('inputTime', {static: false}) inputTime: ElementRef<HTMLInputElement>;
@@ -102,6 +105,37 @@ export class EqDateTimeComponent implements OnInit, OnChanges {
         this.initFormGroup();
     }
 
+
+    ngAfterViewInit(): void {
+        this.setMinHeightCSSProperty(this.size);
+    }
+
+    private setMinHeightCSSProperty(size: 'small' | 'normal' | 'large' | 'extra'): void {
+        let hostHeight = 48;
+        const hintHeight = 16;
+
+        switch (size) {
+            case 'small':
+                hostHeight = 48;
+                break;
+            case 'normal':
+                hostHeight = 56;
+                break;
+            case 'large':
+                hostHeight = 64;
+                break;
+            case 'extra':
+                hostHeight = 74;
+                break;
+        }
+
+        const height = hostHeight + hintHeight;
+
+        this.eqDateTime.nativeElement.style.setProperty('min-height', `${height}px`);
+        this.eqDateTime.nativeElement.style.setProperty('height', `${height}px`);
+        this.eqDateTime.nativeElement.style.setProperty('max-height', `${height}px`);
+    }
+
     public initFormGroup(): void {
         if (this.value !== null) {
             const [date, time] = this.splitDateTimeValue(this.value);
@@ -119,8 +153,7 @@ export class EqDateTimeComponent implements OnInit, OnChanges {
                     time: dateTime.getHours() + ':' + dateTime.getMinutes()
                 });
             }
-        }
-        else if (this.nullable) {
+        } else if (this.nullable) {
             this.updateValue(null, null);
         }
 
@@ -184,8 +217,7 @@ export class EqDateTimeComponent implements OnInit, OnChanges {
         this.is_null = is_null;
         if (this.is_null) {
             this.updateValue(null, null);
-        }
-        else {
+        } else {
             this.formGroup.enable();
             this.updateValue('', '');
         }
@@ -205,8 +237,7 @@ export class EqDateTimeComponent implements OnInit, OnChanges {
                 time: '[null]',
             });
             this.formGroup.markAsUntouched({onlySelf: true});
-        }
-        else {
+        } else {
             this.is_null = false;
             if (
                 (dateValue && new Date(dateValue).toString() !== 'Invalid Date') &&
@@ -218,8 +249,7 @@ export class EqDateTimeComponent implements OnInit, OnChanges {
                     date: UTCDate,
                     time: timeValue
                 });
-            }
-            else {
+            } else {
                 this.formGroup.setValue({
                     date: '',
                     time: '',
@@ -233,8 +263,8 @@ export class EqDateTimeComponent implements OnInit, OnChanges {
         event.preventDefault();
         // we need to discard current instance because onblur event occurs before onSave
         if (
-            this.eqDateRange.nativeElement instanceof Element &&
-            !this.eqDateRange.nativeElement.contains(event.relatedTarget as Node)
+            this.eqDateTime.nativeElement instanceof Element &&
+            !this.eqDateTime.nativeElement.contains(event.relatedTarget as Node)
         ) {
             this.toggleIsNull(false);
             if (this.value && ![null, '[null]', ''].includes(this.value)) {
@@ -281,8 +311,7 @@ export class EqDateTimeComponent implements OnInit, OnChanges {
             this.valueChange.emit(null);
             this.formGroup.markAsUntouched({onlySelf: true});
             this.toggleActive(false);
-        }
-        else if (
+        } else if (
             this.formGroup.valid ||
             this.inputsComputedValue !== null &&
             this.inputTimeValue &&
