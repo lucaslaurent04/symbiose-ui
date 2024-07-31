@@ -1,4 +1,5 @@
 import {
+    AfterViewInit,
     ChangeDetectorRef,
     Component,
     ElementRef,
@@ -17,8 +18,10 @@ type dateUsage = 'date.short.day' | 'date.short' | 'date.medium' | 'date.long' |
     templateUrl: './eq-date.component.html',
     styleUrls: ['./eq-date.component.scss']
 })
-export class EqDateComponent implements OnInit {
+export class EqDateComponent implements OnInit, AfterViewInit {
     @Output() valueChange: EventEmitter<string | null> = new EventEmitter<string | null>();
+
+    @Input() appearance: 'filled' | 'outline' = 'outline';
 
     @Input() value: string | null;
 
@@ -74,12 +77,15 @@ export class EqDateComponent implements OnInit {
         }
     }
 
+    ngAfterViewInit(): void {
+        this.setMinHeightCSSProperty(this.size);
+    }
+
     public initFormControl(): void {
         if (this.value && ![null, '[null]', ''].includes(this.value)) {
             const UTZDate: Date = new Date(this.value);
             this.formControl = new FormControl(new Date(UTZDate.getUTCFullYear(), UTZDate.getUTCMonth(), UTZDate.getUTCDate()));
-        }
-        else {
+        } else {
             this.formControl = new FormControl('');
         }
 
@@ -105,6 +111,32 @@ export class EqDateComponent implements OnInit {
         }
     }
 
+    private setMinHeightCSSProperty(size: 'small' | 'normal' | 'large' | 'extra'): void {
+        let hostHeight = 48;
+        const hintHeight = 16;
+
+        switch (size) {
+            case 'small':
+                hostHeight = 48;
+                break;
+            case 'normal':
+                hostHeight = 56;
+                break;
+            case 'large':
+                hostHeight = 64;
+                break;
+            case 'extra':
+                hostHeight = 74;
+                break;
+        }
+
+        const height = hostHeight + hintHeight;
+
+        this.eqDate.nativeElement.style.setProperty('min-height', `${height}px`);
+        this.eqDate.nativeElement.style.setProperty('height', `${height}px`);
+        this.eqDate.nativeElement.style.setProperty('max-height', `${height}px`);
+    }
+
     public getErrorMessage(): string {
         if (this.error) {
             return this.error;
@@ -116,15 +148,13 @@ export class EqDateComponent implements OnInit {
         if (value === null) {
             this.is_null = true;
             this.formControl.setValue('[null]');
-        }
-        else {
+        } else {
             this.is_null = false;
             if (new Date(value).toString() !== 'Invalid Date') {
                 const UTZDate: Date = new Date(value);
                 const UTCDate: Date = new Date(UTZDate.getUTCFullYear(), UTZDate.getUTCMonth(), UTZDate.getUTCDate());
                 this.formControl.setValue(UTCDate);
-            }
-            else {
+            } else {
                 this.formControl.setValue('');
             }
         }
@@ -158,8 +188,7 @@ export class EqDateComponent implements OnInit {
         event.stopPropagation();
         if (this.is_null) {
             this.valueChange.emit(null);
-        }
-        else if (this.formControl.valid) {
+        } else if (this.formControl.valid) {
             const date: string = this.convertToUTC(this.formControl.value);
             this.valueChange.emit(date);
         }
@@ -272,8 +301,7 @@ export class EqDateComponent implements OnInit {
         this.is_null = is_null;
         if (this.is_null) {
             this.updateValue(null);
-        }
-        else {
+        } else {
             this.updateValue('');
             this.formControl.enable();
             this.changeDetectorRef.detectChanges();
