@@ -1,4 +1,5 @@
 import {
+    AfterViewInit,
     ChangeDetectorRef,
     Component,
     ElementRef,
@@ -20,9 +21,11 @@ type dateUsage = 'date.short.day' | 'date.short' | 'date.medium' | 'date.long' |
     templateUrl: './eq-date-range.component.html',
     styleUrls: ['./eq-date-range.component.scss']
 })
-export class EqDateRangeComponent implements OnInit, OnChanges {
+export class EqDateRangeComponent implements OnInit, OnChanges, AfterViewInit {
 
     @Output() valueChange: EventEmitter<string | null> = new EventEmitter<string | null>();
+
+    @Input() appearance: 'filled' | 'outline' = 'outline';
 
     @Input() value: string | null;
 
@@ -110,6 +113,36 @@ export class EqDateRangeComponent implements OnInit, OnChanges {
         this.initFormGroup();
     }
 
+    ngAfterViewInit(): void {
+        this.setMinHeightCSSProperty(this.size);
+    }
+
+    private setMinHeightCSSProperty(size: 'small' | 'normal' | 'large' | 'extra'): void {
+        let hostHeight = 48;
+        const hintHeight = 16;
+
+        switch (size) {
+            case 'small':
+                hostHeight = 48;
+                break;
+            case 'normal':
+                hostHeight = 56;
+                break;
+            case 'large':
+                hostHeight = 64;
+                break;
+            case 'extra':
+                hostHeight = 74;
+                break;
+        }
+
+        const height = hostHeight + hintHeight;
+
+        this.eqDateRange.nativeElement.style.setProperty('min-height', `${height}px`);
+        this.eqDateRange.nativeElement.style.setProperty('height', `${height}px`);
+        this.eqDateRange.nativeElement.style.setProperty('max-height', `${height}px`);
+    }
+
     private splitDateRange = (dateRange: string): string[] => dateRange.split(' - ');
 
     public initFormGroup(): void {
@@ -127,13 +160,9 @@ export class EqDateRangeComponent implements OnInit, OnChanges {
                     end: this.convertToUTC(new Date(dateEnd))
                 });
             }
-        }
-
-        else if (this.nullable && [null, '[null]'].includes(this.value)) {
+        } else if (this.nullable && [null, '[null]'].includes(this.value)) {
             this.updateValue(null, null);
-        }
-
-        else {
+        } else {
             this.formGroup.setValue({
                 start: '',
                 end: ''
@@ -176,8 +205,7 @@ export class EqDateRangeComponent implements OnInit, OnChanges {
         this.is_null = is_null;
         if (this.is_null) {
             this.updateValue(null, null);
-        }
-        else {
+        } else {
             this.updateValue('', '');
             this.formGroup.enable();
         }
@@ -199,8 +227,7 @@ export class EqDateRangeComponent implements OnInit, OnChanges {
             this.inputStart.nativeElement.value = '[null]';
             this.inputEnd.nativeElement.value = '[null]';
             this.formGroup.markAsUntouched({onlySelf: true});
-        }
-        else {
+        } else {
             this.is_null = false;
             if (
                 (valueStart && new Date(valueStart).toString() !== 'Invalid Date') &&
@@ -215,8 +242,7 @@ export class EqDateRangeComponent implements OnInit, OnChanges {
                     start: UTCDateStart,
                     end: UTCDateEnd
                 });
-            }
-            else {
+            } else {
                 this.formGroup.setValue({
                     start: '',
                     end: '',
@@ -267,8 +293,7 @@ export class EqDateRangeComponent implements OnInit, OnChanges {
             this.valueChange.emit(null);
             this.formGroup.markAsUntouched({onlySelf: true});
             this.toggleActive(false);
-        }
-        else if (this.formGroup.valid || this.inputsComputedValue !== null) {
+        } else if (this.formGroup.valid || this.inputsComputedValue !== null) {
             const date: string = `${this.sanitizeDate(this.formGroup.value.start)} - ${this.sanitizeDate(this.formGroup.value.end)}`;
             this.valueChange.emit(date);
             this.toggleActive(false);
