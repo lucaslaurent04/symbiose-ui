@@ -11,16 +11,16 @@ To use the `eq-m2o` component, simply include it in your Angular project's HTML 
 ```html
 
 <eq-m2o
-    [mode]="mode"
-    [entity]="'cooking\\Ingredient'"
-    [fields]="m2oFields"
-    [controller]="'model_collect'"
-    [placeholder]="'My placeholder'"
-    [title]="'My title'"
-    [hint]="'My hint'"
-    [autofocus]="true"
-    [noResult]="'No match found"
-    [initialSelectedItem]="{description: 'Onions are a nutrient-dense food, meaning that whi…y value for vitamin C, vitamin B-6 and manganese.', name: 'onion', id: 2, state: 'instance', modified: '2024-02-08T08:29:19+00:00'}"
+	[mode]="mode"
+	[entity]="'cooking\\Ingredient'"
+	[fields]="m2oFields"
+	[controller]="'model_collect'"
+	[placeholder]="'My placeholder'"
+	[title]="'My title'"
+	[hint]="'My hint'"
+	[autofocus]="true"
+	[noResult]="'No match found"
+	[initialSelectedItem]="{description: 'Onions are a nutrient-dense food, meaning that whi…y value for vitamin C, vitamin B-6 and manganese.', name: 'onion', id: 2, state: 'instance', modified: '2024-02-08T08:29:19+00:00'}"
 ></eq-m2o>
 ```
 
@@ -28,25 +28,26 @@ To use the `eq-m2o` component, simply include it in your Angular project's HTML 
 
 ### Properties
 
-| Property            | Required |        Type        | Default | Description                                                             |
-|---------------------|:--------:|:------------------:|---------|-------------------------------------------------------------------------|
-| mode                | Optional |  'view' \| 'edit'  | 'view'  | Specifies the mode of the component, whether it's in view or edit mode. |
-| disabled            | Optional |      boolean       | false   | Specifies whether the input field is disabled.                          |
-| required            | Optional |      boolean       | false   | Specifies whether the input field is required.                          |
-| entity              | Required |       string       | ''      | The full name of the entity to load.                                    |
-| id                  | Optional |       number       | 0       | The id of the selected item.                                            |
-| domain              | Optional |       string       | []      | Additional condition for filtering result set                           |
-| fields              | Optional |      string[]      | []      | Extra fields to load in addition to 'id' and 'name'.                    |
-| controller          | Optional |       string       | ''      | Specific controller to use for fetching data.                           |
-| params              | Optional |        any         | -       | Extra parameter specific to the chosen controller                       |
-| placeholder         | Optional |       string       | ''      | Specific placeholder text for the input field.                          |
-| title               | Optional |  string   \| null  | -       | -                                                                       | Specific title for the widget.                                          |
-| hint                | Optional |       string       | ''      | Specific hint/helper text for the widget.                               |
-| autofocus           | Optional |      boolean       | false   | Specifies whether the input field should autofocus.                     |
-| noResult            | Optional |       string       | ''      | Message to display in case no match was found.                          |
-| initialSelectedItem | Optional |        any         | null    | The initial item selected in the component.                             |
-| displayWith         | Optional | (a: any) => string | -       | custom method for rendering the items.                                  |
-| panelWidth          | Optional |       string       | 'auto'  | css value for panel width (dropdown)                                    |
+| Property            | Required |           Type            | Default    | Description                                                             |
+|---------------------|:--------:|:-------------------------:|------------|-------------------------------------------------------------------------|
+| `appearance`        | Optional | `'filled'` \| `'outline'` | `'filled'` | The appearance of the input field.                                      |                                                              
+| mode                | Optional |     'view' \| 'edit'      | 'view'     | Specifies the mode of the component, whether it's in view or edit mode. |
+| disabled            | Optional |          boolean          | false      | Specifies whether the input field is disabled.                          |
+| required            | Optional |          boolean          | false      | Specifies whether the input field is required.                          |
+| entity              | Required |          string           | ''         | The full name of the entity to load.                                    |
+| id                  | Optional |          number           | 0          | The id of the selected item.                                            |
+| domain              | Optional |          string           | []         | Additional condition for filtering result set                           |
+| fields              | Optional |         string[]          | []         | Extra fields to load in addition to 'id' and 'name'.                    |
+| controller          | Optional |          string           | ''         | Specific controller to use for fetching data.                           |
+| params              | Optional |            any            | -          | Extra parameter specific to the chosen controller                       |
+| placeholder         | Optional |          string           | ''         | Specific placeholder text for the input field.                          |
+| title               | Optional |     string   \| null      | -          | -                                                                       | Specific title for the widget.                                          |
+| hint                | Optional |          string           | ''         | Specific hint/helper text for the widget.                               |
+| autofocus           | Optional |          boolean          | false      | Specifies whether the input field should autofocus.                     |
+| noResult            | Optional |          string           | ''         | Message to display in case no match was found.                          |
+| initialSelectedItem | Optional |            any            | null       | The initial item selected in the component.                             |
+| displayWith         | Optional |    (a: any) => string     | -          | custom method for rendering the items.                                  |
+| panelWidth          | Optional |          string           | 'auto'     | css value for panel width (dropdown)                                    |
 
 ### Methods
 

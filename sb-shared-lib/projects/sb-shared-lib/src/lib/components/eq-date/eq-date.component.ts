@@ -1,288 +1,316 @@
 import {
-    ChangeDetectorRef,
-    Component,
-    ElementRef,
-    EventEmitter,
-    Input,
-    OnInit,
-    Output,
-    ViewChild
+	AfterViewInit,
+	ChangeDetectorRef,
+	Component,
+	ElementRef,
+	EventEmitter,
+	Input,
+	OnInit,
+	Output,
+	ViewChild
 } from '@angular/core';
 import {FormControl, ValidatorFn, Validators} from '@angular/forms';
 
 type dateUsage = 'date.short.day' | 'date.short' | 'date.medium' | 'date.long' | 'date.full';
 
 @Component({
-    selector: 'eq-date',
-    templateUrl: './eq-date.component.html',
-    styleUrls: ['./eq-date.component.scss']
+	selector: 'eq-date',
+	templateUrl: './eq-date.component.html',
+	styleUrls: ['./eq-date.component.scss']
 })
-export class EqDateComponent implements OnInit {
-    @Output() valueChange: EventEmitter<string | null> = new EventEmitter<string | null>();
+export class EqDateComponent implements OnInit, AfterViewInit {
+	@Output() valueChange: EventEmitter<string | null> = new EventEmitter<string | null>();
 
-    @Input() value: string | null;
+	@Input() appearance: 'filled' | 'outline' = 'outline';
 
-    public formControl: FormControl;
+	@Input() value: string | null;
 
-    @Input() placeholder: string = '';
+	public formControl: FormControl;
 
-    // used for forcing the component as disabled
-    @Input() disabled: boolean = false;
+	@Input() placeholder: string = '';
 
-    @Input() required: boolean = false;
+	// used for forcing the component as disabled
+	@Input() disabled: boolean = false;
 
-    @Input() nullable: boolean = false;
+	@Input() required: boolean = false;
 
-    @Input() mode: 'view' | 'edit' = 'view';
+	@Input() nullable: boolean = false;
 
-    @Input() title?: string;
+	@Input() mode: 'view' | 'edit' = 'view';
 
-    @Input() hint: string = '';
+	@Input() title?: string;
 
-    @Input() size?: 'small' | 'normal' | 'large' | 'extra' = 'normal';
+	@Input() hint: string = '';
 
-    @Input() error?: string;
+	@Input() size?: 'small' | 'normal' | 'large' | 'extra' = 'normal';
 
-    @Input() usage: string | dateUsage;
+	@Input() error?: string;
 
-    // used for marking the input as being edited
-    public is_active: boolean = false;
+	@Input() usage: string | dateUsage;
 
-    public is_null: boolean = false;
+	// used for marking the input as being edited
+	public is_active: boolean = false;
 
-    @ViewChild('eqDate') eqDate: ElementRef<HTMLDivElement>;
-    @ViewChild('input') input: ElementRef<HTMLInputElement>;
+	public is_null: boolean = false;
 
-    get inputValue(): string | undefined {
-        return this.input?.nativeElement.value;
-    }
+	@ViewChild('eqDate') eqDate: ElementRef<HTMLDivElement>;
+	@ViewChild('input') input: ElementRef<HTMLInputElement>;
 
-    @ViewChild('nullableInput') nullableInput: ElementRef<HTMLInputElement>;
+	get inputValue(): string | undefined {
+		return this.input?.nativeElement.value;
+	}
 
-    constructor(
-        private changeDetectorRef: ChangeDetectorRef,
-    ) {
-    }
+	@ViewChild('nullableInput') nullableInput: ElementRef<HTMLInputElement>;
 
-    ngOnInit(): void {
-        this.initFormControl();
-        this.initNullableValue();
+	constructor(
+		private changeDetectorRef: ChangeDetectorRef,
+	) {
+	}
 
-        if (!this.checkDateValidity(this.formControl.value)) {
-            this.formControl.setErrors({invalid: true});
-            this.formControl.markAsTouched({onlySelf: true});
-        }
-    }
+	ngOnInit(): void {
+		this.initFormControl();
+		this.initNullableValue();
 
-    public initFormControl(): void {
-        if (this.value && ![null, '[null]', ''].includes(this.value)) {
-            const UTZDate: Date = new Date(this.value);
-            this.formControl = new FormControl(new Date(UTZDate.getUTCFullYear(), UTZDate.getUTCMonth(), UTZDate.getUTCDate()));
-        }
-        else {
-            this.formControl = new FormControl('');
-        }
+		if (!this.checkDateValidity(this.formControl.value)) {
+			this.formControl.setErrors({invalid: true});
+			this.formControl.markAsTouched({onlySelf: true});
+		}
+	}
 
-        const validators: ValidatorFn[] = [];
+	ngAfterViewInit(): void {
+		this.setMinHeightCSSProperty(this.size);
+	}
 
-        if (this.required) {
-            validators.push(Validators.required);
-        }
+	public initFormControl(): void {
+		if (this.value && ![null, '[null]', ''].includes(this.value)) {
+			const UTZDate: Date = new Date(this.value);
+			this.formControl = new FormControl(new Date(UTZDate.getUTCFullYear(), UTZDate.getUTCMonth(), UTZDate.getUTCDate()));
+		} else {
+			this.formControl = new FormControl('');
+		}
 
-        if (!this.nullable) {
-            validators.push(
-                Validators.minLength(10),
-                Validators.maxLength(10)
-            );
-        }
+		const validators: ValidatorFn[] = [];
 
-        this.formControl.setValidators(validators);
-    }
+		if (this.required) {
+			validators.push(Validators.required);
+		}
 
-    public initNullableValue(): void {
-        if (this.nullable && [null, '[null]'].includes(this.value)) {
-            this.toggleIsNull(true);
-        }
-    }
+		if (!this.nullable) {
+			validators.push(
+				Validators.minLength(10),
+				Validators.maxLength(10)
+			);
+		}
 
-    public getErrorMessage(): string {
-        if (this.error) {
-            return this.error;
-        }
-        return '';
-    }
+		this.formControl.setValidators(validators);
+	}
 
-    private updateValue(value: string | null): void {
-        if (value === null) {
-            this.is_null = true;
-            this.formControl.setValue('[null]');
-        }
-        else {
-            this.is_null = false;
-            if (new Date(value).toString() !== 'Invalid Date') {
-                const UTZDate: Date = new Date(value);
-                const UTCDate: Date = new Date(UTZDate.getUTCFullYear(), UTZDate.getUTCMonth(), UTZDate.getUTCDate());
-                this.formControl.setValue(UTCDate);
-            }
-            else {
-                this.formControl.setValue('');
-            }
-        }
-    }
+	public initNullableValue(): void {
+		if (this.nullable && [null, '[null]'].includes(this.value)) {
+			this.toggleIsNull(true);
+		}
+	}
 
-    public onClear(event: MouseEvent): void {
-        event.stopImmediatePropagation();
-        event.preventDefault();
-        this.updateValue('');
-        this.formControl.markAsPending({onlySelf: true});
-        this.input?.nativeElement?.focus();
-    }
+	private setMinHeightCSSProperty(size: 'small' | 'normal' | 'large' | 'extra'): void {
+		let hostHeight = 48;
+		const hintHeight = 16;
 
-    public activate(): void {
-        if (this.mode === 'edit' && !this.disabled) {
-            this.toggleActive(true);
-            this.input?.nativeElement?.focus();
-        }
-    }
+		switch (size) {
+			case 'small':
+				hostHeight = 48;
+				break;
+			case 'normal':
+				hostHeight = 56;
+				break;
+			case 'large':
+				hostHeight = 64;
+				break;
+			case 'extra':
+				hostHeight = 74;
+				break;
+		}
 
-    public onCancel(event: MouseEvent): void {
-        event.preventDefault();
-        event.stopPropagation();
-        this.toggleIsNull(false);
-        this.updateValue(this.value);
-        this.toggleActive(false);
-    }
+		const height = hostHeight + hintHeight;
 
-    public onSave(event: MouseEvent): void {
-        event.preventDefault();
-        event.stopPropagation();
-        if (this.is_null) {
-            this.valueChange.emit(null);
-        }
-        else if (this.formControl.valid) {
-            const date: string = this.convertToUTC(this.formControl.value);
-            this.valueChange.emit(date);
-        }
-        this.toggleActive(false);
-    }
+		this.eqDate.nativeElement.style.setProperty('min-height', `${height}px`);
+		this.eqDate.nativeElement.style.setProperty('height', `${height}px`);
+		this.eqDate.nativeElement.style.setProperty('max-height', `${height}px`);
+	}
 
-    public formatDate(): string {
-        if (this.formControl.value !== '[null]') {
-            const dateNameDictionary: Record<string, string> = {
-                'day.monday': 'lundi',
-                'day.tuesday': 'mardi',
-                'day.wednesday': 'mercredi',
-                'day.thursday': 'jeudi',
-                'day.friday': 'vendredi',
-                'day.saturday': 'samedi',
-                'day.sunday': 'dimanche',
-                'day.monday.short': 'lun',
-                'day.tuesday.short': 'mar',
-                'day.wednesday.short': 'mer',
-                'day.thursday.short': 'jeu',
-                'day.friday.short': 'ven',
-                'day.saturday.short': 'sam',
-                'day.sunday.short': 'dim',
-                'month.january': 'janvier',
-                'month.february': 'février',
-                'month.march': 'mars',
-                'month.april': 'avril',
-                'month.may': 'mai',
-                'month.june': 'juin',
-                'month.july': 'juillet',
-                'month.august': 'aout',
-                'month.september': 'septembre',
-                'month.october': 'octobre',
-                'month.november': 'novembre',
-                'month.december': 'décembre',
-                'month.january.short': 'jan',
-                'month.february.short': 'fév',
-                'month.march.short': 'mar',
-                'month.april.short': 'avr',
-                'month.may.short': 'mai',
-                'month.june.short': 'juin',
-                'month.july.short': 'juil',
-                'month.august.short': 'aou',
-                'month.september.short': 'sep',
-                'month.october.short': 'oct',
-                'month.november.short': 'nov',
-                'month.december.short': 'déc'
-            };
+	public getErrorMessage(): string {
+		if (this.error) {
+			return this.error;
+		}
+		return '';
+	}
 
-            const DateFormats: Record<dateUsage, string> = {
-                'date.short.day': 'ddd DD/MM/YY',
-                'date.short': 'DD/MM/YY',
-                'date.medium': 'DD/MM/YYYY',
-                'date.long': 'ddd DD MMM YYYY',
-                'date.full': 'dddd DD MMMM YYYY',
-            };
+	private updateValue(value: string | null): void {
+		if (value === null) {
+			this.is_null = true;
+			this.formControl.setValue('[null]');
+		} else {
+			this.is_null = false;
+			if (new Date(value).toString() !== 'Invalid Date') {
+				const UTZDate: Date = new Date(value);
+				const UTCDate: Date = new Date(UTZDate.getUTCFullYear(), UTZDate.getUTCMonth(), UTZDate.getUTCDate());
+				this.formControl.setValue(UTCDate);
+			} else {
+				this.formControl.setValue('');
+			}
+		}
+	}
 
-            const date: Date = this.formControl.value;
+	public onClear(event: MouseEvent): void {
+		event.stopImmediatePropagation();
+		event.preventDefault();
+		this.updateValue('');
+		this.formControl.markAsPending({onlySelf: true});
+		this.input?.nativeElement?.focus();
+	}
 
-            if (DateFormats.hasOwnProperty(this.usage as dateUsage)) {
+	public activate(): void {
+		if (this.mode === 'edit' && !this.disabled) {
+			this.toggleActive(true);
+			this.input?.nativeElement?.focus();
+		}
+	}
 
-                const format: string = DateFormats[this.usage as dateUsage];
+	public onCancel(event: MouseEvent): void {
+		event.preventDefault();
+		event.stopPropagation();
+		this.toggleIsNull(false);
+		this.updateValue(this.value);
+		this.toggleActive(false);
+	}
 
-                const name_month: string = date.toLocaleDateString('en-US', {month: 'long'});
-                const name_day: string = date.toLocaleDateString('en-US', {weekday: 'long'});
-                const index_day: number = date.getDate();
-                const index_month: number = date.getMonth() + 1;
-                const index_year: number = date.getFullYear();
+	public onSave(event: MouseEvent): void {
+		event.preventDefault();
+		event.stopPropagation();
+		if (this.is_null) {
+			this.valueChange.emit(null);
+		} else if (this.formControl.valid) {
+			const date: string = this.convertToUTC(this.formControl.value);
+			this.valueChange.emit(date);
+		}
+		this.toggleActive(false);
+	}
 
-                return format
-                    .replace('YYYY', index_year.toString().padStart(4, '0'))
-                    .replace('YY', (index_year % 100).toString().padStart(2, '0'))
-                    .replace('MMMM', dateNameDictionary['month.' + name_month.toLowerCase()])
-                    .replace('MMM', dateNameDictionary['month.' + name_month.toLowerCase() + '.short'])
-                    .replace('MM', index_month.toString().padStart(2, '0'))
-                    .replace('DD', index_day.toString().padStart(2, '0'))
-                    .replace('dddd', dateNameDictionary['day.' + name_day.toLowerCase()])
-                    .replace('ddd', dateNameDictionary['day.' + name_day.toLowerCase() + '.short']);
-            }
-        }
+	public formatDate(): string {
+		if (this.formControl.value !== '[null]') {
+			const dateNameDictionary: Record<string, string> = {
+				'day.monday': 'lundi',
+				'day.tuesday': 'mardi',
+				'day.wednesday': 'mercredi',
+				'day.thursday': 'jeudi',
+				'day.friday': 'vendredi',
+				'day.saturday': 'samedi',
+				'day.sunday': 'dimanche',
+				'day.monday.short': 'lun',
+				'day.tuesday.short': 'mar',
+				'day.wednesday.short': 'mer',
+				'day.thursday.short': 'jeu',
+				'day.friday.short': 'ven',
+				'day.saturday.short': 'sam',
+				'day.sunday.short': 'dim',
+				'month.january': 'janvier',
+				'month.february': 'février',
+				'month.march': 'mars',
+				'month.april': 'avril',
+				'month.may': 'mai',
+				'month.june': 'juin',
+				'month.july': 'juillet',
+				'month.august': 'aout',
+				'month.september': 'septembre',
+				'month.october': 'octobre',
+				'month.november': 'novembre',
+				'month.december': 'décembre',
+				'month.january.short': 'jan',
+				'month.february.short': 'fév',
+				'month.march.short': 'mar',
+				'month.april.short': 'avr',
+				'month.may.short': 'mai',
+				'month.june.short': 'juin',
+				'month.july.short': 'juil',
+				'month.august.short': 'aou',
+				'month.september.short': 'sep',
+				'month.october.short': 'oct',
+				'month.november.short': 'nov',
+				'month.december.short': 'déc'
+			};
 
-        return '[null]';
-    }
+			const DateFormats: Record<dateUsage, string> = {
+				'date.short.day': 'ddd DD/MM/YY',
+				'date.short': 'DD/MM/YY',
+				'date.medium': 'DD/MM/YYYY',
+				'date.long': 'ddd DD MMM YYYY',
+				'date.full': 'dddd DD MMMM YYYY',
+			};
 
-    public checkDateValidity(date: string): boolean {
-        return !isNaN(Date.parse(date));
-    }
+			const date: Date = this.formControl.value;
 
-    public onBlur(event: FocusEvent): void {
-        event.preventDefault();
-        // we need to discard current instance because onblur event occurs before onSave
-        if (
-            this.eqDate.nativeElement instanceof Element &&
-            !this.eqDate.nativeElement.contains(event.relatedTarget as Node)
-        ) {
-            this.toggleIsNull(false);
-            this.updateValue(this.value);
-            this.toggleActive(false);
-        }
-    }
+			if (DateFormats.hasOwnProperty(this.usage as dateUsage)) {
 
-    private toggleActive(editable: boolean): void {
-        this.is_active = editable;
-        if (editable) {
-            this.input?.nativeElement?.focus();
-        }
-    }
+				const format: string = DateFormats[this.usage as dateUsage];
 
-    public toggleIsNull(is_null: boolean): void {
-        this.is_null = is_null;
-        if (this.is_null) {
-            this.updateValue(null);
-        }
-        else {
-            this.updateValue('');
-            this.formControl.enable();
-            this.changeDetectorRef.detectChanges();
-        }
-    }
+				const name_month: string = date.toLocaleDateString('en-US', {month: 'long'});
+				const name_day: string = date.toLocaleDateString('en-US', {weekday: 'long'});
+				const index_day: number = date.getDate();
+				const index_month: number = date.getMonth() + 1;
+				const index_year: number = date.getFullYear();
 
-    private convertToUTC(date: Date): string {
-        const timestamp: number = date.getTime();
-        const offset_tz: number = date.getTimezoneOffset() * 60 * 1000;
-        return (new Date(timestamp - offset_tz).toISOString().substring(0, 10)) + 'T00:00:00+0000';
-    }
+				return format
+					.replace('YYYY', index_year.toString().padStart(4, '0'))
+					.replace('YY', (index_year % 100).toString().padStart(2, '0'))
+					.replace('MMMM', dateNameDictionary['month.' + name_month.toLowerCase()])
+					.replace('MMM', dateNameDictionary['month.' + name_month.toLowerCase() + '.short'])
+					.replace('MM', index_month.toString().padStart(2, '0'))
+					.replace('DD', index_day.toString().padStart(2, '0'))
+					.replace('dddd', dateNameDictionary['day.' + name_day.toLowerCase()])
+					.replace('ddd', dateNameDictionary['day.' + name_day.toLowerCase() + '.short']);
+			}
+		}
+
+		return '[null]';
+	}
+
+	public checkDateValidity(date: string): boolean {
+		return !isNaN(Date.parse(date));
+	}
+
+	public onBlur(event: FocusEvent): void {
+		event.preventDefault();
+		// we need to discard current instance because onblur event occurs before onSave
+		if (
+			this.eqDate.nativeElement instanceof Element &&
+			!this.eqDate.nativeElement.contains(event.relatedTarget as Node)
+		) {
+			this.toggleIsNull(false);
+			this.updateValue(this.value);
+			this.toggleActive(false);
+		}
+	}
+
+	private toggleActive(editable: boolean): void {
+		this.is_active = editable;
+		if (editable) {
+			this.input?.nativeElement?.focus();
+		}
+	}
+
+	public toggleIsNull(is_null: boolean): void {
+		this.is_null = is_null;
+		if (this.is_null) {
+			this.updateValue(null);
+		} else {
+			this.updateValue('');
+			this.formControl.enable();
+			this.changeDetectorRef.detectChanges();
+		}
+	}
+
+	private convertToUTC(date: Date): string {
+		const timestamp: number = date.getTime();
+		const offset_tz: number = date.getTimezoneOffset() * 60 * 1000;
+		return (new Date(timestamp - offset_tz).toISOString().substring(0, 10)) + 'T00:00:00+0000';
+	}
 }
