@@ -12,7 +12,10 @@ import {
 	ViewChild
 } from '@angular/core';
 import {FormControl, FormGroup, ValidatorFn, Validators} from '@angular/forms';
-import {DateRange, MatDateRangeInput} from '@angular/material/datepicker';
+import {DateRange, MatDateRangeInput, MatDateRangePicker} from '@angular/material/datepicker';
+import {Observable} from 'rxjs';
+import {BreakpointState} from '@angular/cdk/layout';
+import {ResponsiveService} from '../../services/responsive.service';
 
 type dateUsage = 'date.short.day' | 'date.short' | 'date.medium' | 'date.long' | 'date.full';
 
@@ -57,10 +60,21 @@ export class EqDateRangeComponent implements OnInit, OnChanges, AfterViewInit {
 
 	public is_null: boolean = false;
 
+	public isHandset$: Observable<BreakpointState>;
+
 	@ViewChild('eqDateRange') eqDateRange: ElementRef<HTMLDivElement>;
 	@ViewChild('inputRange') inputRange: MatDateRangeInput<string>;
 	@ViewChild('inputStart') inputStart: ElementRef<HTMLInputElement>;
 	@ViewChild('inputEnd') inputEnd: ElementRef<HTMLInputElement>;
+	@ViewChild('dateRangePicker') dateRangePicker: MatDateRangePicker<string | Date | null>;
+
+	constructor(
+		private changeDetectorRef: ChangeDetectorRef,
+		private responsiveService: ResponsiveService,
+	) {
+		this.isHandset$ = this.responsiveService.isHandset();
+	}
+
 
 	get inputStartValue(): string | null {
 		if (this.inputRange && this.inputRange.value instanceof DateRange) {
@@ -98,10 +112,6 @@ export class EqDateRangeComponent implements OnInit, OnChanges, AfterViewInit {
 		return null;
 	}
 
-	constructor(
-		private changeDetectorRef: ChangeDetectorRef,
-	) {
-	}
 
 	ngOnChanges(changes: SimpleChanges): void {
 		if (changes.hasOwnProperty('mode') && !changes.mode.firstChange && this.value === null) {
