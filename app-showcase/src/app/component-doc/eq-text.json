@@ -1,0 +1,334 @@
+{
+	"title": "eq-text",
+	"columns": 4,
+	"componentSelector": "EqTextComponent",
+	"description": "The EqTextComponent is an Angular component used for rendering an editable text area with various customization options. It provides functionality for view and edit modes, supports validation, and emits changes to the parent component.",
+	"components": [
+		{
+			"label": "outline edit small 85%",
+			"properties": {
+				"appearance": "outline",
+				"value": "Initial text",
+				"placeholder": "Enter your text here",
+				"disabled": false,
+				"required": true,
+				"nullable": true,
+				"mode": "edit",
+				"title": "Sample Text Input",
+				"hint": "This is a hint",
+				"size": "small",
+				"error": "Invalid input",
+				"hasError": false,
+				"minHeight": 100,
+				"maxHeight": 200,
+				"autoGrow": true
+			}
+		},
+		{
+			"label": "outline edit normal 100%",
+			"properties": {
+				"appearance": "outline",
+				"value": "Initial text",
+				"placeholder": "Enter your text here",
+				"disabled": false,
+				"required": true,
+				"nullable": true,
+				"mode": "edit",
+				"title": "Sample Text Input",
+				"hint": "This is a hint",
+				"size": "normal",
+				"error": "Invalid input",
+				"hasError": false,
+				"minHeight": 100,
+				"maxHeight": 200,
+				"autoGrow": true
+			}
+		},
+		{
+			"label": "outline edit large 117%",
+			"properties": {
+				"appearance": "outline",
+				"value": "Initial text",
+				"placeholder": "Enter your text here",
+				"disabled": false,
+				"required": true,
+				"nullable": true,
+				"mode": "edit",
+				"title": "Sample Text Input",
+				"hint": "This is a hint",
+				"size": "large",
+				"error": "Invalid input",
+				"hasError": false,
+				"minHeight": 100,
+				"maxHeight": 200,
+				"autoGrow": true
+			}
+		},
+		{
+			"label": "outline edit extra 137%",
+			"properties": {
+				"appearance": "outline",
+				"value": "Initial text",
+				"placeholder": "Enter your text here",
+				"disabled": false,
+				"required": true,
+				"nullable": true,
+				"mode": "edit",
+				"title": "Sample Text Input",
+				"hint": "This is a hint",
+				"size": "extra",
+				"error": "Invalid input",
+				"hasError": false,
+				"minHeight": 100,
+				"maxHeight": 200,
+				"autoGrow": true
+			}
+		},
+		{
+			"label": "outline view small 85%",
+			"properties": {
+				"appearance": "outline",
+				"value": "View only text",
+				"mode": "view",
+				"title": "View Mode Text",
+				"size": "small"
+			}
+		},
+		{
+			"label": "outline view normal 100%",
+			"properties": {
+				"appearance": "outline",
+				"value": "View only text",
+				"mode": "view",
+				"title": "View Mode Text",
+				"size": "normal"
+			}
+		},
+		{
+			"label": "outline view large 117%",
+			"properties": {
+				"appearance": "outline",
+				"value": "View only text",
+				"mode": "view",
+				"title": "View Mode Text",
+				"size": "large"
+			}
+		},
+		{
+			"label": "outline view extra 137%",
+			"properties": {
+				"appearance": "outline",
+				"value": "View only text",
+				"mode": "view",
+				"title": "View Mode Text",
+				"size": "extra"
+			}
+		},
+		{
+			"label": "fill edit small 85%",
+			"properties": {
+				"appearance": "fill",
+				"value": "Initial text",
+				"placeholder": "Enter your text here",
+				"disabled": false,
+				"required": true,
+				"nullable": true,
+				"mode": "edit",
+				"title": "Sample Text Input",
+				"hint": "This is a hint",
+				"size": "small",
+				"error": "Invalid input",
+				"hasError": false,
+				"minHeight": 100,
+				"maxHeight": 200,
+				"autoGrow": true
+			}
+		},
+		{
+			"label": "fill edit normal 100%",
+			"properties": {
+				"appearance": "fill",
+				"value": "Initial text",
+				"placeholder": "Enter your text here",
+				"disabled": false,
+				"required": true,
+				"nullable": true,
+				"mode": "edit",
+				"title": "Sample Text Input",
+				"hint": "This is a hint",
+				"size": "normal",
+				"error": "Invalid input",
+				"hasError": false,
+				"minHeight": 100,
+				"maxHeight": 200,
+				"autoGrow": true
+			}
+		},
+		{
+			"label": "fill edit large 117%",
+			"properties": {
+				"appearance": "fill",
+				"value": "Initial text",
+				"placeholder": "Enter your text here",
+				"disabled": false,
+				"required": true,
+				"nullable": true,
+				"mode": "edit",
+				"title": "Sample Text Input",
+				"hint": "This is a hint",
+				"size": "large",
+				"error": "Invalid input",
+				"hasError": false,
+				"minHeight": 100,
+				"maxHeight": 200,
+				"autoGrow": true
+			}
+		},
+		{
+			"label": "fill edit extra 137%",
+			"properties": {
+				"appearance": "fill",
+				"value": "Initial text",
+				"placeholder": "Enter your text here",
+				"disabled": false,
+				"required": true,
+				"nullable": true,
+				"mode": "edit",
+				"title": "Sample Text Input",
+				"hint": "This is a hint",
+				"size": "extra",
+				"error": "Invalid input",
+				"hasError": false,
+				"minHeight": 100,
+				"maxHeight": 200,
+				"autoGrow": true
+			}
+		},
+		{
+			"label": "fill view small 85%",
+			"properties": {
+				"appearance": "fill",
+				"value": "View only text",
+				"mode": "view",
+				"title": "View Mode Text",
+				"size": "small"
+			}
+		},
+		{
+			"label": "fill view normal 100%",
+			"properties": {
+				"appearance": "fill",
+				"value": "View only text",
+				"mode": "view",
+				"title": "View Mode Text",
+				"size": "normal"
+			}
+		},
+		{
+			"label": "fill view large 117%",
+			"properties": {
+				"appearance": "fill",
+				"value": "View only text",
+				"mode": "view",
+				"title": "View Mode Text",
+				"size": "large"
+			}
+		},
+		{
+			"label": "fill view extra 137%",
+			"properties": {
+				"appearance": "fill",
+				"value": "View only text",
+				"mode": "view",
+				"title": "View Mode Text",
+				"size": "extra"
+			}
+		}
+	],
+	"documentation": {
+		"inputs": [
+			{
+				"name": "appearance",
+				"type": "'fill' | 'outline'",
+				"description": "The appearance of the input. Defaults to outline."
+			},
+			{
+				"name": "value",
+				"type": "string | null",
+				"description": "The current value of the text input."
+			},
+			{
+				"name": "placeholder",
+				"type": "string",
+				"description": "Placeholder text for the input. Defaults to an empty string."
+			},
+			{
+				"name": "disabled",
+				"type": "boolean",
+				"description": "Whether the input is disabled. Defaults to false."
+			},
+			{
+				"name": "required",
+				"type": "boolean",
+				"description": "Whether the input is required. Defaults to false."
+			},
+			{
+				"name": "nullable",
+				"type": "boolean",
+				"description": "Whether the input can be null. Defaults to false."
+			},
+			{
+				"name": "mode",
+				"type": "'view' | 'edit'",
+				"description": "The mode of the component, either 'view' or 'edit'. Defaults to 'view'."
+			},
+			{
+				"name": "title",
+				"type": "string",
+				"description": "Optional title for the input."
+			},
+			{
+				"name": "hint",
+				"type": "string",
+				"description": "Hint text for the input. Defaults to an empty string."
+			},
+			{
+				"name": "size",
+				"type": "'small' | 'normal' | 'large' | 'extra'",
+				"description": "The size of the input. Defaults to normal."
+			},
+			{
+				"name": "error",
+				"type": "string",
+				"description": "Error message to display when the input is invalid."
+			},
+			{
+				"name": "hasError",
+				"type": "boolean",
+				"description": "Whether the input has an error. Defaults to false."
+			},
+			{
+				"name": "minHeight",
+				"type": "number",
+				"description": "Minimum height of the input in pixels."
+			},
+			{
+				"name": "maxHeight",
+				"type": "number",
+				"description": "Maximum height of the input in pixels."
+			},
+			{
+				"name": "autoGrow",
+				"type": "boolean",
+				"description": "Whether the input should automatically grow to fit the content. Defaults to false."
+			}
+		],
+		"outputs": [
+			{
+				"name": "valueChange",
+				"type": "EventEmitter<string | null>",
+				"description": "Emits the new value when the input changes."
+			}
+		]
+	}
+}

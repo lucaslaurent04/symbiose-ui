@@ -1,0 +1,27 @@
+<div class="documentation-overlay" [class]="isOpen ? 'documentation-overlay--active' : ''">
+    <div class="overlay">
+        <div class="header">
+            <span class="title">Component documentation</span>
+            <button mat-icon-button  class="close-button" (click)="onClose()">
+                <mat-icon>close</mat-icon>
+            </button>
+        </div>
+
+        <mat-tab-group>
+            <ng-container *ngFor="let keys of documentationKeys">
+                <mat-tab [label]="renderCamelCaseToLiteral(keys)">
+                    <div class="content">
+                        <div class="row" *ngFor="let property of documentation[keys]">
+                            <div class="head">
+                                <span class="badge">{{ property.name }}</span>
+                                <span class="type"> : {{ property.type }}</span>
+                            </div>
+                            <span class="description-label">Description:</span>
+                            <p class="description">{{ componentPropertyDescription(property.description) }}</p>
+                        </div>
+                    </div>
+                </mat-tab>
+            </ng-container>
+        </mat-tab-group>
+    </div>
+</div>
