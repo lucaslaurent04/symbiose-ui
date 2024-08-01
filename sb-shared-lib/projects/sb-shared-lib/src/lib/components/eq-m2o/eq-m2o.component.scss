@@ -170,7 +170,7 @@
 
 	/* Appearance */
 	/* Filled */
-	.eq-m2o.edit.filled {
+	.eq-m2o.edit.fill {
 		mat-form-field {
 			&::ng-deep {
 				.mat-form-field-wrapper {
@@ -197,7 +197,7 @@
 
 	/* Appearance and size */
 	/* Filled */
-	.eq-m2o.edit.filled {
+	.eq-m2o.edit.fill {
 		&.small {
 			.action {
 				top: -8px;
@@ -490,7 +490,7 @@
 
 	/* View Mode and appearance */
 	/* Filled */
-	.eq-m2o.view.filled {
+	.eq-m2o.view.fill {
 		&.small .text span {
 			top: 19px;
 		}

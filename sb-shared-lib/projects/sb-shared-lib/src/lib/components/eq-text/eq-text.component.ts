@@ -21,7 +21,7 @@ type size = 'small' | 'normal' | 'large' | 'extra';
 export class EqTextComponent implements OnInit, DoCheck, AfterViewChecked {
 	@Output() valueChange: EventEmitter<string | null> = new EventEmitter<string | null>();
 
-	@Input() public appearance: 'filled' | 'outline' = 'filled';
+	@Input() public appearance: 'fill' | 'outline' = 'outline';
 
 	@Input() value: string | null;
 

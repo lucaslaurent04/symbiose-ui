@@ -13,7 +13,7 @@
 		#matFormField
 		*ngIf="mode === 'edit'"
 		[class.disabled]="disabled"
-		[appearance]="appearance === 'filled' ? 'fill' : 'outline'"
+		[appearance]="appearance"
 		[formGroup]="formGroup"
 	>
 		<mat-label *ngIf="title">{{ title }}</mat-label>

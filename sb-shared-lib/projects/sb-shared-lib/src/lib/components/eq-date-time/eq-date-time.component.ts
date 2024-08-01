@@ -29,7 +29,7 @@ export class EqDateTimeComponent implements OnInit, OnChanges, AfterViewInit {
 
 	@Output() valueChange: EventEmitter<string | null> = new EventEmitter<string | null>();
 
-	@Input() appearance: 'filled' | 'outline' = 'outline';
+	@Input() appearance: 'fill' | 'outline' = 'outline';
 
 	@Input() value: string | null;
 

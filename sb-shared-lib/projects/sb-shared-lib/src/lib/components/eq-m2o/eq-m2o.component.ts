@@ -82,7 +82,7 @@ export class EqM2oComponent implements OnInit, OnChanges, AfterViewInit, AfterCo
 	/* css value for panel width (dropdown) */
 	@Input() panelWidth = 'auto';
 
-	@Input() appearance: 'filled' | 'outline' = 'filled';
+	@Input() appearance: 'fill' | 'outline' = 'outline';
 
 	@Output() itemSelected: EventEmitter<number> = new EventEmitter<number>();
 

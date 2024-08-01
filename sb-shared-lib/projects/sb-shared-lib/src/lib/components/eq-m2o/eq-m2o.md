@@ -30,7 +30,7 @@ To use the `eq-m2o` component, simply include it in your Angular project's HTML 
 
 | Property            | Required |           Type            | Default    | Description                                                             |
 |---------------------|:--------:|:-------------------------:|------------|-------------------------------------------------------------------------|
-| `appearance`        | Optional | `'filled'` \| `'outline'` | `'filled'` | The appearance of the input field.                                      |                                                              
+| `appearance`        | Optional | `'fill'` \| `'outline'` | `'fill'` | The appearance of the input field.                                      |                                                              
 | mode                | Optional |     'view' \| 'edit'      | 'view'     | Specifies the mode of the component, whether it's in view or edit mode. |
 | disabled            | Optional |          boolean          | false      | Specifies whether the input field is disabled.                          |
 | required            | Optional |          boolean          | false      | Specifies whether the input field is required.                          |

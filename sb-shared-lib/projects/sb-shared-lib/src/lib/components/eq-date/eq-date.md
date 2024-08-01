@@ -31,7 +31,7 @@ The `eq-date` component can be integrated into your Angular application by addin
 
 | Property      | Required | Type                      |  Default   | Description                                                                                                 |
 |---------------|:--------:|---------------------------|:----------:|-------------------------------------------------------------------------------------------------------------|
-| `appearance`  | Optional | `'filled'` \| `'outline'` | `'filled'` | The appearance of the input field.                                                                          |   
+| `appearance`  | Optional | `'fill'` \| `'outline'` | `'fill'` | The appearance of the input field.                                                                          |   
 | `value`       | Required | `string` \| `null`        |     -      | The date value in ISO 8601 (UTC) format.                                                                    |
 | `placeholder` | Optional | `string`                  |    `''`    | The placeholder attribute of the input.                                                                     |
 | `disabled`    | Optional | `boolean`                 |  `false`   | Disables the input field.                                                                                   |

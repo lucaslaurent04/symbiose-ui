@@ -181,8 +181,8 @@
 
 	}
 
-	/* filled */
-	.eq-text.edit.filled {
+	/* fill */
+	.eq-text.edit.fill {
 		mat-form-field {
 			&::ng-deep {
 				.mat-form-field-infix button {
@@ -194,7 +194,7 @@
 
 	/* View Mode and appearance */
 	/* Filled */
-	.eq-text.view.filled {
+	.eq-text.view.fill {
 		&.small .text span {
 			top: 39px;
 		}

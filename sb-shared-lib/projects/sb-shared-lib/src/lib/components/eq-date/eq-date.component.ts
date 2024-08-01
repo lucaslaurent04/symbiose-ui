@@ -21,7 +21,7 @@ type dateUsage = 'date.short.day' | 'date.short' | 'date.medium' | 'date.long' |
 export class EqDateComponent implements OnInit, AfterViewInit {
 	@Output() valueChange: EventEmitter<string | null> = new EventEmitter<string | null>();
 
-	@Input() appearance: 'filled' | 'outline' = 'outline';
+	@Input() appearance: 'fill' | 'outline' = 'outline';
 
 	@Input() value: string | null;
 

@@ -10,7 +10,7 @@
             <span>{{ formatDate(formGroup.value.start) + ' - ' + formatDate(formGroup.value.end) }}</span>
     </span>
 	<mat-form-field *ngIf="mode === 'edit'" [class.disabled]="disabled"
-					[appearance]="appearance === 'filled' ? 'fill' : 'outline'">
+					[appearance]="appearance">
 		<mat-label *ngIf="title">{{ title }}</mat-label>
 		<mat-date-range-input
 			#inputRange

@@ -33,7 +33,7 @@ To use the `eq-string` component, include the following code in your Angular tem
 
 | Property      | Required | Type                                              |  Default   | Description                                                                                                 |
 |---------------|:--------:|---------------------------------------------------|:----------:|-------------------------------------------------------------------------------------------------------------|
-| `appearance`  | Optional | `'filled'` \| `'outline'`                         | `'filled'` | The appearance of the input field.                                                                          |
+| `appearance`  | Optional | `'fill'` \| `'outline'`                         | `'fill'` | The appearance of the input field.                                                                          |
 | `value`       | Required | `string` \| `null`                                |     -      | The value to be handled by the component.                                                                   |
 | `placeholder` | Optional | `string`                                          |    `''`    | The placeholder attribute of the input.                                                                     |
 | `disabled`    | Optional | `boolean`                                         |  `false`   | Disables the input field.                                                                                   |

@@ -18,7 +18,7 @@ import {FormControl, ValidatorFn, Validators} from '@angular/forms';
 export class EqStringComponent implements OnInit, DoCheck, AfterViewInit {
 	@Output() valueChange: EventEmitter<string | null> = new EventEmitter<string | null>();
 
-	@Input() appearance: 'filled' | 'outline' = 'filled';
+	@Input() appearance: 'fill' | 'outline' = 'outline';
 
 	@Input() value: string | null;
 
