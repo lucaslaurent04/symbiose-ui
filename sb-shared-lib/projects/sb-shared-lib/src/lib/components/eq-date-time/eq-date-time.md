@@ -48,7 +48,7 @@ The `eq-date-time` component can be integrated into your Angular project using i
 
 | Property      | Required | Type                      |  Default   | Description                                                                                                  |
 |---------------|:--------:|---------------------------|:----------:|--------------------------------------------------------------------------------------------------------------|
-| `appearance`  | Optional | `'filled'` \| `'outline'` | `'filled'` | The appearance of the input field.                                                                           |   
+| `appearance`  | Optional | `'fill'` \| `'outline'` | `'fill'` | The appearance of the input field.                                                                           |   
 | `value`       | Required | `string` \| `null`        |     -      | The date value in ISO 8601 (UTC) format.<br><br> The value is formated like this: `2024-12-31T23:38:46+0000` |
 | `placeholder` | Optional | `string`                  |    `''`    | The placeholder attribute of the input.                                                                      |
 | `disabled`    | Optional | `boolean`                 |  `false`   | Disables the input field.                                                                                    |

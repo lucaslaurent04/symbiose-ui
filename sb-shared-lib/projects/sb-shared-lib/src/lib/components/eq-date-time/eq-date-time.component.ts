@@ -13,6 +13,10 @@ import {
 } from '@angular/core';
 import {FormControl, FormGroup, Validators} from '@angular/forms';
 import {MatFormField} from '@angular/material/form-field';
+import {Observable} from 'rxjs';
+import {BreakpointState} from '@angular/cdk/layout';
+import {ResponsiveService} from '../../services/responsive.service';
+import {MatDatepicker} from '@angular/material/datepicker';
 
 type dateTimeUsage =
 	| 'datetime.short'
@@ -29,7 +33,7 @@ export class EqDateTimeComponent implements OnInit, OnChanges, AfterViewInit {
 
 	@Output() valueChange: EventEmitter<string | null> = new EventEmitter<string | null>();
 
-	@Input() appearance: 'filled' | 'outline' = 'outline';
+	@Input() appearance: 'fill' | 'outline' = 'outline';
 
 	@Input() value: string | null;
 
@@ -61,10 +65,21 @@ export class EqDateTimeComponent implements OnInit, OnChanges, AfterViewInit {
 
 	public is_null: boolean = false;
 
+	public isHandset$: Observable<BreakpointState>;
+
 	@ViewChild('eqDateTime') eqDateTime: ElementRef<HTMLDivElement>;
 	@ViewChild('matFormField', {static: false}) matFormField: MatFormField;
 	@ViewChild('inputDate', {static: false}) inputDate: ElementRef<HTMLInputElement>;
 	@ViewChild('inputTime', {static: false}) inputTime: ElementRef<HTMLInputElement>;
+	@ViewChild('datePicker') datePicker: MatDatepicker<Date | string | null>;
+
+	constructor(
+		private changeDetectorRef: ChangeDetectorRef,
+		private responsiveService: ResponsiveService,
+	) {
+		this.isHandset$ = this.responsiveService.isHandset();
+	}
+
 
 	get inputDateValue(): string | null {
 		if (this.inputDate.nativeElement instanceof HTMLInputElement) {
@@ -90,10 +105,6 @@ export class EqDateTimeComponent implements OnInit, OnChanges, AfterViewInit {
 		return null;
 	}
 
-	constructor(
-		private changeDetectorRef: ChangeDetectorRef,
-	) {
-	}
 
 	ngOnChanges(changes: SimpleChanges): void {
 		if (changes.hasOwnProperty('mode') && !changes.mode.firstChange && this.value === null) {

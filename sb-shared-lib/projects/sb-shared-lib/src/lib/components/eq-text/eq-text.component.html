@@ -14,7 +14,7 @@
 	<mat-form-field
 		*ngIf="mode === 'edit'"
 		[class.disabled]="disabled || !is_active"
-		[appearance]="appearance === 'filled' ? 'fill' : 'outline'">
+		[appearance]="appearance">
 		<mat-label *ngIf="title && mode === 'edit'">{{ title }}</mat-label>
 		<textarea #textarea
 				  [readonly]="disabled"

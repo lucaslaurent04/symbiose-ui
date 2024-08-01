@@ -151,7 +151,7 @@
 
 	/* Only Appearance */
 	/* Filled */
-	.eq-string.edit.filled {
+	.eq-string.edit.fill {
 		mat-form-field::ng-deep {
 
 			.mat-form-field-wrapper {
@@ -202,7 +202,7 @@
 
 	/* Appearance and sizes */
 	/* Filled */
-	.eq-string.edit.filled {
+	.eq-string.edit.fill {
 		&.small {
 			mat-form-field {
 				input {
@@ -411,7 +411,7 @@
 
 	/* View Mode and appearance */
 	/* Filled */
-	.eq-string.view.filled {
+	.eq-string.view.fill {
 		&.small .text span {
 			top: 34px;
 		}

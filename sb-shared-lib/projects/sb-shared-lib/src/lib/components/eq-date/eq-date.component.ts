@@ -10,6 +10,10 @@ import {
 	ViewChild
 } from '@angular/core';
 import {FormControl, ValidatorFn, Validators} from '@angular/forms';
+import {ResponsiveService} from "../../services/responsive.service";
+import {Observable} from "rxjs";
+import {BreakpointState} from "@angular/cdk/layout";
+import {MatDatepicker} from "@angular/material/datepicker";
 
 type dateUsage = 'date.short.day' | 'date.short' | 'date.medium' | 'date.long' | 'date.full';
 
@@ -21,7 +25,7 @@ type dateUsage = 'date.short.day' | 'date.short' | 'date.medium' | 'date.long' |
 export class EqDateComponent implements OnInit, AfterViewInit {
 	@Output() valueChange: EventEmitter<string | null> = new EventEmitter<string | null>();
 
-	@Input() appearance: 'filled' | 'outline' = 'outline';
+	@Input() appearance: 'fill' | 'outline' = 'outline';
 
 	@Input() value: string | null;
 
@@ -53,8 +57,12 @@ export class EqDateComponent implements OnInit, AfterViewInit {
 
 	public is_null: boolean = false;
 
-	@ViewChild('eqDate') eqDate: ElementRef<HTMLDivElement>;
-	@ViewChild('input') input: ElementRef<HTMLInputElement>;
+	public isHandset$: Observable<BreakpointState>;
+
+	@ViewChild('eqDate') eqDate!: ElementRef<HTMLDivElement>;
+	@ViewChild('input') input!: ElementRef<HTMLInputElement>;
+	@ViewChild('datePicker') datePicker!: MatDatepicker<Date>; // Ensure this matches your template
+
 
 	get inputValue(): string | undefined {
 		return this.input?.nativeElement.value;
@@ -64,7 +72,9 @@ export class EqDateComponent implements OnInit, AfterViewInit {
 
 	constructor(
 		private changeDetectorRef: ChangeDetectorRef,
+		private responsiveService: ResponsiveService,
 	) {
+		this.isHandset$ = this.responsiveService.isHandset();
 	}
 
 	ngOnInit(): void {

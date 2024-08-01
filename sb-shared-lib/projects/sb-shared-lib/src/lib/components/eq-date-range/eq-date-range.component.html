@@ -10,7 +10,7 @@
             <span>{{ formatDate(formGroup.value.start) + ' - ' + formatDate(formGroup.value.end) }}</span>
     </span>
 	<mat-form-field *ngIf="mode === 'edit'" [class.disabled]="disabled"
-					[appearance]="appearance === 'filled' ? 'fill' : 'outline'">
+					[appearance]="appearance">
 		<mat-label *ngIf="title">{{ title }}</mat-label>
 		<mat-date-range-input
 			#inputRange
@@ -72,7 +72,9 @@
 		</mat-error>
 		<mat-error *ngIf="formGroup.controls.end.hasError('matEndDateInvalid')">Invalid end date</mat-error>
 
-		<mat-date-range-picker #dateRangePicker></mat-date-range-picker>
+		<ng-container *ngIf="isHandset$ | async as isHandset">
+			<mat-date-range-picker [touchUi]="isHandset.matches" #dateRangePicker></mat-date-range-picker>
+		</ng-container>
 	</mat-form-field>
 	<button
 		mat-icon-button

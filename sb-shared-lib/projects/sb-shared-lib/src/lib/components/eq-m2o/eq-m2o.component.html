@@ -19,7 +19,7 @@
 	<ng-container *ngIf="mode === 'edit'">
 		<mat-form-field
 			(click)="mode === 'edit' && activate()"
-			[appearance]="appearance === 'filled' ? 'fill' : 'outline'"
+			[appearance]="appearance"
 		>
 			<mat-label *ngIf="title">{{ title }}</mat-label>
 			<input #inputControl

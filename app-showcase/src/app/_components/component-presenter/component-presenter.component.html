@@ -1,0 +1,24 @@
+<div class="component-presenter">
+
+    <div class="head">
+        <span *ngIf="showcase.title" class="title">{{ showcase.title }}</span>
+
+        <button mat-icon-button class="info-button" (click)="toggleOverlay()">
+            <mat-icon>info</mat-icon>
+        </button>
+    </div>
+
+    <p *ngIf="showcase.description" class="description">{{ showcase.description }}</p>
+
+    <div class="components" [style.grid-template-columns]="'repeat('+ showcase.columns +', minmax(300px, 1fr))'">
+            <ng-template appDynamicHost></ng-template>
+    </div>
+
+
+    <app-documentation-overlay
+        [documentation]="showcase.documentation"
+        [isOpen]="isOverlayVisible"
+        (isOpenChange)="onOverlayVisibilityChange($event)"
+    >
+    </app-documentation-overlay>
+</div>

@@ -13,7 +13,7 @@
 		#matFormField
 		*ngIf="mode === 'edit'"
 		[class.disabled]="disabled"
-		[appearance]="appearance === 'filled' ? 'fill' : 'outline'"
+		[appearance]="appearance"
 		[formGroup]="formGroup"
 	>
 		<mat-label *ngIf="title">{{ title }}</mat-label>
@@ -99,7 +99,10 @@
 			<mat-icon>toggle_on</mat-icon>
 		</button>
 
-		<mat-datepicker #datePicker></mat-datepicker>
+		<ng-container *ngIf="isHandset$ | async as isHandset">
+			<mat-datepicker [touchUi]="isHandset.matches" #datePicker></mat-datepicker>
+		</ng-container>
+
 		<mat-error *ngIf="formGroup.invalid">{{ error }}</mat-error>
 
 	</mat-form-field>
