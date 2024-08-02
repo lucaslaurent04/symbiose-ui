@@ -7,7 +7,7 @@
             </button>
         </div>
 
-        <mat-tab-group>
+        <mat-tab-group [selectedIndex]="0">
             <ng-container *ngFor="let keys of documentationKeys">
                 <mat-tab [label]="renderCamelCaseToLiteral(keys)">
                     <div class="content">

@@ -1,377 +1,385 @@
 {
-    "title": "eq-m2o",
+	"title": "eq-m2o",
 	"columns": 4,
 	"componentSelector": "EqM2oComponent",
-    "description": "The EqM2oComponent is an Angular component used for rendering an editable input with autocomplete functionality. It supports various customization options and emits selected items to the parent component.",
-    "components": [
-        {
-            "label": "fill edit small 85%",
-            "properties": {
-                "appearance": "fill",
-                "size": "small",
-                "placeholder": "Select an item",
-                "title": "Sample Entity Selection",
-                "hint": "Start typing to search",
-                "mode": "edit",
-                "entity": "core\\User",
-                "id": 1,
-                "fields": [
-                    "id",
-                    "name"
-                ]
-            }
-        },
-        {
-            "label": "fill edit normal 100%",
-            "properties": {
-                "appearance": "fill",
-                "size": "normal",
-                "placeholder": "Select an item",
-                "title": "Sample Entity Selection",
-                "hint": "Start typing to search",
-                "mode": "edit",
-                "entity": "core\\User",
-                "id": 1,
-                "fields": [
-                    "id",
-                    "name"
-                ]
-            }
-        },
-        {
-            "label": "fill edit large 117%",
-            "properties": {
-                "appearance": "fill",
-                "size": "large",
-                "placeholder": "Select an item",
-                "title": "Sample Entity Selection",
-                "hint": "Start typing to search",
-                "mode": "edit",
-                "entity": "core\\User",
-                "id": 1,
-                "fields": [
-                    "id",
-                    "name"
-                ]
-            }
-        },
-        {
-            "label": "fill edit extra 137%",
-            "properties": {
-                "appearance": "fill",
-                "size": "extra",
-                "placeholder": "Select an item",
-                "title": "Sample Entity Selection",
-                "hint": "Start typing to search",
-                "mode": "edit",
-                "entity": "core\\User",
-                "id": 1,
-                "fields": [
-                    "id",
-                    "name"
-                ]
-            }
-        },
-        {
-            "label": "fill view small 85%",
-            "properties": {
-                "appearance": "fill",
-                "size": "small",
-                "entity": "core\\User",
-                "id": 1,
-                "mode": "view",
-                "initialSelectedItem": {
-                    "id": 1,
-                    "name": "root@equal.local"
-                }
-            }
-        },
-        {
-            "label": "fill view normal 100%",
-            "properties": {
-                "appearance": "fill",
-                "size": "normal",
-                "entity": "core\\User",
-                "id": 1,
-                "mode": "view",
-                "initialSelectedItem": {
-                    "id": 1,
-                    "name": "root@equal.local"
-                }
-            }
-        },
-        {
-            "label": "fill view large 117%",
-            "properties": {
-                "appearance": "fill",
-                "size": "large",
-                "entity": "core\\User",
-                "id": 1,
-                "mode": "view",
-                "initialSelectedItem": {
-                    "id": 1,
-                    "name": "root@equal.local"
-                }
-            }
-        },
-        {
-            "label": "fill view extra 137%",
-            "properties": {
-                "appearance": "fill",
-                "size": "extra",
-                "entity": "core\\User",
-                "id": 1,
-                "mode": "view",
-                "initialSelectedItem": {
-                    "id": 1,
-                    "name": "root@equal.local"
-                }
-            }
-        },
-        {
-            "label": "outline edit small 85%",
-            "properties": {
-                "appearance": "outline",
-                "size": "small",
-                "placeholder": "Select an item",
-                "title": "Sample Entity Selection",
-                "hint": "Start typing to search",
-                "mode": "edit",
-                "entity": "core\\User",
-                "id": 1,
-                "fields": [
-                    "id",
-                    "name"
-                ]
-            }
-        },
-        {
-            "label": "outline edit normal 100%",
-            "properties": {
-                "appearance": "outline",
-                "size": "normal",
-                "placeholder": "Select an item",
-                "title": "Sample Entity Selection",
-                "hint": "Start typing to search",
-                "mode": "edit",
-                "entity": "core\\User",
-                "id": 1,
-                "fields": [
-                    "id",
-                    "name"
-                ]
-            }
-        },
-        {
-            "label": "outline edit large 117%",
-            "properties": {
-                "appearance": "outline",
-                "size": "large",
-                "placeholder": "Select an item",
-                "title": "Sample Entity Selection",
-                "hint": "Start typing to search",
-                "mode": "edit",
-                "entity": "core\\User",
-                "id": 1,
-                "fields": [
-                    "id",
-                    "name"
-                ]
-            }
-        },
-        {
-            "label": "outline edit extra 137%",
-            "properties": {
-                "appearance": "outline",
-                "size": "extra",
-                "placeholder": "Select an item",
-                "title": "Sample Entity Selection",
-                "hint": "Start typing to search",
-                "mode": "edit",
-                "entity": "core\\User",
-                "id": 1,
-                "fields": [
-                    "id",
-                    "name"
-                ]
-            }
-        },
-        {
-            "label": "outline view small 85%",
-            "properties": {
-                "appearance": "outline",
-                "size": "small",
-                "entity": "core\\User",
-                "id": 1,
-                "mode": "view",
-                "initialSelectedItem": {
-                    "id": 1,
-                    "name": "root@equal.local"
-                }
-            }
-        },
-        {
-            "label": "outline view normal 100%",
-            "properties": {
-                "appearance": "outline",
-                "size": "normal",
-                "entity": "core\\User",
-                "id": 1,
-                "mode": "view",
-                "initialSelectedItem": {
-                    "id": 1,
-                    "name": "root@equal.local"
-                }
-            }
-        },
-        {
-            "label": "outline view large 117%",
-            "properties": {
-                "appearance": "outline",
-                "size": "large",
-                "entity": "core\\User",
-                "id": 1,
-                "mode": "view",
-                "initialSelectedItem": {
-                    "id": 1,
-                    "name": "root@equal.local"
-                }
-            }
-        },
-        {
-            "label": "outline view extra 137%",
-            "properties": {
-                "appearance": "outline",
-                "size": "extra",
-                "entity": "core\\User",
-                "id": 1,
-                "mode": "view",
-                "initialSelectedItem": {
-                    "id": 1,
-                    "name": "root@equal.local"
-                }
-            }
-        }
-    ],
-    "documentation": {
-        "inputs": [
+	"description": "The EqM2oComponent is an Angular component used for rendering an editable input with autocomplete functionality. It supports various customization options and emits selected items to the parent component.",
+	"components": [
+		{
+			"label": "fill edit small 85%",
+			"properties": {
+				"appearance": "fill",
+				"size": "small",
+				"placeholder": "Select an item",
+				"title": "Sample Entity Selection",
+				"hint": "Start typing to search",
+				"mode": "edit",
+				"nullable": true,
+				"noResult": "No match found",
+				"entity": "core\\User",
+				"id": 0,
+				"fields": [
+					"id",
+					"name"
+				]
+			}
+		},
+		{
+			"label": "fill edit normal 100%",
+			"properties": {
+				"appearance": "fill",
+				"size": "normal",
+				"nullable": true,
+				"noResult": "No match found",
+				"placeholder": "Select an item",
+				"title": "Sample Entity Selection",
+				"hint": "Start typing to search",
+				"mode": "edit",
+				"entity": "core\\User",
+				"id": 1,
+				"fields": [
+					"id",
+					"name"
+				],
+				"initialSelectedItem": {
+					"id": 1,
+					"name": "root@equal.local"
+				}
+			}
+		},
+		{
+			"label": "fill edit large 117%",
+			"properties": {
+				"appearance": "fill",
+				"size": "large",
+				"placeholder": "Select an item",
+				"title": "Sample Entity Selection",
+				"hint": "Start typing to search",
+				"mode": "edit",
+				"entity": "core\\User",
+				"id": 1,
+				"fields": [
+					"id",
+					"name"
+				]
+			}
+		},
+		{
+			"label": "fill edit extra 137%",
+			"properties": {
+				"appearance": "fill",
+				"size": "extra",
+				"placeholder": "Select an item",
+				"title": "Sample Entity Selection",
+				"hint": "Start typing to search",
+				"mode": "edit",
+				"entity": "core\\User",
+				"id": 1,
+				"fields": [
+					"id",
+					"name"
+				]
+			}
+		},
+		{
+			"label": "fill view small 85%",
+			"properties": {
+				"appearance": "fill",
+				"size": "small",
+				"entity": "core\\User",
+				"id": 1,
+				"mode": "view",
+				"initialSelectedItem": {
+					"id": 1,
+					"name": "root@equal.local"
+				}
+			}
+		},
+		{
+			"label": "fill view normal 100%",
+			"properties": {
+				"appearance": "fill",
+				"size": "normal",
+				"entity": "core\\User",
+				"id": 1,
+				"mode": "view",
+				"initialSelectedItem": {
+					"id": 1,
+					"name": "root@equal.local"
+				}
+			}
+		},
+		{
+			"label": "fill view large 117%",
+			"properties": {
+				"appearance": "fill",
+				"size": "large",
+				"entity": "core\\User",
+				"id": 1,
+				"mode": "view",
+				"initialSelectedItem": {
+					"id": 1,
+					"name": "root@equal.local"
+				}
+			}
+		},
+		{
+			"label": "fill view extra 137%",
+			"properties": {
+				"appearance": "fill",
+				"size": "extra",
+				"entity": "core\\User",
+				"id": 1,
+				"mode": "view",
+				"initialSelectedItem": {
+					"id": 1,
+					"name": "root@equal.local"
+				}
+			}
+		},
+		{
+			"label": "outline edit small 85%",
+			"properties": {
+				"appearance": "outline",
+				"size": "small",
+				"placeholder": "Select an item",
+				"title": "Sample Entity Selection",
+				"hint": "Start typing to search",
+				"mode": "edit",
+				"entity": "core\\User",
+				"id": 1,
+				"fields": [
+					"id",
+					"name"
+				]
+			}
+		},
+		{
+			"label": "outline edit normal 100%",
+			"properties": {
+				"appearance": "outline",
+				"size": "normal",
+				"placeholder": "Select an item",
+				"title": "Sample Entity Selection",
+				"hint": "Start typing to search",
+				"mode": "edit",
+				"entity": "core\\User",
+				"id": 1,
+				"fields": [
+					"id",
+					"name"
+				]
+			}
+		},
+		{
+			"label": "outline edit large 117%",
+			"properties": {
+				"appearance": "outline",
+				"size": "large",
+				"placeholder": "Select an item",
+				"title": "Sample Entity Selection",
+				"hint": "Start typing to search",
+				"mode": "edit",
+				"entity": "core\\User",
+				"id": 1,
+				"fields": [
+					"id",
+					"name"
+				]
+			}
+		},
+		{
+			"label": "outline edit extra 137%",
+			"properties": {
+				"appearance": "outline",
+				"size": "extra",
+				"placeholder": "Select an item",
+				"title": "Sample Entity Selection",
+				"hint": "Start typing to search",
+				"mode": "edit",
+				"entity": "core\\User",
+				"id": 1,
+				"fields": [
+					"id",
+					"name"
+				]
+			}
+		},
+		{
+			"label": "outline view small 85%",
+			"properties": {
+				"appearance": "outline",
+				"size": "small",
+				"entity": "core\\User",
+				"id": 1,
+				"mode": "view",
+				"initialSelectedItem": {
+					"id": 1,
+					"name": "root@equal.local"
+				}
+			}
+		},
+		{
+			"label": "outline view normal 100%",
+			"properties": {
+				"appearance": "outline",
+				"size": "normal",
+				"entity": "core\\User",
+				"id": 1,
+				"mode": "view",
+				"initialSelectedItem": {
+					"id": 1,
+					"name": "root@equal.local"
+				}
+			}
+		},
+		{
+			"label": "outline view large 117%",
+			"properties": {
+				"appearance": "outline",
+				"size": "large",
+				"entity": "core\\User",
+				"id": 1,
+				"mode": "view",
+				"initialSelectedItem": {
+					"id": 1,
+					"name": "root@equal.local"
+				}
+			}
+		},
+		{
+			"label": "outline view extra 137%",
+			"properties": {
+				"appearance": "outline",
+				"size": "extra",
+				"entity": "core\\User",
+				"id": 1,
+				"mode": "view",
+				"initialSelectedItem": {
+					"id": 1,
+					"name": "root@equal.local"
+				}
+			}
+		}
+	],
+	"documentation": {
+		"inputs": [
 			{
 				"name": "appearance",
 				"type": "'outline' | 'fill'",
 				"description": "The appearance of the input field. Defaults to outline."
 			},
-            {
-                "name": "disabled",
-                "type": "boolean",
-                "description": "Marks the field as readonly."
-            },
-            {
-                "name": "required",
-                "type": "boolean",
-                "description": "Marks the field as mandatory."
-            },
-            {
-                "name": "nullable",
-                "type": "boolean",
-                "description": "Allows the field to be nullable."
-            },
-            {
-                "name": "placeholder",
-                "type": "string",
-                "description": "Placeholder text for the input."
-            },
-            {
-                "name": "title",
-                "type": "string",
-                "description": "Title for the widget."
-            },
-            {
-                "name": "hint",
-                "type": "string",
-                "description": "Hint/helper text for the widget."
-            },
-            {
-                "name": "mode",
-                "type": "'view' | 'edit'",
-                "description": "Sets the mode of the component."
-            },
-            {
-                "name": "entity",
-                "type": "string",
-                "description": "Full name of the entity to load."
-            },
-            {
-                "name": "id",
-                "type": "number",
-                "description": "ID of the object to load as preset value."
-            },
-            {
-                "name": "fields",
-                "type": "string[]",
-                "description": "Extra fields to load in addition to 'id' and 'name'."
-            },
-            {
-                "name": "domain",
-                "type": "any[]",
-                "description": "Additional domain for filtering result set."
-            },
-            {
-                "name": "controller",
-                "type": "string",
-                "description": "Specific controller to use for fetching data."
-            },
-            {
-                "name": "params",
-                "type": "any",
-                "description": "Extra parameters specific to the chosen controller."
-            },
-            {
-                "name": "autofocus",
-                "type": "boolean",
-                "description": "Autofocuses the input field."
-            },
-            {
-                "name": "noResult",
-                "type": "string",
-                "description": "Message displayed when no match is found."
-            },
-            {
-                "name": "displayWith",
-                "type": "(a: any) => string",
-                "description": "Custom method for rendering the items."
-            },
-            {
-                "name": "hint_always",
-                "type": "boolean",
-                "description": "Determines whether the hint should always be visible."
-            },
-            {
-                "name": "size",
-                "type": "'small' | 'normal' | 'large' | 'extra'",
-                "description": "Size of the input field."
-            },
-            {
-                "name": "panelWidth",
-                "type": "string",
-                "description": "CSS value for the panel width (dropdown)."
-            },
-            {
-                "name": "initialSelectedItem",
-                "type": "any",
-                "description": "Currently selected item."
-            }
-        ],
-        "outputs": [
-            {
-                "name": "itemSelected",
-                "type": "EventEmitter<number>",
-                "description": "Emits the selected item's ID."
-            },
-            {
-                "name": "blur",
-                "type": "EventEmitter<any>",
-                "description": "Emits when the input field loses focus."
-            }
-        ]
-    }
+			{
+				"name": "disabled",
+				"type": "boolean",
+				"description": "Marks the field as readonly."
+			},
+			{
+				"name": "required",
+				"type": "boolean",
+				"description": "Marks the field as mandatory."
+			},
+			{
+				"name": "nullable",
+				"type": "boolean",
+				"description": "Allows the field to be nullable."
+			},
+			{
+				"name": "placeholder",
+				"type": "string",
+				"description": "Placeholder text for the input."
+			},
+			{
+				"name": "title",
+				"type": "string",
+				"description": "Title for the widget."
+			},
+			{
+				"name": "hint",
+				"type": "string",
+				"description": "Hint/helper text for the widget."
+			},
+			{
+				"name": "mode",
+				"type": "'view' | 'edit'",
+				"description": "Sets the mode of the component."
+			},
+			{
+				"name": "entity",
+				"type": "string",
+				"description": "Full name of the entity to load."
+			},
+			{
+				"name": "id",
+				"type": "number",
+				"description": "ID of the object to load as preset value."
+			},
+			{
+				"name": "fields",
+				"type": "string[]",
+				"description": "Extra fields to load in addition to 'id' and 'name'."
+			},
+			{
+				"name": "domain",
+				"type": "any[]",
+				"description": "Additional domain for filtering result set."
+			},
+			{
+				"name": "controller",
+				"type": "string",
+				"description": "Specific controller to use for fetching data."
+			},
+			{
+				"name": "params",
+				"type": "any",
+				"description": "Extra parameters specific to the chosen controller."
+			},
+			{
+				"name": "autofocus",
+				"type": "boolean",
+				"description": "Autofocuses the input field."
+			},
+			{
+				"name": "noResult",
+				"type": "string",
+				"description": "Message displayed when no match is found."
+			},
+			{
+				"name": "displayWith",
+				"type": "(a: any) => string",
+				"description": "Custom method for rendering the items."
+			},
+			{
+				"name": "hint_always",
+				"type": "boolean",
+				"description": "Determines whether the hint should always be visible."
+			},
+			{
+				"name": "size",
+				"type": "'small' | 'normal' | 'large' | 'extra'",
+				"description": "Size of the input field."
+			},
+			{
+				"name": "panelWidth",
+				"type": "string",
+				"description": "CSS value for the panel width (dropdown)."
+			},
+			{
+				"name": "initialSelectedItem",
+				"type": "any",
+				"description": "Currently selected item."
+			}
+		],
+		"outputs": [
+			{
+				"name": "itemSelected",
+				"type": "EventEmitter<number>",
+				"description": "Emits the selected item's ID."
+			},
+			{
+				"name": "blur",
+				"type": "EventEmitter<any>",
+				"description": "Emits when the input field loses focus."
+			}
+		]
+	}
 }
