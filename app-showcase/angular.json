@@ -116,17 +116,6 @@
                             "devServerTarget": "symbiose:serve:production"
                         }
                     }
-                },
-                "lint": {
-                    "builder": "@krema/angular-eslint-stylelint-builder:lint",
-                    "options": {
-                        "eslintFilePatterns": [
-                            "src/**/*.ts"
-                        ],
-                        "stylelintFilePatterns": [
-                            "src/**/*.scss"
-                        ]
-                    }
                 }
             }
         },

@@ -1,7 +1,7 @@
-import {Component} from '@angular/core';
-import {Showcase, Component as ComponentShowcase} from '../_types/showcaseType';
+import { Component } from '@angular/core';
+import { Showcase, Component as ComponentShowcase } from '../_types/showcaseType';
 
-import {showcases} from '../../showcases';
+import { showcases } from '../../showcases';
 
 @Component({
 	selector: 'app-app',
@@ -9,7 +9,6 @@ import {showcases} from '../../showcases';
 	styleUrls: ['./app.component.scss'],
 })
 export class AppComponent {
-
 	public showcases: Showcase[] = showcases;
 
 	public forceComponentToRefresh = false;
@@ -18,7 +17,6 @@ export class AppComponent {
 	public showBackgroundGrid = false;
 
 	public toggleComponentsMode(): void {
-
 		this.showcases.forEach((showcase: Showcase): void => {
 			showcase.components.forEach((component: ComponentShowcase): void => {
 				component.properties.mode = component.properties.mode === 'view' ? 'edit' : 'view';

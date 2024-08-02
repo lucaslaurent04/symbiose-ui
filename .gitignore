@@ -3,4 +3,6 @@
 .vscode
 **/package-lock.json
 
+equal-ui
+
 **/:Zone.identifier

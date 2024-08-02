@@ -6,10 +6,10 @@ import {
 	OnDestroy,
 	AfterViewInit,
 	Renderer2,
-	ElementRef
+	ElementRef,
 } from '@angular/core';
-import {DynamicHostDirective} from '../../_directives/dynamic-host.directive';
-import {Showcase} from '../../_types/showcaseType';
+import { DynamicHostDirective } from '../../_directives/dynamic-host.directive';
+import { Showcase } from '../../_types/showcaseType';
 
 @Component({
 	selector: 'app-component-presenter',
@@ -19,16 +19,15 @@ import {Showcase} from '../../_types/showcaseType';
 export class ComponentPresenterComponent implements AfterViewInit, OnDestroy {
 	@Input() public showcase: Showcase;
 
-	@ViewChild(DynamicHostDirective, {static: true}) dynamicHost?: DynamicHostDirective;
+	@ViewChild(DynamicHostDirective, { static: true }) dynamicHost?: DynamicHostDirective;
 
 	public isOverlayVisible = false;
 	private componentRefs: ComponentRef<any>[] = [];
 
 	constructor(
 		private renderer: Renderer2,
-		private el: ElementRef,
-	) {
-	}
+		private el: ElementRef
+	) {}
 
 	ngAfterViewInit(): void {
 		this.loadComponents();
@@ -47,7 +46,7 @@ export class ComponentPresenterComponent implements AfterViewInit, OnDestroy {
 
 		if (viewContainerRef) {
 			viewContainerRef.clear();
-			this.componentRefs = this.showcase.components.map(({label, properties}) => {
+			this.componentRefs = this.showcase.components.map(({ label, properties }) => {
 				// Create a container div using Renderer2
 				const containerDiv = this.renderer.createElement('div');
 				containerDiv.classList.add('card');
@@ -78,7 +77,6 @@ export class ComponentPresenterComponent implements AfterViewInit, OnDestroy {
 			});
 		}
 	}
-
 
 	public onOverlayVisibilityChange(isOpen: boolean): void {
 		this.isOverlayVisible = isOpen;

@@ -6,7 +6,8 @@ const directoryPath = path.resolve(__dirname, '../src/app/component-doc');
 const outputFile = path.resolve(__dirname, 'showcases.ts');
 
 // Get all JSON files in the directory
-const jsonFiles = fs.readdirSync(directoryPath)
+const jsonFiles = fs
+	.readdirSync(directoryPath)
 	.filter((file: string) => file.endsWith('.json'))
 	.map((file: string) => path.basename(file, '.json'));
 
@@ -21,7 +22,7 @@ jsonFiles.forEach((file: any) => {
 	componentImports.push(`import { ${componentSelector} } from 'sb-shared-lib';`);
 	showcases.push({
 		...showcase,
-		componentSelector
+		componentSelector,
 	});
 });
 
@@ -31,14 +32,18 @@ import { Showcase } from './app/_types/showcaseType';
 ${componentImports.join('\n')}
 
 export const showcases: Showcase[] = [
-${showcases.map(showcase => `
+${showcases
+	.map(
+		showcase => `
   {
     title: ${JSON.stringify(showcase.title)},
     columns: ${showcase.columns},
     componentSelector: ${showcase.componentSelector},
     components: ${JSON.stringify(showcase.components, null, 2)},
     documentation: ${JSON.stringify(showcase.documentation, null, 2)}
-  }`).join(',\n')}
+  }`
+	)
+	.join(',\n')}
 ];
 `;
 
