@@ -26,7 +26,7 @@
 				   matInput
 				   type="text"
 				   [class]="size"
-				   [class.is_null]="is_null"
+				   [class.is_null]="is_null && nullable && formControl.value === '[null]'"
 				   [formControl]="formControl"
 				   [matAutocomplete]="inputAutocomplete"
 				   [disabled]="disabled ?? false"
@@ -34,11 +34,32 @@
 				   (focus)="onFocus()"
 				   (focusout)="onFocusOut()"
 				   (blur)="onBlur($event)"
-				   placeholder="{{placeholder}}"/>
-			<button class="suffix-action" [class.hidden]="!formControl.value" matSuffix mat-icon-button
+				   [placeholder]="placeholder"
+			/>
+
+			<button class="suffix-action"
+					*ngIf="is_active && inputControl.value.length && inputControl.value !== '[null]'"
+					matSuffix
+					mat-icon-button
 					aria-label="Clear" (click)="onClear()">
 				<mat-icon>close</mat-icon>
 			</button>
+			<button
+				*ngIf="nullable && !is_null && formControl.value?.length === 0"
+				color="accent"
+				mat-icon-button
+				matSuffix
+				(click)="toggleIsNull(true)">
+				<mat-icon>toggle_off</mat-icon>
+			</button>
+			<button
+				*ngIf="nullable && is_null && is_active"
+				mat-icon-button
+				matSuffix
+				(click)="toggleIsNull(false)">
+				<mat-icon>toggle_on</mat-icon>
+			</button>
+
 			<mat-autocomplete
 				#inputAutocomplete="matAutocomplete"
 				(blur)="onBlur($event)"
@@ -62,7 +83,7 @@
 			mat-icon-button
 			class="action"
 			color="primary"
-			[disabled]="formControl.invalid || !formControl.value"
+			[disabled]="formControl.invalid || (!nullable && !is_null) || inputControl.value === ''"
 			(click)="onSave($event)">
 			<mat-icon>check_small</mat-icon>
 		</button>

@@ -84,9 +84,10 @@ export class EqM2oComponent implements OnInit, OnChanges, AfterViewInit, AfterCo
 
 	@Input() appearance: 'fill' | 'outline' = 'outline';
 
-	@Output() itemSelected: EventEmitter<number> = new EventEmitter<number>();
+	@Output() itemSelected: EventEmitter<number | '[null]'> = new EventEmitter<number | '[null]'>();
 
 	// eslint-disable-next-line @angular-eslint/no-output-native
+	// tslint:disable-next-line:no-output-native
 	@Output() blur: EventEmitter<any> = new EventEmitter();
 
 	@ViewChild('eqM2o') eqM2o: ElementRef<HTMLDivElement>;
@@ -123,6 +124,14 @@ export class EqM2oComponent implements OnInit, OnChanges, AfterViewInit, AfterCo
 				this.isFocused = true;
 			});
 		}
+
+		if (this.initialSelectedItem === '[null]') {
+			this.formControl.setValue(null);
+			if (this.inputControl.nativeElement instanceof HTMLInputElement) {
+				this.inputControl.nativeElement.value = '[null]';
+			}
+			this.is_null = true;
+		}
 	}
 
 	ngAfterContentInit(): void {
@@ -139,7 +148,6 @@ export class EqM2oComponent implements OnInit, OnChanges, AfterViewInit, AfterCo
 	}
 
 	ngOnInit(): void {
-
 		// watch changes made on input
 		this.formControl.valueChanges.subscribe((value: string) => {
 			if (!this.initialSelectedItem || this.initialSelectedItem !== value) {
@@ -153,7 +161,6 @@ export class EqM2oComponent implements OnInit, OnChanges, AfterViewInit, AfterCo
 			map((value: any) => (typeof value === 'string' ? value : ((value == null) ? '' : value.name))),
 			mergeMap(async (name: string): Promise<any> => await this.filterResults(name))
 		);
-
 	}
 
 	/**
@@ -250,22 +257,26 @@ export class EqM2oComponent implements OnInit, OnChanges, AfterViewInit, AfterCo
 
 	/**
 	 * Display the given item.
-	 *
-	 * @param item
 	 */
 	public itemDisplay = (item: any): string => {
 		if (!item) {
+			if (this.is_null && this.nullable) {
+				return '[null]';
+			}
+
 			return '';
 		}
 		if (this.displayWith) {
 			return this.displayWith(item);
 		}
 		return item.name;
-	}
+	};
 
 	public onFocus(): void {
 		// force triggering a list refresh
 		this.formControl.setValue('');
+		this.is_active = true;
+		this.isFocused = true;
 	}
 
 	public onFocusOut(): void {
@@ -277,16 +288,16 @@ export class EqM2oComponent implements OnInit, OnChanges, AfterViewInit, AfterCo
 	 */
 	public onClear(): void {
 		this.formControl.setValue(null);
+		this.is_null = false;
 		if (this.inputControl && this.inputControl.nativeElement instanceof HTMLInputElement) {
+			this.inputControl.nativeElement.value = '';
 			this.inputControl.nativeElement.focus();
-			this.isFocused = true;
 		}
+		this.isFocused = true;
 	}
 
 	/**
 	 * Close the autocomplete panel.
-	 *
-	 * @param event
 	 */
 	public onBlur(event: FocusEvent): void {
 		if (
@@ -304,8 +315,6 @@ export class EqM2oComponent implements OnInit, OnChanges, AfterViewInit, AfterCo
 
 	/**
 	 * Restore to the initial value.
-	 *
-	 * @param event
 	 */
 	public onSelect(event: any): void {
 		if (event && event.option && event.option.value) {
@@ -336,8 +345,6 @@ export class EqM2oComponent implements OnInit, OnChanges, AfterViewInit, AfterCo
 
 	/**
 	 * Restore to the initial value.
-	 *
-	 * @param event
 	 */
 	public onCancel(event: MouseEvent): void {
 		event.preventDefault();
@@ -348,13 +355,15 @@ export class EqM2oComponent implements OnInit, OnChanges, AfterViewInit, AfterCo
 
 	/**
 	 * Save the current value.
-	 *
-	 * @param event
 	 */
 	public onSave(event: MouseEvent): void {
 		event.preventDefault();
 		event.stopPropagation();
-		this.itemSelected.emit(this.formControl.value);
+		if (this.nullable && [null, '[null]'].includes(this.formControl.value)) {
+			this.itemSelected.emit('[null]');
+		} else {
+			this.itemSelected.emit(this.formControl.value);
+		}
 		this.initialSelectedItem = this.formControl.value;
 		this.isFocused = false;
 	}
@@ -373,4 +382,31 @@ export class EqM2oComponent implements OnInit, OnChanges, AfterViewInit, AfterCo
 		}
 	}
 
+	private updateValue(value: string | null): void {
+		if (value === null) {
+			this.is_null = true;
+			this.formControl.setValue('[null]', {
+				emitViewToModelChange: true
+			});
+			if (this.inputControl.nativeElement instanceof HTMLInputElement) {
+				this.inputControl.nativeElement.value = '[null]';
+			}
+		} else {
+			this.is_null = false;
+			this.formControl.setValue(value);
+		}
+	}
+
+	public toggleIsNull(is_null: boolean): void {
+		this.is_null = is_null;
+		if (this.is_null) {
+			this.updateValue(null);
+		} else {
+			this.updateValue('');
+		}
+	}
+
+	public stringify(value: any): string {
+		return JSON.stringify(value);
+	}
 }
