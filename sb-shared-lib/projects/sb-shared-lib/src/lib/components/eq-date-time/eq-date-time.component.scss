@@ -1,0 +1,546 @@
+:host {
+	display: inline-block;
+
+	/* Base */
+	.eq-date-time {
+		display: flex;
+		flex-direction: row;
+		align-items: baseline;
+		height: 100%;
+		box-sizing: content-box;
+
+		.text {
+			position: relative;
+			display: block;
+			width: 100%;
+			height: 100%;
+			font-size: 16px;
+
+			span {
+				position: absolute;
+				left: 12px;
+				vertical-align: baseline;
+				white-space: nowrap;
+			}
+
+			&.is-null {
+				font-style: italic;
+			}
+		}
+
+
+		&.cursor {
+			cursor: text;
+		}
+
+		mat-form-field {
+			width: 100%;
+
+			&.disabled {
+				width: calc(100% + 80px);
+			}
+
+			&::ng-deep {
+				.mat-form-field-suffix {
+					width: 80px;
+					position: relative;
+					top: 7px;
+					display: flex;
+					flex-direction: row;
+					justify-content: space-between;
+					align-items: baseline;
+				}
+
+				.mat-form-field-infix {
+					display: flex;
+					flex-direction: row;
+					justify-content: space-between;
+					align-items: baseline;
+				}
+			}
+
+			mat-label {
+				font-size: 16px;
+			}
+
+			input {
+				font-size: 16px;
+				position: relative;
+				top: 1px;
+
+				&.is_null {
+					font-style: italic;
+				}
+			}
+
+			.input-time {
+				width: 50px;
+			}
+
+			mat-hint {
+				width: 100%;
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
+			}
+		}
+
+		button {
+			position: relative;
+
+		}
+
+		& .action {
+			bottom: 1px;
+		}
+
+	}
+
+	/* Only size */
+	.eq-date-time {
+		&.small {
+			mat-form-field input,
+			.text > span {
+				font-size: 85%;
+			}
+
+			mat-form-field::ng-deep {
+				.mat-form-field-wrapper {
+					.mat-form-field-flex {
+						height: 48px;
+						max-height: 48px;
+					}
+				}
+			}
+		}
+
+		&.normal {
+			mat-form-field::ng-deep {
+				.mat-form-field-wrapper {
+					.mat-form-field-flex {
+						height: 56px;
+						max-height: 56px;
+					}
+				}
+			}
+		}
+
+		&.large {
+			mat-form-field input,
+			.text > span {
+				font-size: 117%;
+			}
+
+			mat-form-field::ng-deep {
+				.mat-form-field-wrapper {
+					.mat-form-field-flex {
+						height: 64px;
+						max-height: 64px;
+					}
+				}
+			}
+		}
+
+		&.extra {
+			mat-form-field input,
+			.text > span {
+				font-size: 137%;
+			}
+
+			mat-form-field::ng-deep {
+				.mat-form-field-wrapper {
+					.mat-form-field-flex {
+						height: 74px;
+						max-height: 74px;
+					}
+				}
+			}
+		}
+	}
+
+	/* Appearance and size */
+	.eq-date-time.edit.outline {
+		&.small {
+			.action {
+				bottom: 21px;
+			}
+
+			mat-form-field {
+				&::ng-deep {
+					.mat-form-field-wrapper {
+
+						.mat-form-field-flex {
+							.mat-form-field-suffix {
+								top: -12px;
+							}
+
+							.mat-form-field-infix {
+								padding: .85em 0 .85em 0;
+
+								mat-datepicker-toggle::ng-deep {
+									position: relative;
+									top: -20px;
+								}
+
+								input {
+									position: relative;
+									top: -19px;
+								}
+							}
+						}
+
+						.mat-form-field-subscript-wrapper {
+							position: relative;
+							top: -4px;
+							margin-top: 0;
+						}
+					}
+				}
+			}
+		}
+
+		&.normal {
+			.action {
+				bottom: 18px;
+			}
+
+			mat-form-field {
+				&::ng-deep {
+					.mat-form-field-wrapper {
+						.mat-form-field-flex {
+							.mat-form-field-suffix {
+								top: -10px;
+							}
+
+							.mat-form-field-infix {
+								mat-datepicker-toggle::ng-deep {
+									position: relative;
+									top: -18px;
+								}
+
+								input {
+									position: relative;
+									top: -16px;
+								}
+							}
+						}
+
+						.mat-form-field-subscript-wrapper {
+							margin-top: 1px;
+						}
+					}
+				}
+			}
+		}
+
+		&.large {
+			.action {
+				bottom: 14px;
+			}
+
+			mat-form-field {
+				&::ng-deep {
+					.mat-form-field-wrapper {
+						.mat-form-field-flex {
+							width: 300px;
+
+							.mat-form-field-infix {
+								mat-datepicker-toggle::ng-deep {
+									position: relative;
+									top: -12px;
+								}
+
+								input {
+									position: relative;
+									top: -10px;
+								}
+
+								input.mat-datepicker-input {
+									width: 100px;
+								}
+							}
+
+							.mat-form-field-suffix {
+								top: -5px;
+							}
+						}
+
+						.mat-form-field-subscript-wrapper {
+							margin-top: 2px;
+						}
+					}
+				}
+			}
+		}
+
+		&.extra {
+
+			.action {
+				bottom: 9px;
+			}
+
+			mat-form-field {
+				&::ng-deep {
+					.mat-form-field-wrapper {
+						width: 340px;
+
+						.mat-form-field-flex {
+							.mat-form-field-suffix {
+								top: -1px;
+							}
+
+							.mat-form-field-infix {
+								mat-datepicker-toggle::ng-deep {
+									position: relative;
+									top: -9px;
+								}
+
+								input {
+									position: relative;
+									top: -5px;
+									width: 130px;
+								}
+							}
+						}
+
+						.mat-form-field-subscript-wrapper {
+							margin-top: 2px;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	/* Filled */
+	.eq-date-time.edit.fill {
+		&.small {
+			.action {
+				bottom: 18px;
+			}
+
+			mat-form-field::ng-deep {
+				.mat-form-field-wrapper {
+					mat-datepicker-toggle::ng-deep {
+						position: relative;
+						top: -17px;
+					}
+
+					.mat-form-field-subscript-wrapper {
+						position: relative;
+						margin-top: 0;
+						top: -5px;
+					}
+
+					.mat-form-field-underline {
+						bottom: 43px;
+					}
+
+					.mat-form-field-flex {
+						.mat-form-field-infix {
+							input {
+								position: relative;
+								top: -16px;
+							}
+
+							.mat-form-field-label-wrapper {
+								overflow: visible;
+								margin-top: 0;
+								top: -18px;
+							}
+						}
+
+						.mat-form-field-suffix {
+							top: -9px;
+						}
+					}
+				}
+			}
+		}
+
+		&.normal {
+			.action {
+				bottom: 15px;
+			}
+
+			mat-form-field::ng-deep {
+				.mat-form-field-wrapper {
+					.mat-form-field-subscript-wrapper {
+						margin-top: 3px;
+					}
+
+					mat-datepicker-toggle::ng-deep {
+						position: relative;
+						top: -14px;
+					}
+
+					.mat-form-field-flex {
+						.mat-form-field-infix {
+							input {
+								position: relative;
+								top: -12px;
+							}
+
+							.mat-form-field-label-wrapper {
+								overflow: visible;
+								margin-top: 2px;
+
+								label {
+									position: relative;
+									top: 0;
+								}
+							}
+						}
+
+						.mat-form-field-suffix {
+							top: -7px;
+						}
+					}
+				}
+			}
+		}
+
+		&.large {
+
+			.action {
+				bottom: 12px;
+			}
+
+			mat-form-field::ng-deep {
+
+				.mat-form-field-wrapper {
+					width: 320px;
+
+					.mat-form-field-subscript-wrapper {
+						margin-top: 3px;
+					}
+
+					mat-datepicker-toggle::ng-deep {
+						position: relative;
+						top: -10px;
+					}
+
+					.mat-form-field-flex {
+
+						.mat-form-field-infix {
+							input {
+								position: relative;
+								top: -7px;
+							}
+
+							input.mat-datepicker-input {
+								width: 110px;
+							}
+
+							.mat-form-field-label-wrapper {
+								overflow: visible;
+								margin-top: 2px;
+
+								label {
+									position: relative;
+									top: 0;
+								}
+							}
+						}
+
+						.mat-form-field-suffix {
+							top: -2px;
+						}
+					}
+				}
+			}
+		}
+
+		&.extra {
+
+			.action {
+				bottom: 6px;
+			}
+
+			mat-form-field::ng-deep {
+
+				.mat-form-field-wrapper {
+					width: 320px;
+
+					.mat-form-field-subscript-wrapper {
+						margin-top: 0;
+						top: 77px;
+					}
+
+					mat-datepicker-toggle::ng-deep {
+						position: relative;
+						top: -6px;
+					}
+
+					.mat-form-field-flex {
+						.mat-form-field-infix {
+							width: max-content;
+
+							input {
+								position: relative;
+								top: -2px;
+							}
+
+							input.input-time {
+								width: 60px;
+							}
+
+							.mat-form-field-label-wrapper {
+								overflow: visible;
+								margin-top: 2px;
+
+								label {
+									position: relative;
+									top: 0;
+								}
+							}
+						}
+
+						.mat-form-field-suffix {
+							top: 2px;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	/* View Mode and appearance */
+	/* Filled */
+	.eq-date-time.view.fill {
+		&.small .text span {
+			top: 32px;
+		}
+
+		&.normal .text span {
+			top: 35px;
+		}
+
+		&.large .text span {
+			top: 37px;
+		}
+
+		&.extra .text span {
+			top: 27px;
+		}
+	}
+
+	/* Outline */
+	.eq-date-time.view.outline {
+		&.small .text span {
+			top: 17px;
+		}
+
+		&.normal .text span {
+			top: 20px;
+		}
+
+		&.large .text span {
+			top: 23px;
+		}
+
+		&.extra .text span {
+			top: 24px;
+		}
+	}
+}

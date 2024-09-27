@@ -1,0 +1,72 @@
+<div
+	#eqText
+	class="eq-text"
+	[class]="mode + ' ' + appearance + ' ' + size"
+	(click)="activate()"
+	[class.cursor]="mode === 'edit' && !disabled"
+	[style.padding-bottom.px]="mode === 'view' ? 30 : 0">
+    <span *ngIf="mode === 'view'"
+		  class="text"
+		  [class.is_null]="is_null"
+		  [class]="size">
+        <span>{{ formControl.value }}</span>
+    </span>
+	<mat-form-field
+		*ngIf="mode === 'edit'"
+		[class.disabled]="disabled || !is_active"
+		[appearance]="appearance">
+		<mat-label *ngIf="title && mode === 'edit'">{{ title }}</mat-label>
+		<textarea #textarea
+				  [readonly]="disabled"
+				  matInput
+				  class="textarea"
+				  [matTextareaAutosize]="autoGrow"
+				  [matAutosizeMinRows]="1"
+				  [matAutosizeMaxRows]="9999"
+				  [class]="size"
+				  [class.is_null]="is_null"
+				  [disabled]="disabled"
+				  [formControl]="formControl"
+				  [placeholder]="mode === 'edit' ? placeholder: ''"
+				  (blur)="onBlur($event);"></textarea>
+		<button
+			class="suffix-button"
+			*ngIf="is_active && formControl.value.length && !is_null"
+			mat-icon-button
+			(click)="onClear($event)">
+			<mat-icon>close</mat-icon>
+		</button>
+		<button
+			class="suffix-button"
+			*ngIf="nullable && (is_active && !formControl.value.length && !is_null)"
+			color="accent"
+			mat-icon-button
+			(click)="toggleIsNull(true)">
+			<mat-icon>toggle_off</mat-icon>
+		</button>
+		<button
+			class="suffix-button"
+			*ngIf="nullable && (is_active && is_null)"
+			mat-icon-button
+			(click)="toggleIsNull(false)">
+			<mat-icon>toggle_on</mat-icon>
+		</button>
+		<mat-hint *ngIf="!formControl.invalid && mode === 'edit'" [title]="hint">{{ hint }}</mat-hint>
+		<mat-error *ngIf="formControl.invalid">{{ getErrorMessage() }}</mat-error>
+	</mat-form-field>
+	<button
+		mat-icon-button
+		color="primary"
+		[disabled]="formControl.invalid"
+		*ngIf="is_active && mode === 'edit'"
+		(click)="onSave($event)">
+		<mat-icon>check_small</mat-icon>
+	</button>
+	<button
+		mat-icon-button
+		color="accent"
+		*ngIf="is_active && mode === 'edit'"
+		(click)="onCancel($event)">
+		<mat-icon>cancel</mat-icon>
+	</button>
+</div>

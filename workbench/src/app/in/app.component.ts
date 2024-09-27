@@ -10,7 +10,7 @@ export class AppComponent implements OnInit  {
 
     public ready: boolean = false;
     public context_open: boolean = false;
-    
+
     constructor(
         private context: ContextService,
         private zone: NgZone
@@ -20,6 +20,6 @@ export class AppComponent implements OnInit  {
     public ngOnInit() {
 
     }
-  
+
 
 }

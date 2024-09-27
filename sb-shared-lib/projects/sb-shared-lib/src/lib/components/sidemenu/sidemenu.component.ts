@@ -10,6 +10,7 @@ import { EqualUIService } from '../../services/eq.service';
 import * as screenfull from 'screenfull';
 import { HttpErrorResponse } from '@angular/common/http';
 import { TranslateService } from '@ngx-translate/core';
+import Domain from '../../classes/domain.class';
 
 @Component({
   selector: 'app-sidemenu',
@@ -82,7 +83,11 @@ export class AppSideMenuComponent implements OnInit {
             this.user = user;
         });
 
+        // partial context update requests
+        this.context.onupdateAlerts.subscribe( () => this.updateAlerts() );
+        this.context.onupdateHistory.subscribe( () => this.updateHistory() );
 
+        // whole context update requests
         this.context.getObservable()
         .pipe(
             // delay requests to prevent slowing down main screen display
@@ -108,17 +113,22 @@ export class AppSideMenuComponent implements OnInit {
                 console.debug('SideMenu::searching for context menu', descriptor.context);
 
                 // 1) retrieve the details of the view that was requested
-                let view_type = (descriptor.context.hasOwnProperty('type')) ? descriptor.context.type : 'list';
-                let view_name = (descriptor.context.hasOwnProperty('name')) ? descriptor.context.name : 'default';
-                let view_id = view_type + '.' + view_name;
+                let view_type, view_name, view_id;
 
                 if (descriptor.context.hasOwnProperty('view')) {
-                    view_id = descriptor.context.view;
+                    const parts = descriptor.context.view.split('.');
+                    view_type = (parts.length > 0)?parts[0]:'list';
+                    view_name = (parts.length > 1)?parts[1]:'default';
+                    view_id = view_type + '.' + view_name;
+                }
+                else {
+                    view_type = (descriptor.context.hasOwnProperty('type')) ? descriptor.context.type : 'list';
+                    view_name = (descriptor.context.hasOwnProperty('name')) ? descriptor.context.name : 'default';
+                    view_id = view_type + '.' + view_name;
                 }
 
                 // 2) retrieve the object id (provided in context domain or in route URL)
                 let object_id: number = 0;
-
 
                 if(view_type == 'form') {
                     // by convention the current object id, if present in route, is the latest numeric value (ex.: '/booking/13/contract/735')
@@ -137,38 +147,15 @@ export class AppSideMenuComponent implements OnInit {
                     // id in domain prevails over route
                     if (descriptor.context.hasOwnProperty('domain')) {
                         // domain is expected to hold a single ID condition (ex. ['id', '=', 3])
-                        let domain: any[] = [];
                         if(Array.isArray(descriptor.context.domain) && descriptor.context.domain.length) {
-
-                            // 1) linearize domain
-                            for(let item of descriptor.context.domain) {
-                                if(Array.isArray(item)) {
-                                    for(let subitem of item) {
-                                        if(Array.isArray(subitem)) {
-                                            domain.push([...subitem]);
+                            let domain = new Domain(descriptor.context.domain);
+                            for(let clause of domain.getClauses()) {
+                                for(let condition of clause.getConditions()) {
+                                    if(condition.getOperand() == 'id' && condition.getOperator() == '=') {
+                                        let candidate = parseInt(condition.getValue(), 10);
+                                        if(!isNaN(candidate)) {
+                                            object_id = candidate;
                                         }
-                                        else {
-                                            if(item.length == 3) {
-                                                domain.push([...item]);
-                                            }
-                                            break;
-                                        }
-                                    }
-                                }
-                                else {
-                                    if(descriptor.context.domain.length == 3) {
-                                        domain.push([...descriptor.context.domain]);
-                                    }
-                                    break;
-                                }
-                            }
-
-                            // 2) look for an object ID
-                            for(let condition of domain) {
-                                if(condition[0] == 'id') {
-                                    let candidate = parseInt(condition[2], 10);
-                                    if (!isNaN(candidate)) {
-                                        object_id = candidate;
                                     }
                                 }
                             }
@@ -176,7 +163,7 @@ export class AppSideMenuComponent implements OnInit {
                     }
                 }
 
-                // 3) retrive the entity that was requested
+                // 3) retrieve the entity that was requested
                 let object_class: string = descriptor.context.entity;
 
                 // check if we are showing a view for a specific entity but we want the actions to apply on another entity
@@ -207,7 +194,6 @@ export class AppSideMenuComponent implements OnInit {
                     console.debug('AppSideMenuComponent: updated values', this.view_id, this.object_class, this.object_id);
 
                     let object_fields = ['id', 'name', 'state', 'created', 'modified', 'status', 'order'];
-
                     let view_routes = [];
 
                     // load routes and look for references to object fields (to append those to the fields to load, `object_fields`)
@@ -368,15 +354,15 @@ export class AppSideMenuComponent implements OnInit {
 
                 // 'help' : in all cases, request detailed documentation about the current view
                 try {
-                    const helper: any = await this.api.fetch('/?get=model_view-help&entity=' + object_class + '&view_id=' + this.view_id + '&lang=' + this.environment.lang);
+                    const helper: any = await this.api.fetch('?get=model_view-help&entity=' + object_class + '&view_id=' + this.view_id + '&lang=' + this.environment.lang);
                     // #todo : use a cache here
 
                     if (helper && helper.hasOwnProperty('result')) {
                         this.view_description = helper.result;
                     }
                 }
-                catch (err) {
-                    console.warn(err);
+                catch (response) {
+                    console.log('no help available for view_id '+this.view_id, response);
                 }
             }
 
@@ -388,12 +374,12 @@ export class AppSideMenuComponent implements OnInit {
 
     private async updateHistory() {
         try {
+            // show only actions from users (no root/system)
             const collection = await this.api.collect('core\\Log', [
-                ['object_id', '=', this.object_id],
-                ['object_class', '=', this.object_class],
-                ['user_id', '>', 0]
-            ], ['action', 'user_id.name'], 'id', 'desc', 0, 10);
-
+                    ['object_id', '=', this.object_id],
+                    ['object_class', '=', this.object_class],
+                    ['user_id', '>', 1]
+                ], ['action', 'user_id.name'], 'id', 'desc', 0, 50);
             this.latest_changes = collection;
         }
         catch (response) {
@@ -408,7 +394,7 @@ export class AppSideMenuComponent implements OnInit {
         }
         try {
 
-            const data = await this.api.fetch('/?get=model_collect', {
+            const data = await this.api.fetch('?get=model_collect', {
                 entity: "core\\alert\\Message",
                 fields: JSON.stringify(["severity", "controller", "message_model_id.name", "message_model_id.label", "message_model_id.description", "links"]),
                 domain: JSON.stringify([["object_class", "=", this.object_class], ["object_id", "=", this.object_id]]),
@@ -466,15 +452,20 @@ export class AppSideMenuComponent implements OnInit {
 
     public onUserSettings() {
         // this.router.navigate(['']);
+
+        let user_entity = "core\\User";
+        if(this.environment.hasOwnProperty('user_entity')) {
+            user_entity = this.environment.user_entity;
+        }
         let descriptor = {
             context: {
-            entity: 'lodging\\identity\\User',
-            type: 'form',
-            name: 'default',
-            domain: ['id', '=', this.user.id],
-            mode: 'edit',
-            purpose: 'view',
-            display_mode: 'popup'
+                entity: user_entity,
+                type: 'form',
+                name: 'default',
+                domain: ['id', '=', this.user.id],
+                mode: 'edit',
+                purpose: 'view',
+                display_mode: 'popup'
             }
         };
 
@@ -485,7 +476,7 @@ export class AppSideMenuComponent implements OnInit {
     public async onObjectCheck(item: any) {
         if (item.hasOwnProperty('controller')) {
             try {
-                const data = await this.api.fetch('/?get=' + item.controller, {
+                const data = await this.api.fetch('?get=' + item.controller, {
                     id: this.object_id
                 });
                 // no error status : nothing went wrong
@@ -532,20 +523,34 @@ export class AppSideMenuComponent implements OnInit {
             let route = item.route;
             for (let object_field of Object.keys(this.object)) {
                 target_id = this.object[object_field];
-                // handle m2o sub-ojects (assuming id is always loaded)
-                if(typeof target_id == 'object') {
+                // handle m2o sub-objects (assuming id is always loaded)
+                if(typeof target_id == 'object' && target_id !== null && target_id.hasOwnProperty('id')) {
                     target_id = target_id.id;
                 }
                 route = route.replace('object.' + object_field, target_id);
             }
             descriptor.route = route;
+
+            // handle absolute routes
+            if(item.hasOwnProperty('absolute') && item.absolute) {
+                let url_target = '_self';
+                if(item.hasOwnProperty('target')) {
+                    url_target = item.target;
+                }
+                window.open(route, url_target);
+                return;
+            }
         }
 
-        // route targets another app
-        if (item.hasOwnProperty('app')) {
-            // interpolate the
-            // open link in new tab
-            window.open('/'+item.app+'/#'+descriptor.route, '_blank');
+        if(item.hasOwnProperty('app')) {
+            // #memo - we're going to lose the context
+            let url = '/' + item.app;
+            // use interpolated route, if any
+            if(descriptor.hasOwnProperty('route') && descriptor.route) {
+                url += '/#' + descriptor.route
+            }
+            window.open(url, '_self');
+            // bye-bye
             return;
         }
 
@@ -556,7 +561,7 @@ export class AppSideMenuComponent implements OnInit {
                 for (let object_field of Object.keys(this.object)) {
                     target_id = this.object[object_field];
                     // handle m2o sub-ojects (assuming id is always loaded)
-                    if(typeof target_id == 'object') {
+                    if(typeof target_id == 'object' && target_id !== null && target_id.hasOwnProperty('id')) {
                         target_id = target_id.id;
                     }
                     domain = domain.replace('object.' + object_field, target_id);
@@ -588,20 +593,24 @@ export class AppSideMenuComponent implements OnInit {
 
     public getAlertIcon(alert: any) {
         switch(alert.severity) {
-            case 'notice': return 'info_outline';
-            case 'warning': return 'star_outline';
-            case 'important': return 'warning_amber';
-            case 'urgent': return 'priority_high';
+            case 'notice':
+                return 'info_outline';
+            case 'warning':
+                return 'warning_amber';
+            case 'important':
+                return 'error_outline';
+            case 'error':
+                return 'report_gmailerrorred';
         }
         return 'info_outline';
     }
 
     public getAlertColor(alert:any) {
         switch(alert.severity) {
-            case 'notice': return '#4e4ad6';
-            case 'warning': return '#41c01b';
-            case 'important': return '#eead26';
-            case 'urgent': return '#ff0000';
+            case 'notice':      return '#4e4ad6';   // blue
+            case 'warning':     return '#eead26';   // orange
+            case 'important':   return '#ff4500';   // orange-red
+            case 'error':       return '#ff0000';   // red
         }
         return 'black';
 

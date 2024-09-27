@@ -17,12 +17,17 @@ declare global {
 
 /**
  * This service offers a getObservable() method allowing to access an Observable that any component can subscribe to.
- * Subscribers will allways receive the latest emitted value as a Context object.
+ * Subscribers will always receive the latest emitted value as a Context object.
  *
  */
 export class ContextService {
 
     private observable: ReplaySubject<any>;
+
+
+    public onupdateAlerts: ReplaySubject<any>;
+    public onupdateHistory: ReplaySubject<any>;
+
     public ready: ReplaySubject<any>;
 
     private route: string = '';
@@ -34,7 +39,7 @@ export class ContextService {
 
 
     /**
-     * Provide observable for subsribing on contexts updates.
+     * Provide observable for subscribing on contexts updates.
      * #memo - New subscribers will receive latest value set (history depth of 1).
      */
     public getObservable() {
@@ -52,14 +57,21 @@ export class ContextService {
         this.target = target;
     }
 
+    public getTarget(): string {
+        return this.target;
+    }
+
     constructor(
-        private router: Router,
-        @Inject(DOCUMENT) private document: Document,
-        private eq:EqualUIService
-    ) {
+            private router: Router,
+            @Inject(DOCUMENT) private document: Document,
+            private eq:EqualUIService
+        ) {
 
         this.ready = new ReplaySubject<any>(1);
         this.observable = new ReplaySubject<any>(1);
+
+        this.onupdateAlerts = new ReplaySubject<any>(1);
+        this.onupdateHistory = new ReplaySubject<any>(1);
 
         /*
             listen to context changes from eQ: notify components that need sync (e.g. sidemenu)
@@ -80,9 +92,9 @@ export class ContextService {
             this.change({...descriptor, context_only: true});
         });
 
-        // listen to route changes and keep current route
+        // listen to route changes and remember current route
         this.router.events.subscribe( (event: any) => {
-            if (event instanceof NavigationEnd) {
+            if (event instanceof NavigationEnd && event.url != this.route) {
                 console.debug('ContextService : route change', event);
                 this.route = event.url;
                 // this.context = {};
@@ -96,7 +108,7 @@ export class ContextService {
             }
         });
 
-  }
+    }
 
    /**
     * Request a change by providing a descriptor that holds a route and/or a context.
@@ -112,9 +124,6 @@ export class ContextService {
             clearTimeout(this.timeout);
         }
 
-        // notify subscribers that we're loading something
-        this.ready.next(false);
-
         /*
             pass-1 update the context part of the local descriptor (to allow subscribers to route change to get the current value)
         */
@@ -126,18 +135,28 @@ export class ContextService {
         // navigate to route, if requested (a route is present)
         if(descriptor.hasOwnProperty('route') && descriptor.route != this.route) {
             console.debug("ContextService: received route change request", descriptor, this);
-            // make sure no eQ context is left open
-            await this.eq.closeAll();
+            // make sure no eQ context is left open (call from external service)
+            let confirm_close:boolean = await this.eq.closeAll();
+            if(!confirm_close) {
+                // abort context change
+                return;
+            }
+            // notify subscribers that we're loading something
+            this.ready.next(false);
             // changing route resets the context
             if(!descriptor.hasOwnProperty('context')) {
                 this.context = {};
             }
             // change route (this will notify Router and ActivatedRoute subscribers)
-            this.router.navigate([descriptor.route]);
+            this.router.navigate(
+                    [descriptor.route],
+                    // #memo - we need history to be updated
+                    // {skipLocationChange: true }
+                );
         }
         /*
             pass-2 switch context, if requested
-            context might depend on route change (controllers can request a change of target after being instanciated)
+            context might depend on route change (controllers can request a change of target after being instantiated)
         */
         // else if(descriptor.hasOwnProperty('context') && Object.keys(descriptor.context).length) {
         else if(descriptor.hasOwnProperty('context')) {
@@ -161,7 +180,11 @@ export class ContextService {
                 }
                 else {
                     console.debug("requesting context opening", context);
-                    await this.eq.open(context);
+                    let confirm_open = await this.eq.open(context);
+                    if(!confirm_open) {
+                        // abort context change
+                        return;
+                    }
                 }
             }
             // notify subscribers
@@ -172,6 +195,18 @@ export class ContextService {
             // nothing to do: notify subscribers
             this.ready.next(true);
         }
+    }
+
+
+    /**
+     * Context acts as a facade for dispatching update requests.
+     */
+    public async updateHistory() {
+        this.onupdateHistory.next(true);
+    }
+
+    public async updateAlerts() {
+        this.onupdateAlerts.next(true);
     }
 
 }

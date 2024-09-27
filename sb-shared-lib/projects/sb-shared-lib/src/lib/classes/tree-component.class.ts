@@ -14,7 +14,7 @@
 
 
     The root node implements `RootTreeComponent` having a `load(id: number)` method that calls a dedicated controller from the back-end ".../tree.php" which returns a single JSON object with the full tree (root object and children).
-    The tree is loaded upon the initialisation of the RootTreeComponent, afterward it is re-loaded each time the RootController receives a change notification from its children.
+    The tree is loaded upon the initialization of the RootTreeComponent, afterward it is re-loaded each time the RootController receives a change notification from its children.
 
          *
         / \
@@ -109,12 +109,12 @@
     ```
 
     !!! Important note
-        Keep in mind that children are handled as DOM objects and are therfore only available if present in the DOM.
+        Keep in mind that children are handled as DOM objects and are therefore only available if present in the DOM.
         This means that, when dealing with Tree components, it is preferable to hide elements rather than condition their rendering (ngIf).
 */
 
 /*
-*   TreeComponents types defitions.
+*   TreeComponents types definitions.
 */
 
 export interface TreeComponentInterface {
@@ -221,7 +221,13 @@ export class TreeComponent<I, T> implements TreeComponentInterface {
                         else {
                             let found = this.instance[field][found_index];
                             if(this.componentsMap.hasOwnProperty(field)) {
-                                // #memo - no update of the instance's field here, to prevent refreshing the view
+                                // #memo - an update of the fields being watched would trigger a refresh of the view
+                                let localObject = this.instance[field][found_index];
+                                for (const property in value) {
+                                    if(localObject.hasOwnProperty(property) && (typeof value[property] != 'object' || value[property] === null) && value[property] != localObject[property]) {
+                                        this.instance[field][found_index][property] = value[property];
+                                    }
+                                }
                                 // relay to child object
                                 const subitem:any = this.componentsMap[field].find( (item:any) => item.getId() == found.id);
                                 if(subitem) {

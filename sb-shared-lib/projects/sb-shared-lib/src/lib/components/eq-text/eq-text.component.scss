@@ -1,0 +1,233 @@
+:host {
+	display: inline-block;
+	overflow: hidden;
+	position: relative;
+	width: 100%;
+
+	/* Base */
+	.eq-text {
+		display: flex;
+		flex-direction: row;
+		align-items: flex-start; // changed from baseline to flex start for keeping action button at the top
+		box-sizing: content-box;
+
+		&.cursor {
+			cursor: text;
+		}
+
+
+		.text {
+			position: relative;
+			display: block;
+			width: 100%;
+			height: 100%;
+			min-height: var(--min-height);
+			max-height: var(--max-height);
+			overflow-x: hidden;
+			overflow-y: auto;
+			left: 12px;
+
+			&::-webkit-scrollbar {
+				width: 6px;
+				background: rgba(0, 0, 0, 0.1);
+				border-radius: 999px;
+				transition: background 300ms cubic-bezier(0.55, 0, 0.55, 0.2)
+			}
+
+			&::-webkit-scrollbar-thumb {
+				background: rgba(0, 0, 0, 0.25);
+				border-radius: 999px;
+				transition: background 300ms cubic-bezier(0.55, 0, 0.55, 0.2)
+			}
+
+			&:hover::-webkit-scrollbar-thumb {
+				background: rgba(0, 0, 0, 0.45);
+				transition: background 300ms cubic-bezier(0.55, 0, 0.55, 0.2)
+			}
+
+			&:focus::-webkit-scrollbar-thumb {
+				background: var(--mdc-theme-primary);
+				transition: background 300ms cubic-bezier(0.55, 0, 0.55, 0.2)
+			}
+
+			span {
+				position: relative;
+				line-height: 18px;
+			}
+
+			&.is_null {
+				font-style: italic;
+			}
+		}
+
+		mat-form-field {
+			width: calc(100% - 80px) !important;
+
+			.textarea {
+				position: relative;
+				resize: none;
+				line-height: 1.125;
+
+				&.view {
+					color: var(--mdc-theme-text-primary-on-background) !important;
+				}
+
+				&::-webkit-scrollbar {
+					width: 6px;
+					background: rgba(0, 0, 0, 0.1);
+					border-radius: 999px;
+					transition: background 300ms cubic-bezier(0.55, 0, 0.55, 0.2)
+				}
+
+				&::-webkit-scrollbar-thumb {
+					background: rgba(0, 0, 0, 0.25);
+					border-radius: 999px;
+					transition: background 300ms cubic-bezier(0.55, 0, 0.55, 0.2)
+				}
+
+				&:hover::-webkit-scrollbar-thumb {
+					background: rgba(0, 0, 0, 0.45);
+					transition: background 300ms cubic-bezier(0.55, 0, 0.55, 0.2)
+				}
+
+				&:focus::-webkit-scrollbar-thumb {
+					background: var(--mdc-theme-primary);
+					transition: background 300ms cubic-bezier(0.55, 0, 0.55, 0.2)
+				}
+
+				&.is_null {
+					font-style: italic;
+				}
+			}
+
+			.suffix-button {
+				position: absolute;
+				top: -13px;
+				right: 0;
+				z-index: 2;
+			}
+
+			&.disabled {
+				width: calc(100% - 80px) !important;
+			}
+
+			//mat-label {
+			//  font-size: 16px;
+			//}
+
+			&::ng-deep {
+				.mat-form-field-flex {
+					padding-right: 1px;
+
+					/* hack to prevent default width of 180px */
+					& > .mat-form-field-infix {
+						padding-top: 20px;
+						padding-bottom: 5px;
+						width: 100% !important;
+					}
+				}
+
+			}
+
+			mat-hint {
+				width: 100%;
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
+			}
+		}
+
+		::ng-deep .mat-form-field-wrapper {
+			.mat-form-field-subscript-wrapper {
+				top: calc(100% - 26px);
+			}
+		}
+	}
+
+	/* Only sizes */
+	.eq-text {
+		&.small {
+			.text > span,
+			textarea {
+				font-size: 85%;
+			}
+		}
+
+		&.normal {
+			.text > span,
+			textarea {
+				/* -- */
+			}
+		}
+
+		&.large {
+			.text > span,
+			textarea {
+				font-size: 117%;
+			}
+		}
+
+		&.extra {
+			.text > span,
+			textarea {
+				font-size: 137%;
+			}
+		}
+	}
+
+	/* Only appearance */
+	/* outlined */
+	.eq-text.edit.outline {
+
+	}
+
+	/* fill */
+	.eq-text.edit.fill {
+		mat-form-field {
+			&::ng-deep {
+				.mat-form-field-infix button {
+					top: -24px;
+				}
+			}
+		}
+	}
+
+	/* View Mode and appearance */
+	/* Filled */
+	.eq-text.view.fill {
+		&.small .text span {
+			top: 39px;
+		}
+
+		&.normal .text span {
+			top: 41px;
+		}
+
+		&.large .text span {
+			top: 44px;
+		}
+
+		&.extra .text span {
+			top: 47px;
+		}
+	}
+
+	/* Outline */
+	.eq-text.view.outline {
+		&.small .text span {
+			top: 29px;
+		}
+
+		&.normal .text span {
+			top: 30px;
+		}
+
+		&.large .text span {
+			top: 33px;
+		}
+
+		&.extra .text span {
+			top: 36px;
+		}
+	}
+}

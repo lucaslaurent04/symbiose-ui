@@ -1,0 +1,542 @@
+:host {
+	display: inline-block;
+
+	/* Base */
+	.eq-date-range {
+		display: flex;
+		flex-direction: row;
+		align-items: baseline;
+		height: 100%;
+		box-sizing: content-box;
+
+		.text {
+			position: relative;
+			display: block;
+			width: 100%;
+			height: 100%;
+			font-size: 16px;
+
+			span {
+				position: absolute;
+				left: 12px;
+				vertical-align: baseline;
+				white-space: nowrap;
+			}
+
+			&.is-null {
+				font-style: italic;
+			}
+		}
+
+
+		&.cursor {
+			cursor: text;
+		}
+
+		mat-form-field {
+			width: 100%;
+
+			&.disabled {
+				width: calc(100% + 80px);
+			}
+
+			&::ng-deep .mat-form-field-suffix {
+				width: 80px;
+			}
+
+			mat-label {
+				font-size: 16px;
+			}
+
+			input {
+				font-size: 16px;
+
+				&.is_null {
+					font-style: italic;
+				}
+			}
+
+			mat-hint {
+				width: 100%;
+				white-space: nowrap;
+				overflow: hidden;
+				text-overflow: ellipsis;
+			}
+		}
+
+		button {
+			position: relative;
+
+		}
+
+		& .action {
+			bottom: 5px;
+		}
+
+	}
+
+	/* Only size */
+	.eq-date-range {
+		&.small {
+			mat-form-field::ng-deep {
+				.mat-form-field-wrapper {
+					.mat-form-field-flex {
+						height: 48px;
+						max-height: 48px;
+					}
+				}
+			}
+
+			mat-form-field input,
+			.text > span {
+				font-size: 85%;
+			}
+		}
+
+		&.normal {
+			mat-form-field::ng-deep {
+				.mat-form-field-wrapper {
+					.mat-form-field-flex {
+						height: 56px;
+						max-height: 56px;
+					}
+				}
+			}
+		}
+
+		&.large {
+			mat-form-field::ng-deep {
+				.mat-form-field-wrapper {
+					.mat-form-field-flex {
+						height: 64px;
+						max-height: 64px;
+					}
+				}
+			}
+
+			mat-form-field input,
+			.text > span {
+				font-size: 117%;
+			}
+		}
+
+		&.extra {
+			mat-form-field::ng-deep {
+				.mat-form-field-wrapper {
+					.mat-form-field-flex {
+						height: 74px;
+						max-height: 74px;
+					}
+				}
+			}
+
+			mat-form-field input,
+			.text > span {
+				font-size: 137%;
+			}
+		}
+	}
+
+	/* Appearance */
+	/* Outlined */
+	.eq-date-range.edit.outline {
+		mat-form-field::ng-deep {
+			.mat-form-field-wrapper {
+				.mat-form-field-flex {
+					.mat-form-field-infix {
+						mat-date-range-input::ng-deep {
+							.mat-date-range-input-container {
+								display: flex;
+								align-items: flex-start;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	/* Filled */
+	.eq-date-range.edit.fill {
+
+	}
+
+	/* Appearance and sizes */
+	/* Outline */
+	.eq-date-range.edit.outline {
+		&.small {
+			.action {
+				bottom: 9px;
+			}
+
+			mat-form-field::ng-deep {
+				.mat-form-field-wrapper {
+					padding-bottom: 17px;
+
+					.mat-form-field-flex {
+						.mat-form-field-infix {
+							padding: .85em 0 .85em 0;
+
+							mat-date-range-input::ng-deep {
+								position: relative;
+								top: -6px;
+
+								.mat-date-range-input-container {
+									.mat-date-range-input-separator {
+										position: relative;
+										top: -1px;
+									}
+
+									.mat-date-range-input-end-wrapper {
+										input {
+											position: relative;
+											top: -2px;
+										}
+									}
+								}
+							}
+						}
+
+						.mat-form-field-suffix {
+							top: 0;
+						}
+					}
+				}
+			}
+		}
+
+		&.normal {
+			.action {
+				bottom: 9px;
+			}
+
+			mat-form-field::ng-deep {
+				.mat-form-field-wrapper {
+					.mat-form-field-subscript-wrapper {
+						margin-top: 3px;
+					}
+
+					.mat-form-field-flex {
+						.mat-form-field-infix {
+							mat-date-range-input::ng-deep {
+
+								.mat-date-range-input-container {
+									position: relative;
+									top: -6px;
+								}
+							}
+						}
+
+						.mat-form-field-suffix {
+							top: 0;
+						}
+					}
+				}
+			}
+		}
+
+		&.large {
+			.action {
+				bottom: 5px;
+			}
+
+			mat-form-field::ng-deep {
+				.mat-form-field-wrapper {
+					.mat-form-field-subscript-wrapper {
+						margin-top: 3px;
+					}
+
+					.mat-form-field-flex {
+						.mat-form-field-infix {
+							width: 220px;
+
+
+							mat-date-range-input::ng-deep {
+								position: relative;
+								top: -4px;
+
+
+								.mat-date-range-input-container {
+
+									.mat-date-range-input-start-wrapper {
+										width: 100%;
+									}
+
+									.mat-date-range-input-separator {
+										position: relative;
+										top: 1px;
+									}
+
+									.mat-date-range-input-end-wrapper {
+										input {
+											position: relative;
+
+										}
+									}
+								}
+							}
+						}
+
+						.mat-form-field-suffix {
+
+						}
+					}
+				}
+			}
+		}
+
+		&.extra {
+			.action {
+				bottom: -1px;
+			}
+
+			mat-form-field::ng-deep {
+				.mat-form-field-wrapper {
+					.mat-form-field-subscript-wrapper {
+						margin-top: 3px;
+					}
+
+					.mat-form-field-flex {
+						.mat-form-field-infix {
+							width: 260px;
+
+							mat-date-range-input::ng-deep {
+								position: relative;
+
+								.mat-date-range-input-container {
+									.mat-date-range-input-start-wrapper {
+										width: 100%;
+										overflow: visible;
+									}
+
+									.mat-date-range-input-separator {
+										position: relative;
+										top: 3px;
+									}
+
+									.mat-date-range-input-end-wrapper {
+										input {
+											position: relative;
+										}
+									}
+								}
+							}
+						}
+
+						.mat-form-field-suffix {
+							top: 10px;
+						}
+					}
+				}
+			}
+		}
+
+		/* Filled */
+		.eq-date-range.fill {
+			&.small {
+
+			}
+
+			&.normal {
+
+			}
+
+			&.large {
+
+			}
+
+			&.extra {
+
+			}
+		}
+	}
+
+	/* Filled */
+	.eq-date-range.edit.fill {
+		&.small {
+			.action {
+				bottom: 7px;
+			}
+
+			mat-form-field::ng-deep {
+				.mat-form-field-wrapper {
+					.mat-form-field-subscript-wrapper {
+						margin-top: 3px;
+					}
+
+					.mat-form-field-flex {
+						.mat-form-field-infix {
+							mat-date-range-input::ng-deep {
+								position: relative;
+								top: -5px;
+
+								.mat-date-range-input-start-wrapper {
+									top: 2px;
+								}
+
+								.mat-date-range-input-container {
+									.mat-date-range-input-end-wrapper {
+										display: flex;
+										align-items: flex-start;
+									}
+								}
+							}
+
+							.mat-form-field-label-wrapper {
+								overflow: visible;
+
+								label {
+									position: relative;
+									top: -2px;
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+
+		&.normal {
+			.action {
+				bottom: 2px;
+			}
+
+			mat-form-field::ng-deep {
+				.mat-form-field-wrapper {
+					.mat-form-field-subscript-wrapper {
+						margin-top: 3px;
+					}
+
+					.mat-form-field-flex {
+						.mat-form-field-suffix {
+							top: 6px;
+						}
+					}
+				}
+			}
+		}
+
+		&.large {
+			.action {
+				bottom: 2px;
+			}
+
+			mat-form-field::ng-deep {
+				.mat-form-field-wrapper {
+					width: 330px;
+
+					.mat-form-field-subscript-wrapper {
+						margin-top: 3px;
+					}
+
+					.mat-form-field-flex {
+						.mat-form-field-infix {
+							mat-date-range-input::ng-deep {
+								width: 220px;
+
+								.mat-date-range-input-container {
+
+									.mat-date-range-input-start-wrapper {
+										width: 100%;
+										top: -2px;
+									}
+								}
+							}
+						}
+
+						.mat-form-field-suffix {
+							top: 7px;
+						}
+					}
+				}
+			}
+		}
+
+		&.extra {
+			.action {
+				bottom: -6px;
+			}
+
+			mat-form-field::ng-deep {
+				.mat-form-field-wrapper {
+					width: 370px;
+
+					.mat-form-field-subscript-wrapper {
+						margin-top: 3px;
+					}
+
+					.mat-form-field-flex {
+						.mat-form-field-infix {
+							mat-date-range-input::ng-deep {
+								width: 260px;
+								position: relative;
+								top: 5px;
+
+								.mat-date-range-input-container {
+									width: 100%;
+									align-items: flex-start;
+
+									.mat-date-range-input-start-wrapper {
+										width: 100%;
+									}
+
+									.mat-date-range-input-separator {
+										position: relative;
+										top: 3px;
+									}
+
+									.mat-date-range-input-start-wrapper {
+										overflow: visible;
+									}
+								}
+							}
+						}
+
+						.mat-form-field-suffix {
+							top: 15px;
+						}
+					}
+				}
+			}
+		}
+	}
+
+	/* View Mode and appearance */
+	/* Filled */
+	.eq-date-range.view.fill {
+		&.small .text span {
+			top: 22px;
+		}
+
+		&.normal .text span {
+			top: 27px;
+		}
+
+		&.large .text span {
+			top: 27px;
+		}
+
+		&.extra .text span {
+			top: 31px;
+		}
+	}
+
+	/* Outline */
+	.eq-date-range.view.outline {
+		&.small .text span {
+			top: 18px;
+		}
+
+		&.normal .text span {
+			top: 20px;
+		}
+
+		&.large .text span {
+			top: 22px;
+		}
+
+		&.extra .text span {
+			top: 25px;
+		}
+	}
+}

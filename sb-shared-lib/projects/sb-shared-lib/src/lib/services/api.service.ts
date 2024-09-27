@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { catchError, map } from "rxjs/operators";
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpHeaders } from '@angular/common/http';
 import { EnvService} from './env.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { TranslateService } from '@ngx-translate/core';
@@ -14,11 +14,17 @@ export class ApiService {
     private cache: any = {};
     private cache_validity: number = 1000; // cache validity in milliseconds
 
+    private headers: HttpHeaders;
+
     constructor(
         private http: HttpClient,
         private env:EnvService,
         private translate:TranslateService,
         private snack: MatSnackBar) {
+            this.headers = new HttpHeaders();
+            this.headers
+                .set('Cache-Control', 'no-cache')
+                .set('Pragma', 'no-cache');
     }
 
     /**
@@ -28,7 +34,9 @@ export class ApiService {
         return new Promise<any>( async (resolve, reject) => {
             try {
                 const environment:any = await this.env.getEnv();
-                const response:any = await this.http.get<any>(environment.backend_url+route, {params: body}).toPromise();
+                // make sure not to double the trailing slash
+                let url = environment.backend_url+route.replace(/^\//g, '');
+                const response:any = await this.http.get<any>(url, {headers:this.headers, params: body}).toPromise();
                 resolve(response);
             }
             catch(error) {
@@ -44,7 +52,9 @@ export class ApiService {
         return new Promise<any>( async (resolve, reject) => {
             try {
                 const environment:any = await this.env.getEnv();
-                const response:any = await this.http.post<any>(environment.backend_url+route, body).toPromise();
+                // make sure not to double the trailing slash
+                let url = environment.backend_url+route.replace(/^\//g, '');
+                const response:any = await this.http.post<any>(url, body, {headers:this.headers}).toPromise();
                 resolve(response);
             }
             catch(error) {
@@ -63,7 +73,7 @@ export class ApiService {
         return new Promise<any>( async (resolve, reject) => {
             try {
                 const environment:any = await this.env.getEnv();
-                const response:any = await this.http.put<any>(environment.backend_url+'/?do=model_create', {
+                const response:any = await this.http.put<any>(environment.backend_url+'?do=model_create', {
                     entity: entity,
                     fields: JSON.stringify(fields),
                     lang: (lang.length)?lang:environment.lang
@@ -101,7 +111,7 @@ export class ApiService {
 
         let promise = new Promise(async (resolve, reject) => {
             const environment:any = await this.env.getEnv();
-            this.http.get<any>(environment.backend_url+'/?get=model_read', {params: {
+            this.http.get<any>(environment.backend_url+'?get=model_read', {params: {
                     entity: entity,
                     ids: JSON.stringify(ids),
                     fields: JSON.stringify(fields),
@@ -139,7 +149,7 @@ export class ApiService {
         return new Promise<any>( async (resolve, reject) => {
             try {
                 const environment:any = await this.env.getEnv();
-                const response:any = await this.http.patch<any>(environment.backend_url+'/?do=model_update', {
+                const response:any = await this.http.patch<any>(environment.backend_url+'?do=model_update', {
                     entity: entity,
                     ids: ids,
                     fields: values,
@@ -165,7 +175,7 @@ export class ApiService {
         return new Promise<any>( async (resolve, reject) => {
             try {
                 const environment:any = await this.env.getEnv();
-                const response:any = await this.http.delete<any>(environment.backend_url+'/?do=model_delete', {body: {
+                const response:any = await this.http.delete<any>(environment.backend_url+'?do=model_delete', {body: {
                         entity: entity,
                         ids: ids,
                         permanent: permanent
@@ -194,16 +204,16 @@ export class ApiService {
         return new Promise<any>( async (resolve, reject) => {
             try {
                 const environment:any = await this.env.getEnv();
-                const response:any = await this.http.get<any>(environment.backend_url+'/?get=model_collect', {
+                const response:any = await this.http.get<any>(environment.backend_url+'?get=model_collect', {
                     params: {
-                    entity: entity,
-                    domain: JSON.stringify(domain),
-                    fields: JSON.stringify(fields),
-                    order: order,
-                    sort: sort,
-                    start: start,
-                    limit: limit,
-                    lang: (lang.length)?lang:environment.lang
+                        entity: entity,
+                        domain: JSON.stringify(domain),
+                        fields: JSON.stringify(fields),
+                        order: order,
+                        sort: sort,
+                        start: start,
+                        limit: limit,
+                        lang: (lang.length)?lang:environment.lang
                     }
                 }).toPromise();
                 resolve(response);
@@ -219,7 +229,7 @@ export class ApiService {
     HTTP methods for API requests.
 
     All methods using API return a Promise object.
-    They can ben invoked either by chaing .then() and .catch() methods, or with await prefix (assuming parent function is declared as async).
+    They can ben invoked either by chaining .then() and .catch() methods, or with await prefix (assuming parent function is declared as async).
   */
 
 
@@ -234,7 +244,9 @@ export class ApiService {
         return new Promise<any>( async (resolve, reject) => {
             try {
                 const environment:any = await this.env.getEnv();
-                const response:any = await this.http.get<any>(environment.rest_api_url+route, {params: body}).toPromise();
+                // make sure not to double the trailing slash
+                let url = environment.backend_url+route.replace(/^\//g, '');
+                const response:any = await this.http.get<any>(url, {params: body}).toPromise();
                 resolve(response);
             }
             catch(error) {
@@ -247,7 +259,9 @@ export class ApiService {
         return new Promise<any>( async (resolve, reject) => {
             try {
                 const environment:any = await this.env.getEnv();
-                const response:any = await this.http.post<any>(environment.rest_api_url+route, body).toPromise();
+                // make sure not to double the trailing slash
+                let url = environment.backend_url+route.replace(/^\//g, '');
+                const response:any = await this.http.post<any>(url, body).toPromise();
                 resolve(response);
             }
             catch(error) {
@@ -260,7 +274,9 @@ export class ApiService {
         return new Promise<any>( async (resolve, reject) => {
             try {
                 const environment:any = await this.env.getEnv();
-                const response:any = await this.http.patch<any>(environment.rest_api_url+route, body).toPromise();
+                // make sure not to double the trailing slash
+                let url = environment.backend_url+route.replace(/^\//g, '');
+                const response:any = await this.http.patch<any>(url, body).toPromise();
                 resolve(response);
             }
             catch(error) {
@@ -273,7 +289,9 @@ export class ApiService {
         return new Promise<any>( async (resolve, reject) => {
             try {
                 const environment:any = await this.env.getEnv();
-                const response:any = await this.http.put<any>(environment.rest_api_url+route, body).toPromise();
+                // make sure not to double the trailing slash
+                let url = environment.backend_url+route.replace(/^\//g, '');
+                const response:any = await this.http.put<any>(url, body).toPromise();
                 resolve(response);
             }
             catch(error) {
@@ -286,7 +304,9 @@ export class ApiService {
         return new Promise<any>( async (resolve, reject) => {
             try {
                 const environment:any = await this.env.getEnv();
-                const response:any = await this.http.delete<any>(environment.rest_api_url+route).toPromise();
+                // make sure not to double the trailing slash
+                let url = environment.backend_url+route.replace(/^\//g, '');
+                const response:any = await this.http.delete<any>(url).toPromise();
                 resolve(response);
             }
             catch(error) {
@@ -295,33 +315,53 @@ export class ApiService {
         });
     }
 
-    public async getMenu(package_name: string, menu_id: string, locale: string = '') {
+    public async getMenu(package_name: string, menu_id: string, lang: string = '') {
         const environment:any = await this.env.getEnv();
 
         let result:any = {
+            show_search: false,
             item: [],
             translation: {}
         };
 
         try {
-            const menu:any = await this.fetch('/?get=model_menu&package='+package_name+'&menu_id='+menu_id+'&lang='+((locale.length)?locale:environment.locale));
-            if(menu && menu.layout && menu.layout.items) {
-                result.items = menu.layout.items;
+            const menu:any = await this.fetch('?get=model_menu&package='+package_name+'&menu_id='+menu_id);
+            if(menu) {
+                if(menu.hasOwnProperty('search') && menu.search) {
+                    result.show_search = true;
+                }
+                if(menu.hasOwnProperty('layout') && menu.layout.hasOwnProperty('items')) {
+                    result.items = menu.layout.items;
+                }
+                else {
+                    console.warn('invalid menu (missing layout): '+menu_id);
+                }
+            }
+            else {
+                console.warn('invalid or empty menu: '+menu_id);
             }
         }
         catch(response) {
-            console.warn('error retrieving menu', response);
+            console.warn('no menu found for menu_id '+menu_id, response);
         }
 
         try {
-            const menu_i18n = await this.fetch('/?get=config_i18n-menu&package='+package_name+'&menu_id='+menu_id+'&lang='+((locale.length)?locale:environment.locale));
-            if(menu_i18n && menu_i18n.view) {
-                result.translation = menu_i18n.view;
+            const menu_i18n = await this.fetch('?get=config_i18n-menu&package='+package_name+'&menu_id='+menu_id+'&lang='+environment.locale);
+            if(menu_i18n && menu_i18n.hasOwnProperty('view')) {
+                if(menu_i18n.view.hasOwnProperty('menu')) {
+                    result.translation = menu_i18n.view.menu;
+                }
+                else {
+                    result.translation = menu_i18n.view;
+                }
+            }
+            else {
+                console.info('invalid or translation for menu: '+menu_id);
             }
             // #todo : do not inject but replace labels recursively
         }
         catch(response) {
-            console.warn('error retrieving translation', response);
+            console.log('no translation found for menu_id '+menu_id, response);
         }
 
         return result;
@@ -346,7 +386,7 @@ export class ApiService {
 
     public async passwordUpdate(user_id: string, password: string, confirm: string) {
         const environment:any = await this.env.getEnv();
-        const data = await this.http.get<any>(environment.backend_url+'/?do=user_pass-update', {
+        const data = await this.http.get<any>(environment.backend_url+'?do=user_pass-update', {
             params: {
                 id: user_id,
                 password: password,

@@ -12,14 +12,14 @@ const routes: Routes = [
     /* routes specific to current app */
     {
         path: 'model',
-        loadChildren: () => import(`./in/model/model.module`).then(m => m.AppInModelModule) 
+        loadChildren: () => import(`./in/model/model.module`).then(m => m.AppInModelModule)
     },
-/*    
+/*
     {
         path: 'planning',
-        loadChildren: () => import(`./in/planning/planning.module`).then(m => m.AppInPlanningModule) 
+        loadChildren: () => import(`./in/planning/planning.module`).then(m => m.AppInPlanningModule)
     },
-*/    
+*/
     {
         /*
             default route, for bootstrapping the App
@@ -29,7 +29,7 @@ const routes: Routes = [
         */
         path: '',
         component: AppComponent
-    }  
+    }
 ];
 
 @NgModule({

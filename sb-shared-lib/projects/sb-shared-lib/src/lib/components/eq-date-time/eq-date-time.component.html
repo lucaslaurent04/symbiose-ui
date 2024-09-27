@@ -1,0 +1,131 @@
+<div
+	#eqDateTime
+	class="eq-date-time"
+	[class]="mode + ' ' + appearance + ' ' + size"
+	[class.cursor]="mode === 'edit' && !disabled"
+	[style.padding-right.px]="is_active ? 0 : 80"
+	(click)="activate()"
+>
+  <span class="text" [class.is-null]="is_null" [class]="size" *ngIf="mode === 'view'">
+            <span>{{ formatDate() }}</span>
+    </span>
+	<mat-form-field
+		#matFormField
+		*ngIf="mode === 'edit'"
+		[class.disabled]="disabled"
+		[appearance]="appearance"
+		[formGroup]="formGroup"
+	>
+		<mat-label *ngIf="title">{{ title }}</mat-label>
+		<input
+			*ngIf="!is_null"
+			[matDatepicker]="datePicker"
+			matNativeControl
+			#inputDate
+			[formControlName]="'date'"
+			(blur)="onBlur($event)"
+			(click)="focusInput(inputDate)"
+		>
+
+		<input
+			*ngIf="is_null"
+			matNativeControl
+			#inputDate
+			[formControlName]="'date'"
+			class="is_null"
+			(blur)="onBlur($event)"
+		>
+
+		<mat-datepicker-toggle
+			[style.visibility]="is_active && formGroup.value.date !== '[null]' ? 'visible' : 'hidden'"
+			[for]="datePicker"
+		></mat-datepicker-toggle>
+
+		<!--        Time picker can't Receive nullable value-->
+		<input
+			[style.display]="!is_null ? 'block' : 'none'"
+			matNativeControl
+			#inputTime
+			[ngxTimepicker]="timePicker"
+			[format]="24"
+			[disableClick]="true"
+			[formControlName]="'time'"
+			class="input-time"
+			(blur)="onBlur($event)"
+			(click)="onFocusInputTime($event)"
+		>
+
+		<input
+			*ngIf="is_null"
+			#inputTime
+			matNativeControl
+			[formControlName]="'time'"
+			class="is_null input-time"
+			(blur)="onBlur($event)"
+		>
+
+		<mat-hint *ngIf="!formGroup.invalid" [title]="hint">{{ hint }}</mat-hint>
+
+
+		<ngx-material-timepicker-toggle
+			[style.visibility]="is_active && formGroup.value.time !== '[null]' ? 'visible' : 'hidden'"
+			matSuffix
+			[for]="timePicker"
+		></ngx-material-timepicker-toggle>
+		<ngx-material-timepicker #timePicker [format]="24"></ngx-material-timepicker>
+		<button
+			*ngIf="is_active && !is_null && (inputDateValue && inputDateValue.length > 0 || inputTimeValue && inputTimeValue.length > 0)"
+			mat-icon-button
+			matSuffix
+			(click)="onClear($event)"
+		>
+			<mat-icon>close</mat-icon>
+		</button>
+		<button
+			*ngIf="!disabled && nullable && !is_null && (formGroup.value.date === '' && formGroup.value.time === '')"
+			color="accent"
+			mat-icon-button
+			matSuffix
+			(click)="toggleIsNull(true)"
+		>
+			<mat-icon>toggle_off</mat-icon>
+		</button>
+		<button
+			*ngIf="!disabled && nullable && is_null && (formGroup.value.date === '[null]' && formGroup.value.time === '[null]')"
+			mat-icon-button
+			matSuffix
+			(click)="toggleIsNull(false)"
+		>
+			<mat-icon>toggle_on</mat-icon>
+		</button>
+
+		<ng-container *ngIf="isHandset$ | async as isHandset">
+			<mat-datepicker [touchUi]="isHandset.matches" #datePicker></mat-datepicker>
+		</ng-container>
+
+		<mat-error *ngIf="formGroup.invalid">{{ error }}</mat-error>
+
+	</mat-form-field>
+	<button
+		mat-icon-button
+		class="action"
+		color="primary"
+		*ngIf="is_active && !disabled && mode === 'edit'"
+		[disabled]="(formGroup.invalid || (inputDateValue?.length !== 10 || inputTimeValue?.length !== 5)) && (!is_null)"
+		[style.visibility]="is_active ? 'visible' : 'hidden'"
+		(mousedown)="formGroup.markAsPending({ onlySelf: true })"
+		(click)="onSave($event)"
+	>
+		<mat-icon>check_small</mat-icon>
+	</button>
+	<button
+		mat-icon-button
+		class="action"
+		color="accent"
+		*ngIf="is_active && !disabled && mode === 'edit'"
+		[style.visibility]="is_active ? 'visible' : 'hidden'"
+		(click)="onCancel($event)"
+	>
+		<mat-icon>cancel</mat-icon>
+	</button>
+</div>
