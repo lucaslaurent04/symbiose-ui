@@ -13,15 +13,15 @@ The `eq-date-range` component can be integrated into Angular templates using its
 ```html
 
 <eq-date-range
-    [(value)]="dateRange"
-    [title]="'My title'"
-    [placeholder]="'My placeholder'"
-    [nullable]="true"
-    [hint]="'My hint'"
-    [error]="'My error'"
-    [mode]="'edit'"
-    [disabled]="false"
-    [usage]="dateTypeFormatSelected"
+	[(value)]="dateRange"
+	[title]="'My title'"
+	[placeholder]="'My placeholder'"
+	[nullable]="true"
+	[hint]="'My hint'"
+	[error]="'My error'"
+	[mode]="'edit'"
+	[disabled]="false"
+	[usage]="dateTypeFormatSelected"
 ></eq-date-range>
 ```
 
@@ -29,18 +29,19 @@ The `eq-date-range` component can be integrated into Angular templates using its
 
 ### Properties
 
-| Property      | Required | Type                    | Default  | Description                                                                                                                             |
-|---------------|:--------:|-------------------------|:--------:|-----------------------------------------------------------------------------------------------------------------------------------------|
-| `value`       | Required | `string` \| `null`      |    -     | The date value in ISO 8601 (UTC) format.<br><br> The value is formated like this: `2024-12-31T23:38:46+0000 - 2025-01-05T00:00:00+0000` |
-| `placeholder` | Optional | `string`                |   `''`   | The placeholder attribute of the input.                                                                                                 |
-| `disabled`    | Optional | `boolean`               | `false`  | Disables the input field.                                                                                                               |
-| `required`    | Optional | `boolean`               | `false`  | Indicates if the value can return an empty value.                                                                                       |
-| `nullable`    | Required | `boolean`               | `false`  | Indicates whether the component can have a value of `[null]`.                                                                           |
-| `mode`        | Optional | `'view'` \| `'edit'`    | `'view'` | Specifies the context; whether the input is editable (`'edit'`) or only used for viewing (`'view'`).                                    |
-| `title`       | Required | `string`                |    -     | The label for the input.                                                                                                                |
-| `hint`        | Optional | `string`                |   `''`   | Describes the expected value for the input.                                                                                             |
-| `error`       | Required | `string`                |    -     | Error message displayed when the input value is invalid. Can only trigger if `required` is set to `'true'`.                             |
-| `usage`       | Required | `string` as `dateUsage` |    -     | Specifies the date format (e.g., 'date.short.day')                                                                                      |
+| Property      | Required | Type                      |  Default   | Description                                                                                                                             |
+|---------------|:--------:|---------------------------|:----------:|-----------------------------------------------------------------------------------------------------------------------------------------|
+| `appearance`  | Optional | `'fill'` \| `'outline'` | `'fill'` | The appearance of the input field.                                                                                                      |   
+| `value`       | Required | `string` \| `null`        |     -      | The date value in ISO 8601 (UTC) format.<br><br> The value is formated like this: `2024-12-31T23:38:46+0000 - 2025-01-05T00:00:00+0000` |
+| `placeholder` | Optional | `string`                  |    `''`    | The placeholder attribute of the input.                                                                                                 |
+| `disabled`    | Optional | `boolean`                 |  `false`   | Disables the input field.                                                                                                               |
+| `required`    | Optional | `boolean`                 |  `false`   | Indicates if the value can return an empty value.                                                                                       |
+| `nullable`    | Required | `boolean`                 |  `false`   | Indicates whether the component can have a value of `[null]`.                                                                           |
+| `mode`        | Optional | `'view'` \| `'edit'`      |  `'view'`  | Specifies the context; whether the input is editable (`'edit'`) or only used for viewing (`'view'`).                                    |
+| `title`       | Required | `string`                  |     -      | The label for the input.                                                                                                                |
+| `hint`        | Optional | `string`                  |    `''`    | Describes the expected value for the input.                                                                                             |
+| `error`       | Required | `string`                  |     -      | Error message displayed when the input value is invalid. Can only trigger if `required` is set to `'true'`.                             |
+| `usage`       | Required | `string` as `dateUsage`   |     -      | Specifies the date format (e.g., 'date.short.day')                                                                                      |
 
 ### Types
 
@@ -54,11 +55,11 @@ type dateUsage = 'date.short.day' | 'date.short' | 'date.medium' | 'date.long' |
 
 ```typescript
 const DateFormats: Record<dateUsage, string> = {
-    'date.short.day': 'ddd DD/MM/YY',
-    'date.short': 'DD/MM/YY',
-    'date.medium': 'DD/MM/YYYY',
-    'date.long': 'ddd DD MMM YYYY',
-    'date.full': 'dddd DD MMMM YYYY',
+	'date.short.day': 'ddd DD/MM/YY',
+	'date.short': 'DD/MM/YY',
+	'date.medium': 'DD/MM/YYYY',
+	'date.long': 'ddd DD MMM YYYY',
+	'date.full': 'dddd DD MMMM YYYY',
 };
 ```
 

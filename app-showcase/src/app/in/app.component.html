@@ -1,0 +1,36 @@
+<div class="container" [class.background-grid]="showBackgroundGrid">
+	<h3><strong>eQual UI components showcase</strong></h3>
+
+	<div class="banner">
+		<img
+			src="https://lh3.googleusercontent.com/d3tOWOKjX4hMFRsu2nCIQx_n97QMSD0jZu6igbGbVK1vZTMZ-Md864N8IocatOnphRfJV9eDxvALfCxqFIJqDwU9s_5bbVblwyL6Mf6Pyyv6Ew=s0"
+			alt="">
+		<img
+			src="https://lh3.googleusercontent.com/En2RGP0ZVRBZpcPcJZvVrWhsam3OUStIHqSUp0JeSkuTwV96B_R3YYsIOUKA3wm6bIyoDnAsCMENrBI-jR5hbgY93gqfsEUWfWdYwKNJ8aE=s0"
+			alt="">
+		<img
+			src="https://lh3.googleusercontent.com/9jNhPnWkhAR9yPx24K18Keu1mPz4kfFyZbguTh5W0EKhubTQKufvn_n0u72zDwVepH-PkePwOraBy0iCA5PbLRN1MBP_ta5T21yfVSknfvA2=s0"
+			alt="">
+		<img
+			src="https://lh3.googleusercontent.com/McObbvh1waSmIICmUnQGk7JPL23UqepaHx_lCDK4YEDNqlbEWSQ7CcaHVp9t6dR9IPKKvCcWira-be_DXjuaug0MpQanq5TrM842UP7sWGw=s0"
+			alt="">
+	</div>
+
+	<ng-container *ngIf="!forceComponentToRefresh">
+		<ng-container *ngFor="let showcase of showcases">
+			<app-component-presenter
+				[showcase]="showcase"
+			></app-component-presenter>
+		</ng-container>
+	</ng-container>
+
+	<div class="floating-buttons">
+		<button mat-raised-button color="primary" (click)="toggleComponentsMode()">
+			Mode
+		</button>
+
+		<button mat-raised-button color="primary" (click)="toggleBackgroundGrid()">
+			Background grid
+		</button>
+	</div>
+</div>

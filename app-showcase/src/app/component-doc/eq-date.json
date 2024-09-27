@@ -1,0 +1,303 @@
+{
+    "title": "eq-date",
+	"columns": 4,
+	"componentSelector": "EqDateComponent",
+    "description": "The EqDateComponent is an Angular component used for rendering a date input field with various customization options. It supports view and edit modes, validation, and emits changes to the parent component. It also handles different date formats and localization.",
+    "components": [
+        {
+            "label": "outline edit small 85%",
+            "properties": {
+                "appearance": "outline",
+                "value": "2024-07-19T00:00:00+0000",
+                "placeholder": "Select a date",
+                "disabled": false,
+                "required": true,
+                "nullable": false,
+                "mode": "edit",
+                "title": "Date Picker",
+                "hint": "Choose a date from the calendar",
+                "size": "small",
+                "error": "Invalid date",
+                "usage": "date.medium"
+            }
+        },
+        {
+            "label": "outline edit normal 100%",
+            "properties": {
+                "appearance": "outline",
+                "value": "2024-07-19T00:00:00+0000",
+                "placeholder": "Select a date",
+                "disabled": false,
+                "required": true,
+                "nullable": false,
+                "mode": "edit",
+                "title": "Date Picker",
+                "hint": "Choose a date from the calendar",
+                "size": "normal",
+                "error": "Invalid date",
+                "usage": "date.medium"
+            }
+        },
+        {
+            "label": "outline edit large 117%",
+            "properties": {
+                "appearance": "outline",
+                "value": "2024-07-19T00:00:00+0000",
+                "placeholder": "Select a date",
+                "disabled": false,
+                "required": true,
+                "nullable": false,
+                "mode": "edit",
+                "title": "Date Picker",
+                "hint": "Choose a date from the calendar",
+                "size": "large",
+                "error": "Invalid date",
+                "usage": "date.medium"
+            }
+        },
+        {
+            "label": "outline edit extra 137%",
+            "properties": {
+                "appearance": "outline",
+                "value": "2024-07-19T00:00:00+0000",
+                "placeholder": "Select a date",
+                "disabled": false,
+                "required": true,
+                "nullable": false,
+                "mode": "edit",
+                "title": "Date Picker",
+                "hint": "Choose a date from the calendar",
+                "size": "extra",
+                "error": "Invalid date",
+                "usage": "date.medium"
+            }
+        },
+        {
+            "label": "outline view small 85%",
+            "properties": {
+                "appearance": "outline",
+                "value": "2024-07-19T00:00:00+0000",
+                "mode": "view",
+                "title": "View Only Date",
+                "size": "small",
+                "usage": "date.short"
+            }
+        },
+        {
+            "label": "outline view normal 100%",
+            "properties": {
+                "appearance": "outline",
+                "value": "2024-07-19T00:00:00+0000",
+                "mode": "view",
+                "title": "View Only Date",
+                "size": "normal",
+                "usage": "date.short"
+            }
+        },
+        {
+            "label": "outline view large 117%",
+            "properties": {
+                "appearance": "outline",
+                "value": "2024-07-19T00:00:00+0000",
+                "mode": "view",
+                "title": "View Only Date",
+                "size": "large",
+                "usage": "date.short"
+            }
+        },
+        {
+            "label": "outline view extra 137%",
+            "properties": {
+                "appearance": "outline",
+                "value": "2024-07-19T00:00:00+0000",
+                "mode": "view",
+                "title": "View Only Date",
+                "size": "extra",
+                "usage": "date.short"
+            }
+        },
+        {
+            "label": "fill edit small 85%",
+            "properties": {
+                "appearance": "fill",
+                "value": "2024-07-19T00:00:00+0000",
+                "placeholder": "Select a date",
+                "disabled": false,
+                "required": true,
+                "nullable": false,
+                "mode": "edit",
+                "title": "Date Picker",
+                "hint": "Choose a date from the calendar",
+                "size": "small",
+                "error": "Invalid date",
+                "usage": "date.medium"
+            }
+        },
+        {
+            "label": "fill edit normal 100%",
+            "properties": {
+                "appearance": "fill",
+                "value": "2024-07-19T00:00:00+0000",
+                "placeholder": "Select a date",
+                "disabled": false,
+                "required": true,
+                "nullable": false,
+                "mode": "edit",
+                "title": "Date Picker",
+                "hint": "Choose a date from the calendar",
+                "size": "normal",
+                "error": "Invalid date",
+                "usage": "date.medium"
+            }
+        },
+        {
+            "label": "fill edit large 117%",
+            "properties": {
+                "appearance": "fill",
+                "value": "2024-07-19T00:00:00+0000",
+                "placeholder": "Select a date",
+                "disabled": false,
+                "required": true,
+                "nullable": false,
+                "mode": "edit",
+                "title": "Date Picker",
+                "hint": "Choose a date from the calendar",
+                "size": "large",
+                "error": "Invalid date",
+                "usage": "date.medium"
+            }
+        },
+        {
+            "label": "fill edit extra 137%",
+            "properties": {
+                "appearance": "fill",
+                "value": "2024-07-19T00:00:00+0000",
+                "placeholder": "Select a date",
+                "disabled": false,
+                "required": true,
+                "nullable": false,
+                "mode": "edit",
+                "title": "Date Picker",
+                "hint": "Choose a date from the calendar",
+                "size": "extra",
+                "error": "Invalid date",
+                "usage": "date.medium"
+            }
+        },
+        {
+            "label": "fill view small 85%",
+            "properties": {
+                "appearance": "fill",
+                "value": "2024-07-19T00:00:00+0000",
+                "mode": "view",
+                "title": "View Only Date",
+                "size": "small",
+                "usage": "date.short"
+            }
+        },
+        {
+            "label": "fill view normal 100%",
+            "properties": {
+                "appearance": "fill",
+                "value": "2024-07-19T00:00:00+0000",
+                "mode": "view",
+                "title": "View Only Date",
+                "size": "normal",
+                "usage": "date.short"
+            }
+        },
+        {
+            "label": "fill view large 117%",
+            "properties": {
+                "appearance": "fill",
+                "value": "2024-07-19T00:00:00+0000",
+                "mode": "view",
+                "title": "View Only Date",
+                "size": "large",
+                "usage": "date.short"
+            }
+        },
+        {
+            "label": "fill view extra 137%",
+            "properties": {
+                "appearance": "fill",
+                "value": "2024-07-19T00:00:00+0000",
+                "mode": "view",
+                "title": "View Only Date",
+                "size": "extra",
+                "usage": "date.short"
+            }
+        }
+    ],
+    "documentation": {
+        "inputs": [
+			{
+				"name": "appearance",
+				"type": "'outline' | 'fill'",
+				"description": "The appearance of the input field. Defaults to outline."
+			},
+            {
+                "name": "value",
+                "type": "string | null",
+                "description": "The current value of the date input. It should be in ISO date format."
+            },
+            {
+                "name": "placeholder",
+                "type": "string",
+                "description": "Placeholder text for the input. Defaults to an empty string."
+            },
+            {
+                "name": "disabled",
+                "type": "boolean",
+                "description": "Whether the input is disabled. Defaults to false."
+            },
+            {
+                "name": "required",
+                "type": "boolean",
+                "description": "Whether the input is required. Defaults to false."
+            },
+            {
+                "name": "nullable",
+                "type": "boolean",
+                "description": "Whether the input can be null. Defaults to false."
+            },
+            {
+                "name": "mode",
+                "type": "'view' | 'edit'",
+                "description": "The mode of the component, either 'view' or 'edit'. Defaults to 'view'."
+            },
+            {
+                "name": "title",
+                "type": "string",
+                "description": "Optional title for the input."
+            },
+            {
+                "name": "hint",
+                "type": "string",
+                "description": "Hint text for the input. Defaults to an empty string."
+            },
+            {
+                "name": "size",
+                "type": "'small' | 'normal' | 'large' | 'extra'",
+                "description": "The size of the input. Defaults to normal."
+            },
+            {
+                "name": "error",
+                "type": "string",
+                "description": "Error message to display when the input is invalid."
+            },
+            {
+                "name": "usage",
+                "type": "'date.short.day' | 'date.short' | 'date.medium' | 'date.long' | 'date.full'",
+                "description": "The format in which the date should be displayed."
+            }
+        ],
+        "outputs": [
+            {
+                "name": "valueChange",
+                "type": "EventEmitter<string | null>",
+                "description": "Emits the new value when the date changes."
+            }
+        ]
+    }
+}

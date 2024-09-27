@@ -1,66 +1,68 @@
 <div #eqString
-     class="eq-string"
-     [class.cursor]="mode === 'edit' && !disabled">
+	 class="eq-string"
+	 [class]="mode + ' ' + appearance + ' ' + size"
+	 [class.cursor]="mode === 'edit' && !disabled">
+
     <span *ngIf="mode === 'view'"
-            class="text"
-            [class.is_null]="is_null"
-            [class]="size">
+		  class="text"
+		  [class.is_null]="is_null"
+		  [class]="size">
         <span>{{ formControl.value }}</span>
         <div *ngIf="hint_always" class="hint" title="{{hint}}">{{ hint }}</div>
     </span>
-    <mat-form-field *ngIf="mode === 'edit'"
-        (click)="activate()"
-        [class.disabled]="disabled"
-        appearance="fill">
-        <mat-label *ngIf="title && mode === 'edit'">{{ title }}</mat-label>
-        <input #input
-                matInput
-                [class]="size"
-                [class.is_null]="is_null"
-                [disabled]="disabled"
-                [formControl]="formControl"
-                [placeholder]="mode === 'edit' ? placeholder: ''"
-                (blur)="onBlur($event)" />
-        <button
-            *ngIf="is_active && formControl.value.length && !is_null"
-            mat-icon-button
-            matSuffix
-            (click)="onClear($event)">
-            <mat-icon>close</mat-icon>
-        </button>
-        <button
-            *ngIf="nullable && (is_active && !formControl.value.length && !is_null)"
-            color="accent"
-            mat-icon-button
-            matSuffix
-            (click)="toggleIsNull(true)">
-            <mat-icon>toggle_off</mat-icon>
-        </button>
-        <button
-            *ngIf="nullable && (is_active && is_null)"
-            mat-icon-button
-            matSuffix
-            (click)="toggleIsNull(false)">
-            <mat-icon>toggle_on</mat-icon>
-        </button>
-        <mat-hint *ngIf="!formControl.invalid" [title]="hint">{{ hint }}</mat-hint>
-        <mat-error *ngIf="formControl.invalid">{{ getErrorMessage() }}</mat-error>
-    </mat-form-field>
-    <button
-        mat-icon-button
-        class="action"
-        color="primary"
-        [disabled]="formControl.invalid"
-        *ngIf="is_active && mode === 'edit'"
-        (click)="onSave($event)">
-        <mat-icon>check_small</mat-icon>
-    </button>
-    <button
-        mat-icon-button
-        class="action"
-        color="accent"
-        *ngIf="is_active && mode === 'edit'"
-        (click)="onCancel($event)">
-        <mat-icon>cancel</mat-icon>
-    </button>
+	<mat-form-field *ngIf="mode === 'edit'"
+					(click)="activate()"
+					[class.disabled]="disabled"
+					[appearance]="appearance">
+		<mat-label *ngIf="title && mode === 'edit'">{{ title }}</mat-label>
+		<input #input
+			   matInput
+			   [class]="size"
+			   [class.is_null]="is_null"
+			   [disabled]="disabled"
+			   [formControl]="formControl"
+			   [placeholder]="mode === 'edit' ? placeholder: ''"
+			   (blur)="onBlur($event)"/>
+		<button
+			*ngIf="is_active && formControl.value.length && !is_null"
+			mat-icon-button
+			matSuffix
+			(click)="onClear($event)">
+			<mat-icon>close</mat-icon>
+		</button>
+		<button
+			*ngIf="nullable && (is_active && !formControl.value.length && !is_null)"
+			color="accent"
+			mat-icon-button
+			matSuffix
+			(click)="toggleIsNull(true)">
+			<mat-icon>toggle_off</mat-icon>
+		</button>
+		<button
+			*ngIf="nullable && (is_active && is_null)"
+			mat-icon-button
+			matSuffix
+			(click)="toggleIsNull(false)">
+			<mat-icon>toggle_on</mat-icon>
+		</button>
+		<mat-hint *ngIf="!formControl.invalid" [title]="hint">{{ hint }}</mat-hint>
+		<mat-error *ngIf="formControl.invalid">{{ getErrorMessage() }}</mat-error>
+	</mat-form-field>
+	<button
+		mat-icon-button
+		class="action"
+		color="primary"
+		[disabled]="formControl.invalid"
+		*ngIf="is_active && mode === 'edit'"
+		(click)="onSave($event)">
+		<mat-icon>check_small</mat-icon>
+	</button>
+	<button
+		mat-icon-button
+		class="action"
+		color="accent"
+		*ngIf="is_active && mode === 'edit'"
+		(click)="onCancel($event)">
+		<mat-icon>cancel</mat-icon>
+	</button>
 </div>

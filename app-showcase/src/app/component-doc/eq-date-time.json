@@ -1,0 +1,303 @@
+{
+    "title": "eq-date-time",
+	"columns": 4,
+	"componentSelector": "EqDateTimeComponent",
+    "description": "The EqDateTimeComponent is an Angular component used for rendering a date and time input field with various customization options. It supports view and edit modes, validation, and emits changes to the parent component.",
+    "components": [
+        {
+            "label": "outline edit small 85%",
+            "properties": {
+                "appearance": "outline",
+                "value": "2024-07-19T14:30:00+0000",
+                "placeholder": "Select date and time",
+                "disabled": false,
+                "required": true,
+                "nullable": false,
+                "mode": "edit",
+                "title": "Date and Time Input",
+                "hint": "Enter date and time",
+                "size": "small",
+                "error": "Invalid date or time",
+                "usage": "datetime.medium"
+            }
+        },
+        {
+            "label": "outline edit normal 100%",
+            "properties": {
+                "appearance": "outline",
+                "value": "2024-07-19T14:30:00+0000",
+                "placeholder": "Select date and time",
+                "disabled": false,
+                "required": true,
+                "nullable": false,
+                "mode": "edit",
+                "title": "Date and Time Input",
+                "hint": "Enter date and time",
+                "size": "normal",
+                "error": "Invalid date or time",
+                "usage": "datetime.medium"
+            }
+        },
+        {
+            "label": "outline edit large 117%",
+            "properties": {
+                "appearance": "outline",
+                "value": "2024-07-19T14:30:00+0000",
+                "placeholder": "Select date and time",
+                "disabled": false,
+                "required": true,
+                "nullable": false,
+                "mode": "edit",
+                "title": "Date and Time Input",
+                "hint": "Enter date and time",
+                "size": "large",
+                "error": "Invalid date or time",
+                "usage": "datetime.medium"
+            }
+        },
+        {
+            "label": "outline edit extra 137%",
+            "properties": {
+                "appearance": "outline",
+                "value": "2024-07-19T14:30:00+0000",
+                "placeholder": "Select date and time",
+                "disabled": false,
+                "required": true,
+                "nullable": false,
+                "mode": "edit",
+                "title": "Date and Time Input",
+                "hint": "Enter date and time",
+                "size": "extra",
+                "error": "Invalid date or time",
+                "usage": "datetime.medium"
+            }
+        },
+        {
+            "label": "outline view small 85%",
+            "properties": {
+                "appearance": "outline",
+                "value": "2024-07-19T14:30:00+0000",
+                "mode": "view",
+                "title": "View Mode Date and Time",
+                "size": "small",
+                "usage": "datetime.short"
+            }
+        },
+        {
+            "label": "outline view normal 100%",
+            "properties": {
+                "appearance": "outline",
+                "value": "2024-07-19T14:30:00+0000",
+                "mode": "view",
+                "title": "View Mode Date and Time",
+                "size": "normal",
+                "usage": "datetime.short"
+            }
+        },
+        {
+            "label": "outline view large 117%",
+            "properties": {
+                "appearance": "outline",
+                "value": "2024-07-19T14:30:00+0000",
+                "mode": "view",
+                "title": "View Mode Date and Time",
+                "size": "large",
+                "usage": "datetime.short"
+            }
+        },
+        {
+            "label": "outline view extra 137%",
+            "properties": {
+                "appearance": "outline",
+                "value": "2024-07-19T14:30:00+0000",
+                "mode": "view",
+                "title": "View Mode Date and Time",
+                "size": "extra",
+                "usage": "datetime.short"
+            }
+        },
+        {
+            "label": "fill edit small 85%",
+            "properties": {
+                "appearance": "fill",
+                "value": "2024-07-19T14:30:00+0000",
+                "placeholder": "Select date and time",
+                "disabled": false,
+                "required": true,
+                "nullable": false,
+                "mode": "edit",
+                "title": "Date and Time Input",
+                "hint": "Enter date and time",
+                "size": "small",
+                "error": "Invalid date or time",
+                "usage": "datetime.medium"
+            }
+        },
+        {
+            "label": "fill edit normal 100%",
+            "properties": {
+                "appearance": "fill",
+                "value": "2024-07-19T14:30:00+0000",
+                "placeholder": "Select date and time",
+                "disabled": false,
+                "required": true,
+                "nullable": false,
+                "mode": "edit",
+                "title": "Date and Time Input",
+                "hint": "Enter date and time",
+                "size": "normal",
+                "error": "Invalid date or time",
+                "usage": "datetime.medium"
+            }
+        },
+        {
+            "label": "fill edit large 117%",
+            "properties": {
+                "appearance": "fill",
+                "value": "2024-07-19T14:30:00+0000",
+                "placeholder": "Select date and time",
+                "disabled": false,
+                "required": true,
+                "nullable": false,
+                "mode": "edit",
+                "title": "Date and Time Input",
+                "hint": "Enter date and time",
+                "size": "large",
+                "error": "Invalid date or time",
+                "usage": "datetime.medium"
+            }
+        },
+        {
+            "label": "fill edit extra 137%",
+            "properties": {
+                "appearance": "fill",
+                "value": "2024-07-19T14:30:00+0000",
+                "placeholder": "Select date and time",
+                "disabled": false,
+                "required": true,
+                "nullable": false,
+                "mode": "edit",
+                "title": "Date and Time Input",
+                "hint": "Enter date and time",
+                "size": "extra",
+                "error": "Invalid date or time",
+                "usage": "datetime.medium"
+            }
+        },
+        {
+            "label": "fill view small 85%",
+            "properties": {
+                "appearance": "fill",
+                "value": "2024-07-19T14:30:00+0000",
+                "mode": "view",
+                "title": "View Mode Date and Time",
+                "size": "small",
+                "usage": "datetime.short"
+            }
+        },
+        {
+            "label": "fill view normal 100%",
+            "properties": {
+                "appearance": "fill",
+                "value": "2024-07-19T14:30:00+0000",
+                "mode": "view",
+                "title": "View Mode Date and Time",
+                "size": "normal",
+                "usage": "datetime.short"
+            }
+        },
+        {
+            "label": "fill view large 117%",
+            "properties": {
+                "appearance": "fill",
+                "value": "2024-07-19T14:30:00+0000",
+                "mode": "view",
+                "title": "View Mode Date and Time",
+                "size": "large",
+                "usage": "datetime.short"
+            }
+        },
+        {
+            "label": "fill view extra 137%",
+            "properties": {
+                "appearance": "fill",
+                "value": "2024-07-19T14:30:00+0000",
+                "mode": "view",
+                "title": "View Mode Date and Time",
+                "size": "extra",
+                "usage": "datetime.short"
+            }
+        }
+    ],
+    "documentation": {
+        "inputs": [
+			{
+				"name": "appearance",
+				"type": "'outline' | 'fill'",
+				"description": "The appearance of the input field. Defaults to outline."
+			},
+            {
+                "name": "value",
+                "type": "string | null",
+                "description": "The current date and time value in ISO format or null."
+            },
+            {
+                "name": "placeholder",
+                "type": "string",
+                "description": "Placeholder text for the input. Defaults to an empty string."
+            },
+            {
+                "name": "disabled",
+                "type": "boolean",
+                "description": "Whether the input is disabled. Defaults to false."
+            },
+            {
+                "name": "required",
+                "type": "boolean",
+                "description": "Whether the input is required. Defaults to false."
+            },
+            {
+                "name": "nullable",
+                "type": "boolean",
+                "description": "Whether the input can be null. Defaults to false."
+            },
+            {
+                "name": "mode",
+                "type": "'view' | 'edit'",
+                "description": "The mode of the component, either 'view' or 'edit'. Defaults to 'view'."
+            },
+            {
+                "name": "title",
+                "type": "string",
+                "description": "Optional title for the input."
+            },
+            {
+                "name": "hint",
+                "type": "string",
+                "description": "Hint text for the input. Defaults to an empty string."
+            },
+            {
+                "name": "size",
+                "type": "'small' | 'normal' | 'large' | 'extra'",
+                "description": "The size of the input. Defaults to normal."
+            },
+            {
+                "name": "error",
+                "type": "string",
+                "description": "Error message to display when the input is invalid."
+            },
+            {
+                "name": "usage",
+                "type": "'datetime.short' | 'datetime.medium' | 'datetime.long' | 'datetime.full'",
+                "description": "Format usage for displaying the date and time. Defaults to 'datetime.medium'."
+            }
+        ],
+        "outputs": [
+            {
+                "name": "valueChange",
+                "type": "EventEmitter<string | null>",
+                "description": "Emits the new date and time value when it changes."
+            }
+        ]
+    }
+}
