@@ -79,7 +79,7 @@
 			</mat-hint>
 		</mat-form-field>
 		<button
-			*ngIf="mode === 'edit' && is_active"
+			*ngIf="is_active"
 			mat-icon-button
 			class="action"
 			color="primary"
@@ -88,7 +88,7 @@
 			<mat-icon>check_small</mat-icon>
 		</button>
 		<button
-			*ngIf="mode === 'edit' && is_active"
+			*ngIf="is_active"
 			mat-icon-button
 			class="action"
 			color="accent"

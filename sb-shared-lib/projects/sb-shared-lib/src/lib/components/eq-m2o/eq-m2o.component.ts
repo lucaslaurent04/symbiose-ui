@@ -84,7 +84,9 @@ export class EqM2oComponent implements OnInit, OnChanges, AfterViewInit, AfterCo
 
 	@Input() appearance: 'fill' | 'outline' = 'outline';
 
-	@Output() itemSelected: EventEmitter<number | '[null]'> = new EventEmitter<number | '[null]'>();
+	@Output() itemSelected: EventEmitter<{ id: number } | ''> = new EventEmitter<{ id: number } | ''>();
+
+	@Output() canceled: EventEmitter<void> = new EventEmitter<void>();
 
 	// eslint-disable-next-line @angular-eslint/no-output-native
 	// tslint:disable-next-line:no-output-native
@@ -351,6 +353,7 @@ export class EqM2oComponent implements OnInit, OnChanges, AfterViewInit, AfterCo
 		event.stopPropagation();
 		this.onRestore();
 		this.toggleActive(false);
+		this.canceled.emit();
 	}
 
 	/**
@@ -360,12 +363,13 @@ export class EqM2oComponent implements OnInit, OnChanges, AfterViewInit, AfterCo
 		event.preventDefault();
 		event.stopPropagation();
 		if (this.nullable && [null, '[null]'].includes(this.formControl.value)) {
-			this.itemSelected.emit('[null]');
+			this.itemSelected.emit('');
 		} else {
 			this.itemSelected.emit(this.formControl.value);
 		}
 		this.initialSelectedItem = this.formControl.value;
 		this.isFocused = false;
+		this.toggleActive(false);
 	}
 
 	public activate(): void {
